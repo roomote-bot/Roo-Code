@@ -28,7 +28,7 @@ export default [
     },
   },
   {
-    ignores: ['dist/**'],
+    ignores: ['dist/**', '.next'],
   },
   {
     ...pluginReact.configs.flat.recommended,
