@@ -2,16 +2,12 @@ import { type ForwardedRef, forwardRef } from 'react';
 
 import { Button } from '@/components/ui/button';
 
-/**
- * A toggle button to show/hide component in small screen.
- * @component
- * @params props - Component props.
- * @params props.onClick - Function to run when the button is clicked.
- */
+type ToggleMenuButtonProps = {
+  onClick?: () => void;
+};
+
 const ToggleMenuButtonInternal = (
-  props: {
-    onClick?: () => void;
-  },
+  props: ToggleMenuButtonProps,
   ref?: ForwardedRef<HTMLButtonElement>,
 ) => (
   <Button

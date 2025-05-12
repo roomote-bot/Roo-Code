@@ -1,9 +1,9 @@
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
 
-import { Features } from '@/templates/Features';
-import { Footer } from '@/templates/Footer';
-import { Hero } from '@/templates/Hero';
-import { Navbar } from '@/templates/Navbar';
+import { Features } from '@/components/templates/Features';
+import { Footer } from '@/components/templates/Footer';
+import { Hero } from '@/components/templates/Hero';
+import { Navbar } from '@/components/templates/Navbar';
 
 export async function generateMetadata() {
   const locale = await getLocale();

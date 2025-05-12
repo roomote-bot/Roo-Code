@@ -3,24 +3,26 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-import { cn } from '@/utils/Helpers';
+import { cn } from '@/lib/utils';
 
-export const ActiveLink = (props: {
+type ActiveLinkProps = {
   href: string;
   children: React.ReactNode;
-}) => {
+};
+
+export const ActiveLink = ({ href, children }: ActiveLinkProps) => {
   const pathname = usePathname();
 
   return (
     <Link
-      href={props.href}
+      href={href}
       className={cn(
         'px-3 py-2',
-        pathname.endsWith(props.href) &&
+        pathname.endsWith(href) &&
           'rounded-md bg-primary text-primary-foreground',
       )}
     >
-      {props.children}
+      {children}
     </Link>
   );
 };

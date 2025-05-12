@@ -11,9 +11,9 @@ import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator';
 import { PHASE_PRODUCTION_BUILD } from 'next/dist/shared/lib/constants';
 import { Client } from 'pg';
 
-import * as schema from '@/models/Schema';
+import * as schema from '@/db/schema';
 
-import { Env } from './Env';
+import { Env } from '../lib/server/Env';
 
 let client;
 let drizzle;

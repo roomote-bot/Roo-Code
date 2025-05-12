@@ -1,4 +1,4 @@
-import type { OrgPermission, OrgRole } from '@/types/Auth';
+import type { OrgPermission, OrgRole } from '@/types/auth';
 
 declare global {
   interface ClerkAuthorization {

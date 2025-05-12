@@ -1,8 +1,11 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
+import { Locales, isLocale } from '@/types/locale';
+import { setLocale } from '@/actions/locale';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,17 +14,20 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { AppConfig } from '@/utils/AppConfig';
 
 export const LocaleSwitcher = () => {
   const router = useRouter();
-  const pathname = usePathname();
   const locale = useLocale();
 
-  const handleChange = () => {
-    router.push(pathname);
-    router.refresh();
-  };
+  const onLocaleChange = useCallback(
+    (value: string) => {
+      if (isLocale(value)) {
+        setLocale(value);
+        router.refresh();
+      }
+    },
+    [router],
+  );
 
   return (
     <DropdownMenu>
@@ -47,10 +53,10 @@ export const LocaleSwitcher = () => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuRadioGroup value={locale} onValueChange={handleChange}>
-          {AppConfig.locales.map((elt) => (
-            <DropdownMenuRadioItem key={elt.id} value={elt.id}>
-              {elt.name}
+        <DropdownMenuRadioGroup value={locale} onValueChange={onLocaleChange}>
+          {Object.entries(Locales).map(([id, name]) => (
+            <DropdownMenuRadioItem key={id} value={id}>
+              {name}
             </DropdownMenuRadioItem>
           ))}
         </DropdownMenuRadioGroup>

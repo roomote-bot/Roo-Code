@@ -1,7 +1,7 @@
 import { useTranslations } from 'next-intl';
 
-import { MessageState } from '@/features/dashboard/MessageState';
-import { TitleBar } from '@/features/dashboard/TitleBar';
+import { MessageState } from '@/components/dashboard/MessageState';
+import { TitleBar } from '@/components/dashboard/TitleBar';
 
 const DashboardIndexPage = () => {
   const t = useTranslations('DashboardIndex');

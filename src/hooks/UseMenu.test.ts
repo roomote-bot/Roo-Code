@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 
-import { useMenu } from './UseMenu';
+import { useMenu } from './useMenu';
 
 describe('UseMenu', () => {
   describe('Render hook', () => {
