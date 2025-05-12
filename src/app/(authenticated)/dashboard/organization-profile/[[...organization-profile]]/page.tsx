@@ -12,17 +12,11 @@ export default function Page() {
         title={t('title_bar')}
         description={t('title_bar_description')}
       />
-
       <OrganizationProfile
         routing="path"
         path="/dashboard/organization-profile"
-        afterLeaveOrganizationUrl="/onboarding/organization-selection"
-        appearance={{
-          elements: {
-            rootBox: 'w-full',
-            cardBox: 'w-full flex',
-          },
-        }}
+        afterLeaveOrganizationUrl="/onboarding/select-org"
+        appearance={{ elements: { rootBox: 'w-full', cardBox: 'w-full flex' } }}
       />
     </>
   );
