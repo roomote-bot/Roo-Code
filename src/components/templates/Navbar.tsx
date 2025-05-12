@@ -1,8 +1,9 @@
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
+import { Button } from '@/components/ui';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
-import { buttonVariants } from '@/components/ui/button';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { CenteredMenu } from '@/components/landing/CenteredMenu';
 import { Section } from '@/components/landing/Section';
 
@@ -20,19 +21,20 @@ export const Navbar = () => {
             <li data-fade>
               <LocaleSwitcher />
             </li>
+            <li data-fade>
+              <ThemeSwitcher />
+            </li>
             <li className="ml-1 mr-2.5" data-fade>
               <Link href="/sign-in">{t('sign_in')}</Link>
             </li>
             <li>
-              <Link className={buttonVariants()} href="/sign-up">
-                {t('sign_up')}
-              </Link>
+              <Button asChild>
+                <Link href="/sign-up">{t('sign_up')}</Link>
+              </Button>
             </li>
           </>
         }
-      >
-        <div />
-      </CenteredMenu>
+      />
     </Section>
   );
 };

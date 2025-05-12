@@ -4,12 +4,11 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale } from 'next-intl/server';
 
+import { ThemeProvider } from '@/components/ThemeProvider';
+
 export const metadata: Metadata = {
   icons: [
-    {
-      rel: 'apple-touch-icon',
-      url: '/apple-touch-icon.png',
-    },
+    { rel: 'apple-touch-icon', url: '/apple-touch-icon.png' },
     {
       rel: 'icon',
       type: 'image/png',
@@ -22,14 +21,15 @@ export const metadata: Metadata = {
       sizes: '16x16',
       url: '/favicon-16x16.png',
     },
-    {
-      rel: 'icon',
-      url: '/favicon.ico',
-    },
+    { rel: 'icon', url: '/favicon.ico' },
   ],
 };
 
-export default async function RootLayout(props: { children: React.ReactNode }) {
+export default async function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const locale = await getLocale();
 
   return (
@@ -38,7 +38,16 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
         className="bg-background text-foreground antialiased"
         suppressHydrationWarning
       >
-        <NextIntlClientProvider>{props.children}</NextIntlClientProvider>
+        <NextIntlClientProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </ThemeProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

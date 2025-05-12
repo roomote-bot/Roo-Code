@@ -1,6 +1,6 @@
 import { type ForwardedRef, forwardRef } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 
 type ToggleMenuButtonProps = {
   onClick?: () => void;
