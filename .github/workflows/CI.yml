@@ -55,7 +55,7 @@ jobs:
       #     CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
       # - name: Install Playwright (used for Storybook and E2E tests)
-      #   run: pnpx playwright install --with-deps
+      #   run: npx playwright install --with-deps
 
       # - name: Run storybook tests
       #   run: pnpm test-storybook:ci

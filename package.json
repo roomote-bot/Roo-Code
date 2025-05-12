@@ -6,7 +6,7 @@
     "check-types": "tsc --noEmit --pretty",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "dev:spotlight": "pnpx @spotlightjs/spotlight",
+    "dev:spotlight": "npx @spotlightjs/spotlight",
     "dev:next": "next dev --turbopack",
     "dev": "run-p dev:*",
     "build": "next build",
@@ -117,7 +117,7 @@
       "prettier --write"
     ],
     "src/**/*.{ts,tsx}": [
-      "pnpx eslint --max-warnings=0 --fix"
+      "npx eslint --max-warnings=0 --fix"
     ]
   }
 }

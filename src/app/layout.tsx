@@ -3,10 +3,10 @@ import '@/styles/globals.css';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale } from 'next-intl/server';
-import { enUS, frFR } from '@clerk/localizations';
 import { ClerkProvider } from '@clerk/nextjs';
 
-import { ThemeProvider } from '@/components/layout/ThemeProvider';
+import { getClerkLocale } from '@/lib/locale';
+import { ThemeProvider } from '@/components/layout';
 
 export const metadata: Metadata = {
   icons: [
@@ -41,13 +41,8 @@ export default async function RootLayout({
         suppressHydrationWarning
       >
         <NextIntlClientProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem
-            disableTransitionOnChange
-          >
-            <ClerkProvider localization={locale === 'fr' ? frFR : enUS}>
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            <ClerkProvider localization={getClerkLocale(locale)}>
               {children}
             </ClerkProvider>
           </ThemeProvider>
