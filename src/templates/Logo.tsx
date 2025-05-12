@@ -1,8 +1,6 @@
 import { AppConfig } from '@/utils/AppConfig';
 
-export const Logo = (props: {
-  isTextHidden?: boolean;
-}) => (
+export const Logo = (props: { isTextHidden?: boolean }) => (
   <div className="flex items-center text-xl font-semibold">
     <svg
       className="mr-1 size-8 stroke-current stroke-2"

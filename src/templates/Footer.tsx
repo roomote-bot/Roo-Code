@@ -15,7 +15,7 @@ export const Footer = () => {
       <CenteredFooter
         logo={<Logo />}
         name={AppConfig.name}
-        iconList={(
+        iconList={
           <>
             <li>
               <Link href="/">
@@ -73,8 +73,8 @@ export const Footer = () => {
               </Link>
             </li>
           </>
-        )}
-        legalLinks={(
+        }
+        legalLinks={
           <>
             <li>
               <Link href="/sign-up">{t('terms_of_service')}</Link>
@@ -83,7 +83,7 @@ export const Footer = () => {
               <Link href="/sign-up">{t('privacy_policy')}</Link>
             </li>
           </>
-        )}
+        }
       >
         <li>
           <Link href="/sign-up">{t('product')}</Link>
