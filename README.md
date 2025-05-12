@@ -28,6 +28,12 @@ You can now install the required packages with:
 pnpm install
 ```
 
+Make sure your database is migrated:
+
+```sh
+pnpm db:migrate
+```
+
 If everything is working as expected you should be able to run any of the following without errors:
 
 ```sh
