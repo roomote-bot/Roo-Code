@@ -1,0 +1,72 @@
+{
+  "Index": {
+    "meta_title": "SaaS Template - Le template SaaS parfait pour construire et mettre à l'échelle votre entreprise en toute simplicité.",
+    "meta_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS."
+  },
+  "Navbar": {
+    "sign_in": "Se connecter",
+    "sign_up": "S'inscrire",
+    "product": "Produit",
+    "docs": "Docs",
+    "blog": "Blog",
+    "community": "Communauté",
+    "company": "Entreprise"
+  },
+  "Hero": {
+    "title": "Le parfait <important>SaaS template</important> pour construire et mettre à l'échelle votre entreprise en toute simplicité.",
+    "description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS."
+  },
+  "Features": {
+    "section_subtitle": "Fonctionnalités",
+    "section_title": "Débloquer le plein potentiel du SaaS Template",
+    "section_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS.",
+    "feature1_title": "Node.js",
+    "feature2_title": "React",
+    "feature3_title": "Tailwind CSS",
+    "feature4_title": "TypeScript",
+    "feature5_title": "Shadcn UI",
+    "feature6_title": "ESLint",
+    "feature_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS."
+  },
+  "Footer": {
+    "product": "Produit",
+    "docs": "Docs",
+    "blog": "Blog",
+    "community": "Communauté",
+    "company": "Entreprise",
+    "terms_of_service": "Conditions d'utilisation",
+    "privacy_policy": "Politique de confidentialité"
+  },
+  "SignIn": {
+    "meta_title": "Se connecter",
+    "meta_description": "Connectez-vous à votre compte avec facilité."
+  },
+  "SignUp": {
+    "meta_title": "S'inscrire",
+    "meta_description": "Créez un compte sans effort grâce à notre processus d'inscription intuitif."
+  },
+  "DashboardLayout": {
+    "home": "Accueil",
+    "todos": "Todos",
+    "members": "Membres",
+    "billing": "Facturation",
+    "settings": "Réglages"
+  },
+  "Dashboard": {
+    "meta_title": "Tableau de bord du SaaS Template",
+    "meta_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec Next.js, TypeScript, Shadcn UI et Tailwind CSS."
+  },
+  "DashboardIndex": {
+    "title_bar": "Tableau de bord",
+    "title_bar_description": "Bienvenue sur votre tableau de bord",
+    "message_state_title": "C'est parti"
+  },
+  "UserProfile": {
+    "title_bar": "Profil utilisateur",
+    "title_bar_description": "Afficher et gérer votre profil utilisateur"
+  },
+  "OrganizationProfile": {
+    "title_bar": "Gestion de l’organisation",
+    "title_bar_description": "Gérer votre organisation"
+  }
+}

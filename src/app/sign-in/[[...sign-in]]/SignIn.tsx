@@ -1,0 +1,22 @@
+'use client';
+
+import Link from 'next/link';
+import { useTheme } from 'next-themes';
+import { dark } from '@clerk/themes';
+import { SignIn as ClerkSignIn } from '@clerk/nextjs';
+
+import { Logo } from '@/components/layout';
+
+export const SignIn = () => {
+  const { resolvedTheme } = useTheme();
+  const baseTheme = resolvedTheme === 'dark' ? dark : undefined;
+
+  return (
+    <div className="flex flex-col gap-8 h-screen w-full items-center justify-center">
+      <Link href="/">
+        <Logo />
+      </Link>
+      <ClerkSignIn appearance={{ baseTheme }} />
+    </div>
+  );
+};

@@ -1,68 +1,73 @@
-import antfu from '@antfu/eslint-config';
-import nextPlugin from '@next/eslint-plugin-next';
-import jestDom from 'eslint-plugin-jest-dom';
-import jsxA11y from 'eslint-plugin-jsx-a11y';
-import playwright from 'eslint-plugin-playwright';
-import simpleImportSort from 'eslint-plugin-simple-import-sort';
-import tailwind from 'eslint-plugin-tailwindcss';
-import testingLibrary from 'eslint-plugin-testing-library';
+import globals from 'globals';
 
-export default antfu({
-  react: true,
-  typescript: true,
+import js from '@eslint/js';
+import eslintConfigPrettier from 'eslint-config-prettier';
+import tseslint from 'typescript-eslint';
+import pluginReactHooks from 'eslint-plugin-react-hooks';
+import pluginReact from 'eslint-plugin-react';
+import pluginNext from '@next/eslint-plugin-next';
+// import turboPlugin from 'eslint-plugin-turbo';
+import onlyWarn from 'eslint-plugin-only-warn';
 
-  lessOpinionated: true,
-  isInEditor: false,
-
-  stylistic: {
-    semi: true,
+/** @type {import("eslint").Linter.Config} */
+export default [
+  js.configs.recommended,
+  eslintConfigPrettier,
+  ...tseslint.configs.recommended,
+  // {
+  //   plugins: {
+  //     turbo: turboPlugin,
+  //   },
+  //   rules: {
+  //     'turbo/no-undeclared-env-vars': 'warn',
+  //   },
+  // },
+  {
+    plugins: {
+      onlyWarn,
+    },
   },
-
-  formatters: {
-    css: true,
+  {
+    ignores: ['dist/**', '.next'],
   },
-
-  ignores: [
-    'migrations/**/*',
-    'next-env.d.ts',
-  ],
-}, ...tailwind.configs['flat/recommended'], jsxA11y.flatConfigs.recommended, {
-  plugins: {
-    '@next/next': nextPlugin,
+  {
+    ...pluginReact.configs.flat.recommended,
+    languageOptions: {
+      ...pluginReact.configs.flat.recommended.languageOptions,
+      globals: {
+        ...globals.serviceworker,
+      },
+    },
   },
-  rules: {
-    ...nextPlugin.configs.recommended.rules,
-    ...nextPlugin.configs['core-web-vitals'].rules,
+  {
+    plugins: {
+      '@next/next': pluginNext,
+    },
+    rules: {
+      ...pluginNext.configs.recommended.rules,
+      ...pluginNext.configs['core-web-vitals'].rules,
+    },
   },
-}, {
-  plugins: {
-    'simple-import-sort': simpleImportSort,
+  {
+    plugins: {
+      'react-hooks': pluginReactHooks,
+    },
+    settings: { react: { version: 'detect' } },
+    rules: {
+      ...pluginReactHooks.configs.recommended.rules,
+      // React scope no longer necessary with new JSX transform.
+      'react/react-in-jsx-scope': 'off',
+    },
   },
-  rules: {
-    'simple-import-sort/imports': 'error',
-    'simple-import-sort/exports': 'error',
+  {
+    rules: {
+      'no-unused-vars': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
+    },
   },
-}, {
-  files: [
-    '**/*.test.ts?(x)',
-  ],
-  ...testingLibrary.configs['flat/react'],
-  ...jestDom.configs['flat/recommended'],
-}, {
-  files: [
-    '**/*.spec.ts',
-    '**/*.e2e.ts',
-  ],
-  ...playwright.configs['flat/recommended'],
-}, {
-  rules: {
-    'import/order': 'off', // Avoid conflicts with `simple-import-sort` plugin
-    'sort-imports': 'off', // Avoid conflicts with `simple-import-sort` plugin
-    'style/brace-style': ['error', '1tbs'], // Use the default brace style
-    'ts/consistent-type-definitions': ['error', 'type'], // Use `type` instead of `interface`
-    'react/prefer-destructuring-assignment': 'off', // Vscode doesn't support automatically destructuring, it's a pain to add a new variable
-    'node/prefer-global/process': 'off', // Allow using `process.env`
-    'test/padding-around-all': 'error', // Add padding in test files
-    'test/prefer-lowercase-title': 'off', // Allow using uppercase titles in test titles
-  },
-});
+];

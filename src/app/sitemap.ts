@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-import { getBaseUrl } from '@/utils/Helpers';
+import { getBaseUrl } from '@/lib/getBaseUrl';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
@@ -10,6 +10,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'daily',
       priority: 0.7,
     },
-    // Add more URLs here
   ];
 }

@@ -1,4 +1,4 @@
-import type { EnumValues } from './Enum';
+import type { EnumValues } from './enum';
 
 export const ORG_ROLE = {
   ADMIN: 'org:admin',
@@ -8,7 +8,7 @@ export const ORG_ROLE = {
 export type OrgRole = EnumValues<typeof ORG_ROLE>;
 
 export const ORG_PERMISSION = {
-  // Add Organization Permissions here
+  // Add Organization Permissions here.
 } as const;
 
 export type OrgPermission = EnumValues<typeof ORG_PERMISSION>;

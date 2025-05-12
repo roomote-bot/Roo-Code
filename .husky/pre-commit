@@ -1,3 +1,8 @@
-#!/bin/sh
-# Disable concurent to run `check-types` after ESLint in lint-staged
-cd "$(dirname "$0")/.." && npx --no lint-staged --concurrent false
+branch="$(git rev-parse --abbrev-ref HEAD)"
+
+if [ "$branch" = "main" ]; then
+  echo "You can't push directly to main - please check out a branch."
+  exit 1
+fi
+
+npx lint-staged
