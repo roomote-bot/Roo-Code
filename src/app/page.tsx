@@ -1,26 +1,20 @@
+import { redirect } from 'next/navigation';
 import { auth as clerkAuth } from '@clerk/nextjs/server';
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
 
-import { Features } from '@/components/templates/Features';
-import { Footer } from '@/components/templates/Footer';
-import { Hero } from '@/components/templates/Hero';
-import { Navbar } from '@/components/templates/Navbar';
-import { redirect } from 'next/navigation';
+import { Navbar, Footer } from '@/components/layout';
+import { Hero, Features } from '@/components/landing';
 
 export async function generateMetadata() {
   const locale = await getLocale();
   const t = await getTranslations({ locale, namespace: 'Index' });
-
-  return {
-    title: t('meta_title'),
-    description: t('meta_description'),
-  };
+  return { title: t('meta_title'), description: t('meta_description') };
 }
 
 export default async function Page() {
-  const auth = await clerkAuth();
+  const { userId } = await clerkAuth();
 
-  if (auth.userId) {
+  if (userId) {
     redirect('/dashboard');
   }
 

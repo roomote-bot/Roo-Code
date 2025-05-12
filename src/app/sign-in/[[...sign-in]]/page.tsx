@@ -1,5 +1,6 @@
-import { SignIn } from '@clerk/nextjs';
 import { getLocale, getTranslations } from 'next-intl/server';
+
+import { SignIn } from './SignIn';
 
 export async function generateMetadata() {
   const locale = await getLocale();
@@ -8,9 +9,5 @@ export async function generateMetadata() {
 }
 
 export default function Page() {
-  return (
-    <div className="flex h-screen w-full items-center justify-center">
-      <SignIn forceRedirectUrl="/dashboard" />
-    </div>
-  );
+  return <SignIn />;
 }

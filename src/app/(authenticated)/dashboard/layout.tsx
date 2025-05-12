@@ -16,12 +16,12 @@ export default function DashboardLayout({
   return (
     <>
       <div className="shadow-md">
-        <div className="mx-auto flex max-w-screen-xl items-center justify-between px-3 py-4">
+        <div className="mx-auto flex max-w-screen-lg items-center justify-between px-4 py-4">
           <DashboardHeader />
         </div>
       </div>
       <div className="min-h-[calc(100vh-72px)] bg-muted">
-        <div className="mx-auto max-w-screen-xl px-3 pb-16 pt-6">
+        <div className="mx-auto max-w-screen-lg px-4 pb-16 pt-6">
           {children}
         </div>
       </div>

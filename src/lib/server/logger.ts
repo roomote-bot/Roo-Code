@@ -3,7 +3,7 @@ import logtail from '@logtail/pino';
 import pino from 'pino';
 import pretty from 'pino-pretty';
 
-import { Env } from './Env';
+import { Env } from './env';
 
 let stream: DestinationStream;
 
@@ -13,7 +13,7 @@ if (Env.LOGTAIL_SOURCE_TOKEN) {
       sourceToken: Env.LOGTAIL_SOURCE_TOKEN,
       options: { sendLogsToBetterStack: true },
     }),
-    { stream: pretty() }, // Prints logs to the console
+    { stream: pretty() }, // Prints logs to the console.
   ]);
 } else {
   stream = pretty({ colorize: true });

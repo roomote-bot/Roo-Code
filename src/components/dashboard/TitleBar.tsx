@@ -1,13 +1,14 @@
-export const TitleBar = (props: {
+type TitleBarProps = {
   title: React.ReactNode;
   description?: React.ReactNode;
-}) => (
-  <div className="mb-8">
-    <div className="text-2xl font-semibold">{props.title}</div>
+};
 
-    {props.description && (
+export const TitleBar = ({ title, description }: TitleBarProps) => (
+  <div className="mb-8">
+    <div className="text-2xl font-semibold">{title}</div>
+    {description && (
       <div className="text-sm font-medium text-muted-foreground">
-        {props.description}
+        {description}
       </div>
     )}
   </div>

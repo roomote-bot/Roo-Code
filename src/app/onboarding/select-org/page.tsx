@@ -1,7 +1,6 @@
-import { redirect } from 'next/navigation';
-import { OrganizationList } from '@clerk/nextjs';
-import { auth as clerkAuth } from '@clerk/nextjs/server';
 import { getLocale, getTranslations } from 'next-intl/server';
+
+import { SelectOrg } from './SelectOrg';
 
 export async function generateMetadata() {
   const locale = await getLocale();
@@ -12,18 +11,5 @@ export async function generateMetadata() {
 export const dynamic = 'force-dynamic';
 
 export default async function Page() {
-  const auth = await clerkAuth();
-
-  if (!auth.userId) {
-    redirect('/');
-  }
-
-  return (
-    <div className="flex min-h-screen items-center justify-center">
-      <OrganizationList
-        afterSelectOrganizationUrl="/dashboard"
-        afterCreateOrganizationUrl="/dashboard"
-      />
-    </div>
-  );
+  return <SelectOrg />;
 }

@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { auth as clerkAuth } from '@clerk/nextjs/server';
 
-export default async function AuthenticatedLayout({
+export default async function OnboardingLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -12,5 +12,9 @@ export default async function AuthenticatedLayout({
     redirect('/');
   }
 
-  return children;
+  return (
+    <div className="flex min-h-screen items-center justify-center">
+      {children}
+    </div>
+  );
 }

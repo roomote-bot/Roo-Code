@@ -9,10 +9,10 @@ import { setLocale } from '@/actions/locale';
 import {
   Button,
   DropdownMenu,
+  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuTrigger,
 } from '@/components/ui';
 import { Globe } from 'lucide-react';
 
