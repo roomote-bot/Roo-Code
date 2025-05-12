@@ -49,3 +49,9 @@ local
 
 # vercel
 .vercel
+
+# docker
+.docker/*
+!.docker/scripts
+
+

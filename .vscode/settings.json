@@ -15,29 +15,22 @@
     // give priority for Link to next/link instead of lucide-react
     "lucide-react"
   ],
-  "typescript.preferences.preferTypeOnlyAutoImports": true, // Prefer type-only imports
+  "typescript.preferences.preferTypeOnlyAutoImports": true,
 
   // Vitest
   "testing.automaticallyOpenTestResults": "neverOpen", // Don't open the test results automatically
 
-  // I18n
-  "i18n-ally.localesPaths": [
-    "src/locales"
-  ],
-  "i18n-ally.keystyle": "nested",
-
-  // Disable the default formatter, use ESLint instead
-  "prettier.enable": false,
+  "prettier.enable": true,
   "editor.formatOnSave": false,
 
   // Auto fix with ESLint on save
-  "editor.codeActionsOnSave": [
-    "source.addMissingImports",
-    "source.fixAll.eslint"
-  ],
+  // "editor.codeActionsOnSave": [
+  //   "source.addMissingImports",
+  //   "source.fixAll.eslint"
+  // ],
 
   // Enable eslint for all supported languages
-  "eslint.format.enable": true,
+  "eslint.format.enable": false,
   "eslint.validate": [
     "javascript",
     "javascriptreact",

@@ -1,6 +1,10 @@
-import type { PLAN_ID } from '@/utils/AppConfig';
-
 import type { EnumValues } from './Enum';
+
+export const PLAN_ID = {
+  FREE: 'free',
+  PREMIUM: 'premium',
+  ENTERPRISE: 'enterprise',
+} as const;
 
 export type PlanId = EnumValues<typeof PLAN_ID>;
 
@@ -45,11 +49,12 @@ export type IStripeSubscription = {
 
 export type PlanDetails =
   | {
-    isPaid: true;
-    plan: PricingPlan;
-    stripeDetails: IStripeSubscription;
-  } | {
-    isPaid: false;
-    plan: PricingPlan;
-    stripeDetails?: undefined;
-  };
+      isPaid: true;
+      plan: PricingPlan;
+      stripeDetails: IStripeSubscription;
+    }
+  | {
+      isPaid: false;
+      plan: PricingPlan;
+      stripeDetails?: undefined;
+    };

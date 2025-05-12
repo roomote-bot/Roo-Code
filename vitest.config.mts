@@ -1,5 +1,5 @@
 import react from '@vitejs/plugin-react';
-import { loadEnv } from 'vite';
+// import { loadEnv } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import { defineConfig } from 'vitest/config';
 
@@ -17,6 +17,6 @@ export default defineConfig({
       ['src/hooks/**/*.test.ts', 'jsdom'],
     ],
     setupFiles: ['./vitest-setup.ts'],
-    env: loadEnv('', process.cwd(), ''),
+    // env: loadEnv('', process.cwd(), ''),
   },
 });
