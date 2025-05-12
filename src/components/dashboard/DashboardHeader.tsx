@@ -5,6 +5,7 @@ import Link from 'next/link';
 
 import { ActiveLink } from '@/components/ActiveLink';
 import { LocaleSwitcher } from '@/components/LocaleSwitcher';
+import { ThemeSwitcher } from '@/components/ThemeSwitcher';
 import { ToggleMenuButton } from '@/components/ToggleMenuButton';
 import {
   DropdownMenu,
@@ -79,6 +80,9 @@ export const DashboardHeader = (props: DashboardHeaderProps) => (
         </li>
         <li data-fade>
           <LocaleSwitcher />
+        </li>
+        <li data-fade>
+          <ThemeSwitcher />
         </li>
         <li>
           <Separator orientation="vertical" className="h-4" />

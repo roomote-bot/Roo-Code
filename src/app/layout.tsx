@@ -3,6 +3,8 @@ import '@/styles/globals.css';
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale } from 'next-intl/server';
+import { enUS, frFR } from '@clerk/localizations';
+import { ClerkProvider } from '@clerk/nextjs';
 
 import { ThemeProvider } from '@/components/ThemeProvider';
 
@@ -45,7 +47,9 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            {children}
+            <ClerkProvider localization={locale === 'fr' ? frFR : enUS}>
+              {children}
+            </ClerkProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

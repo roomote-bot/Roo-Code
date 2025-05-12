@@ -59,10 +59,7 @@
   "DashboardIndex": {
     "title_bar": "Tableau de bord",
     "title_bar_description": "Bienvenue sur votre tableau de bord",
-    "message_state_title": "C'est parti",
-    "message_state_description": "Vous pouvez personnaliser cette page en modifiant le fichier dans <code>dashboard/page.tsx</code>",
-    "message_state_button": "Mettez une étoile sur GitHub",
-    "message_state_alternative": "Vous voulez plus de fonctionnalités en utilisant la même stack ? Essayez <url></url>."
+    "message_state_title": "C'est parti"
   },
   "UserProfile": {
     "title_bar": "Profil utilisateur",

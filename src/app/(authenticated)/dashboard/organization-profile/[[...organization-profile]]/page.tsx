@@ -1,10 +1,10 @@
-import { UserProfile } from '@clerk/nextjs';
+import { OrganizationProfile } from '@clerk/nextjs';
 import { useTranslations } from 'next-intl';
 
 import { TitleBar } from '@/components/dashboard/TitleBar';
 
-const UserProfilePage = () => {
-  const t = useTranslations('UserProfile');
+export default function Page() {
+  const t = useTranslations('OrganizationProfile');
 
   return (
     <>
@@ -13,9 +13,10 @@ const UserProfilePage = () => {
         description={t('title_bar_description')}
       />
 
-      <UserProfile
+      <OrganizationProfile
         routing="path"
-        path="/dashboard/user-profile"
+        path="/dashboard/organization-profile"
+        afterLeaveOrganizationUrl="/onboarding/organization-selection"
         appearance={{
           elements: {
             rootBox: 'w-full',
@@ -25,6 +26,4 @@ const UserProfilePage = () => {
       />
     </>
   );
-};
-
-export default UserProfilePage;
+}

@@ -7,6 +7,10 @@ export async function generateMetadata() {
   return { title: t('meta_title'), description: t('meta_description') };
 }
 
-const SignInPage = () => <SignIn path="/sign-in" />;
-
-export default SignInPage;
+export default function Page() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center">
+      <SignIn />
+    </div>
+  );
+}

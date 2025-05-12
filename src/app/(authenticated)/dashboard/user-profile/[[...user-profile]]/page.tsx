@@ -1,0 +1,22 @@
+import { UserProfile } from '@clerk/nextjs';
+import { useTranslations } from 'next-intl';
+
+import { TitleBar } from '@/components/dashboard/TitleBar';
+
+export default function Page() {
+  const t = useTranslations('UserProfile');
+
+  return (
+    <>
+      <TitleBar
+        title={t('title_bar')}
+        description={t('title_bar_description')}
+      />
+      <UserProfile
+        routing="path"
+        path="/dashboard/user-profile"
+        appearance={{ elements: { rootBox: 'w-full', cardBox: 'w-full flex' } }}
+      />
+    </>
+  );
+}
