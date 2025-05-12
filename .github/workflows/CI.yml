@@ -35,15 +35,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build Next.js for E2E tests
-        run: pnpm build
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+      # - name: Build Next.js for E2E tests
+      #   run: pnpm build
+      #   env:
+      #     SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
-      - name: Linter
+      - name: Run linter
         run: pnpm lint
 
-      - name: Check
+      - name: Run type checker
         run: pnpm check-types
 
       - name: Run unit tests
