@@ -3,7 +3,6 @@ import { useTranslations } from 'next-intl';
 
 import { CenteredFooter } from '@/components/landing/CenteredFooter';
 import { Section } from '@/components/landing/Section';
-import { APP_CONFIG } from '@/lib/constants';
 
 export const Footer = () => {
   const t = useTranslations('Footer');
@@ -11,7 +10,6 @@ export const Footer = () => {
   return (
     <Section className="pb-16 pt-0">
       <CenteredFooter
-        name={APP_CONFIG.name}
         iconList={
           <>
             <li>

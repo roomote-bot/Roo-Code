@@ -2,27 +2,25 @@
 
 import { enUS, frFR } from '@clerk/localizations';
 import { ClerkProvider } from '@clerk/nextjs';
+import { useLocale } from 'next-intl';
 
-export default function AuthLayout(props: {
+export default function AuthLayout({
+  children,
+}: {
   children: React.ReactNode;
-  params: { locale: string };
 }) {
-  let clerkLocale = enUS;
-
-  if (props.params.locale === 'fr') {
-    clerkLocale = frFR;
-  }
+  const locale = useLocale();
 
   return (
     <ClerkProvider
-      localization={clerkLocale}
+      localization={locale === 'fr' ? frFR : enUS}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/dashboard"
       signUpFallbackRedirectUrl="/dashboard"
       afterSignOutUrl="/"
     >
-      {props.children}
+      {children}
     </ClerkProvider>
   );
 }

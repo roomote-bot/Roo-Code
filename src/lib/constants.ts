@@ -1,3 +1,1 @@
-export const APP_CONFIG = {
-  name: 'Roo Code Cloud',
-};
+export const APP_NAME = 'Roo Code Cloud';
