@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get('state') || '';
 
   if (!userId) {
-    throw new Error('not logged in?');
+    return new Response('Unauthorized', { status: 401 });
   }
 
   const signInToken = await getSignInToken(authObj.userId);

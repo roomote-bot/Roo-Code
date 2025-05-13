@@ -24,7 +24,7 @@ export async function getSignInToken(
       userId,
     });
 
-    return undefined; // probably just throw
+    throw new Error("Failed to create sign-in token");
   }
 
   const data = await response.json();
@@ -32,7 +32,6 @@ export async function getSignInToken(
   logger.info({
     event: 'sign_in_token_created',
     userId,
-    data, // TODO: none of this, probably
   });
 
   return data.token;
