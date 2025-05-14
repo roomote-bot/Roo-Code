@@ -10,6 +10,7 @@ export const Env = createEnv({
     STRIPE_WEBHOOK_SECRET: z.string().min(1),
     BILLING_PLAN_ENV: z.enum(['dev', 'test', 'prod']),
     VSCODE_EXTENSION_BASE_URL: z.string().min(1),
+    CURSOR_EXTENSION_BASE_URL: z.string().min(1),
   },
   client: {
     NEXT_PUBLIC_APP_URL: z.string().optional(),
@@ -34,6 +35,7 @@ export const Env = createEnv({
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     BILLING_PLAN_ENV: process.env.BILLING_PLAN_ENV,
     VSCODE_EXTENSION_BASE_URL: process.env.VSCODE_EXTENSION_BASE_URL,
+    CURSOR_EXTENSION_BASE_URL: process.env.CURSOR_EXTENSION_BASE_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
     NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
