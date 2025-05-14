@@ -24,10 +24,15 @@ export const providerNames = [
   'litellm',
 ] as const;
 
+const baseEventSchema = z.object({
+  id: z.string().uuid(),
+  userId: z.string(),
+  timestamp: z.number(),
+});
+
 export const eventSchema = z.discriminatedUnion('type', [
-  z.object({
+  baseEventSchema.extend({
     type: z.literal('task_created'),
-    timestamp: z.number(),
     properties: z.object({
       taskId: z.string(),
       provider: z.enum(providerNames),
@@ -36,16 +41,17 @@ export const eventSchema = z.discriminatedUnion('type', [
       mode: z.string(),
     }),
   }),
-  z.object({
+  baseEventSchema.extend({
     type: z.literal('completion'),
-    timestamp: z.number(),
     properties: z.object({
       taskId: z.string(),
       provider: z.enum(providerNames),
       modelId: z.string(),
       inputTokens: z.number(),
       outputTokens: z.number(),
-      cost: z.number(),
+      cacheReadTokens: z.number().optional(),
+      cacheWriteTokens: z.number().optional(),
+      cost: z.number().optional(),
     }),
   }),
 ]);

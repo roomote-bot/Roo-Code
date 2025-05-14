@@ -1,9 +1,9 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
+import { v4 as uuidv4 } from 'uuid';
 
 import { eventSchema } from '@/schemas';
-import { db } from '@/db';
-import { eventsTable } from '@/db/schema';
+import { captureEvent } from '@/lib/server/analytics';
 
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
@@ -16,13 +16,22 @@ export async function POST(request: NextRequest) {
   }
 
   const payload = await request.json();
-  const result = eventSchema.safeParse(payload);
+  const id = uuidv4();
+  const timestamp = Date.now() / 1000;
+  const result = eventSchema.safeParse({ ...payload, id, userId, timestamp });
 
   if (!result.success) {
-    return NextResponse.json({ success: false });
+    return NextResponse.json({ success: false, error: result.error.message });
   }
 
-  const [record] = await db.insert(eventsTable).values(result.data).returning();
+  try {
+    await captureEvent(result.data);
+  } catch (error) {
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 
-  return NextResponse.json({ success: true, id: record?.id });
+  return NextResponse.json({ success: true, id });
 }
