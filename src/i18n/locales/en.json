@@ -13,8 +13,14 @@
     "company": "Company"
   },
   "Hero": {
+    "follow_twitter": "Follow @Ixartz on Twitter",
     "title": "The perfect <important>SaaS template</important> to build and scale your business with ease.",
-    "description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
+    "description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
+    "primary_button": "Get Started",
+    "secondary_button": "Star on GitHub"
+  },
+  "Sponsors": {
+    "title": "Sponsored by"
   },
   "Features": {
     "section_subtitle": "Features",
@@ -28,6 +34,37 @@
     "feature6_title": "ESLint",
     "feature_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS."
   },
+  "Pricing": {
+    "section_subtitle": "Features",
+    "section_title": "Unlock the Full Potential of the SaaS Template",
+    "section_description": "A free and open-source landing page template for your SaaS business, built with React, TypeScript, Shadcn UI, and Tailwind CSS.",
+    "button_text": "Get Started"
+  },
+  "PricingPlan": {
+    "free_plan_name": "Free",
+    "premium_plan_name": "Premium",
+    "enterprise_plan_name": "Enterprise",
+    "free_plan_description": "For individuals",
+    "premium_plan_description": "For small teams",
+    "enterprise_plan_description": "For industry leaders",
+    "feature_team_member": "{number} Team Members",
+    "feature_website": "{number} Websites",
+    "feature_storage": "{number} GB Storage",
+    "feature_transfer": "{number} TB Transfer",
+    "feature_email_support": "Email Support",
+    "plan_interval_month": "month",
+    "plan_interval_year": "year",
+    "next_renew_date": "Your subscription renews on {date}"
+  },
+  "FAQ": {
+    "question": "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
+    "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam aliquam enim dui, id consequat turpis ullamcorper ac. Mauris id quam dolor. Nullam eu egestas turpis. Proin risus elit, sollicitudin in mi a, accumsan euismod turpis. In euismod mi sed diam tristique hendrerit."
+  },
+  "CTA": {
+    "title": "You are ready?",
+    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+    "button_text": "Star on GitHub"
+  },
   "Footer": {
     "product": "Product",
     "docs": "Docs",
@@ -35,7 +72,11 @@
     "community": "Community",
     "company": "Company",
     "terms_of_service": "Terms Of Service",
-    "privacy_policy": "Privacy Policy"
+    "privacy_policy": "Privacy Policy",
+    "designed_by": "Designed by <author></author>."
+  },
+  "ProtectFallback": {
+    "not_enough_permission": "You do not have the permissions to perform this action"
   },
   "SignIn": {
     "meta_title": "Sign in",
@@ -47,10 +88,13 @@
   },
   "DashboardLayout": {
     "home": "Home",
+    "analytics": "Analytics",
     "todos": "Todos",
     "members": "Members",
+    "audit_logs": "Audit Logs",
     "billing": "Billing",
-    "settings": "Settings"
+    "settings": "Settings",
+    "provider_whitelist": "Provider Whitelist"
   },
   "Dashboard": {
     "meta_title": "SaaS Template Dashboard",
@@ -59,7 +103,22 @@
   "DashboardIndex": {
     "title_bar": "Dashboard",
     "title_bar_description": "Welcome to your dashboard",
-    "message_state_title": "Let's get started"
+    "message_state_title": "Let's get started",
+    "message_state_description": "You can customize this page by editing the file at <code>dashboard/page.tsx</code>",
+    "message_state_button": "Star on GitHub",
+    "message_state_alternative": "Want more features using the same stack? Try <url></url>.",
+    "analytics_title": "Usage Analytics",
+    "analytics_description": "Organization usage metrics and statistics",
+    "analytics_period_7_days": "Last 7 days",
+    "analytics_period_30_days": "Last 30 days",
+    "analytics_period_90_days": "Last 90 days",
+    "analytics_tasks_started": "Tasks Started",
+    "analytics_tasks_completed": "Tasks Completed",
+    "analytics_tokens_consumed": "Tokens Consumed",
+    "analytics_costs": "Costs (USD)",
+    "analytics_llm_costs": "LLM Model Costs (USD)",
+    "analytics_active_developers": "Active Developers",
+    "analytics_view_details": "View detailed analytics"
   },
   "UserProfile": {
     "title_bar": "User Profile",
@@ -67,6 +126,95 @@
   },
   "OrganizationProfile": {
     "title_bar": "Organization Management",
-    "title_bar_description": "Manage your organization"
+    "title_bar_description": "Manage your organization",
+    "provider_whitelist": "Provider Whitelist",
+    "default_parameters": "Default Parameters"
+  },
+  "ProviderWhitelist": {
+    "title": "Provider Whitelist & Default Parameters",
+    "description": "Control which AI providers are allowed and set default parameters for your organization",
+    "providers_section_title": "Allowed Providers",
+    "providers_section_description": "Select which AI providers and models are allowed to be used",
+    "parameters_section_title": "Default Parameters",
+    "parameters_section_description": "Set global default parameters for AI model calls"
+  },
+  "Billing": {
+    "title_bar": "Billing",
+    "title_bar_description": "Manage your billing and subscription",
+    "current_section_title": "Current Plan",
+    "current_section_description": "Adjust your payment plan to best suit your requirements",
+    "manage_subscription_button": "Manage Subscription"
+  },
+  "BillingOptions": {
+    "current_plan": "Current Plan",
+    "upgrade_plan": "Get Started"
+  },
+  "CheckoutConfirmation": {
+    "title_bar": "Payment Confirmation",
+    "message_state_title": "Payment successful",
+    "message_state_description": "Your payment has been successfully processed. Thank you for your purchase!",
+    "message_state_button": "Go back to Billing"
+  },
+  "DataTable": {
+    "no_results": "No results."
+  },
+  "Todos": {
+    "title_bar": "Todo List",
+    "title_bar_description": "View and manage your todo list",
+    "add_todo_button": "New todo"
+  },
+  "TodoTableColumns": {
+    "open_menu": "Open menu",
+    "edit": "Edit",
+    "delete": "Delete",
+    "title_header": "Title",
+    "message_header": "Message",
+    "created_at_header": "Created at"
+  },
+  "AddTodo": {
+    "title_bar": "Add Todo",
+    "add_todo_section_title": "Create a new todo",
+    "add_todo_section_description": "Fill in the form below to create a new todo"
+  },
+  "EditTodo": {
+    "title_bar": "Edit todo",
+    "edit_todo_section_title": "Modify todo",
+    "edit_todo_section_description": "Fill in the form below to edit the todo"
+  },
+  "TodoForm": {
+    "title_label": "Title",
+    "title_description": "Enter a descriptive title for your todo.",
+    "message_title": "Message",
+    "message_description": "Enter a detailed message for your todo.",
+    "submit_button": "Submit"
+  },
+  "Analytics": {
+    "title_bar": "Usage Analytics",
+    "title_bar_description": "Detailed analytics for your organization",
+    "summary_title": "Usage Summary",
+    "period_7_days": "Last 7 days",
+    "period_30_days": "Last 30 days",
+    "period_90_days": "Last 90 days",
+    "active_developers": "Active Developers",
+    "tasks_started": "Tasks Started",
+    "tasks_completed": "Tasks Completed",
+    "tokens_consumed": "Tokens Consumed",
+    "llm_costs": "LLM Model Costs (USD)",
+    "view_mode_title": "View By",
+    "view_mode_developers": "Developers",
+    "view_mode_models": "Models",
+    "view_mode_tasks": "Tasks",
+    "filter_title": "Filters",
+    "filter_developer": "Developer",
+    "filter_model": "Model",
+    "filter_clear_all": "Clear All",
+    "task_details_title": "Task Details",
+    "task_details_close": "Close",
+    "pagination_prev": "Previous",
+    "pagination_next": "Next",
+    "pagination_of": "of",
+    "pagination_page_size": "Page size",
+    "no_data": "No data available",
+    "loading": "Loading data..."
   }
 }

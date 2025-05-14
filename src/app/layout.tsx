@@ -7,6 +7,9 @@ import { ClerkProvider } from '@clerk/nextjs';
 
 import { getClerkLocale } from '@/lib/locale';
 import { ThemeProvider } from '@/components/layout';
+import { ToastProvider, ToastViewport } from '@/components/ui/toast';
+import { ToastProvider as ToastContextProvider } from '@/components/ui/toast-context';
+import { Toaster } from '@/components/ui/toaster';
 
 export const metadata: Metadata = {
   icons: [
@@ -43,7 +46,13 @@ export default async function RootLayout({
         <NextIntlClientProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <ClerkProvider localization={getClerkLocale(locale)}>
-              {children}
+              <ToastProvider>
+                <ToastContextProvider>
+                  {children}
+                  <Toaster />
+                  <ToastViewport />
+                </ToastContextProvider>
+              </ToastProvider>
             </ClerkProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
