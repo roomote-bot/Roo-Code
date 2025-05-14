@@ -1,6 +1,10 @@
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { eventSchema } from '@/schemas';
+import { db } from '@/db';
+import { eventsTable } from '@/db/schema';
+
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
 
@@ -11,7 +15,14 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  console.log(await request.json());
+  const payload = await request.json();
+  const result = eventSchema.safeParse(payload);
 
-  return NextResponse.json({ success: true });
+  if (!result.success) {
+    return NextResponse.json({ success: false });
+  }
+
+  const [record] = await db.insert(eventsTable).values(result.data).returning();
+
+  return NextResponse.json({ success: true, id: record?.id });
 }
