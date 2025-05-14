@@ -4,6 +4,7 @@ import {
   text,
   timestamp,
   uniqueIndex,
+  json,
 } from 'drizzle-orm/pg-core';
 
 export const organizationSchema = pgTable(
@@ -24,9 +25,17 @@ export const organizationSchema = pgTable(
       .notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
-  (table) => ({
-    stripeCustomerIdIdx: uniqueIndex('stripe_customer_id_idx').on(
-      table.stripeCustomerId,
-    ),
-  }),
+  (table) => [uniqueIndex('stripe_customer_id_idx').on(table.stripeCustomerId)],
 );
+
+export const eventSchema = pgTable('event', {
+  id: text('id').primaryKey(),
+  type: text('type').notNull(),
+  timestamp: bigint('timestamp', { mode: 'number' }).notNull(),
+  properties: json('properties').notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { mode: 'date' })
+    .defaultNow()
+    .$onUpdate(() => new Date())
+    .notNull(),
+});
