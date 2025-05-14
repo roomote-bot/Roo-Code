@@ -28,7 +28,7 @@ export default [
     },
   },
   {
-    ignores: ['dist/**', '.next'],
+    ignores: ['dist/**', '.next', 'storybook-static'],
   },
   {
     ...pluginReact.configs.flat.recommended,

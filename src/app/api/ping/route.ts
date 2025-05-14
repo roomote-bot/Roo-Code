@@ -4,13 +4,12 @@ import { NextResponse } from 'next/server';
 import { logger } from '@/lib/server/logger';
 
 /**
- * API endpoint for testing Clerk authentication
- * Verifies/parses JWT and logs authenticated user information
+ * API endpoint for testing Clerk authentication.
+ * Verifies/parses JWT and logs authenticated user information.
  */
 export async function GET() {
   const authObj = await auth();
 
-  // If not authenticated
   if (!authObj.userId) {
     return NextResponse.json(
       { error: 'Unauthorized request' },
@@ -18,35 +17,18 @@ export async function GET() {
     );
   }
 
-  // Get the JWT token
+  // Get the JWT token.
   const token = await authObj.getToken();
 
-  // Extract user information from the auth object
-  // Only include properties that exist on the auth object
-  const userInfo = {
-    userId: authObj.userId,
-    sessionId: authObj.sessionId,
-    orgId: authObj.orgId,
-    orgRole: authObj.orgRole,
-    // Note: To get additional user data like email, firstName, lastName,
-    // you would need to use Clerk's methods like clerkClient.users.getUser()
-  };
+  // Extract user information from the auth object.
+  // Only include properties that exist on the auth object.
+  // Note: To get additional user data like email, firstName, lastName,
+  // you would need to use Clerk's methods like clerkClient.users.getUser().
+  const { userId, sessionId, orgId, orgRole } = authObj;
+  const userInfo = { userId, sessionId, orgId, orgRole };
 
-  // Log the user information
-  logger.info({
-    event: 'ping_endpoint_accessed',
-    userInfo: {
-      userId: authObj.userId,
-      sessionId: authObj.sessionId,
-      orgId: authObj.orgId,
-      orgRole: authObj.orgRole,
-    },
-    hasToken: !!token, // Just log if token exists, not the actual token for security
-  });
+  // Just log if token exists, not the actual token for security.
+  logger.info({ event: 'ping_endpoint_accessed', userInfo, hasToken: !!token });
 
-  // Return the user information
-  return NextResponse.json({
-    authenticated: true,
-    userInfo,
-  });
+  return NextResponse.json(userInfo);
 }
