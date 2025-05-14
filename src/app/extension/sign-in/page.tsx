@@ -9,19 +9,19 @@ import { DeepLink } from './DeepLink';
 export default async function Page(params: {
   searchParams: { state?: string };
 }) {
-  const { userId } = await auth();
+  const { state } = await params.searchParams;
 
-  if (!userId) {
-    redirect('/sign-in');
+  if (!state) {
+    redirect(`/sign-in`);
   }
 
-  const code = await getSignInToken(userId);
+  const { userId } = await auth();
+  const code = userId ? await getSignInToken(userId) : undefined;
 
   if (!code) {
-    redirect('/sign-in');
+    redirect(`/sign-in?state=${state}`);
   }
 
-  const { state = '' } = await params.searchParams;
   const searchParams = new URLSearchParams({ state, code });
   const path = `/auth/clerk/callback?${searchParams.toString()}`;
   const vsCodeUrl = new URL(path, Env.VSCODE_EXTENSION_BASE_URL);
