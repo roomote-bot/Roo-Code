@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
   const result = cloudEventSchema.safeParse(await request.json());
 
   if (!result.success) {
+    console.error(result.error);
+
     return NextResponse.json(
       { success: false, error: result.error.message },
       { status: 400 },
