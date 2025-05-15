@@ -6,11 +6,18 @@ import { cloudEventSchema } from '@/schemas';
 import { captureEvent } from '@/lib/server/analytics';
 
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
 
   if (!userId) {
     return NextResponse.json(
-      { error: 'Unauthorized request' },
+      { error: 'Unauthorized: User required' },
+      { status: 401 },
+    );
+  }
+
+  if (!orgId) {
+    return NextResponse.json(
+      { error: 'Unauthorized: Organization required' },
       { status: 401 },
     );
   }
@@ -29,7 +36,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await captureEvent({ id, userId, timestamp, event: result.data });
+    await captureEvent({ id, orgId, userId, timestamp, event: result.data });
   } catch (error) {
     console.error(error);
 

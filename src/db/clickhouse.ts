@@ -4,6 +4,7 @@ CREATE TABLE default.events
 (
     -- Shared
     `id` UUID,
+    `orgId` String,
     `userId` String,
     `timestamp` Int32,
     `type` String,
