@@ -11,6 +11,7 @@ const client = createClient({
 
 type AnalyticsEvent = {
   id: string;
+  orgId: string;
   userId: string;
   timestamp: number;
   event: CloudEvent;
