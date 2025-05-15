@@ -12,7 +12,7 @@ export default clerkMiddleware(
       await auth.protect();
     }
   },
-  { debug: true },
+  { debug: process.env.NODE_ENV !== "production" },
 );
 
 // Also exclude tunnelRoute used in Sentry from the matcher.
