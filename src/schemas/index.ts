@@ -3,8 +3,6 @@ import { z } from 'zod';
 // TODO: I'll add these types to our @roo-code/types NPM package so we
 // don't need to manually copy them.
 
-// Copied from `src/schemas/index.ts`
-
 export const providerNames = [
   'anthropic',
   'glama',
@@ -28,8 +26,6 @@ export const providerNames = [
   'chutes',
   'litellm',
 ] as const;
-
-// Copied from `src/services/telemetry/types.ts`
 
 export const appPropertiesSchema = z.object({
   appVersion: z.string(),
@@ -56,23 +52,42 @@ export const completionPropertiesSchema = z.object({
   cost: z.number().optional(),
 });
 
-// Copied from `src/services/cloud/types.ts`.
+export enum TelemetryEventName {
+  TASK_CREATED = 'Task Created',
+  TASK_RESTARTED = 'Task Reopened',
+  TASK_COMPLETED = 'Task Completed',
+  TASK_CONVERSATION_MESSAGE = 'Conversation Message',
+  LLM_COMPLETION = 'LLM Completion',
+  MODE_SWITCH = 'Mode Switched',
+  TOOL_USED = 'Tool Used',
 
-export enum CloudEventType {
-  TaskCreated = 'task_created',
-  Completion = 'completion',
+  CHECKPOINT_CREATED = 'Checkpoint Created',
+  CHECKPOINT_RESTORED = 'Checkpoint Restored',
+  CHECKPOINT_DIFFED = 'Checkpoint Diffed',
+
+  CODE_ACTION_USED = 'Code Action Used',
+  PROMPT_ENHANCED = 'Prompt Enhanced',
+
+  TITLE_BUTTON_CLICKED = 'Title Button Clicked',
+
+  AUTHENTICATION_INITIATED = 'Authentication Initiated',
+
+  SCHEMA_VALIDATION_ERROR = 'Schema Validation Error',
+  DIFF_APPLICATION_ERROR = 'Diff Application Error',
+  SHELL_INTEGRATION_ERROR = 'Shell Integration Error',
+  CONSECUTIVE_MISTAKE_ERROR = 'Consecutive Mistake Error',
 }
 
 export const cloudEventSchema = z.discriminatedUnion('type', [
   z.object({
-    type: z.literal(CloudEventType.TaskCreated),
+    type: z.literal(TelemetryEventName.TASK_CREATED),
     properties: z.object({
       ...appPropertiesSchema.shape,
       ...taskPropertiesSchema.shape,
     }),
   }),
   z.object({
-    type: z.literal(CloudEventType.Completion),
+    type: z.literal(TelemetryEventName.LLM_COMPLETION),
     properties: z.object({
       ...appPropertiesSchema.shape,
       ...taskPropertiesSchema.shape,
