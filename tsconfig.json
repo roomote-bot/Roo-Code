@@ -61,10 +61,10 @@
     "**/*.e2e.ts"
   ],
   "include": [
-    "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    ".storybook/*.ts",
-    "**/*.mts"
+    "**/*.mts",
+    "next-env.d.ts",
+    ".storybook/*.ts"
   ]
 }
