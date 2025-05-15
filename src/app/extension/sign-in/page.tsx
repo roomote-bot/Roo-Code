@@ -6,10 +6,12 @@ import { Env } from '@/lib/server/env';
 
 import { DeepLink } from './DeepLink';
 
-export default async function Page(params: {
-  searchParams: { state?: string };
-}) {
-  const { state } = await params.searchParams;
+type Props = {
+  searchParams: Promise<{ state?: string }>;
+};
+
+export default async function Page(props: Props) {
+  const { state } = await props.searchParams;
 
   if (!state) {
     redirect(`/sign-in`);
