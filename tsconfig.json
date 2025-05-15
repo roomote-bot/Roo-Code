@@ -1,4 +1,3 @@
-/* eslint-disable jsonc/sort-keys */
 {
   "compilerOptions": {
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -11,7 +10,6 @@
     "alwaysStrict": true,
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
-
     "noImplicitAny": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
@@ -19,39 +17,26 @@
     "noUnusedParameters": true,
     "allowUnreachableCode": false,
     "noFallthroughCasesInSwitch": true,
-
     "target": "es2017",
     "outDir": "out",
     "sourceMap": true,
-
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "checkJs": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-
     "jsx": "preserve",
     "noEmit": true,
     "isolatedModules": true,
     "incremental": true,
-
-    // Load types
     "types": ["vitest/globals"],
-
-    // Path aliases
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
       "@/public/*": ["./public/*"]
     },
-
-    // Editor support
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ]
+    "plugins": [{ "name": "next" }]
   },
   "exclude": [
     "./out/**/*",
@@ -61,10 +46,11 @@
     "**/*.e2e.ts"
   ],
   "include": [
+    "**/*.mts",
     "**/*.ts",
     "**/*.tsx",
-    "**/*.mts",
+    ".storybook/*.ts",
     "next-env.d.ts",
-    ".storybook/*.ts"
+    ".next/types/**/*.ts"
   ]
 }
