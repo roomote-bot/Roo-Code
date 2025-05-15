@@ -1,8 +1,8 @@
 import { useTranslations } from 'next-intl';
 
 import { TitleBar } from '@/components/dashboard/TitleBar';
-import { AuditLogCard } from '@/features/dashboard/AuditLogCard';
-import { UsageAnalyticsCard } from '@/features/dashboard/UsageAnalyticsCard';
+import { AuditLogCard } from '@/components/dashboard/AuditLogCard';
+import { UsageAnalyticsCard } from '@/components/dashboard/UsageAnalyticsCard';
 
 export default function Page() {
   const t = useTranslations('DashboardIndex');

@@ -5,10 +5,10 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Drawer } from '@/components/ui/drawer';
 import { TitleBar } from '@/components/dashboard/TitleBar';
-import { AuditLogDetails } from '@/features/dashboard/AuditLogDetails';
-import { AuditLogEntry } from '@/features/dashboard/AuditLogEntry';
-import type { AuditLog } from '@/features/dashboard/mockAuditLogs';
-import { getFilteredLogs } from '@/features/dashboard/mockAuditLogs';
+import { AuditLogDetails } from '@/components/dashboard/AuditLogDetails';
+import { AuditLogEntry } from '@/components/dashboard/AuditLogEntry';
+import type { AuditLog } from '@/components/dashboard/mockAuditLogs';
+import { getFilteredLogs } from '@/components/dashboard/mockAuditLogs';
 
 type TimePeriod = '7' | '30' | '90';
 

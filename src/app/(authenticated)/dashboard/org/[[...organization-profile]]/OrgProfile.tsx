@@ -5,8 +5,8 @@ import { useTheme } from 'next-themes';
 import { dark } from '@clerk/themes';
 import { OrganizationProfile } from '@clerk/nextjs';
 
-import DefaultParametersPage from '@/features/dashboard/DefaultParametersPage';
-import ProviderWhitelistPage from '@/features/dashboard/ProviderWhitelistPage';
+import DefaultParametersPage from '@/components/dashboard/DefaultParametersPage';
+import ProviderWhitelistPage from '@/components/dashboard/ProviderWhitelistPage';
 
 export const OrgProfile = () => {
   const t = useTranslations('OrganizationProfile');

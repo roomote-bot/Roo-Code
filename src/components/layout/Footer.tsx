@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 
 import { Section } from '@/components/layout';
-import { APP_NAME } from '@/lib/constants';
 
 export const Footer = () => {
   const t = useTranslations('Footer');
@@ -34,9 +33,7 @@ export const Footer = () => {
           </li>
         </ul>
         <div className="mt-6 flex w-full items-center justify-between gap-y-2 border-t pt-3 text-sm text-muted-foreground max-md:flex-col">
-          <div>
-            © Copyright {new Date().getFullYear()} {APP_NAME}.
-          </div>
+          <div>© Copyright {new Date().getFullYear()} Roo Code.</div>
           <ul className="flex gap-x-4 font-medium [&_a:hover]:opacity-100 [&_a]:opacity-60">
             <li>
               <Link href="/sign-up">{t('terms_of_service')}</Link>
