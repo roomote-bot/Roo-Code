@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 
 import { TitleBar } from '@/components/dashboard/TitleBar';
-import { AnalyticsPage } from '@/features/analytics/AnalyticsPage';
+import { AnalyticsPage } from '@/components/analytics/AnalyticsPage';
 
 const AnalyticsPageContainer = () => {
   const t = useTranslations('Analytics');
