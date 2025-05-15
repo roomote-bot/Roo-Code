@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+// TODO: I'll add these types to our @roo-code/types NPM package so we
+// don't need to manually copy them.
+
+// Copied from `src/schemas/index.ts`
+
 export const providerNames = [
   'anthropic',
   'glama',
@@ -24,36 +29,56 @@ export const providerNames = [
   'litellm',
 ] as const;
 
-const baseEventSchema = z.object({
-  id: z.string().uuid(),
-  userId: z.string(),
-  timestamp: z.number(),
+// Copied from `src/services/telemetry/types.ts`
+
+export const appPropertiesSchema = z.object({
+  appVersion: z.string(),
+  vscodeVersion: z.string(),
+  platform: z.string(),
+  editorName: z.string(),
+  language: z.string(),
+  mode: z.string(),
 });
 
-export const eventSchema = z.discriminatedUnion('type', [
-  baseEventSchema.extend({
-    type: z.literal('task_created'),
+export const taskPropertiesSchema = z.object({
+  taskId: z.string(),
+  apiProvider: z.enum(providerNames).optional(),
+  modelId: z.string().optional(),
+  diffStrategy: z.string().optional(),
+  isSubtask: z.boolean().optional(),
+});
+
+export const completionPropertiesSchema = z.object({
+  inputTokens: z.number(),
+  outputTokens: z.number(),
+  cacheReadTokens: z.number().optional(),
+  cacheWriteTokens: z.number().optional(),
+  cost: z.number().optional(),
+});
+
+// Copied from `src/services/cloud/types.ts`.
+
+export enum CloudEventType {
+  TaskCreated = 'task_created',
+  Completion = 'completion',
+}
+
+export const cloudEventSchema = z.discriminatedUnion('type', [
+  z.object({
+    type: z.literal(CloudEventType.TaskCreated),
     properties: z.object({
-      taskId: z.string(),
-      provider: z.enum(providerNames),
-      modelId: z.string(),
-      prompt: z.string(),
-      mode: z.string(),
+      ...appPropertiesSchema.shape,
+      ...taskPropertiesSchema.shape,
     }),
   }),
-  baseEventSchema.extend({
-    type: z.literal('completion'),
+  z.object({
+    type: z.literal(CloudEventType.Completion),
     properties: z.object({
-      taskId: z.string(),
-      provider: z.enum(providerNames),
-      modelId: z.string(),
-      inputTokens: z.number(),
-      outputTokens: z.number(),
-      cacheReadTokens: z.number().optional(),
-      cacheWriteTokens: z.number().optional(),
-      cost: z.number().optional(),
+      ...appPropertiesSchema.shape,
+      ...taskPropertiesSchema.shape,
+      ...completionPropertiesSchema.shape,
     }),
   }),
 ]);
 
-export type Event = z.infer<typeof eventSchema>;
+export type CloudEvent = z.infer<typeof cloudEventSchema>;

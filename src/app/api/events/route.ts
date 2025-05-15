@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
-import { eventSchema } from '@/schemas';
+import { cloudEventSchema } from '@/schemas';
 import { captureEvent } from '@/lib/server/analytics';
 
 export async function POST(request: NextRequest) {
@@ -15,10 +15,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const payload = await request.json();
   const id = uuidv4();
-  const timestamp = Date.now() / 1000;
-  const result = eventSchema.safeParse({ ...payload, id, userId, timestamp });
+  const timestamp = Math.round(Date.now() / 1000);
+  const result = cloudEventSchema.safeParse(await request.json());
 
   if (!result.success) {
     return NextResponse.json(
@@ -28,8 +27,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await captureEvent(result.data);
+    await captureEvent({ id, userId, timestamp, event: result.data });
   } catch (error) {
+    console.error(error);
+
     return NextResponse.json(
       {
         success: false,

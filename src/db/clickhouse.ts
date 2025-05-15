@@ -1,22 +1,37 @@
-export const createEvents = `
-  CREATE TABLE default.events
-  (
-      \`id\` UUID,
-      \`userId\` String,
-      \`type\` String,
-      \`timestamp\` Int32,
-      \`taskId\` Nullable(String),
-      \`provider\` Nullable(String),
-      \`modelId\` Nullable(String),
-      \`prompt\` Nullable(String),
-      \`mode\` Nullable(String),
-      \`inputTokens\` Nullable(Int32),
-      \`outputTokens\` Nullable(Int32),
-      \`cacheReadTokens\` Nullable(Int32),
-      \`cacheWriteTokens\` Nullable(Int32),
-      \`cost\` Nullable(Float32)
-  )
-  ENGINE = SharedMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}')
-  ORDER BY (id, type, timestamp)
-  SETTINGS index_granularity = 8192;
-`;
+/*
+
+CREATE TABLE default.events
+(
+    -- Shared
+    `id` UUID,
+    `userId` String,
+    `timestamp` Int32,
+    `type` String,
+
+    -- App
+    `appVersion` String,
+    `vscodeVersion` String,
+    `platform` String,
+    `editorName` String,
+    `language` String,
+    `mode` String,
+
+    -- Task
+    `taskId` Nullable(String),
+    `apiProvider` Nullable(String),
+    `modelId` Nullable(String),
+    `diffStrategy` Nullable(String),
+    `isSubtask` Nullable(Bool),
+
+    -- Completion
+    `inputTokens` Nullable(Int32),
+    `outputTokens` Nullable(Int32),
+    `cacheReadTokens` Nullable(Int32),
+    `cacheWriteTokens` Nullable(Int32),
+    `cost` Nullable(Float32)
+)
+ENGINE = SharedMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}')
+ORDER BY (id, type, timestamp)
+SETTINGS index_granularity = 8192;
+
+*/

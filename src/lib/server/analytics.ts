@@ -1,6 +1,6 @@
 import { createClient } from '@clickhouse/client';
 
-import { Event } from '@/schemas';
+import { CloudEvent } from '@/schemas';
 import { Env } from './env';
 
 const client = createClient({
@@ -9,10 +9,25 @@ const client = createClient({
   password: Env.CLICKHOUSE_PASSWORD,
 });
 
-export const captureEvent = async ({ properties, ...event }: Event) => {
+type AnalyticsEvent = {
+  id: string;
+  userId: string;
+  timestamp: number;
+  event: CloudEvent;
+};
+
+export const captureEvent = async ({
+  event: { properties, ...cloudEvent },
+  ...analyticsEvent
+}: AnalyticsEvent) => {
+  // The destructuring here flattens the `AnalyticsEvent` to match the ClickHouse
+  // schema.
+  const value = { ...analyticsEvent, ...cloudEvent, ...properties };
+  console.log(`captureEvent`, value);
+
   await client.insert({
     table: 'events',
-    values: [{ ...event, ...properties }],
+    values: [value],
     format: 'JSONEachRow',
   });
 };
