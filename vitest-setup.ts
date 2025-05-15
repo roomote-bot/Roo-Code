@@ -9,6 +9,3 @@ failOnConsole({
   shouldFailOnLog: true,
   shouldFailOnWarn: true,
 });
-
-// Set up environment variables for testing
-process.env.BILLING_PLAN_ENV = 'test';
