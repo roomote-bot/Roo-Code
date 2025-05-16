@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { useToast } from '@/components/ui/toast-context';
 
-// Default parameters form type
 type DefaultParamsFormValues = {
   experimentalPowerSteering: boolean;
   terminalOutputLimit: number;
@@ -52,7 +51,6 @@ const DefaultParametersPage = () => {
 
   const [isSaving, setIsSaving] = useState(false);
 
-  // Form for default parameters
   const form = useForm<DefaultParamsFormValues>({
     defaultValues: {
       experimentalPowerSteering: true,
