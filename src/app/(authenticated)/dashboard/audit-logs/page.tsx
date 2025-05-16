@@ -14,7 +14,7 @@ import {
 import { TitleBar } from '@/components/dashboard/TitleBar';
 import { AuditLogDetails } from '@/components/dashboard/AuditLogDetails';
 import { AuditLogEntry } from '@/components/dashboard/AuditLogEntry';
-import type { AuditLogType } from '@/types/auditLogs';
+import type { AuditLogType } from '@/db/schema';
 import { getAuditLogs } from '@/actions/auditLogs';
 
 type TimePeriod = '7' | '30' | '90';

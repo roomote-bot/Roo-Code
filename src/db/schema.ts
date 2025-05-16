@@ -7,7 +7,6 @@ import {
   uuid,
 } from 'drizzle-orm/pg-core';
 
-// AuditLogType
 export const auditLogs = pgTable('audit_logs', {
   id: uuid('id').primaryKey().defaultRandom(),
   userId: text('user_id').notNull(),
@@ -20,3 +19,13 @@ export const auditLogs = pgTable('audit_logs', {
     .notNull(),
   description: text('description').notNull(),
 });
+
+export enum AuditLogTargetType {
+  PROVIDER_WHITELIST = 1,
+  DEFAULT_PARAMETERS = 2,
+  MEMBER_CHANGE = 3, // TODO: Currently no logs of this type are collected
+}
+
+export type AuditLogType = Omit<typeof auditLogs.$inferSelect, 'targetType'> & {
+  targetType: AuditLogTargetType;
+};

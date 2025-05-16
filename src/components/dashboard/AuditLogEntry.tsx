@@ -5,8 +5,8 @@ import React from 'react';
 
 import { cn } from '@/lib/utils';
 
-import { getFormattedTime } from '../../lib/dateUtils';
-import { type AuditLogType, AuditLogTargetType } from '@/types/auditLogs';
+import { formatDistance } from 'date-fns';
+import { type AuditLogType, AuditLogTargetType } from '@/db/schema';
 
 type AuditLogEntryProps = {
   log: AuditLogType;
@@ -42,7 +42,7 @@ export function AuditLogEntry({ log, onClick }: AuditLogEntryProps) {
           <div className="flex items-center justify-between">
             <p className="text-xs text-muted-foreground">{log.userId}</p>
             <p className="text-xs text-muted-foreground">
-              {getFormattedTime(log.createdAt)}
+              {formatDistance(log.createdAt, new Date(), { addSuffix: true })}
             </p>
           </div>
         </div>

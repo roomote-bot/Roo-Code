@@ -4,7 +4,7 @@ import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import type { AuditLogType } from '@/types/auditLogs';
+import type { AuditLogType } from '@/db/schema';
 
 type AuditLogDetailsProps = {
   log: AuditLogType;

@@ -3,6 +3,11 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
+import {
+  updateAllowAllProviders,
+  updateModelStatus,
+  updateProviderStatus,
+} from '@/actions/providerWhitelist';
 import { Badge, Checkbox, Label } from '@/components/ui';
 import { toast } from 'sonner';
 
@@ -56,113 +61,16 @@ const ProviderWhitelistPage = () => {
   const [allowAllProviders, setAllowAllProviders] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // API functions to send provider whitelist data to backend
-  // Note: I'm not sure that it actually makes sense to have three separate endpoints here,
-  // and I didn't really put any thought into their API as they're just stubs for the audit logs to work.
-  // Please refactor!
-  const updateAllowAllProvidersAPI = async (allowAllProviders: boolean) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch(
-        '/api/provider-whitelist/allow-all-providers',
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            allowAllProviders,
-            policyVersion,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      console.log('Allow all providers setting updated successfully', {
-        allowAllProviders,
-      });
-    } catch (error) {
-      console.error('Failed to update global settings:', error);
-      toast.error(
-        'Failed to update allow all providers setting. Please try again.',
-      );
-    } finally {
-      setIsUpdating(false);
-    }
+  // Common error handling function for API calls
+  const handleApiError = (error: unknown, errorMessage: string) => {
+    console.error(errorMessage, error);
+    toast.error(errorMessage);
+    setIsUpdating(false);
   };
 
-  const updateProviderAPI = async (providerId: string, enabled: boolean) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch('/api/provider-whitelist/providers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          providerId,
-          enabled,
-          policyVersion,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      console.log('Provider status updated successfully', {
-        providerId,
-        enabled,
-      });
-    } catch (error) {
-      console.error('Failed to update provider status:', error);
-      toast.error('Failed to update provider status. Please try again.');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const updateModelAPI = async (
-    providerId: string,
-    modelId: string,
-    enabled: boolean,
-  ) => {
-    setIsUpdating(true);
-    try {
-      const response = await fetch('/api/provider-whitelist/models', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          providerId,
-          modelId,
-          enabled,
-          policyVersion,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
-      }
-
-      console.log('Model status updated successfully', {
-        providerId,
-        modelId,
-        enabled,
-      });
-    } catch (error) {
-      console.error('Failed to update model status:', error);
-      toast.error('Failed to update model status. Please try again.');
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  const toggleAllowAllProviders = () => {
+  const toggleAllowAllProviders = async () => {
+    const previousAllowAllProviders = allowAllProviders;
+    const previousProviders = [...providers];
     const newAllowAllProviders = !allowAllProviders;
     setAllowAllProviders(newAllowAllProviders);
 
@@ -181,10 +89,28 @@ const ProviderWhitelistPage = () => {
     }
 
     // Call API to update backend with the changed allow all providers setting
-    updateAllowAllProvidersAPI(newAllowAllProviders);
+    setIsUpdating(true);
+    try {
+      const result = await updateAllowAllProviders({
+        allowAllProviders: newAllowAllProviders,
+        policyVersion,
+      });
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update setting');
+      }
+    } catch (error) {
+      setAllowAllProviders(previousAllowAllProviders);
+      setProviders(previousProviders);
+      handleApiError(
+        error,
+        'Failed to update allow all providers setting. Please try again.',
+      );
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const toggleProvider = (providerId: string) => {
+  const toggleProvider = async (providerId: string) => {
     if (allowAllProviders) {
       return;
     }
@@ -193,6 +119,7 @@ const ProviderWhitelistPage = () => {
     const provider = providers.find((p) => p.id === providerId);
     if (!provider) return;
 
+    const previousProviders = [...providers];
     const newEnabled = !provider.enabled;
 
     const updatedProviders = providers.map((provider) => {
@@ -213,10 +140,28 @@ const ProviderWhitelistPage = () => {
     setProviders(updatedProviders);
 
     // Call API to update backend with the changed provider status
-    updateProviderAPI(providerId, newEnabled);
+    setIsUpdating(true);
+    try {
+      const result = await updateProviderStatus({
+        providerId,
+        enabled: newEnabled,
+        policyVersion,
+      });
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update provider status');
+      }
+    } catch (error) {
+      setProviders(previousProviders);
+      handleApiError(
+        error,
+        'Failed to update provider status. Please try again.',
+      );
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const toggleModel = (providerId: string, modelId: string) => {
+  const toggleModel = async (providerId: string, modelId: string) => {
     if (allowAllProviders) {
       return;
     }
@@ -228,6 +173,7 @@ const ProviderWhitelistPage = () => {
     const model = provider.models.find((m) => m.id === modelId);
     if (!model) return;
 
+    const previousProviders = [...providers];
     const newEnabled = !model.enabled;
 
     const updatedProviders = providers.map((provider) => {
@@ -248,7 +194,23 @@ const ProviderWhitelistPage = () => {
     setProviders(updatedProviders);
 
     // Call API to update backend with the changed model status
-    updateModelAPI(providerId, modelId, newEnabled);
+    setIsUpdating(true);
+    try {
+      const result = await updateModelStatus({
+        providerId,
+        modelId,
+        enabled: newEnabled,
+        policyVersion,
+      });
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to update model status');
+      }
+    } catch (error) {
+      setProviders(previousProviders);
+      handleApiError(error, 'Failed to update model status. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (

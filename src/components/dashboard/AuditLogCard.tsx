@@ -14,7 +14,7 @@ import {
 
 import { AuditLogDetails } from './AuditLogDetails';
 import { AuditLogEntry } from './AuditLogEntry';
-import type { AuditLogType } from '@/types/auditLogs';
+import type { AuditLogType } from '@/db/schema';
 import { getAuditLogs } from '@/actions/auditLogs';
 
 export function AuditLogCard() {

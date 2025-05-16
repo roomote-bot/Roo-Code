@@ -5,7 +5,7 @@ import { eq, gte, and, desc } from 'drizzle-orm';
 import { db } from '@/db';
 import { auditLogs } from '@/db/schema';
 import { logger } from '@/lib/server/logger';
-import { AuditLogType } from '@/types/auditLogs';
+import { AuditLogType } from '@/db/schema';
 
 /**
  * getAuditLogs

@@ -1,15 +1,17 @@
 import { db } from '@/db';
 import { auditLogs } from '@/db/schema';
-import { auditLogSchema } from '@/types/auditLogs';
 import { logger } from '@/lib/server/logger';
 import type { z } from 'zod';
+import { createInsertSchema } from 'drizzle-zod';
 
-export type AuditLogCreateRequest = z.infer<typeof auditLogSchema>;
+type AuditLogCreateRequest = z.infer<
+  ReturnType<typeof createInsertSchema<typeof auditLogs>>
+>;
 
 /**
  * Server-side function to create audit logs in the database
  * @param request The audit log data to create
- * @returns Object containing success status and created log ID
+ * @returns Object containing success status or error
  */
 export async function createAuditLog(request: AuditLogCreateRequest): Promise<{
   success: boolean;
