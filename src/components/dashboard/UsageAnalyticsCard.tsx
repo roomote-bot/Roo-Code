@@ -1,10 +1,10 @@
 'use client';
 
+import React, { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import React, { useMemo, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui';
 
 type TimePeriod = '7' | '30' | '90';
 
@@ -20,9 +20,7 @@ export const UsageAnalyticsCard = () => {
   const t = useTranslations('DashboardIndex');
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('7');
 
-  // Mock data based on selected time period
   const analyticsData = useMemo<AnalyticsData>(() => {
-    // Return different data based on timePeriod
     switch (timePeriod) {
       case '7':
         return {
@@ -59,8 +57,6 @@ export const UsageAnalyticsCard = () => {
           {t('analytics_description')}
         </p>
       </div>
-
-      {/* Time period toggle */}
       <div className="mb-4 flex space-x-2">
         <Button
           variant={timePeriod === '7' ? 'default' : 'outline'}
@@ -84,10 +80,7 @@ export const UsageAnalyticsCard = () => {
           {t('analytics_period_90_days')}
         </Button>
       </div>
-
-      {/* Metrics grid */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-        {/* Active Developers */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('analytics_active_developers')}
@@ -96,8 +89,6 @@ export const UsageAnalyticsCard = () => {
             {analyticsData.activeDevelopers}
           </div>
         </div>
-
-        {/* Tasks Started */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('analytics_tasks_started')}
@@ -106,8 +97,6 @@ export const UsageAnalyticsCard = () => {
             {analyticsData.tasksStarted}
           </div>
         </div>
-
-        {/* Tasks Completed */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('analytics_tasks_completed')}
@@ -116,8 +105,6 @@ export const UsageAnalyticsCard = () => {
             {analyticsData.tasksCompleted}
           </div>
         </div>
-
-        {/* Tokens Consumed */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('analytics_tokens_consumed')}
@@ -126,8 +113,6 @@ export const UsageAnalyticsCard = () => {
             {analyticsData.tokensConsumed}
           </div>
         </div>
-
-        {/* LLM Model Costs */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('analytics_llm_costs')}
@@ -137,8 +122,6 @@ export const UsageAnalyticsCard = () => {
           </div>
         </div>
       </div>
-
-      {/* Link to detailed analytics */}
       <div className="mt-4 text-right">
         <Link
           href="/dashboard/analytics"

@@ -5,7 +5,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
 import { ClerkProvider } from '@clerk/nextjs';
 
-import { getClerkLocale } from '@/lib/locale';
+import { getClerkLocale } from '@/i18n/locale';
 import { ThemeProvider } from '@/components/layout';
 import { ToastProvider, ToastViewport } from '@/components/ui/toast';
 import { ToastProvider as ToastContextProvider } from '@/components/ui/toast-context';

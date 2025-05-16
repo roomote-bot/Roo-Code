@@ -1,102 +1,23 @@
 {
   "Index": {
-    "meta_title": "SaaS Template - Le template SaaS parfait pour construire et mettre à l'échelle votre entreprise en toute simplicité.",
-    "meta_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS."
+    "meta_title": "Roo Code Cloud",
+    "meta_description": "Gestion cloud pour Roo Code."
   },
   "Navbar": {
     "sign_in": "Se connecter",
-    "sign_up": "S'inscrire",
-    "product": "Produit",
-    "docs": "Docs",
-    "blog": "Blog",
-    "community": "Communauté",
-    "company": "Entreprise"
-  },
-  "Hero": {
-    "follow_twitter": "Suivez @Ixartz sur Twitter",
-    "title": "Le parfait <important>SaaS template</important> pour construire et mettre à l'échelle votre entreprise en toute simplicité.",
-    "description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS.",
-    "primary_button": "Démarrer",
-    "secondary_button": "Mettez une étoile sur GitHub"
-  },
-  "Sponsors": {
-    "title": "Sponsorisé par"
-  },
-  "Features": {
-    "section_subtitle": "Fonctionnalités",
-    "section_title": "Débloquer le plein potentiel du SaaS Template",
-    "section_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS.",
-    "feature1_title": "Node.js",
-    "feature2_title": "React",
-    "feature3_title": "Tailwind CSS",
-    "feature4_title": "TypeScript",
-    "feature5_title": "Shadcn UI",
-    "feature6_title": "ESLint",
-    "feature_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS."
-  },
-  "Pricing": {
-    "section_subtitle": "Fonctionnalités",
-    "section_title": "Débloquer le plein potentiel du SaaS Template",
-    "section_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec React, TypeScript, Shadcn UI et Tailwind CSS.",
-    "button_text": "Démarrer"
-  },
-  "PricingPlan": {
-    "free_plan_name": "Gratuit",
-    "premium_plan_name": "Premium",
-    "enterprise_plan_name": "Enterprise",
-    "free_plan_description": "Pour les particuliers",
-    "premium_plan_description": "Pour les petites équipes",
-    "enterprise_plan_description": "Pour les leaders de l'industrie",
-    "feature_team_member": "{number} membres",
-    "feature_website": "{number} sites internet",
-    "feature_storage": "{number} Go de stockage",
-    "feature_transfer": "{number} TB de transfert",
-    "feature_email_support": "Support par e-mail",
-    "plan_interval_month": "mois",
-    "plan_interval_year": "année",
-    "next_renew_date": "Votre abonnement sera renouvelé le {date}"
-  },
-  "FAQ": {
-    "question": "Lorem ipsum dolor sit amet, consectetur adipiscing elit?",
-    "answer": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam aliquam enim dui, id consequat turpis ullamcorper ac. Mauris id quam dolor. Nullam eu egestas turpis. Proin risus elit, sollicitudin in mi a, accumsan euismod turpis. In euismod mi sed diam tristique hendrerit."
-  },
-  "CTA": {
-    "title": "Vous êtes prêt?",
-    "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "button_text": "Mettez une étoile sur GitHub"
+    "sign_up": "S'inscrire"
   },
   "Footer": {
-    "product": "Produit",
-    "docs": "Docs",
-    "blog": "Blog",
-    "community": "Communauté",
-    "company": "Entreprise",
     "terms_of_service": "Conditions d'utilisation",
-    "privacy_policy": "Politique de confidentialité",
-    "designed_by": "Designé by <author></author>."
-  },
-  "ProtectFallback": {
-    "not_enough_permission": "Vous n'avez pas les permissions pour effectuer cette action"
-  },
-  "SignIn": {
-    "meta_title": "Se connecter",
-    "meta_description": "Connectez-vous à votre compte avec facilité."
-  },
-  "SignUp": {
-    "meta_title": "S'inscrire",
-    "meta_description": "Créez un compte sans effort grâce à notre processus d'inscription intuitif."
+    "privacy_policy": "Politique de confidentialité"
   },
   "DashboardLayout": {
     "home": "Accueil",
     "analytics": "Analytiques",
-    "todos": "Todos",
     "members": "Membres",
-    "billing": "Facturation",
-    "settings": "Réglages"
-  },
-  "Dashboard": {
-    "meta_title": "Tableau de bord du SaaS Template",
-    "meta_description": "Un template gratuit et open-source de landing page pour votre entreprise SaaS, construit avec Next.js, TypeScript, Shadcn UI et Tailwind CSS."
+    "audit_logs": "Journaux d'audit",
+    "settings": "Réglages",
+    "provider_whitelist": "Liste blanche des fournisseurs"
   },
   "DashboardIndex": {
     "title_bar": "Tableau de bord",
@@ -105,17 +26,17 @@
     "message_state_description": "Vous pouvez personnaliser cette page en modifiant le fichier dans <code>dashboard/page.tsx</code>",
     "message_state_button": "Mettez une étoile sur GitHub",
     "message_state_alternative": "Vous voulez plus de fonctionnalités en utilisant la même stack ? Essayez <url></url>.",
-    "analytics_title": "Analytique d'Utilisation",
+    "analytics_title": "Analytiques d'utilisation",
     "analytics_description": "Métriques et statistiques d'utilisation de l'organisation",
     "analytics_period_7_days": "7 derniers jours",
     "analytics_period_30_days": "30 derniers jours",
     "analytics_period_90_days": "90 derniers jours",
-    "analytics_tasks_started": "Tâches Commencées",
-    "analytics_tasks_completed": "Tâches Terminées",
-    "analytics_tokens_consumed": "Tokens Consommés",
+    "analytics_tasks_started": "Tâches commencées",
+    "analytics_tasks_completed": "Tâches terminées",
+    "analytics_tokens_consumed": "Tokens consommés",
     "analytics_costs": "Coûts (USD)",
-    "analytics_llm_costs": "Coûts des Modèles LLM (USD)",
-    "analytics_active_developers": "Développeurs Actifs",
+    "analytics_llm_costs": "Coûts des modèles LLM (USD)",
+    "analytics_active_developers": "Développeurs actifs",
     "analytics_view_details": "Voir les analytiques détaillées"
   },
   "UserProfile": {
@@ -123,71 +44,31 @@
     "title_bar_description": "Afficher et gérer votre profil utilisateur"
   },
   "OrganizationProfile": {
-    "title_bar": "Gestion de l’organisation",
-    "title_bar_description": "Gérer votre organisation"
+    "title_bar": "Gestion de l'organisation",
+    "title_bar_description": "Gérer votre organisation",
+    "provider_whitelist": "Liste blanche des fournisseurs",
+    "default_parameters": "Paramètres par défaut"
   },
-  "Billing": {
-    "title_bar": "Facturation",
-    "title_bar_description": "Gérer votre facturation et votre abonnement",
-    "current_section_title": "Plan actuel",
-    "current_section_description": "Ajuster votre plan de paiement pour le mieux répondre à vos besoins",
-    "manage_subscription_button": "Gérer l'abonnement"
-  },
-  "BillingOptions": {
-    "current_plan": "Plan actuel",
-    "upgrade_plan": "Démarrer"
-  },
-  "CheckoutConfirmation": {
-    "title_bar": "Confirmation du paiement",
-    "message_state_title": "Paiement accepté",
-    "message_state_description": "Votre paiement a été traité avec succès. Merci pour votre achat !",
-    "message_state_button": "Revenir à la facturation"
-  },
-  "DataTable": {
-    "no_results": "Aucun résultat."
-  },
-  "Todos": {
-    "title_bar": "Liste de Todos",
-    "title_bar_description": "Afficher et gérer votre liste de todos",
-    "add_todo_button": "Nouveau todo"
-  },
-  "TodoTableColumns": {
-    "open_menu": "Ouvrir le menu",
-    "edit": "Modifier",
-    "delete": "Supprimer",
-    "title_header": "Titre",
-    "message_header": "Message",
-    "created_at_header": "Créé le"
-  },
-  "AddTodo": {
-    "title_bar": "Ajouter une todo",
-    "add_todo_section_title": "Créer une nouvelle todo",
-    "add_todo_section_description": "Remplissez le formulaire ci-dessous pour créer une nouvelle todo"
-  },
-  "EditTodo": {
-    "title_bar": "Editer le todo",
-    "edit_todo_section_title": "Modifier le todo",
-    "edit_todo_section_description": "Remplissez le formulaire ci-dessous pour modifier la todo"
-  },
-  "TodoForm": {
-    "title_label": "Titre",
-    "title_description": "Entrez un titre descriptif pour votre todo.",
-    "message_title": "Message",
-    "message_description": "Entrez un message détaillé pour votre todo.",
-    "submit_button": "Envoyer"
+  "ProviderWhitelist": {
+    "title": "Liste blanche des fournisseurs et paramètres par défaut",
+    "description": "Contrôlez quels fournisseurs d'IA sont autorisés et définissez les paramètres par défaut pour votre organisation",
+    "providers_section_title": "Fournisseurs autorisés",
+    "providers_section_description": "Sélectionnez quels fournisseurs et modèles d'IA sont autorisés à être utilisés",
+    "parameters_section_title": "Paramètres par défaut",
+    "parameters_section_description": "Définissez les paramètres par défaut globaux pour les appels aux modèles d'IA"
   },
   "Analytics": {
-    "title_bar": "Analytique d'Utilisation",
+    "title_bar": "Analytiques d'utilisation",
     "title_bar_description": "Analytiques détaillées pour votre organisation",
-    "summary_title": "Résumé d'Utilisation",
+    "summary_title": "Résumé d'utilisation",
     "period_7_days": "7 derniers jours",
     "period_30_days": "30 derniers jours",
     "period_90_days": "90 derniers jours",
-    "active_developers": "Développeurs Actifs",
-    "tasks_started": "Tâches Commencées",
-    "tasks_completed": "Tâches Terminées",
-    "tokens_consumed": "Tokens Consommés",
-    "llm_costs": "Coûts des Modèles LLM (USD)",
+    "active_developers": "Développeurs actifs",
+    "tasks_started": "Tâches commencées",
+    "tasks_completed": "Tâches terminées",
+    "tokens_consumed": "Tokens consommés",
+    "llm_costs": "Coûts des modèles LLM (USD)",
     "view_mode_title": "Afficher Par",
     "view_mode_developers": "Développeurs",
     "view_mode_models": "Modèles",
@@ -195,12 +76,12 @@
     "filter_title": "Filtres",
     "filter_developer": "Développeur",
     "filter_model": "Modèle",
-    "filter_clear_all": "Effacer Tout",
-    "task_details_title": "Détails de la Tâche",
+    "filter_clear_all": "Effacer tout",
+    "task_details_title": "Détails de la tâche",
     "task_details_close": "Fermer",
     "pagination_prev": "Précédent",
     "pagination_next": "Suivant",
-    "pagination_of": "de",
+    "pagination_of": "sur",
     "pagination_page_size": "Taille de page",
     "no_data": "Aucune donnée disponible",
     "loading": "Chargement des données..."

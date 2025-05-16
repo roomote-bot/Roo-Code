@@ -1,6 +1,6 @@
 'use server';
 
-import type { Locale } from '@/lib/locale';
+import type { Locale } from '@/i18n/locale';
 import { cookies } from 'next/headers';
 
 export const setLocale = async (locale: Locale) => {

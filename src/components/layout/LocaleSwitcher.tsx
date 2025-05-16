@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
 
-import { Locales, isLocale } from '@/lib/locale';
+import { Locales, isLocale } from '@/i18n/locale';
 import { setLocale } from '@/actions/locale';
 import {
   Button,
