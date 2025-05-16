@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useOrganization } from '@clerk/nextjs';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   Button,
@@ -12,18 +14,28 @@ import {
 import { TitleBar } from '@/components/dashboard/TitleBar';
 import { AuditLogDetails } from '@/components/dashboard/AuditLogDetails';
 import { AuditLogEntry } from '@/components/dashboard/AuditLogEntry';
-import type { AuditLog } from '@/components/dashboard/mockAuditLogs';
-import { getFilteredLogs } from '@/components/dashboard/mockAuditLogs';
+import type { AuditLogType } from '@/types/auditLogs';
+import { getAuditLogs } from '@/actions/auditLogs';
 
 type TimePeriod = '7' | '30' | '90';
 
 const AuditLogsPage = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('7');
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogType | null>(null);
+  const { organization } = useOrganization();
 
-  const logs = getFilteredLogs(Number(timePeriod));
+  const { data: logs = [], isLoading } = useQuery({
+    queryKey: ['auditLogs', organization?.id, Number(timePeriod)],
+    queryFn: async () =>
+      await getAuditLogs({
+        orgId: organization?.id,
+        limit: 20,
+        nRecentDays: Number(timePeriod),
+      }),
+    enabled: !!organization?.id,
+  });
 
-  const handleLogClick = (log: AuditLog) => setSelectedLog(log);
+  const handleLogClick = (log: AuditLogType) => setSelectedLog(log);
   const handleCloseDrawer = () => setSelectedLog(null);
 
   return (
@@ -63,8 +75,12 @@ const AuditLogsPage = () => {
           </Button>
         </div>
         <div className="space-y-1">
-          {logs.length > 0 ? (
-            logs.map((log: AuditLog) => (
+          {isLoading ? (
+            <div className="py-8 text-center">
+              <p className="text-sm text-muted-foreground">Loading...</p>
+            </div>
+          ) : logs.length > 0 ? (
+            logs.map((log: AuditLogType) => (
               <AuditLogEntry key={log.id} log={log} onClick={handleLogClick} />
             ))
           ) : (

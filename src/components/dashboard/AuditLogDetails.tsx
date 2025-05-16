@@ -4,10 +4,10 @@ import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import type { AuditLog } from './mockAuditLogs';
+import type { AuditLogType } from '@/types/auditLogs';
 
 type AuditLogDetailsProps = {
-  log: AuditLog;
+  log: AuditLogType;
 };
 
 const formatValue = (value: unknown): React.ReactNode => {
@@ -48,19 +48,19 @@ export function AuditLogDetails({ log }: AuditLogDetailsProps) {
       <div className="space-y-4">
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <Calendar className="size-4" />
-          <span>{log.timestamp.toLocaleDateString()}</span>
+          <span>{log.createdAt.toLocaleDateString()}</span>
           <Clock className="ml-2 size-4" />
-          <span>{log.timestamp.toLocaleTimeString()}</span>
+          <span>{log.createdAt.toLocaleTimeString()}</span>
         </div>
 
         <div className="flex items-center space-x-2 text-sm text-muted-foreground">
           <User className="size-4" />
-          <span>{log.user}</span>
+          <span>{log.userId}</span>
         </div>
 
-        {log.path && (
+        {log.targetId && (
           <Link
-            href={log.path}
+            href={log.targetId}
             className="mt-2 inline-flex items-center text-sm font-medium text-primary hover:underline"
           >
             View in settings
@@ -76,19 +76,10 @@ export function AuditLogDetails({ log }: AuditLogDetailsProps) {
         <div className="space-y-4">
           <div className="space-y-2">
             <h4 className="text-xs font-medium uppercase text-muted-foreground">
-              Before
+              New Value
             </h4>
             <div className="rounded-md bg-muted p-3">
-              {formatValue(log.details.before)}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <h4 className="text-xs font-medium uppercase text-muted-foreground">
-              After
-            </h4>
-            <div className="rounded-md bg-muted p-3">
-              {formatValue(log.details.after)}
+              {formatValue(log.newValue)}
             </div>
           </div>
         </div>

@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import React, { useState } from 'react';
+import { useOrganization } from '@clerk/nextjs';
+import { useQuery } from '@tanstack/react-query';
 
 import {
   Drawer,
@@ -12,14 +14,21 @@ import {
 
 import { AuditLogDetails } from './AuditLogDetails';
 import { AuditLogEntry } from './AuditLogEntry';
-import type { AuditLog } from './mockAuditLogs';
-import { mockAuditLogs } from './mockAuditLogs';
+import type { AuditLogType } from '@/types/auditLogs';
+import { getAuditLogs } from '@/actions/auditLogs';
 
 export function AuditLogCard() {
-  const logs = mockAuditLogs.slice(0, 5);
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogType | null>(null);
+  const { organization } = useOrganization();
 
-  const handleLogClick = (log: AuditLog) => setSelectedLog(log);
+  const { data: logs = [], isLoading } = useQuery({
+    queryKey: ['auditLogs', organization?.id, 5],
+    queryFn: async () =>
+      await getAuditLogs({ orgId: organization?.id, limit: 5 }),
+    enabled: !!organization?.id,
+  });
+
+  const handleLogClick = (log: AuditLogType) => setSelectedLog(log);
   const handleCloseDrawer = () => setSelectedLog(null);
 
   return (
@@ -33,8 +42,12 @@ export function AuditLogCard() {
 
       {/* Log entries */}
       <div className="space-y-1">
-        {logs.length > 0 ? (
-          logs.map((log: AuditLog) => (
+        {isLoading ? (
+          <div className="py-8 text-center">
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
+        ) : logs.length > 0 ? (
+          logs.map((log: AuditLogType) => (
             <AuditLogEntry key={log.id} log={log} onClick={handleLogClick} />
           ))
         ) : (

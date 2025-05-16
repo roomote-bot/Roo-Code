@@ -4,6 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
 import { Badge, Checkbox, Label } from '@/components/ui';
+import { toast } from 'sonner';
 
 const initialProviders = [
   {
@@ -53,23 +54,134 @@ const ProviderWhitelistPage = () => {
   const [providers, setProviders] = useState(initialProviders);
   const [policyVersion] = useState(1);
   const [allowAllProviders, setAllowAllProviders] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+
+  // API functions to send provider whitelist data to backend
+  // Note: I'm not sure that it actually makes sense to have three separate endpoints here,
+  // and I didn't really put any thought into their API as they're just stubs for the audit logs to work.
+  // Please refactor!
+  const updateAllowAllProvidersAPI = async (allowAllProviders: boolean) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch(
+        '/api/provider-whitelist/allow-all-providers',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            allowAllProviders,
+            policyVersion,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      console.log('Allow all providers setting updated successfully', {
+        allowAllProviders,
+      });
+    } catch (error) {
+      console.error('Failed to update global settings:', error);
+      toast.error(
+        'Failed to update allow all providers setting. Please try again.',
+      );
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const updateProviderAPI = async (providerId: string, enabled: boolean) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/provider-whitelist/providers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          providerId,
+          enabled,
+          policyVersion,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      console.log('Provider status updated successfully', {
+        providerId,
+        enabled,
+      });
+    } catch (error) {
+      console.error('Failed to update provider status:', error);
+      toast.error('Failed to update provider status. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const updateModelAPI = async (
+    providerId: string,
+    modelId: string,
+    enabled: boolean,
+  ) => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch('/api/provider-whitelist/models', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          providerId,
+          modelId,
+          enabled,
+          policyVersion,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      console.log('Model status updated successfully', {
+        providerId,
+        modelId,
+        enabled,
+      });
+    } catch (error) {
+      console.error('Failed to update model status:', error);
+      toast.error('Failed to update model status. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   const toggleAllowAllProviders = () => {
     const newAllowAllProviders = !allowAllProviders;
     setAllowAllProviders(newAllowAllProviders);
 
+    let updatedProviders = providers;
     if (newAllowAllProviders) {
-      setProviders(
-        providers.map((provider) => ({
-          ...provider,
+      // Enable all providers and their models
+      updatedProviders = providers.map((provider) => ({
+        ...provider,
+        enabled: true,
+        models: provider.models.map((model) => ({
+          ...model,
           enabled: true,
-          models: provider.models.map((model) => ({
-            ...model,
-            enabled: true,
-          })),
         })),
-      );
+      }));
+      setProviders(updatedProviders);
     }
+
+    // Call API to update backend with the changed allow all providers setting
+    updateAllowAllProvidersAPI(newAllowAllProviders);
   };
 
   const toggleProvider = (providerId: string) => {
@@ -77,22 +189,31 @@ const ProviderWhitelistPage = () => {
       return;
     }
 
-    setProviders(
-      providers.map((provider) => {
-        if (provider.id === providerId) {
-          const newEnabled = !provider.enabled;
-          return {
-            ...provider,
-            enabled: newEnabled,
-            models: provider.models.map((model) => ({
-              ...model,
-              enabled: newEnabled ? model.enabled : false,
-            })),
-          };
-        }
-        return provider;
-      }),
-    );
+    // Find the provider to get its current state
+    const provider = providers.find((p) => p.id === providerId);
+    if (!provider) return;
+
+    const newEnabled = !provider.enabled;
+
+    const updatedProviders = providers.map((provider) => {
+      if (provider.id === providerId) {
+        return {
+          ...provider,
+          enabled: newEnabled,
+          // If provider is disabled, disable all its models
+          models: provider.models.map((model) => ({
+            ...model,
+            enabled: newEnabled ? model.enabled : false,
+          })),
+        };
+      }
+      return provider;
+    });
+
+    setProviders(updatedProviders);
+
+    // Call API to update backend with the changed provider status
+    updateProviderAPI(providerId, newEnabled);
   };
 
   const toggleModel = (providerId: string, modelId: string) => {
@@ -100,22 +221,34 @@ const ProviderWhitelistPage = () => {
       return;
     }
 
-    setProviders(
-      providers.map((provider) => {
-        if (provider.id === providerId) {
-          return {
-            ...provider,
-            models: provider.models.map((model) => {
-              if (model.id === modelId) {
-                return { ...model, enabled: !model.enabled };
-              }
-              return model;
-            }),
-          };
-        }
-        return provider;
-      }),
-    );
+    // Find the model to get its current state
+    const provider = providers.find((p) => p.id === providerId);
+    if (!provider) return;
+
+    const model = provider.models.find((m) => m.id === modelId);
+    if (!model) return;
+
+    const newEnabled = !model.enabled;
+
+    const updatedProviders = providers.map((provider) => {
+      if (provider.id === providerId) {
+        return {
+          ...provider,
+          models: provider.models.map((model) => {
+            if (model.id === modelId) {
+              return { ...model, enabled: newEnabled };
+            }
+            return model;
+          }),
+        };
+      }
+      return provider;
+    });
+
+    setProviders(updatedProviders);
+
+    // Call API to update backend with the changed model status
+    updateModelAPI(providerId, modelId, newEnabled);
   };
 
   return (
@@ -195,7 +328,9 @@ const ProviderWhitelistPage = () => {
               {`Policy v${policyVersion}`}
             </Badge>
             <span className="text-xs text-muted-foreground">
-              Changes will be pushed to SSE stream within 30 seconds
+              {isUpdating
+                ? 'Updating provider whitelist...'
+                : 'Changes will be pushed to SSE stream within 30 seconds'}
             </span>
           </div>
         </div>
