@@ -1,20 +1,11 @@
-import { useTranslations } from 'next-intl';
+import { auth } from '@clerk/nextjs/server';
 
-import { TitleBar } from '@/components/dashboard/TitleBar';
-import { AuditLogCard } from '@/components/dashboard/AuditLogCard';
-import { UsageAnalyticsCard } from '@/components/dashboard/UsageAnalyticsCard';
+import { getUsage } from '@/actions/analytics';
 
-export default function Page() {
-  const t = useTranslations('DashboardIndex');
+import { Dashboard } from './Dashboard';
 
-  return (
-    <>
-      <TitleBar
-        title={t('title_bar')}
-        description={t('title_bar_description')}
-      />
-      <UsageAnalyticsCard />
-      <AuditLogCard />
-    </>
-  );
+export default async function Page() {
+  const { orgId } = await auth();
+  const usage = await getUsage(orgId);
+  return <Dashboard usage={usage} />;
 }

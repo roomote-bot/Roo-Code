@@ -3,10 +3,6 @@
     "meta_title": "Roo Code Cloud",
     "meta_description": "Gestion cloud pour Roo Code."
   },
-  "Navbar": {
-    "sign_in": "Se connecter",
-    "sign_up": "S'inscrire"
-  },
   "Footer": {
     "terms_of_service": "Conditions d'utilisation",
     "privacy_policy": "Politique de confidentialité"
@@ -21,11 +17,6 @@
   },
   "DashboardIndex": {
     "title_bar": "Tableau de bord",
-    "title_bar_description": "Bienvenue sur votre tableau de bord",
-    "message_state_title": "C'est parti",
-    "message_state_description": "Vous pouvez personnaliser cette page en modifiant le fichier dans <code>dashboard/page.tsx</code>",
-    "message_state_button": "Mettez une étoile sur GitHub",
-    "message_state_alternative": "Vous voulez plus de fonctionnalités en utilisant la même stack ? Essayez <url></url>.",
     "analytics_title": "Analytiques d'utilisation",
     "analytics_description": "Métriques et statistiques d'utilisation de l'organisation",
     "analytics_period_7_days": "7 derniers jours",

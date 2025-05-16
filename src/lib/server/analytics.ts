@@ -3,7 +3,7 @@ import { createClient } from '@clickhouse/client';
 import { CloudEvent } from '@/schemas';
 import { Env } from './env';
 
-const client = createClient({
+export const client = createClient({
   url: Env.CLICKHOUSE_URL,
   username: Env.CLICKHOUSE_USERNAME,
   password: Env.CLICKHOUSE_PASSWORD,

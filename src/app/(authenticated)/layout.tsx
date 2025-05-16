@@ -1,15 +1,15 @@
+import { currentUser } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
-import { auth as clerkAuth } from '@clerk/nextjs/server';
 
 export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const auth = await clerkAuth();
+  const user = await currentUser();
 
-  if (!auth.userId) {
-    redirect('/');
+  if (!user) {
+    return redirect('/sign-in');
   }
 
   return children;

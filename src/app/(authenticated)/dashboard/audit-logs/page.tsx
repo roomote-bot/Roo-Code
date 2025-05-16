@@ -17,7 +17,6 @@ const AuditLogsPage = () => {
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Get filtered logs based on selected time period
   const logs = getFilteredLogs(Number(timePeriod));
 
   const handleLogClick = (log: AuditLog) => {
@@ -35,7 +34,6 @@ const AuditLogsPage = () => {
         title="Audit Logs"
         description="View all organization activity and changes"
       />
-
       <div className="w-2/3 rounded-md bg-card p-5">
         <div className="mb-4">
           <h3 className="text-lg font-semibold">All Activity</h3>
@@ -43,8 +41,6 @@ const AuditLogsPage = () => {
             Showing all audit logs for your organization
           </p>
         </div>
-
-        {/* Time period toggle */}
         <div className="mb-4 flex space-x-2">
           <Button
             variant={timePeriod === '7' ? 'default' : 'outline'}
@@ -68,8 +64,6 @@ const AuditLogsPage = () => {
             Last 90 days
           </Button>
         </div>
-
-        {/* Log entries */}
         <div className="space-y-1">
           {logs.length > 0 ? (
             logs.map((log: AuditLog) => (
@@ -82,8 +76,6 @@ const AuditLogsPage = () => {
           )}
         </div>
       </div>
-
-      {/* Drawer for log details */}
       <Drawer
         isOpen={isDrawerOpen}
         onClose={handleCloseDrawer}

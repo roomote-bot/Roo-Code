@@ -14,7 +14,6 @@ const AnalyticsPageContainer = () => {
         title={t('title_bar')}
         description={t('title_bar_description')}
       />
-
       <AnalyticsPage />
     </>
   );
