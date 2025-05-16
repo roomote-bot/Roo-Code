@@ -1,8 +1,9 @@
 'use server';
 
 import { z } from 'zod';
+import { TelemetryEventName } from '@roo-code/types';
 
-import { TelemetryEventName, type TimePeriod } from '@/schemas';
+import { type TimePeriod } from '@/schemas';
 import { client } from '@/lib/server/analytics';
 
 /**

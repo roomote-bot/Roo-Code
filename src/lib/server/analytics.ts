@@ -1,6 +1,7 @@
 import { createClient } from '@clickhouse/client';
 
-import type { TelemetryEvent } from '@/schemas';
+import type { RooCodeTelemetryEvent } from '@roo-code/types';
+
 import { Env } from './env';
 
 export const client = createClient({
@@ -14,7 +15,7 @@ type AnalyticsEvent = {
   orgId: string;
   userId: string;
   timestamp: number;
-  event: TelemetryEvent;
+  event: RooCodeTelemetryEvent;
 };
 
 export const captureEvent = async ({

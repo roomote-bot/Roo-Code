@@ -5,8 +5,9 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
+import { TelemetryEventName } from '@roo-code/types';
 
-import { TelemetryEventName, type TimePeriod, timePeriods } from '@/schemas';
+import { type TimePeriod, timePeriods } from '@/schemas';
 import { getUsage } from '@/actions/analytics';
 
 import { Button } from '@/components/ui';
