@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@clerk/nextjs';
@@ -17,6 +18,8 @@ export const UsageAnalyticsCard = () => {
   const { orgId } = useAuth();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(7);
 
+  const path = usePathname();
+
   const usage = useQuery({
     queryKey: ['usage', orgId, timePeriod],
     queryFn: () => getUsage({ orgId, timePeriod }),
@@ -30,7 +33,6 @@ export const UsageAnalyticsCard = () => {
           {t('analytics_description')}
         </p>
       </div>
-
       <div className="mb-4 flex space-x-2">
         {timePeriods.map((period) => (
           <Button
@@ -43,7 +45,6 @@ export const UsageAnalyticsCard = () => {
           </Button>
         ))}
       </div>
-
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
@@ -89,14 +90,16 @@ export const UsageAnalyticsCard = () => {
           </div>
         </div>
       </div>
-      <div className="mt-4 text-right">
-        <Link
-          href="/dashboard/analytics"
-          className="text-sm text-primary hover:underline"
-        >
-          {t('analytics_view_details')}
-        </Link>
-      </div>
+      {path !== '/dashboard/analytics' && (
+        <div className="mt-4 text-right">
+          <Link
+            href="/dashboard/analytics"
+            className="text-sm text-primary hover:underline"
+          >
+            {t('analytics_view_details')}
+          </Link>
+        </div>
+      )}
     </div>
   );
 };

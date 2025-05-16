@@ -19,7 +19,7 @@ import { getAuditLogs } from '@/actions/auditLogs';
 
 type TimePeriod = '7' | '30' | '90';
 
-const AuditLogsPage = () => {
+export default function Page() {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('7');
   const [selectedLog, setSelectedLog] = useState<AuditLogType | null>(null);
   const { organization } = useOrganization();
@@ -100,6 +100,4 @@ const AuditLogsPage = () => {
       </Drawer>
     </>
   );
-};
-
-export default AuditLogsPage;
+}

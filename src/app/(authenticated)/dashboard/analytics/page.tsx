@@ -1,12 +1,12 @@
-'use client';
-
-import { useTranslations } from 'next-intl';
+import { getLocale, getTranslations } from 'next-intl/server';
 
 import { TitleBar } from '@/components/dashboard/TitleBar';
-import { AnalyticsPage } from '@/components/analytics/AnalyticsPage';
 
-const AnalyticsPageContainer = () => {
-  const t = useTranslations('Analytics');
+import { Analytics } from './Analytics';
+
+export default async function Page() {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'Analytics' });
 
   return (
     <>
@@ -14,9 +14,7 @@ const AnalyticsPageContainer = () => {
         title={t('title_bar')}
         description={t('title_bar_description')}
       />
-      <AnalyticsPage />
+      <Analytics />
     </>
   );
-};
-
-export default AnalyticsPageContainer;
+}
