@@ -1,53 +1,25 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useAuth } from '@clerk/nextjs';
+import { useQuery } from '@tanstack/react-query';
+
+import { TelemetryEventName, type TimePeriod, timePeriods } from '@/schemas';
+import { getUsage } from '@/actions/analytics';
 
 import { Button } from '@/components/ui';
 
-type TimePeriod = '7' | '30' | '90';
-
-type AnalyticsData = {
-  tasksStarted: number;
-  tasksCompleted: number;
-  tokensConsumed: string;
-  costs: number;
-  activeDevelopers: number;
-};
-
 export const UsageAnalyticsCard = () => {
   const t = useTranslations('DashboardIndex');
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>('7');
+  const { orgId } = useAuth();
+  const [timePeriod, setTimePeriod] = useState<TimePeriod>(7);
 
-  const analyticsData = useMemo<AnalyticsData>(() => {
-    switch (timePeriod) {
-      case '7':
-        return {
-          tasksStarted: 42,
-          tasksCompleted: 38,
-          tokensConsumed: '1.2M',
-          costs: 24.5,
-          activeDevelopers: 8,
-        };
-      case '30':
-        return {
-          tasksStarted: 187,
-          tasksCompleted: 165,
-          tokensConsumed: '5.8M',
-          costs: 112.75,
-          activeDevelopers: 12,
-        };
-      case '90':
-        return {
-          tasksStarted: 563,
-          tasksCompleted: 498,
-          tokensConsumed: '18.3M',
-          costs: 347.2,
-          activeDevelopers: 15,
-        };
-    }
-  }, [timePeriod]);
+  const usage = useQuery({
+    queryKey: ['usage', orgId, timePeriod],
+    queryFn: () => getUsage({ orgId, timePeriod }),
+  });
 
   return (
     <div className="mb-6 rounded-md bg-card p-5">
@@ -57,36 +29,27 @@ export const UsageAnalyticsCard = () => {
           {t('analytics_description')}
         </p>
       </div>
+
       <div className="mb-4 flex space-x-2">
-        <Button
-          variant={timePeriod === '7' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setTimePeriod('7')}
-        >
-          {t('analytics_period_7_days')}
-        </Button>
-        <Button
-          variant={timePeriod === '30' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setTimePeriod('30')}
-        >
-          {t('analytics_period_30_days')}
-        </Button>
-        <Button
-          variant={timePeriod === '90' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setTimePeriod('90')}
-        >
-          {t('analytics_period_90_days')}
-        </Button>
+        {timePeriods.map((period) => (
+          <Button
+            key={period}
+            variant={period === timePeriod ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setTimePeriod(period)}
+          >
+            {t(`analytics_period_${period}_days`)}
+          </Button>
+        ))}
       </div>
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('analytics_active_developers')}
           </div>
           <div className="mt-1 text-2xl font-semibold">
-            {analyticsData.activeDevelopers}
+            {usage.data?.[TelemetryEventName.LLM_COMPLETION]?.userCount ?? '-'}
           </div>
         </div>
         <div className="rounded-lg bg-background p-3">
@@ -94,7 +57,7 @@ export const UsageAnalyticsCard = () => {
             {t('analytics_tasks_started')}
           </div>
           <div className="mt-1 text-2xl font-semibold">
-            {analyticsData.tasksStarted}
+            {usage.data?.[TelemetryEventName.TASK_CREATED]?.eventCount ?? '-'}
           </div>
         </div>
         <div className="rounded-lg bg-background p-3">
@@ -102,7 +65,7 @@ export const UsageAnalyticsCard = () => {
             {t('analytics_tasks_completed')}
           </div>
           <div className="mt-1 text-2xl font-semibold">
-            {analyticsData.tasksCompleted}
+            {usage.data?.[TelemetryEventName.TASK_COMPLETED]?.eventCount ?? '-'}
           </div>
         </div>
         <div className="rounded-lg bg-background p-3">
@@ -110,7 +73,8 @@ export const UsageAnalyticsCard = () => {
             {t('analytics_tokens_consumed')}
           </div>
           <div className="mt-1 text-2xl font-semibold">
-            {analyticsData.tokensConsumed}
+            {usage.data?.[TelemetryEventName.LLM_COMPLETION]?.inputTokens ??
+              '-'}
           </div>
         </div>
         <div className="rounded-lg bg-background p-3">
@@ -118,7 +82,9 @@ export const UsageAnalyticsCard = () => {
             {t('analytics_llm_costs')}
           </div>
           <div className="mt-1 text-2xl font-semibold">
-            ${analyticsData.costs.toFixed(2)}
+            {usage.data?.[TelemetryEventName.LLM_COMPLETION]?.cost?.toFixed(
+              2,
+            ) ?? '-'}
           </div>
         </div>
       </div>

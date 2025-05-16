@@ -5,14 +5,13 @@ import { X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import React, { useMemo, useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { DataTable } from '@/components/ui/data-table';
+import { Button } from '@/components/ui';
+import { DataTable } from '@/components/data-table';
 
-// Types
 type TimePeriod = '7' | '30' | '90';
+
 type ViewMode = 'developers' | 'models' | 'tasks';
 
-// Mock data types
 type Developer = {
   id: string;
   name: string;
@@ -66,7 +65,6 @@ type Filter = {
   name: string;
 } | null;
 
-// Generate mock conversation data
 const generateMockConversation = (taskId: string): ConversationMessage[] => {
   const baseConversations: Record<string, ConversationMessage[]> = {
     task1: [
@@ -129,12 +127,10 @@ const generateMockConversation = (taskId: string): ConversationMessage[] => {
     ],
   };
 
-  // Return specific conversation if available, otherwise generate a generic one
   if (baseConversations[taskId]) {
     return baseConversations[taskId];
   }
 
-  // Generic conversation
   return [
     {
       id: `${taskId}-msg1`,
@@ -165,7 +161,6 @@ const generateMockConversation = (taskId: string): ConversationMessage[] => {
   ];
 };
 
-// Mock data
 const mockDevelopers: Developer[] = [
   {
     id: 'dev1',
@@ -356,7 +351,6 @@ const mockTasks: Task[] = [
   },
 ];
 
-// Component for summary metrics
 const SummaryMetrics = ({
   data,
   timePeriod,
@@ -374,7 +368,6 @@ const SummaryMetrics = ({
         <h3 className="text-lg font-semibold">{t('summary_title')}</h3>
       </div>
 
-      {/* Time period toggle */}
       <div className="mb-4 flex space-x-2">
         <Button
           variant={timePeriod === '7' ? 'default' : 'outline'}
@@ -399,7 +392,6 @@ const SummaryMetrics = ({
         </Button>
       </div>
 
-      {/* Metrics grid */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
         {/* Active Developers */}
         <div className="rounded-lg bg-background p-3">
@@ -411,7 +403,6 @@ const SummaryMetrics = ({
           </div>
         </div>
 
-        {/* Tasks Started */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('tasks_started')}
@@ -419,7 +410,6 @@ const SummaryMetrics = ({
           <div className="mt-1 text-2xl font-semibold">{data.tasksStarted}</div>
         </div>
 
-        {/* Tasks Completed */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('tasks_completed')}
@@ -429,7 +419,6 @@ const SummaryMetrics = ({
           </div>
         </div>
 
-        {/* Tokens Consumed */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">
             {t('tokens_consumed')}
@@ -439,7 +428,6 @@ const SummaryMetrics = ({
           </div>
         </div>
 
-        {/* LLM Model Costs */}
         <div className="rounded-lg bg-background p-3">
           <div className="text-xs text-muted-foreground">{t('llm_costs')}</div>
           <div className="mt-1 text-2xl font-semibold">
@@ -451,7 +439,6 @@ const SummaryMetrics = ({
   );
 };
 
-// Component for view mode toggle
 const ViewModeToggle = ({
   viewMode,
   setViewMode,
@@ -491,7 +478,6 @@ const ViewModeToggle = ({
   );
 };
 
-// Component for active filter display
 const ActiveFilter = ({
   filter,
   onClear,
@@ -520,7 +506,6 @@ const ActiveFilter = ({
   );
 };
 
-// Component for task details drawer
 const TaskDetailsDrawer = ({
   task,
   isOpen,
@@ -618,7 +603,6 @@ const TaskDetailsDrawer = ({
   );
 };
 
-// Main component
 export const AnalyticsPage = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('7');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
@@ -626,10 +610,7 @@ export const AnalyticsPage = () => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  // Generate summary data based on time period
   const summaryData = useMemo<SummaryData>(() => {
-    // In a real implementation, this would fetch data from an API
-    // For now, we'll use mock data with different values for each time period
     switch (timePeriod) {
       case '7':
         return {
@@ -658,44 +639,30 @@ export const AnalyticsPage = () => {
     }
   }, [timePeriod]);
 
-  // Handle developer click
   const handleDeveloperClick = (developer: Developer) => {
-    setFilter({
-      type: 'developer',
-      id: developer.id,
-      name: developer.name,
-    });
+    setFilter({ type: 'developer', id: developer.id, name: developer.name });
     setViewMode('tasks');
   };
 
-  // Handle model click
   const handleModelClick = (model: Model) => {
-    setFilter({
-      type: 'model',
-      id: model.id,
-      name: model.name,
-    });
+    setFilter({ type: 'model', id: model.id, name: model.name });
     setViewMode('tasks');
   };
 
-  // Handle task click
   const handleTaskClick = (task: Task) => {
     setSelectedTask(task);
     setIsDrawerOpen(true);
   };
 
-  // Clear filter
   const clearFilter = () => {
     setFilter(null);
   };
 
-  // Close drawer
   const closeDrawer = () => {
     setIsDrawerOpen(false);
     setSelectedTask(null);
   };
 
-  // Data tables for each view mode
   const DevelopersTable = () => {
     const developerColumns: ColumnDef<Developer>[] = [
       {
@@ -801,7 +768,6 @@ export const AnalyticsPage = () => {
   };
 
   const TasksTable = () => {
-    // Filter tasks based on the active filter
     const filteredTasks = useMemo(() => {
       if (!filter) {
         return mockTasks;
@@ -891,7 +857,6 @@ export const AnalyticsPage = () => {
     return <DataTable columns={taskColumns} data={filteredTasks} />;
   };
 
-  // Render the appropriate table based on view mode
   const renderTable = () => {
     switch (viewMode) {
       case 'developers':
@@ -905,20 +870,16 @@ export const AnalyticsPage = () => {
 
   return (
     <div>
-      {/* Summary metrics */}
       <SummaryMetrics
         data={summaryData}
         timePeriod={timePeriod}
         setTimePeriod={setTimePeriod}
       />
 
-      {/* View mode toggle */}
       <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
 
-      {/* Active filter */}
       {filter && <ActiveFilter filter={filter} onClear={clearFilter} />}
 
-      {/* Data table */}
       <div className="rounded-md border bg-card p-5">
         <div className="mb-4">
           <h3 className="text-lg font-semibold">
@@ -932,7 +893,6 @@ export const AnalyticsPage = () => {
         {renderTable()}
       </div>
 
-      {/* Task details drawer */}
       <TaskDetailsDrawer
         task={selectedTask}
         isOpen={isDrawerOpen}

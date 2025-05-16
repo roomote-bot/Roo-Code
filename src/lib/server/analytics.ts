@@ -1,6 +1,6 @@
 import { createClient } from '@clickhouse/client';
 
-import { CloudEvent } from '@/schemas';
+import type { TelemetryEvent } from '@/schemas';
 import { Env } from './env';
 
 export const client = createClient({
@@ -14,7 +14,7 @@ type AnalyticsEvent = {
   orgId: string;
   userId: string;
   timestamp: number;
-  event: CloudEvent;
+  event: TelemetryEvent;
 };
 
 export const captureEvent = async ({

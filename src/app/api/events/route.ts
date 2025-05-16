@@ -2,7 +2,7 @@ import { auth } from '@clerk/nextjs/server';
 import { NextRequest, NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
 
-import { cloudEventSchema } from '@/schemas';
+import { telemetryEventSchema } from '@/schemas';
 import { captureEvent } from '@/lib/server/analytics';
 
 export async function POST(request: NextRequest) {
@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
 
   const id = uuidv4();
   const timestamp = Math.round(Date.now() / 1000);
-  const result = cloudEventSchema.safeParse(await request.json());
+  const result = telemetryEventSchema.safeParse(await request.json());
 
   if (!result.success) {
     console.error(result.error);

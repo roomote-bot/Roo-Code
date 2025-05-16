@@ -3,7 +3,12 @@
 import Link from 'next/link';
 import React, { useState } from 'react';
 
-import { Drawer } from '@/components/ui/drawer';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 
 import { AuditLogDetails } from './AuditLogDetails';
 import { AuditLogEntry } from './AuditLogEntry';
@@ -11,21 +16,11 @@ import type { AuditLog } from './mockAuditLogs';
 import { mockAuditLogs } from './mockAuditLogs';
 
 export function AuditLogCard() {
-  // Always show the most recent 5 entries
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-
-  // Get the 5 most recent logs
   const logs = mockAuditLogs.slice(0, 5);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const handleLogClick = (log: AuditLog) => {
-    setSelectedLog(log);
-    setIsDrawerOpen(true);
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-  };
+  const handleLogClick = (log: AuditLog) => setSelectedLog(log);
+  const handleCloseDrawer = () => setSelectedLog(null);
 
   return (
     <div className="mb-6 w-2/3 rounded-md bg-card p-5">
@@ -59,13 +54,13 @@ export function AuditLogCard() {
         </Link>
       </div>
 
-      {/* Drawer for log details */}
-      <Drawer
-        isOpen={isDrawerOpen}
-        onClose={handleCloseDrawer}
-        title="Activity Details"
-      >
-        {selectedLog && <AuditLogDetails log={selectedLog} />}
+      <Drawer open={!!selectedLog} onClose={handleCloseDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Activity Details</DrawerTitle>
+          </DrawerHeader>
+          {selectedLog && <AuditLogDetails log={selectedLog} />}
+        </DrawerContent>
       </Drawer>
     </div>
   );

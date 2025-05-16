@@ -6,10 +6,8 @@ import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
 import { ClerkProvider } from '@clerk/nextjs';
 
 import { getClerkLocale } from '@/i18n/locale';
-import { ThemeProvider } from '@/components/layout';
-import { ToastProvider, ToastViewport } from '@/components/ui/toast';
-import { ToastProvider as ToastContextProvider } from '@/components/ui/toast-context';
-import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider, ReactQueryProvider } from '@/components/layout';
+import { Toaster } from '@/components/ui';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -54,13 +52,10 @@ export default async function RootLayout({
         <NextIntlClientProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <ClerkProvider localization={getClerkLocale(locale)}>
-              <ToastProvider>
-                <ToastContextProvider>
-                  {children}
-                  <Toaster />
-                  <ToastViewport />
-                </ToastContextProvider>
-              </ToastProvider>
+              <ReactQueryProvider>
+                {children}
+                <Toaster />
+              </ReactQueryProvider>
             </ClerkProvider>
           </ThemeProvider>
         </NextIntlClientProvider>

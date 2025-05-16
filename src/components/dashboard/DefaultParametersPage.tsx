@@ -5,20 +5,20 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Button,
+  Checkbox,
   Form,
   FormControl,
   FormDescription,
   FormField,
   FormItem,
   FormLabel,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Slider } from '@/components/ui/slider';
-import { useToast } from '@/components/ui/toast-context';
+  Input,
+  Slider,
+} from '@/components/ui';
 
 type DefaultParamsFormValues = {
   experimentalPowerSteering: boolean;
@@ -47,7 +47,6 @@ type DefaultParamsFormValues = {
 
 const DefaultParametersPage = () => {
   const t = useTranslations('ProviderWhitelist');
-  const { addToast } = useToast();
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -82,13 +81,9 @@ const DefaultParametersPage = () => {
   const onSubmit = (_data: DefaultParamsFormValues) => {
     setIsSaving(true);
 
-    // Simulate API call
     setTimeout(() => {
-      // Show success toast
-      addToast({
-        title: 'Settings saved',
+      toast('Settings saved', {
         description: 'Default parameters have been updated successfully.',
-        variant: 'default',
       });
 
       setIsSaving(false);
@@ -112,7 +107,6 @@ const DefaultParametersPage = () => {
       <div className="space-y-8">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Checkpoints Section */}
             <div className="space-y-4 rounded-lg bg-muted/50 p-4">
               <div className="flex items-center gap-2">
                 <svg
@@ -157,7 +151,6 @@ const DefaultParametersPage = () => {
               </div>
             </div>
 
-            {/* Context Settings Section */}
             <div className="space-y-4 rounded-lg bg-muted/50 p-4">
               <div className="flex items-center gap-2">
                 <svg

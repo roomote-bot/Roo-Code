@@ -2,8 +2,13 @@
 
 import { useState } from 'react';
 
-import { Button } from '@/components/ui/button';
-import { Drawer } from '@/components/ui/drawer';
+import {
+  Button,
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui';
 import { TitleBar } from '@/components/dashboard/TitleBar';
 import { AuditLogDetails } from '@/components/dashboard/AuditLogDetails';
 import { AuditLogEntry } from '@/components/dashboard/AuditLogEntry';
@@ -15,18 +20,11 @@ type TimePeriod = '7' | '30' | '90';
 const AuditLogsPage = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('7');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const logs = getFilteredLogs(Number(timePeriod));
 
-  const handleLogClick = (log: AuditLog) => {
-    setSelectedLog(log);
-    setIsDrawerOpen(true);
-  };
-
-  const handleCloseDrawer = () => {
-    setIsDrawerOpen(false);
-  };
+  const handleLogClick = (log: AuditLog) => setSelectedLog(log);
+  const handleCloseDrawer = () => setSelectedLog(null);
 
   return (
     <>
@@ -76,12 +74,13 @@ const AuditLogsPage = () => {
           )}
         </div>
       </div>
-      <Drawer
-        isOpen={isDrawerOpen}
-        onClose={handleCloseDrawer}
-        title="Activity Details"
-      >
-        {selectedLog && <AuditLogDetails log={selectedLog} />}
+      <Drawer open={!!selectedLog} onClose={handleCloseDrawer}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Activity Details</DrawerTitle>
+          </DrawerHeader>
+          {selectedLog && <AuditLogDetails log={selectedLog} />}
+        </DrawerContent>
       </Drawer>
     </>
   );

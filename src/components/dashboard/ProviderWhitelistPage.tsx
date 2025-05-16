@@ -3,11 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+import { Badge, Checkbox, Label } from '@/components/ui';
 
-// Mock data for providers and models
 const initialProviders = [
   {
     id: 'openai',
@@ -53,18 +50,15 @@ const initialProviders = [
 const ProviderWhitelistPage = () => {
   const t = useTranslations('ProviderWhitelist');
 
-  // State for providers and models
   const [providers, setProviders] = useState(initialProviders);
   const [policyVersion] = useState(1);
   const [allowAllProviders, setAllowAllProviders] = useState(true);
 
-  // Toggle allow all providers
   const toggleAllowAllProviders = () => {
     const newAllowAllProviders = !allowAllProviders;
     setAllowAllProviders(newAllowAllProviders);
 
     if (newAllowAllProviders) {
-      // Enable all providers and their models
       setProviders(
         providers.map((provider) => ({
           ...provider,
@@ -78,7 +72,6 @@ const ProviderWhitelistPage = () => {
     }
   };
 
-  // Toggle provider enabled state
   const toggleProvider = (providerId: string) => {
     if (allowAllProviders) {
       return;
@@ -91,7 +84,6 @@ const ProviderWhitelistPage = () => {
           return {
             ...provider,
             enabled: newEnabled,
-            // If provider is disabled, disable all its models
             models: provider.models.map((model) => ({
               ...model,
               enabled: newEnabled ? model.enabled : false,
@@ -103,7 +95,6 @@ const ProviderWhitelistPage = () => {
     );
   };
 
-  // Toggle model enabled state
   const toggleModel = (providerId: string, modelId: string) => {
     if (allowAllProviders) {
       return;
