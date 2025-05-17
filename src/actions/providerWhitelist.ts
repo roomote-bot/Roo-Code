@@ -1,17 +1,15 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 
 import { AuditLogTargetType } from '@/db/schema';
-import { logger } from '@/lib/server/logger';
 import { createAuditLog } from '@/lib/server/auditLogs';
-
-type ApiResponse = {
-  success: boolean;
-  message?: string;
-  error?: string;
-};
+import {
+  handleError,
+  isAuthSuccess,
+  validateAuth,
+  type ApiResponse,
+} from './apiUtils';
 
 const allowAllProvidersSchema = z.object({
   allowAllProviders: z.boolean(),
@@ -35,53 +33,8 @@ type AllowAllProvidersRequest = z.infer<typeof allowAllProvidersSchema>;
 type ProviderToggleRequest = z.infer<typeof providerToggleSchema>;
 type ModelToggleRequest = z.infer<typeof modelToggleSchema>;
 
-/**
- * Validates user authentication and organization membership
- * @returns User and organization IDs if authenticated, or error response if not
- */
-async function validateAuth(): Promise<
-  { userId: string; orgId: string } | ApiResponse
-> {
-  const { userId, orgId } = await auth();
-  if (!userId) {
-    return {
-      success: false,
-      error: 'Unauthorized: User required',
-    };
-  }
-  if (!orgId) {
-    return {
-      success: false,
-      error: 'Unauthorized: Organization required',
-    };
-  }
-  return { userId, orgId };
-}
-
-function isAuthSuccess(
-  result: { userId: string; orgId: string } | ApiResponse,
-): result is { userId: string; orgId: string } {
-  return !('error' in result);
-}
-
-/**
- * Generic error handler for all operations
- * @param error The caught error
- * @param eventPrefix Prefix for logging events
- * @returns Error response
- */
-function handleError(error: unknown, eventPrefix: string): ApiResponse {
-  logger.error({
-    event: `${eventPrefix}_update_error`,
-    error: error instanceof Error ? error.message : 'Unknown error',
-  });
-  return {
-    success: false,
-    error:
-      error instanceof Error ? error.message : 'An unexpected error occurred',
-  };
-}
-
+// Note: I haven't thought much about this API; this is a temporary stub to get audit logs working.
+// Feel free to refactor when implementing actual data writes.
 export async function updateAllowAllProviders(
   data: AllowAllProvidersRequest,
 ): Promise<ApiResponse> {
@@ -119,6 +72,8 @@ export async function updateAllowAllProviders(
   }
 }
 
+// Note: I haven't thought much about this API; this is a temporary stub to get audit logs working.
+// Feel free to refactor when implementing actual data writes.
 export async function updateProviderStatus(
   data: ProviderToggleRequest,
 ): Promise<ApiResponse> {
@@ -156,6 +111,8 @@ export async function updateProviderStatus(
   }
 }
 
+// Note: I haven't thought much about this API; this is a temporary stub to get audit logs working.
+// Feel free to refactor when implementing actual data writes.
 export async function updateModelStatus(
   data: ModelToggleRequest,
 ): Promise<ApiResponse> {

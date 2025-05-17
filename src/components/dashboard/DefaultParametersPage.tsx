@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 
+import { updateDefaultParameters } from '@/actions/defaultParameters';
 import {
   Button,
   Checkbox,
@@ -77,17 +78,26 @@ const DefaultParametersPage = () => {
     },
   });
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const onSubmit = (_data: DefaultParamsFormValues) => {
+  const onSubmit = async (data: DefaultParamsFormValues) => {
     setIsSaving(true);
 
-    setTimeout(() => {
-      toast('Settings saved', {
-        description: 'Default parameters have been updated successfully.',
+    try {
+      const result = await updateDefaultParameters(data);
+      if (result.success) {
+        toast('Settings saved', {
+          description: 'Default parameters have been updated successfully.',
+        });
+      } else {
+        throw new Error(result.error || 'An unexpected error occurred.');
+      }
+    } catch (error) {
+      console.error('Failed to update default parameters:', error);
+      toast.error('Error saving settings', {
+        description: 'Failed to update default parameters. Please try again.',
       });
-
+    } finally {
       setIsSaving(false);
-    }, 1000);
+    }
   };
 
   return (
