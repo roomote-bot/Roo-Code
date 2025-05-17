@@ -3,20 +3,7 @@
     "meta_title": "Roo Code Cloud",
     "meta_description": "Cloud management for Roo Code."
   },
-  "Footer": {
-    "terms_of_service": "Terms Of Service",
-    "privacy_policy": "Privacy Policy"
-  },
-  "DashboardLayout": {
-    "home": "Home",
-    "analytics": "Analytics",
-    "members": "Members",
-    "audit_logs": "Audit Logs",
-    "settings": "Settings",
-    "provider_whitelist": "Provider Whitelist"
-  },
   "DashboardIndex": {
-    "title_bar": "Dashboard",
     "analytics_title": "Usage Analytics",
     "analytics_description": "Organization usage metrics and statistics",
     "analytics_period_7_days": "Last 7 days",
@@ -25,17 +12,10 @@
     "analytics_tasks_started": "Tasks Started",
     "analytics_tasks_completed": "Tasks Completed",
     "analytics_tokens_consumed": "Tokens Consumed",
-    "analytics_costs": "Costs (USD)",
-    "analytics_llm_costs": "LLM Model Costs (USD)",
+    "analytics_llm_costs": "Model Costs (USD)",
     "analytics_active_developers": "Active Developers"
   },
-  "UserProfile": {
-    "title_bar": "User Profile",
-    "title_bar_description": "View and manage your user profile"
-  },
   "OrganizationProfile": {
-    "title_bar": "Organization Management",
-    "title_bar_description": "Manage your organization",
     "provider_whitelist": "Provider Whitelist",
     "default_parameters": "Default Parameters"
   },
@@ -48,32 +28,9 @@
     "parameters_section_description": "Set global default parameters for AI model calls"
   },
   "Analytics": {
-    "title_bar": "Usage Analytics",
-    "title_bar_description": "Detailed analytics for your organization",
-    "summary_title": "Usage Summary",
-    "period_7_days": "Last 7 days",
-    "period_30_days": "Last 30 days",
-    "period_90_days": "Last 90 days",
-    "active_developers": "Active Developers",
-    "tasks_started": "Tasks Started",
-    "tasks_completed": "Tasks Completed",
-    "tokens_consumed": "Tokens Consumed",
-    "llm_costs": "LLM Model Costs (USD)",
     "view_mode_title": "View By",
     "view_mode_developers": "Developers",
     "view_mode_models": "Models",
-    "view_mode_tasks": "Tasks",
-    "filter_title": "Filters",
-    "filter_developer": "Developer",
-    "filter_model": "Model",
-    "filter_clear_all": "Clear All",
-    "task_details_title": "Task Details",
-    "task_details_close": "Close",
-    "pagination_prev": "Previous",
-    "pagination_next": "Next",
-    "pagination_of": "of",
-    "pagination_page_size": "Page size",
-    "no_data": "No data available",
-    "loading": "Loading data..."
+    "view_mode_tasks": "Tasks"
   }
 }

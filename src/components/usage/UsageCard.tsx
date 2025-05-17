@@ -12,6 +12,7 @@ import { TelemetryEventName } from '@roo-code/types';
 
 import { type TimePeriod, timePeriods } from '@/schemas';
 import { getUsage } from '@/actions/analytics';
+import { formatCurrency } from '@/lib/formatters';
 
 import {
   Button,
@@ -22,6 +23,8 @@ import {
   CardContent,
 } from '@/components/ui';
 import { Button as EnhancedButton } from '@/components/ui/ecosystem';
+
+import { Metric } from './Metric';
 
 export const UsageCard = () => {
   const t = useTranslations('DashboardIndex');
@@ -74,52 +77,37 @@ export const UsageCard = () => {
             ))}
           </div>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
-            <div className="rounded-lg bg-background p-3">
-              <div className="text-xs text-muted-foreground">
-                {t('analytics_active_developers')}
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {usage.data?.[TelemetryEventName.LLM_COMPLETION]?.userCount ??
-                  '-'}
-              </div>
-            </div>
-            <div className="rounded-lg bg-background p-3">
-              <div className="text-xs text-muted-foreground">
-                {t('analytics_tasks_started')}
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {usage.data?.[TelemetryEventName.TASK_CREATED]?.eventCount ??
-                  '-'}
-              </div>
-            </div>
-            <div className="rounded-lg bg-background p-3">
-              <div className="text-xs text-muted-foreground">
-                {t('analytics_tasks_completed')}
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {usage.data?.[TelemetryEventName.TASK_COMPLETED]?.eventCount ??
-                  '-'}
-              </div>
-            </div>
-            <div className="rounded-lg bg-background p-3">
-              <div className="text-xs text-muted-foreground">
-                {t('analytics_tokens_consumed')}
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {usage.data?.[TelemetryEventName.LLM_COMPLETION]?.inputTokens ??
-                  '-'}
-              </div>
-            </div>
-            <div className="rounded-lg bg-background p-3">
-              <div className="text-xs text-muted-foreground">
-                {t('analytics_llm_costs')}
-              </div>
-              <div className="mt-1 text-2xl font-semibold">
-                {usage.data?.[TelemetryEventName.LLM_COMPLETION]?.cost?.toFixed(
-                  2,
-                ) ?? '-'}
-              </div>
-            </div>
+            <Metric
+              label={t('analytics_active_developers')}
+              value={usage.data?.[TelemetryEventName.LLM_COMPLETION]?.userCount}
+              isLoading={usage.isLoading}
+            />
+            <Metric
+              label={t('analytics_tasks_started')}
+              value={usage.data?.[TelemetryEventName.TASK_CREATED]?.eventCount}
+              isLoading={usage.isLoading}
+            />
+            <Metric
+              label={t('analytics_tasks_completed')}
+              value={
+                usage.data?.[TelemetryEventName.TASK_COMPLETED]?.eventCount
+              }
+              isLoading={usage.isLoading}
+            />
+            <Metric
+              label={t('analytics_tokens_consumed')}
+              value={
+                usage.data?.[TelemetryEventName.LLM_COMPLETION]?.inputTokens
+              }
+              isLoading={usage.isLoading}
+            />
+            <Metric
+              label={t('analytics_llm_costs')}
+              value={formatCurrency(
+                usage.data?.[TelemetryEventName.LLM_COMPLETION]?.cost,
+              )}
+              isLoading={usage.isLoading}
+            />
           </div>
         </div>
       </CardContent>

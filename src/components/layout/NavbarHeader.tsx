@@ -1,11 +1,7 @@
 import Link from 'next/link';
 import { OrganizationSwitcher, UserButton } from '@clerk/nextjs';
 
-import {
-  LocaleSwitcher,
-  ThemeSwitcher,
-  HoppingLogo,
-} from '@/components/layout';
+import { ThemeSwitcher, HoppingLogo } from '@/components/layout';
 
 import { Section } from './Section';
 
@@ -25,11 +21,8 @@ export const NavbarHeader = (props: NavbarHeaderProps) => (
           hidePersonal
         />
       </div>
-      <ul className="flex items-center gap-2 [&_li[data-fade]:hover]:opacity-100 [&_li[data-fade]]:opacity-60">
-        <li data-fade>
-          <LocaleSwitcher />
-        </li>
-        <li data-fade>
+      <ul className="flex items-center gap-2">
+        <li>
           <ThemeSwitcher />
         </li>
         <li>

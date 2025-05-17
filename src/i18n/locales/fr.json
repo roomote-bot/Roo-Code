@@ -3,20 +3,7 @@
     "meta_title": "Roo Code Cloud",
     "meta_description": "Gestion cloud pour Roo Code."
   },
-  "Footer": {
-    "terms_of_service": "Conditions d'utilisation",
-    "privacy_policy": "Politique de confidentialité"
-  },
-  "DashboardLayout": {
-    "home": "Accueil",
-    "analytics": "Analytiques",
-    "members": "Membres",
-    "audit_logs": "Journaux d'audit",
-    "settings": "Réglages",
-    "provider_whitelist": "Liste blanche des fournisseurs"
-  },
   "DashboardIndex": {
-    "title_bar": "Tableau de bord",
     "analytics_title": "Analytiques d'utilisation",
     "analytics_description": "Métriques et statistiques d'utilisation de l'organisation",
     "analytics_period_7_days": "7 derniers jours",
@@ -25,18 +12,10 @@
     "analytics_tasks_started": "Tâches commencées",
     "analytics_tasks_completed": "Tâches terminées",
     "analytics_tokens_consumed": "Tokens consommés",
-    "analytics_costs": "Coûts (USD)",
-    "analytics_llm_costs": "Coûts des modèles LLM (USD)",
-    "analytics_active_developers": "Développeurs actifs",
-    "analytics_view_details": "Voir les analytiques détaillées"
-  },
-  "UserProfile": {
-    "title_bar": "Profil utilisateur",
-    "title_bar_description": "Afficher et gérer votre profil utilisateur"
+    "analytics_llm_costs": "Coûts des modèles (USD)",
+    "analytics_active_developers": "Développeurs actifs"
   },
   "OrganizationProfile": {
-    "title_bar": "Gestion de l'organisation",
-    "title_bar_description": "Gérer votre organisation",
     "provider_whitelist": "Liste blanche des fournisseurs",
     "default_parameters": "Paramètres par défaut"
   },
@@ -49,32 +28,9 @@
     "parameters_section_description": "Définissez les paramètres par défaut globaux pour les appels aux modèles d'IA"
   },
   "Analytics": {
-    "title_bar": "Analytiques d'utilisation",
-    "title_bar_description": "Analytiques détaillées pour votre organisation",
-    "summary_title": "Résumé d'utilisation",
-    "period_7_days": "7 derniers jours",
-    "period_30_days": "30 derniers jours",
-    "period_90_days": "90 derniers jours",
-    "active_developers": "Développeurs actifs",
-    "tasks_started": "Tâches commencées",
-    "tasks_completed": "Tâches terminées",
-    "tokens_consumed": "Tokens consommés",
-    "llm_costs": "Coûts des modèles LLM (USD)",
     "view_mode_title": "Afficher Par",
     "view_mode_developers": "Développeurs",
     "view_mode_models": "Modèles",
-    "view_mode_tasks": "Tâches",
-    "filter_title": "Filtres",
-    "filter_developer": "Développeur",
-    "filter_model": "Modèle",
-    "filter_clear_all": "Effacer tout",
-    "task_details_title": "Détails de la tâche",
-    "task_details_close": "Fermer",
-    "pagination_prev": "Précédent",
-    "pagination_next": "Suivant",
-    "pagination_of": "sur",
-    "pagination_page_size": "Taille de page",
-    "no_data": "Aucune donnée disponible",
-    "loading": "Chargement des données..."
+    "view_mode_tasks": "Tâches"
   }
 }
