@@ -4,10 +4,25 @@ import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import Link from 'next/link';
 import React from 'react';
 
-import type { AuditLogType } from '@/db/schema';
+import { AuditLogTargetType, type AuditLogType } from '@/db/schema';
+import { getBaseUrl } from '@/lib/metadata';
 
 type AuditLogDetailsProps = {
   log: AuditLogType;
+};
+
+const getSettingsUrl = (type: AuditLogTargetType): string => {
+  const baseUrl = `${getBaseUrl()}/dashboard/org`;
+  switch (type) {
+    case AuditLogTargetType.MEMBER_CHANGE:
+      return `${baseUrl}/organization-members`;
+    case AuditLogTargetType.PROVIDER_WHITELIST:
+      return `${baseUrl}/provider-whitelist`;
+    case AuditLogTargetType.DEFAULT_PARAMETERS:
+      return `${baseUrl}/default-parameters`;
+    default:
+      return baseUrl;
+  }
 };
 
 const formatValue = (value: unknown): React.ReactNode => {
@@ -58,15 +73,13 @@ export function AuditLogDetails({ log }: AuditLogDetailsProps) {
           <span>{log.userId}</span>
         </div>
 
-        {log.targetId && (
-          <Link
-            href={log.targetId}
-            className="mt-2 inline-flex items-center text-sm font-medium text-primary hover:underline"
-          >
-            View in settings
-            <ArrowRight className="ml-1 size-4" />
-          </Link>
-        )}
+        <Link
+          href={getSettingsUrl(log.targetType)}
+          className="mt-2 inline-flex items-center text-sm font-medium text-primary hover:underline"
+        >
+          View in settings
+          <ArrowRight className="ml-1 size-4" />
+        </Link>
       </div>
 
       {/* Change details */}
