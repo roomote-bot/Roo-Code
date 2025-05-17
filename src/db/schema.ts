@@ -1,4 +1,9 @@
 import {
+  ORGANIZATION_ALLOW_ALL,
+  OrganizationDefaultSettings,
+  type OrganizationAllowList,
+} from '@/schemas';
+import {
   pgTable,
   text,
   timestamp,
@@ -29,3 +34,21 @@ export enum AuditLogTargetType {
 export type AuditLog = typeof auditLogs.$inferSelect & {
   targetType: AuditLogTargetType;
 };
+
+export const organizationSettings = pgTable('organization_settings', {
+  // Organization ID (from Clerk)
+  organizationId: text('organization_id').notNull().primaryKey(),
+
+  // Version number, incremented on updates
+  version: integer('version').notNull().default(1),
+  defaultSettings: jsonb('default_settings')
+    .notNull()
+    .$type<OrganizationDefaultSettings>()
+    .default({}),
+  allowList: jsonb('allow_list')
+    .notNull()
+    .$type<OrganizationAllowList>()
+    .default(ORGANIZATION_ALLOW_ALL),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});

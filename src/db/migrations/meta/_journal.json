@@ -8,6 +8,13 @@
       "when": 1747347845063,
       "tag": "0000_daffy_psylocke",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747347900000,
+      "tag": "0001_add_organization_settings",
+      "breakpoints": true
     }
   ]
 }
