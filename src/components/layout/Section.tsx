@@ -1,9 +1,21 @@
 import { cn } from '@/lib/utils';
 
-type SectionProps = React.HTMLAttributes<HTMLDivElement>;
+type SectionProps = React.HTMLAttributes<HTMLDivElement> & {
+  divider?: boolean;
+};
 
-export const Section = ({ className, children, ...rest }: SectionProps) => (
-  <div className={cn('px-4 py-16', className)} {...rest}>
-    <div className="mx-auto max-w-screen-lg">{children}</div>
+export const Section = ({
+  className,
+  divider = true,
+  ...rest
+}: SectionProps) => (
+  <div className={cn({ 'border-b border-dashed': divider })}>
+    <div
+      className={cn(
+        'max-w-screen-lg border-l border-r border-dashed mx-auto px-8',
+        className,
+      )}
+      {...rest}
+    />
   </div>
 );

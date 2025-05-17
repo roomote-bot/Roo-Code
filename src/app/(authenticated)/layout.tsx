@@ -1,16 +1,26 @@
-import { currentUser } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+
+import { NavbarHeader, NavbarMenu, Section } from '@/components/layout';
 
 export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const user = await currentUser();
+  const { orgId } = await auth();
 
-  if (!user) {
-    return redirect('/sign-in');
+  if (!orgId) {
+    redirect('/onboarding/select-org');
   }
 
-  return children;
+  return (
+    <>
+      <NavbarHeader className="h-[72px]" />
+      <NavbarMenu className="h-[72px]" />
+      <Section divider={false} className="min-h-[calc(100vh-72px-72px-2px)]">
+        <div className="flex flex-col gap-8 py-8">{children}</div>
+      </Section>
+    </>
+  );
 }

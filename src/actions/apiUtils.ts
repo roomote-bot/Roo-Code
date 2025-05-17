@@ -15,18 +15,15 @@ export async function validateAuth(): Promise<
   { userId: string; orgId: string } | ApiResponse
 > {
   const { userId, orgId } = await auth();
+
   if (!userId) {
-    return {
-      success: false,
-      error: 'Unauthorized: User required',
-    };
+    return { success: false, error: 'Unauthorized: User required' };
   }
+
   if (!orgId) {
-    return {
-      success: false,
-      error: 'Unauthorized: Organization required',
-    };
+    return { success: false, error: 'Unauthorized: Organization required' };
   }
+
   return { userId, orgId };
 }
 
@@ -47,6 +44,7 @@ export function handleError(error: unknown, eventPrefix: string): ApiResponse {
     event: `${eventPrefix}_update_error`,
     error: error instanceof Error ? error.message : 'Unknown error',
   });
+
   return {
     success: false,
     error:

@@ -23,9 +23,7 @@ export const auditLogs = pgTable('audit_logs', {
 export enum AuditLogTargetType {
   PROVIDER_WHITELIST = 1,
   DEFAULT_PARAMETERS = 2,
-  MEMBER_CHANGE = 3, // TODO: Currently no logs of this type are collected
+  MEMBER_CHANGE = 3, // TODO: Currently no logs of this type are collected.
 }
 
-export type AuditLogType = Omit<typeof auditLogs.$inferSelect, 'targetType'> & {
-  targetType: AuditLogTargetType;
-};
+export type AuditLogType = typeof auditLogs.$inferSelect;

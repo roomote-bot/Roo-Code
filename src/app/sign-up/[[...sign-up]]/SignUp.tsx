@@ -3,15 +3,11 @@
 import { useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
-import { dark } from '@clerk/themes';
 import { SignUp as ClerkSignUp } from '@clerk/nextjs';
 
 import { Logo } from '@/components/layout';
 
 export const SignUp = () => {
-  const { resolvedTheme } = useTheme();
-  const baseTheme = resolvedTheme === 'dark' ? dark : undefined;
   const searchParams = useSearchParams();
 
   const forceRedirectUrl = useMemo(() => {
@@ -24,10 +20,7 @@ export const SignUp = () => {
       <Link href="/">
         <Logo />
       </Link>
-      <ClerkSignUp
-        appearance={{ baseTheme }}
-        forceRedirectUrl={forceRedirectUrl}
-      />
+      <ClerkSignUp forceRedirectUrl={forceRedirectUrl} />
     </div>
   );
 };

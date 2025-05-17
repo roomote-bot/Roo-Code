@@ -27,8 +27,7 @@
     "analytics_tokens_consumed": "Tokens Consumed",
     "analytics_costs": "Costs (USD)",
     "analytics_llm_costs": "LLM Model Costs (USD)",
-    "analytics_active_developers": "Active Developers",
-    "analytics_view_details": "View detailed analytics"
+    "analytics_active_developers": "Active Developers"
   },
   "UserProfile": {
     "title_bar": "User Profile",

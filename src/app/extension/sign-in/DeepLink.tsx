@@ -32,10 +32,10 @@ export const DeepLink = ({ vsCodeUrl, cursorUrl }: DeepLinkProps) => {
             open VSCode with your credentials.
           </div>
           <div className="flex flex-row justify-between gap-4">
-            <Button variant="outline" className="flex-1" asChild>
+            <Button variant="secondary" className="flex-1" asChild>
               <Link href={vsCodeUrl}>Open in VSCode</Link>
             </Button>
-            <Button variant="outline" className="flex-1" asChild>
+            <Button variant="secondary" className="flex-1" asChild>
               <Link href={cursorUrl}>Open in Cursor</Link>
             </Button>
           </div>

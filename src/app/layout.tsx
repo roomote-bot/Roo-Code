@@ -1,13 +1,18 @@
-import '@/styles/globals.css';
-
 import type { Metadata } from 'next';
+import { Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
-import { ClerkProvider } from '@clerk/nextjs';
 
 import { getClerkLocale } from '@/i18n/locale';
-import { ThemeProvider, ReactQueryProvider } from '@/components/layout';
+import { cn } from '@/lib/utils';
 import { Toaster } from '@/components/ui';
+import {
+  ThemeProvider,
+  AuthProvider,
+  ReactQueryProvider,
+} from '@/components/layout';
+
+import './globals.css';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -35,6 +40,11 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
+const geist = Geist({ subsets: ['latin'] });
+
+const fontSans = Geist({ variable: '--font-sans', subsets: ['latin'] });
+const fontMono = Geist_Mono({ variable: '--font-mono', subsets: ['latin'] });
+
 export default async function RootLayout({
   children,
 }: {
@@ -44,19 +54,23 @@ export default async function RootLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html
+      lang={locale}
+      className={cn(geist.className)}
+      suppressHydrationWarning
+    >
       <body
-        className="bg-background text-foreground antialiased"
+        className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
         <NextIntlClientProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            <ClerkProvider localization={getClerkLocale(locale)}>
+            <AuthProvider localization={getClerkLocale(locale)}>
               <ReactQueryProvider>
                 {children}
                 <Toaster />
               </ReactQueryProvider>
-            </ClerkProvider>
+            </AuthProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

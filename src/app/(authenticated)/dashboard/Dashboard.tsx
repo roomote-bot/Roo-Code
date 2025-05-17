@@ -1,21 +1,9 @@
-'use client';
+import { UsageCard } from '@/components/usage/UsageCard';
+import { AuditLogCard } from '@/components/audit-logs/AuditLogCard';
 
-import { useTranslations } from 'next-intl';
-
-import {
-  TitleBar,
-  UsageAnalyticsCard,
-  AuditLogCard,
-} from '@/components/dashboard';
-
-export const Dashboard = () => {
-  const t = useTranslations('DashboardIndex');
-
-  return (
-    <>
-      <TitleBar title={t('title_bar')} />
-      <UsageAnalyticsCard />
-      <AuditLogCard />
-    </>
-  );
-};
+export const Dashboard = () => (
+  <>
+    <UsageCard />
+    <AuditLogCard />
+  </>
+);
