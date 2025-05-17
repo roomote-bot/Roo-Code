@@ -11,3 +11,4 @@ export * from './separator';
 export * from './slider';
 export * from './sonner';
 export * from './table';
+export * from './tabs';
