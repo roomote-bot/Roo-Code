@@ -1,17 +1,17 @@
-import { Skeleton } from '../ui';
 import { formatNumber } from '@/lib/formatters';
+import { Skeleton } from '@/components/ui';
 
 type MetricProps = {
   label: string;
   value?: number | string;
-  isLoading: boolean;
+  isPending: boolean;
 };
 
-export const Metric = ({ label, value, isLoading }: MetricProps) => (
+export const Metric = ({ label, value, isPending }: MetricProps) => (
   <div className="flex flex-col gap-1 rounded-lg border border-secondary bg-background px-3 py-2">
     <div className="text-xs text-muted-foreground">{label}</div>
     <div className="font-mono font-semibold text-2xl h-8">
-      {isLoading ? (
+      {isPending ? (
         <div>
           <Skeleton className="h-6 w-12 my-1" />
         </div>

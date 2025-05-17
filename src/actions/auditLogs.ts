@@ -5,7 +5,7 @@ import { eq, gte, and, desc } from 'drizzle-orm';
 import { db } from '@/db';
 import { auditLogs } from '@/db/schema';
 import { logger } from '@/lib/server/logger';
-import { AuditLogType } from '@/db/schema';
+import { AuditLog } from '@/db/schema';
 
 /**
  * getAuditLogs
@@ -20,7 +20,7 @@ export const getAuditLogs = async ({
   orgId?: string | null;
   limit?: number;
   nRecentDays?: number;
-}): Promise<AuditLogType[]> => {
+}): Promise<AuditLog[]> => {
   if (!orgId) {
     return [];
   }

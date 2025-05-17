@@ -22,9 +22,11 @@ export const Logo = ({
   const { resolvedTheme } = useTheme();
   const [fill, setFill] = useState('#000');
 
-  useEffect(() => {
-    setFill(resolvedTheme === 'dark' ? '#fff' : '#000');
-  }, [resolvedTheme]);
+  // Fixes hydration error.
+  useEffect(
+    () => setFill(resolvedTheme === 'dark' ? '#fff' : '#000'),
+    [resolvedTheme],
+  );
 
   return (
     <svg
@@ -52,6 +54,7 @@ export const HoppingLogo = (props: LogoProps) => {
 
   useEffect(() => {
     const element = ref.current;
+
     const isHopping =
       element !== null && element.classList.contains('animate-hop');
 

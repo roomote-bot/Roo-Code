@@ -33,7 +33,7 @@ export const UsageCard = () => {
 
   const path = usePathname();
 
-  const usage = useQuery({
+  const { data: usage = {}, isPending } = useQuery({
     queryKey: ['usage', orgId, timePeriod],
     queryFn: () => getUsage({ orgId, timePeriod }),
   });
@@ -79,34 +79,30 @@ export const UsageCard = () => {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             <Metric
               label={t('analytics_active_developers')}
-              value={usage.data?.[TelemetryEventName.LLM_COMPLETION]?.userCount}
-              isLoading={usage.isLoading}
+              value={usage[TelemetryEventName.TASK_CREATED]?.userCount}
+              isPending={isPending}
             />
             <Metric
               label={t('analytics_tasks_started')}
-              value={usage.data?.[TelemetryEventName.TASK_CREATED]?.eventCount}
-              isLoading={usage.isLoading}
+              value={usage[TelemetryEventName.TASK_CREATED]?.eventCount}
+              isPending={isPending}
             />
             <Metric
               label={t('analytics_tasks_completed')}
-              value={
-                usage.data?.[TelemetryEventName.TASK_COMPLETED]?.eventCount
-              }
-              isLoading={usage.isLoading}
+              value={usage[TelemetryEventName.TASK_COMPLETED]?.eventCount}
+              isPending={isPending}
             />
             <Metric
               label={t('analytics_tokens_consumed')}
-              value={
-                usage.data?.[TelemetryEventName.LLM_COMPLETION]?.inputTokens
-              }
-              isLoading={usage.isLoading}
+              value={usage[TelemetryEventName.LLM_COMPLETION]?.inputTokens}
+              isPending={isPending}
             />
             <Metric
               label={t('analytics_llm_costs')}
               value={formatCurrency(
-                usage.data?.[TelemetryEventName.LLM_COMPLETION]?.cost,
+                usage[TelemetryEventName.LLM_COMPLETION]?.cost,
               )}
-              isLoading={usage.isLoading}
+              isPending={isPending}
             />
           </div>
         </div>

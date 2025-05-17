@@ -7,7 +7,7 @@ import { useOrganization } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRightIcon } from 'lucide-react';
 
-import type { AuditLogType } from '@/db/schema';
+import type { AuditLog } from '@/db/schema';
 import { getAuditLogs } from '@/actions/auditLogs';
 import {
   Card,
@@ -15,21 +15,20 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
+  Skeleton,
 } from '@/components/ui';
 import { Button as EnhancedButton } from '@/components/ui/ecosystem';
-import { AuditLogDetails, AuditLogEntry } from '@/components/audit-logs';
+import { AuditLogEntry } from '@/components/audit-logs';
+
+import { AuditLogDrawer } from './AuditLogDrawer';
 
 export function AuditLogCard() {
-  const [selectedLog, setSelectedLog] = useState<AuditLogType | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const { organization } = useOrganization();
 
   const path = usePathname();
 
-  const { data: logs = [], isLoading } = useQuery({
+  const { data: logs = [], isPending } = useQuery({
     queryKey: ['auditLogs', organization?.id, 5],
     queryFn: () => getAuditLogs({ orgId: organization?.id, limit: 5 }),
     enabled: !!organization?.id,
@@ -61,37 +60,33 @@ export function AuditLogCard() {
           )}
         </CardHeader>
         <CardContent>
-          <div className="space-y-1">
-            {isLoading ? (
-              <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">Loading...</p>
-              </div>
+          <div className="space-y-2">
+            {isPending ? (
+              <>
+                <Skeleton className="h-[64px] w-full" />
+                <Skeleton className="h-[64px] w-full" />
+                <Skeleton className="h-[64px] w-full" />
+              </>
             ) : logs.length > 0 ? (
-              logs.map((log: AuditLogType) => (
+              logs.map((log: AuditLog) => (
                 <AuditLogEntry
                   key={log.id}
                   log={log}
-                  onClick={(log: AuditLogType) => setSelectedLog(log)}
+                  onClick={(log: AuditLog) => setSelectedLog(log)}
                 />
               ))
             ) : (
-              <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground">
-                  No recent activity
-                </p>
+              <div className="text-center text-sm text-muted-foreground">
+                No recent activity.
               </div>
             )}
           </div>
         </CardContent>
       </Card>
-      <Drawer open={!!selectedLog} onClose={() => setSelectedLog(null)}>
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>Activity Details</DrawerTitle>
-          </DrawerHeader>
-          {selectedLog && <AuditLogDetails log={selectedLog} />}
-        </DrawerContent>
-      </Drawer>
+      <AuditLogDrawer
+        selectedLog={selectedLog}
+        onClose={() => setSelectedLog(null)}
+      />
     </>
   );
 }

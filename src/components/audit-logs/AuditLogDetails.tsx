@@ -3,10 +3,10 @@
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import Link from 'next/link';
 
-import type { AuditLogType } from '@/db/schema';
+import type { AuditLog } from '@/db/schema';
 
 type AuditLogDetailsProps = {
-  log: AuditLogType;
+  log: AuditLog;
 };
 
 const formatValue = (value: unknown) => {

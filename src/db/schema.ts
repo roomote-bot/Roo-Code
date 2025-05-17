@@ -26,4 +26,6 @@ export enum AuditLogTargetType {
   MEMBER_CHANGE = 3, // TODO: Currently no logs of this type are collected.
 }
 
-export type AuditLogType = typeof auditLogs.$inferSelect;
+export type AuditLog = typeof auditLogs.$inferSelect & {
+  targetType: AuditLogTargetType;
+};

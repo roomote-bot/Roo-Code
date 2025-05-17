@@ -1,12 +1,11 @@
-import { Settings, Sliders, Users } from 'lucide-react';
 import { formatDistance } from 'date-fns';
+import { Settings, Sliders, Users } from 'lucide-react';
 
-import { type AuditLogType, AuditLogTargetType } from '@/db/schema';
-import { cn } from '@/lib/utils';
+import { type AuditLog, AuditLogTargetType } from '@/db/schema';
 
 type AuditLogEntryProps = {
-  log: AuditLogType;
-  onClick: (log: AuditLogType) => void;
+  log: AuditLog;
+  onClick: (log: AuditLog) => void;
 };
 
 const getIconByType = (type: AuditLogTargetType) => {
@@ -23,24 +22,21 @@ const getIconByType = (type: AuditLogTargetType) => {
 };
 
 export const AuditLogEntry = ({ log, onClick }: AuditLogEntryProps) => (
-  <button
+  <div
     onClick={() => onClick(log)}
-    className={cn(
-      'w-full rounded-md p-3 text-left transition-colors',
-      'hover:bg-muted focus:bg-muted focus:outline-none',
-    )}
+    className="rounded-md p-3 transition-colors hover:bg-muted active:opacity-80 cursor-pointer"
   >
-    <div className="flex items-start gap-3">
-      <div className="mt-0.5 shrink-0">{getIconByType(log.targetType)}</div>
-      <div className="flex-1 space-y-1">
-        <p className="text-sm text-foreground">{log.description}</p>
-        <div className="flex items-center justify-between">
+    <div className="flex flex-row gap-2">
+      <div className="shrink-0 pt-1">{getIconByType(log.targetType)}</div>
+      <div className="flex flex-row justify-between items-center gap-2 flex-1">
+        <div className="flex flex-col gap-1">
+          <p className="text-sm text-foreground">{log.description}</p>
           <p className="text-xs text-muted-foreground">{log.userId}</p>
-          <p className="text-xs text-muted-foreground">
-            {formatDistance(log.createdAt, new Date(), { addSuffix: true })}
-          </p>
         </div>
+        <p className="text-xs text-muted-foreground hidden sm:block">
+          {formatDistance(log.createdAt, new Date(), { addSuffix: true })}
+        </p>
       </div>
     </div>
-  </button>
+  </div>
 );
