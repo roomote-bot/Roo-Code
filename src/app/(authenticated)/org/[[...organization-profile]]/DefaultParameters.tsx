@@ -3,11 +3,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
+import {
+  useQuery,
+  useQueryClient,
+  type QueryClient,
+} from '@tanstack/react-query';
 
 import { updateDefaultParameters } from '@/actions/defaultParameters';
+import { getOrganizationSettings } from '@/actions/organizationSettings';
+import { type OrganizationSettings } from '@/schemas';
 import {
   Button,
   Checkbox,
@@ -24,22 +31,19 @@ import { CheckCheck, FlaskConical, SlidersHorizontal } from 'lucide-react';
 
 type DefaultParamsFormValues = {
   experimentalPowerSteering: boolean;
-  terminalOutputLimit: number;
-  compressProgressBar: boolean;
+  terminalOutputLineLimit: number;
+  terminalCompressProgressBar: boolean;
   inheritEnvVars: boolean;
-  disableShellIntegration: boolean;
-  shellIntegrationTimeout: number;
-  commandDelay: number;
-  enablePowerShellCounter: boolean;
-  clearZshEol: boolean;
-  enableOhMyZsh: boolean;
+  terminalShellIntegrationDisabled: boolean;
+  terminalShellIntegrationTimeout: number;
+  terminalCommandDelay: number;
+  terminalZshClearEolMark: boolean;
   enablePowerlevel10k: boolean;
-  openTabsLimit: number;
-  workspaceFilesLimit: number;
-  showRooignoreFiles: boolean;
-  fileReadThreshold: number;
-  alwaysReadEntireFile: boolean;
-  enableAutoCheckpoints: boolean;
+  maxOpenTabsContext: number;
+  maxWorkspaceFiles: number;
+  showRooIgnoredFiles: boolean;
+  maxReadFileLine: number;
+  enableCheckpoints: boolean;
   useCustomTemperature: boolean;
   temperature: number;
   rateLimit: number;
@@ -47,37 +51,93 @@ type DefaultParamsFormValues = {
   matchPrecision: number;
 };
 
-export const DefaultParameters = () => {
+const mergeWithDefaultValues = (
+  defaultValues: DefaultParamsFormValues,
+  orgSettings?: OrganizationSettings,
+): DefaultParamsFormValues => {
+  if (!orgSettings || !orgSettings.defaultSettings) {
+    return defaultValues;
+  }
+
+  return {
+    ...defaultValues,
+    ...orgSettings.defaultSettings,
+  };
+};
+
+const defaultFormValues: DefaultParamsFormValues = {
+  experimentalPowerSteering: true,
+  terminalOutputLineLimit: 500,
+  terminalCompressProgressBar: true,
+  inheritEnvVars: true,
+  terminalShellIntegrationDisabled: false,
+  terminalShellIntegrationTimeout: 5,
+  terminalCommandDelay: 0,
+  terminalZshClearEolMark: true,
+  enablePowerlevel10k: false,
+  maxOpenTabsContext: 20,
+  maxWorkspaceFiles: 200,
+  showRooIgnoredFiles: true,
+  maxReadFileLine: 500,
+  enableCheckpoints: true,
+  useCustomTemperature: true,
+  temperature: 0,
+  rateLimit: 0,
+  enableEditingThroughDiffs: true,
+  matchPrecision: 100,
+} as const;
+
+type ParametersFormProps = {
+  orgSettings: OrganizationSettings;
+  queryClient: QueryClient;
+};
+
+const ParametersForm = ({ orgSettings, queryClient }: ParametersFormProps) => {
   const t = useTranslations('ProviderWhitelist');
 
   const [isSaving, setIsSaving] = useState(false);
+  const [readEntireFile, setReadEntireFile] = useState(false);
+
+  const mergedValues = useMemo(
+    () => mergeWithDefaultValues(defaultFormValues, orgSettings),
+    [orgSettings],
+  );
+
+  const previousMaxReadFileLine = useRef<number>(
+    mergedValues.maxReadFileLine === -1 ? 500 : mergedValues.maxReadFileLine,
+  );
 
   const form = useForm<DefaultParamsFormValues>({
-    defaultValues: {
-      experimentalPowerSteering: true,
-      terminalOutputLimit: 500,
-      compressProgressBar: true,
-      inheritEnvVars: true,
-      disableShellIntegration: false,
-      shellIntegrationTimeout: 5,
-      commandDelay: 0,
-      enablePowerShellCounter: false,
-      clearZshEol: true,
-      enableOhMyZsh: false,
-      enablePowerlevel10k: false,
-      openTabsLimit: 20,
-      workspaceFilesLimit: 200,
-      showRooignoreFiles: true,
-      fileReadThreshold: 500,
-      alwaysReadEntireFile: false,
-      enableAutoCheckpoints: true,
-      useCustomTemperature: true,
-      temperature: 0,
-      rateLimit: 0,
-      enableEditingThroughDiffs: true,
-      matchPrecision: 100,
-    },
+    defaultValues: mergedValues,
   });
+
+  const maxReadFileLineValue = form.watch('maxReadFileLine');
+
+  useEffect(() => {
+    previousMaxReadFileLine.current =
+      mergedValues.maxReadFileLine === -1 ? 500 : mergedValues.maxReadFileLine;
+  }, [mergedValues]);
+
+  useEffect(() => {
+    setReadEntireFile(maxReadFileLineValue === -1);
+
+    if (maxReadFileLineValue !== -1) {
+      previousMaxReadFileLine.current = maxReadFileLineValue;
+    }
+  }, [maxReadFileLineValue, form]);
+
+  const handleReadEntireFileChange = (checked: boolean) => {
+    if (checked) {
+      const currentValue = form.getValues('maxReadFileLine');
+      if (currentValue !== -1) {
+        previousMaxReadFileLine.current = currentValue;
+      }
+      form.setValue('maxReadFileLine', -1);
+    } else {
+      form.setValue('maxReadFileLine', previousMaxReadFileLine.current);
+    }
+    setReadEntireFile(checked);
+  };
 
   const onSubmit = async (data: DefaultParamsFormValues) => {
     setIsSaving(true);
@@ -85,6 +145,8 @@ export const DefaultParameters = () => {
     try {
       const result = await updateDefaultParameters(data);
       if (result.success) {
+        queryClient.invalidateQueries({ queryKey: ['organizationSettings'] });
+
         toast('Settings saved', {
           description: 'Default parameters have been updated successfully.',
         });
@@ -124,7 +186,7 @@ export const DefaultParameters = () => {
               <div className="mt-4 space-y-4">
                 <FormField
                   control={form.control}
-                  name="enableAutoCheckpoints"
+                  name="enableCheckpoints"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -172,7 +234,7 @@ export const DefaultParameters = () => {
               <div className="mt-4 space-y-6">
                 <FormField
                   control={form.control}
-                  name="openTabsLimit"
+                  name="maxOpenTabsContext"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
@@ -202,7 +264,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="workspaceFilesLimit"
+                  name="maxWorkspaceFiles"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
@@ -232,7 +294,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="showRooignoreFiles"
+                  name="showRooIgnoredFiles"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -261,7 +323,7 @@ export const DefaultParameters = () => {
                   <div className="flex items-center gap-2">
                     <FormField
                       control={form.control}
-                      name="fileReadThreshold"
+                      name="maxReadFileLine"
                       render={({ field }) => (
                         <FormItem className="flex-1">
                           <FormControl>
@@ -274,27 +336,23 @@ export const DefaultParameters = () => {
                                 field.onChange(Number(e.target.value))
                               }
                               className="w-32"
+                              disabled={readEntireFile}
+                              value={readEntireFile ? '' : field.value}
                             />
                           </FormControl>
                         </FormItem>
                       )}
                     />
                     <span>lines</span>
-                    <FormField
-                      control={form.control}
-                      name="alwaysReadEntireFile"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center space-x-2">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <FormLabel>Always read entire file</FormLabel>
-                        </FormItem>
-                      )}
-                    />
+                    <FormItem className="flex items-center space-x-2">
+                      <FormControl>
+                        <Checkbox
+                          checked={readEntireFile}
+                          onCheckedChange={handleReadEntireFileChange}
+                        />
+                      </FormControl>
+                      <FormLabel>Always read entire file</FormLabel>
+                    </FormItem>
                   </div>
                   <FormDescription>
                     Roo reads this number of lines when the model omits
@@ -482,7 +540,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="terminalOutputLimit"
+                  name="terminalOutputLineLimit"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
@@ -512,7 +570,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="compressProgressBar"
+                  name="terminalCompressProgressBar"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -570,7 +628,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="disableShellIntegration"
+                  name="terminalShellIntegrationDisabled"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -596,7 +654,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="shellIntegrationTimeout"
+                  name="terminalShellIntegrationTimeout"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
@@ -630,7 +688,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="commandDelay"
+                  name="terminalCommandDelay"
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between">
@@ -668,7 +726,7 @@ export const DefaultParameters = () => {
 
                 <FormField
                   control={form.control}
-                  name="clearZshEol"
+                  name="terminalZshClearEolMark"
                   render={({ field }) => (
                     <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                       <FormControl>
@@ -745,4 +803,24 @@ export const DefaultParameters = () => {
       </div>
     </>
   );
+};
+
+export const DefaultParameters = () => {
+  const queryClient = useQueryClient();
+
+  const { data: orgSettings } = useQuery({
+    queryKey: ['organizationSettings'],
+    queryFn: getOrganizationSettings,
+  });
+
+  if (!orgSettings) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin text-2xl">⟳</div>
+        <span className="ml-2">Loading settings...</span>
+      </div>
+    );
+  }
+
+  return <ParametersForm orgSettings={orgSettings} queryClient={queryClient} />;
 };

@@ -1,12 +1,22 @@
-import { db } from '@/db';
+import { db, type DB_OR_TX } from '@/db';
 import { auditLogs, type CreateAuditLog } from '@/db/schema';
 import { logger } from '@/lib/server/logger';
 
-export async function createAuditLog(values: CreateAuditLog) {
+export async function insertAuditLog(
+  db: DB_OR_TX,
+  values: CreateAuditLog,
+): Promise<void> {
+  await db.insert(auditLogs).values(values);
+  const { userId, orgId, targetType } = values;
+  logger.info({ userId, orgId, targetType });
+}
+
+export async function createAuditLog(values: CreateAuditLog): Promise<{
+  success: boolean;
+  error?: string | Record<string, unknown>;
+}> {
   try {
-    await db.insert(auditLogs).values(values);
-    const { userId, orgId, targetType } = values;
-    logger.info({ userId, orgId, targetType });
+    await insertAuditLog(db, values);
     return { success: true };
   } catch (e) {
     const error =

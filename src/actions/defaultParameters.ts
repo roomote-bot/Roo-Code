@@ -2,34 +2,33 @@
 
 import { z } from 'zod';
 
-import { AuditLogTargetType } from '@/db/schema';
-import { createAuditLog } from '@/lib/server/auditLogs';
-
+import { db } from '@/db';
+import { AuditLogTargetType, orgSettings } from '@/db/schema';
+import { insertAuditLog } from '@/lib/server/auditLogs';
 import {
   handleError,
   isAuthSuccess,
   validateAuth,
   type ApiResponse,
 } from './apiUtils';
+import { sql } from 'drizzle-orm';
+import { ORGANIZATION_ALLOW_ALL } from '@/schemas';
 
 const defaultParametersSchema = z.object({
   experimentalPowerSteering: z.boolean().optional(),
-  terminalOutputLimit: z.number().int().nonnegative().optional(),
-  compressProgressBar: z.boolean().optional(),
+  terminalOutputLineLimit: z.number().int().nonnegative().optional(),
+  terminalCompressProgressBar: z.boolean().optional(),
   inheritEnvVars: z.boolean().optional(),
-  disableShellIntegration: z.boolean().optional(),
-  shellIntegrationTimeout: z.number().int().nonnegative().optional(),
-  commandDelay: z.number().int().nonnegative().optional(),
-  enablePowerShellCounter: z.boolean().optional(),
-  clearZshEol: z.boolean().optional(),
-  enableOhMyZsh: z.boolean().optional(),
+  terminalShellIntegrationDisabled: z.boolean().optional(),
+  terminalShellIntegrationTimeout: z.number().int().nonnegative().optional(),
+  terminalCommandDelay: z.number().int().nonnegative().optional(),
+  terminalZshClearEolMark: z.boolean().optional(),
   enablePowerlevel10k: z.boolean().optional(),
-  openTabsLimit: z.number().int().nonnegative().optional(),
-  workspaceFilesLimit: z.number().int().nonnegative().optional(),
-  showRooignoreFiles: z.boolean().optional(),
-  fileReadThreshold: z.number().int().optional(),
-  alwaysReadEntireFile: z.boolean().optional(),
-  enableAutoCheckpoints: z.boolean().optional(),
+  maxOpenTabsContext: z.number().int().nonnegative().optional(),
+  maxWorkspaceFiles: z.number().int().nonnegative().optional(),
+  showRooIgnoredFiles: z.boolean().optional(),
+  maxReadFileLine: z.number().int().gte(-1).optional(),
+  enableCheckpoints: z.boolean().optional(),
   useCustomTemperature: z.boolean().optional(),
   temperature: z.number().nonnegative().optional(),
   rateLimit: z.number().nonnegative().optional(),
@@ -62,15 +61,33 @@ export async function updateDefaultParameters(
 
     const validatedData = result.data;
 
-    // TODO: Audit log description should contain more granular information on
-    // what changed.
-    await createAuditLog({
-      userId: authResult.userId,
-      orgId: authResult.orgId,
-      targetType: AuditLogTargetType.DEFAULT_PARAMETERS,
-      targetId: 'default-parameters',
-      newValue: validatedData,
-      description: 'Updated default parameters',
+    await db.transaction(async (tx) => {
+      await tx
+        .insert(orgSettings)
+        .values({
+          orgId: authResult.orgId,
+          version: 1,
+          defaultSettings: validatedData,
+          allowList: ORGANIZATION_ALLOW_ALL,
+        })
+        .onConflictDoUpdate({
+          target: orgSettings.orgId,
+          set: {
+            defaultSettings: validatedData,
+            version: sql`${orgSettings.version} + 1`,
+          },
+        });
+
+      // TODO: consider trying to capture the changes more granularly,
+      // although that would prevent upsert
+      await insertAuditLog(tx, {
+        userId: authResult.userId,
+        orgId: authResult.orgId,
+        targetType: AuditLogTargetType.DEFAULT_PARAMETERS,
+        targetId: 'default-parameters',
+        newValue: validatedData,
+        description: 'Updated default parameters',
+      });
     });
 
     return {

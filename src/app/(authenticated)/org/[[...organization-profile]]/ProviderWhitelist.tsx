@@ -2,211 +2,274 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import {
-  updateAllowAllProviders,
-  updateModelStatus,
-  updateProviderStatus,
-} from '@/actions/providerWhitelist';
-import { Badge, Checkbox, Label } from '@/components/ui';
+  getOrganizationSettings,
+  updateOrganization,
+} from '@/actions/organizationSettings';
+import { Badge, Button, Checkbox, Label } from '@/components/ui';
 import { toast } from 'sonner';
+import {
+  ORGANIZATION_ALLOW_ALL,
+  type OrganizationAllowList,
+  type OrganizationSettings,
+} from '@/schemas';
+import { type ProviderName } from '@roo-code/types';
 
-const initialProviders = [
+type ProviderSetting = {
+  allowAll: boolean;
+  models?: string[];
+};
+
+// Define a type for providers record
+type ProvidersRecord = Record<ProviderName, ProviderSetting>;
+
+// Provider metadata without state information
+const providerMetadata: {
+  id: ProviderName;
+  name: string;
+  models: {
+    id: string;
+    name: string;
+  }[];
+}[] = [
   {
-    id: 'openai',
+    id: 'openai-native',
     name: 'OpenAI',
-    enabled: true,
     models: [
-      { id: 'gpt-4', name: 'GPT-4', enabled: true },
-      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo', enabled: true },
-      { id: 'gpt-4o', name: 'GPT-4o', enabled: false },
+      { id: 'gpt-4', name: 'GPT-4' },
+      { id: 'gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
+      { id: 'gpt-4o', name: 'GPT-4o' },
     ],
   },
   {
     id: 'anthropic',
     name: 'Anthropic',
-    enabled: true,
     models: [
-      { id: 'claude-3-opus', name: 'Claude 3 Opus', enabled: true },
-      { id: 'claude-3-sonnet', name: 'Claude 3 Sonnet', enabled: true },
-      { id: 'claude-3-haiku', name: 'Claude 3 Haiku', enabled: false },
+      { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+      { id: 'claude-3-7-sonnet-20250219', name: 'Claude 3 Sonnet' },
+      {
+        id: 'claude-3-7-sonnet-20250219:thinking',
+        name: 'Claude 3 Sonnet Thinking',
+      },
+      { id: 'claude-3-haiku-20240307', name: 'Claude 3 Haiku' },
+    ],
+  },
+  {
+    id: 'openrouter',
+    name: 'OpenRouter',
+    models: [
+      { id: 'anthropic/claude-3-opus', name: 'Claude 3 Opus' },
+      { id: 'anthropic/claude-3.7-sonnet', name: 'Claude 3.7 Sonnet' },
+      {
+        id: 'anthropic/claude-3.7-sonnet:thinking',
+        name: 'Claude 3.7 Sonnet Thinking',
+      },
+      { id: 'anthropic/claude-3.5-haiku', name: 'Claude 3.5 Haiku' },
+      { id: 'openai/gpt-4', name: 'GPT-4' },
+      { id: 'openai/gpt-3.5-turbo', name: 'GPT-3.5 Turbo' },
+      { id: 'openai/gpt-4o', name: 'GPT-4o' },
+      {
+        id: 'google/gemini-2.5-flash-preview',
+        name: 'Gemini 2.5 Flash Preview',
+      },
     ],
   },
   {
     id: 'mistral',
     name: 'Mistral AI',
-    enabled: false,
     models: [
-      { id: 'mistral-large', name: 'Mistral Large', enabled: false },
-      { id: 'mistral-medium', name: 'Mistral Medium', enabled: false },
-      { id: 'mistral-small', name: 'Mistral Small', enabled: false },
-    ],
-  },
-  {
-    id: 'cohere',
-    name: 'Cohere',
-    enabled: false,
-    models: [
-      { id: 'command-r', name: 'Command R', enabled: false },
-      { id: 'command-r-plus', name: 'Command R+', enabled: false },
+      { id: 'mistral-large-latest', name: 'Mistral Large' },
+      { id: 'mistral-small-latest', name: 'Mistral Small' },
     ],
   },
 ];
 
-export const ProviderWhitelist = () => {
+type ProviderWhitelistFormProps = {
+  orgSettings: OrganizationSettings;
+  queryClient: ReturnType<typeof useQueryClient>;
+};
+
+const ProviderWhitelistForm = ({
+  orgSettings,
+  queryClient,
+}: ProviderWhitelistFormProps) => {
   const t = useTranslations('ProviderWhitelist');
 
-  const [providers, setProviders] = useState(initialProviders);
-  const [policyVersion] = useState(1);
-  const [allowAllProviders, setAllowAllProviders] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [allowList, setAllowList] = useState<OrganizationAllowList>(
+    orgSettings?.allowList || ORGANIZATION_ALLOW_ALL,
+  );
 
-  // Common error handling function for API calls.
-  const handleApiError = (error: unknown, errorMessage: string) => {
-    console.error(errorMessage, error);
-    toast.error(errorMessage);
-    setIsUpdating(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  const isAllowAllChecked = () => allowList.allowAll;
+
+  const isProviderChecked = (providerId: ProviderName) => {
+    if (allowList.allowAll) return true;
+    return allowList.providers[providerId]?.allowAll || false;
   };
 
-  const toggleAllowAllProviders = async () => {
-    const previousAllowAllProviders = allowAllProviders;
-    const previousProviders = [...providers];
-    const newAllowAllProviders = !allowAllProviders;
-    setAllowAllProviders(newAllowAllProviders);
+  const isModelChecked = (providerId: ProviderName, modelId: string) => {
+    if (allowList.allowAll) return true;
+    const provider = allowList.providers[providerId];
+    if (!provider) return false;
+    if (provider.allowAll) return true;
+    return provider.models?.includes(modelId) || false;
+  };
 
-    let updatedProviders = providers;
+  const toggleAllowAll = () => {
+    const newAllowAll = !allowList.allowAll;
 
-    if (newAllowAllProviders) {
-      // Enable all providers and their models/
-      updatedProviders = providers.map((provider) => ({
-        ...provider,
-        enabled: true,
-        models: provider.models.map((model) => ({ ...model, enabled: true })),
-      }));
+    if (newAllowAll) {
+      setAllowList({ allowAll: true, providers: {} });
+    } else {
+      const newProviders: Partial<ProvidersRecord> = {};
 
-      setProviders(updatedProviders);
-    }
-
-    // Call API to update backend with the changed allow all providers setting.
-    setIsUpdating(true);
-
-    try {
-      const result = await updateAllowAllProviders({
-        allowAllProviders: newAllowAllProviders,
-        policyVersion,
+      providerMetadata.forEach((provider) => {
+        newProviders[provider.id] = { allowAll: true };
       });
 
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to update setting');
-      }
-    } catch (error) {
-      setAllowAllProviders(previousAllowAllProviders);
-      setProviders(previousProviders);
-      handleApiError(
-        error,
-        'Failed to update allow all providers setting. Please try again.',
-      );
-    } finally {
-      setIsUpdating(false);
+      setAllowList({
+        allowAll: false,
+        providers: newProviders,
+      });
     }
+
+    setHasChanges(true);
   };
 
-  const toggleProvider = async (providerId: string) => {
-    if (allowAllProviders) {
-      return;
+  const toggleProvider = (providerId: ProviderName) => {
+    if (allowList.allowAll) {
+      const newProviders: Partial<ProvidersRecord> = {};
+
+      providerMetadata.forEach((provider) => {
+        if (provider.id !== providerId) {
+          newProviders[provider.id] = { allowAll: true };
+        }
+      });
+
+      setAllowList({
+        allowAll: false,
+        providers: newProviders,
+      });
+    } else {
+      const newProviders = { ...allowList.providers };
+      const providersRecord = newProviders;
+      const isCurrentlyEnabled = isProviderChecked(providerId);
+
+      if (isCurrentlyEnabled) {
+        if (providersRecord[providerId]) {
+          providersRecord[providerId] = {
+            ...providersRecord[providerId],
+            allowAll: false,
+            models: [],
+          };
+        }
+      } else {
+        providersRecord[providerId] = { allowAll: true };
+      }
+
+      setAllowList({ ...allowList, providers: newProviders });
     }
 
-    // Find the provider to get its current state.
-    const provider = providers.find((p) => p.id === providerId);
-    if (!provider) return;
+    setHasChanges(true);
+  };
 
-    const previousProviders = [...providers];
-    const newEnabled = !provider.enabled;
+  const toggleModel = (providerId: ProviderName, modelId: string) => {
+    if (allowList.allowAll || isProviderChecked(providerId)) {
+      const newProviders = { ...allowList.providers };
+      const providersRecord = newProviders;
 
-    const updatedProviders = providers.map((provider) => {
-      if (provider.id === providerId) {
-        return {
+      if (allowList.allowAll) {
+        providerMetadata.forEach((provider) => {
+          providersRecord[provider.id] = { allowAll: true };
+        });
+
+        const provider = providerMetadata.find((p) => p.id === providerId);
+        if (provider) {
+          const models = provider.models
+            .filter((m) => m.id !== modelId)
+            .map((m) => m.id);
+
+          providersRecord[providerId] = { allowAll: false, models };
+        }
+
+        setAllowList({ allowAll: false, providers: newProviders });
+      } else {
+        const provider = providerMetadata.find((p) => p.id === providerId);
+        if (provider) {
+          const models = provider.models
+            .filter((m) => m.id !== modelId)
+            .map((m) => m.id);
+
+          providersRecord[providerId] = { allowAll: false, models };
+          setAllowList({ ...allowList, providers: newProviders });
+        }
+      }
+    } else {
+      const newProviders = { ...allowList.providers };
+      const providersRecord = newProviders;
+      const provider = providersRecord[providerId] || {
+        allowAll: false,
+        models: [],
+      };
+      const models = provider.models || [];
+
+      const isCurrentlyEnabled = models.includes(modelId);
+
+      if (isCurrentlyEnabled) {
+        providersRecord[providerId] = {
           ...provider,
-          enabled: newEnabled,
-          // If provider is disabled, disable all its models
-          models: provider.models.map((model) => ({
-            ...model,
-            enabled: newEnabled ? model.enabled : false,
-          })),
+          models: models.filter((m: string) => m !== modelId),
         };
-      }
-      return provider;
-    });
+      } else {
+        providersRecord[providerId] = {
+          ...provider,
+          models: [...models, modelId],
+        };
 
-    setProviders(updatedProviders);
+        const allModels =
+          providerMetadata
+            .find((p) => p.id === providerId)
+            ?.models.map((m) => m.id) || [];
+        const enabledModels = providersRecord[providerId].models || [];
 
-    // Call API to update backend with the changed provider status
-    setIsUpdating(true);
-    try {
-      const result = await updateProviderStatus({
-        providerId,
-        enabled: newEnabled,
-        policyVersion,
-      });
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to update provider status');
+        if (
+          allModels.length === enabledModels.length &&
+          allModels.every((m) => enabledModels.includes(m))
+        ) {
+          providersRecord[providerId] = { allowAll: true };
+        }
       }
-    } catch (error) {
-      setProviders(previousProviders);
-      handleApiError(
-        error,
-        'Failed to update provider status. Please try again.',
-      );
-    } finally {
-      setIsUpdating(false);
+
+      setAllowList({ ...allowList, providers: newProviders });
     }
+
+    setHasChanges(true);
   };
 
-  const toggleModel = async (providerId: string, modelId: string) => {
-    if (allowAllProviders) {
-      return;
-    }
-
-    // Find the model to get its current state.
-    const provider = providers.find((p) => p.id === providerId);
-    if (!provider) return;
-
-    const model = provider.models.find((m) => m.id === modelId);
-    if (!model) return;
-
-    const previousProviders = [...providers];
-    const newEnabled = !model.enabled;
-
-    const updatedProviders = providers.map((provider) => {
-      return provider.id === providerId
-        ? {
-            ...provider,
-            models: provider.models.map((model) =>
-              model.id === modelId ? { ...model, enabled: newEnabled } : model,
-            ),
-          }
-        : provider;
-    });
-
-    setProviders(updatedProviders);
-    setIsUpdating(true);
-
+  const saveChanges = async () => {
+    setIsSaving(true);
     try {
-      const result = await updateModelStatus({
-        providerId,
-        modelId,
-        enabled: newEnabled,
-        policyVersion,
+      const result = await updateOrganization({
+        allowList: allowList,
       });
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update model status');
+        throw new Error(result.error || 'Failed to update settings');
       }
+
+      queryClient.invalidateQueries({ queryKey: ['organizationSettings'] });
+
+      toast.success('Provider settings saved successfully');
+      setHasChanges(false);
     } catch (error) {
-      setProviders(previousProviders);
-      handleApiError(error, 'Failed to update model status. Please try again.');
+      console.error('Failed to save provider settings', error);
+      toast.error('Failed to save provider settings');
     } finally {
-      setIsUpdating(false);
+      setIsSaving(false);
     }
   };
 
@@ -227,8 +290,9 @@ export const ProviderWhitelist = () => {
           <div className="mb-4 flex items-center space-x-2">
             <Checkbox
               id="allow-all-providers"
-              checked={allowAllProviders}
-              onCheckedChange={toggleAllowAllProviders}
+              checked={isAllowAllChecked()}
+              onCheckedChange={toggleAllowAll}
+              disabled={isSaving}
             />
             <Label
               htmlFor="allow-all-providers"
@@ -237,14 +301,14 @@ export const ProviderWhitelist = () => {
               Allow All Providers
             </Label>
           </div>
-          <div className={allowAllProviders ? 'opacity-50' : ''}>
-            {providers.map((provider) => (
+          <div className={isAllowAllChecked() ? 'opacity-50' : ''}>
+            {providerMetadata.map((provider) => (
               <div key={provider.id} className="mb-4">
                 <div className="mb-2 flex items-center space-x-2">
                   <Checkbox
                     id={`provider-${provider.id}`}
-                    checked={provider.enabled}
-                    disabled={allowAllProviders}
+                    checked={isProviderChecked(provider.id)}
+                    disabled={isAllowAllChecked() || isSaving}
                     onCheckedChange={() => toggleProvider(provider.id)}
                   />
                   <Label
@@ -259,15 +323,19 @@ export const ProviderWhitelist = () => {
                     <div key={model.id} className="flex items-center space-x-2">
                       <Checkbox
                         id={`model-${model.id}`}
-                        checked={allowAllProviders || model.enabled}
-                        disabled={allowAllProviders || !provider.enabled}
+                        checked={isModelChecked(provider.id, model.id)}
+                        disabled={
+                          isAllowAllChecked() ||
+                          isProviderChecked(provider.id) ||
+                          isSaving
+                        }
                         onCheckedChange={() =>
                           toggleModel(provider.id, model.id)
                         }
                       />
                       <Label
                         htmlFor={`model-${model.id}`}
-                        className={`text-xs ${allowAllProviders || !provider.enabled ? 'text-muted-foreground' : ''}`}
+                        className={`text-xs ${isAllowAllChecked() || !isProviderChecked(provider.id) ? 'text-muted-foreground' : ''}`}
                       >
                         {model.name}
                       </Label>
@@ -279,16 +347,58 @@ export const ProviderWhitelist = () => {
           </div>
           <div className="flex items-center space-x-2 pt-2">
             <Badge variant="outline" className="text-xs">
-              {`Policy v${policyVersion}`}
+              {`Policy v${orgSettings?.version || 1}`}
             </Badge>
             <span className="text-xs text-muted-foreground">
-              {isUpdating
+              {isSaving
                 ? 'Updating provider whitelist...'
-                : 'Changes will be pushed to SSE stream within 30 seconds'}
+                : hasChanges
+                  ? 'You have unsaved changes'
+                  : 'Changes will be pushed to SSE stream within 30 seconds'}
             </span>
           </div>
+
+          <Button
+            onClick={saveChanges}
+            disabled={!hasChanges || isSaving}
+            className="mt-4"
+          >
+            {isSaving ? (
+              <>
+                <span className="mr-2">Saving...</span>
+                <span className="animate-spin">⟳</span>
+              </>
+            ) : (
+              'Save Changes'
+            )}
+          </Button>
         </div>
       </div>
     </>
+  );
+};
+
+export const ProviderWhitelist = () => {
+  const queryClient = useQueryClient();
+
+  const { data: orgSettings } = useQuery({
+    queryKey: ['organizationSettings'],
+    queryFn: getOrganizationSettings,
+  });
+
+  if (!orgSettings) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin text-2xl">⟳</div>
+        <span className="ml-2">Loading settings...</span>
+      </div>
+    );
+  }
+
+  return (
+    <ProviderWhitelistForm
+      orgSettings={orgSettings}
+      queryClient={queryClient}
+    />
   );
 };

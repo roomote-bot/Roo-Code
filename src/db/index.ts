@@ -26,4 +26,8 @@ const disconnect = async () => {
   await pool.end();
 };
 
+export type DB_OR_TX =
+  | typeof db
+  | Parameters<Parameters<typeof db.transaction>[0]>[0];
+
 export { db, testDb, disconnect };

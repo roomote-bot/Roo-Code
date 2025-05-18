@@ -2,6 +2,7 @@
  * TimePeriod
  */
 
+import { providerNames } from '@roo-code/types';
 import { z } from 'zod';
 
 export const timePeriods = [7, 30, 90] as const;
@@ -11,6 +12,7 @@ export type TimePeriod = (typeof timePeriods)[number];
 export const organizationAllowListSchema = z.object({
   allowAll: z.boolean(),
   providers: z.record(
+    z.enum(providerNames),
     z.object({
       allowAll: z.boolean(),
       models: z.array(z.string()).optional(),
@@ -29,11 +31,17 @@ export const ORGANIZATION_ALLOW_ALL: OrganizationAllowList = {
 
 export const organizationDefaultSettingsSchema = z.object({
   enableCheckpoints: z.boolean().optional(),
-  maxOpenTabsContext: z.number().optional(),
-  maxWorkspaceFiles: z.number().optional(),
-  showRooIgnoredFiles: z.boolean().optional(),
-  maxReadFileLine: z.number().optional(),
   fuzzyMatchThreshold: z.number().optional(),
+  maxOpenTabsContext: z.number().int().nonnegative().optional(),
+  maxReadFileLine: z.number().int().gte(-1).optional(),
+  maxWorkspaceFiles: z.number().int().nonnegative().optional(),
+  showRooIgnoredFiles: z.boolean().optional(),
+  terminalCommandDelay: z.number().int().nonnegative().optional(),
+  terminalCompressProgressBar: z.boolean().optional(),
+  terminalOutputLineLimit: z.number().int().nonnegative().optional(),
+  terminalShellIntegrationDisabled: z.boolean().optional(),
+  terminalShellIntegrationTimeout: z.number().int().nonnegative().optional(),
+  terminalZshClearEolMark: z.boolean().optional(),
 });
 
 export type OrganizationDefaultSettings = z.infer<
@@ -47,3 +55,9 @@ export const organizationSettingsSchema = z.object({
 });
 
 export type OrganizationSettings = z.infer<typeof organizationSettingsSchema>;
+
+export const ORGANIZATION_DEFAULT: OrganizationSettings = {
+  version: 0,
+  defaultSettings: {},
+  allowList: ORGANIZATION_ALLOW_ALL,
+} as const;
