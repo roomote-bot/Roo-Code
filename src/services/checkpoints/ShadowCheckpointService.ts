@@ -31,7 +31,7 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 	// --- CHANGE START: Add cache for nested git repo paths ---
 	// --- ADDITION: GC related properties ---
 	private gcCounter: number = 0
-	private readonly GC_CHECKPOINT_THRESHOLD: number = 20 // Run gc every 20 checkpoints
+	private readonly GC_CHECKPOINT_THRESHOLD: number = Number(process.env.GC_CHECKPOINT_THRESHOLD) || 20 // Run gc every 20 checkpoints
 	private _nestedGitDirPaths: string[] | null = null // Cache for relative paths like "submodule/.git"
 	// --- CHANGE END: Add cache for nested git repo paths ---
 	protected shadowGitConfigWorktree?: string
