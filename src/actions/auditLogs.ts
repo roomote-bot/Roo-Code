@@ -9,7 +9,7 @@ import {
   type CreateAuditLog,
   client as db,
   auditLogs,
-} from '@/db';
+} from '@/db/server';
 
 export const getAuditLogs = async ({
   orgId,

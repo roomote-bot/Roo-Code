@@ -9,7 +9,7 @@ import {
   client as db,
   users,
   orgs,
-} from '@/db';
+} from '@/db/server';
 import { logger } from '@/lib/server';
 
 export async function syncCurrentUser({

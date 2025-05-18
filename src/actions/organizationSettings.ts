@@ -12,7 +12,7 @@ import {
   organizationAllowListSchema,
   organizationDefaultSettingsSchema,
 } from '@/types';
-import { client as db, AuditLogTargetType, orgSettings } from '@/db';
+import { AuditLogTargetType, client as db, orgSettings } from '@/db/server';
 import { handleError, isAuthSuccess } from '@/lib/server';
 
 import { validateAuth } from './auth';

@@ -3,7 +3,7 @@
 import { eq } from 'drizzle-orm';
 
 import { logger } from '@/lib/server/logger';
-import { client as db, users, orgs } from '@/db';
+import { client as db, users, orgs } from '@/db/server';
 
 import { syncCurrentUser } from '../sync';
 

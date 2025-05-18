@@ -1,46 +1,9 @@
-'use client';
-
-import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import Link from 'next/link';
+import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 
 import type { AuditLog } from '@/db';
 
-type AuditLogDetailsProps = {
-  log: AuditLog;
-};
-
-const formatValue = (value: unknown) => {
-  if (value === null || value === undefined) {
-    return <span className="italic text-muted-foreground">None</span>;
-  }
-
-  if (Array.isArray(value)) {
-    return (
-      <ul className="list-disc pl-5">
-        {value.map((item, index) => (
-          <li key={index}>{String(item)}</li>
-        ))}
-      </ul>
-    );
-  }
-
-  if (typeof value === 'object') {
-    return (
-      <div className="space-y-1">
-        {Object.entries(value).map(([key, val]) => (
-          <div key={key} className="grid grid-cols-2 gap-2">
-            <span className="text-sm font-medium">{key}:</span>
-            <span className="text-sm">{String(val)}</span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return String(value);
-};
-
-export const AuditLogDetails = ({ log }: AuditLogDetailsProps) => (
+export const AuditLogDetails = ({ log }: { log: AuditLog }) => (
   <div className="space-y-6">
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -78,3 +41,34 @@ export const AuditLogDetails = ({ log }: AuditLogDetailsProps) => (
     </div>
   </div>
 );
+
+const formatValue = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return <span className="italic text-muted-foreground">None</span>;
+  }
+
+  if (Array.isArray(value)) {
+    return (
+      <ul className="list-disc pl-5">
+        {value.map((item, index) => (
+          <li key={index}>{String(item)}</li>
+        ))}
+      </ul>
+    );
+  }
+
+  if (typeof value === 'object') {
+    return (
+      <div className="space-y-1">
+        {Object.entries(value).map(([key, val]) => (
+          <div key={key} className="grid grid-cols-2 gap-2">
+            <span className="text-sm font-medium">{key}:</span>
+            <span className="text-sm">{String(val)}</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  return String(value);
+};

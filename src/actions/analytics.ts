@@ -9,8 +9,7 @@ import {
 
 import type { TimePeriod } from '@/types';
 import { analytics } from '@/lib/server';
-import * as db from '@/db';
-import { inArray } from 'drizzle-orm';
+import { type User, getUsersById } from '@/db/server';
 
 /**
  * captureEvent
@@ -106,7 +105,7 @@ const developerUsageSchema = z.object({
 });
 
 export type DeveloperUsage = z.infer<typeof developerUsageSchema> & {
-  user: db.User;
+  user: User;
 };
 
 export const getDeveloperUsage = async ({
@@ -140,25 +139,9 @@ export const getDeveloperUsage = async ({
     .array(developerUsageSchema)
     .parse(await resultSet.json());
 
-  const users = (
-    await db.client
-      .select()
-      .from(db.users)
-      .where(
-        inArray(
-          db.users.id,
-          developerUsages.map(({ userId }) => userId),
-        ),
-      )
-  ).reduce(
-    (acc, user) => ({ ...acc, [user.id]: user }),
-    {} as Record<string, db.User>,
-  );
+  const users = await getUsersById(developerUsages.map(({ userId }) => userId));
 
   return developerUsages
-    .map((usage) => ({
-      ...usage,
-      user: users[usage.userId],
-    }))
+    .map((usage) => ({ ...usage, user: users[usage.userId] }))
     .filter((usage): usage is DeveloperUsage => !!usage.user);
 };

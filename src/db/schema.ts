@@ -15,6 +15,8 @@ import {
   ORGANIZATION_ALLOW_ALL,
 } from '@/types';
 
+import { AuditLogTargetType } from './enums';
+
 /**
  * users
  */
@@ -48,10 +50,6 @@ export const userRelations = relations(users, ({ one }) => ({
   }),
 }));
 
-export type User = typeof users.$inferSelect;
-
-export type CreateUser = Omit<typeof users.$inferInsert, 'id' | 'createdAt'>;
-
 /**
  * organizations
  */
@@ -82,10 +80,6 @@ export const orgsRelations = relations(orgs, ({ many, one }) => ({
     references: [orgSettings.orgId],
   }),
 }));
-
-export type Org = typeof orgs.$inferSelect;
-
-export type CreateOrg = Omit<typeof orgs.$inferInsert, 'id' | 'createdAt'>;
 
 /**
  * organization_settings
@@ -122,8 +116,6 @@ export const orgSettingsRelations = relations(orgSettings, ({ one }) => ({
   }),
 }));
 
-export type OrgSettings = typeof orgSettings.$inferSelect;
-
 /**
  * audit_logs
  */
@@ -138,7 +130,7 @@ export const auditLogs = pgTable(
     orgId: text('organization_id')
       .notNull()
       .references(() => orgs.id),
-    targetType: integer('target_type').notNull(), // AuditLogTargetType
+    targetType: integer('target_type').$type<AuditLogTargetType>().notNull(),
     targetId: text('target_id').notNull(),
     newValue: jsonb('new_value').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -162,20 +154,3 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
     references: [orgs.id],
   }),
 }));
-
-export enum AuditLogTargetType {
-  PROVIDER_WHITELIST = 1,
-  DEFAULT_PARAMETERS = 2,
-  MEMBER_CHANGE = 3, // TODO: Currently no logs of this type are collected.
-}
-
-export type AuditLog = typeof auditLogs.$inferSelect & {
-  targetType: AuditLogTargetType;
-};
-
-export type CreateAuditLog = Omit<
-  typeof auditLogs.$inferInsert,
-  'id' | 'createdAt'
-> & {
-  targetType: AuditLogTargetType;
-};

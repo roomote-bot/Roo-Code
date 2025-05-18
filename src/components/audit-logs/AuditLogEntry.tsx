@@ -1,24 +1,11 @@
 import { formatDistance } from 'date-fns';
 import { Settings, Sliders, Users } from 'lucide-react';
 
-import { type AuditLog, AuditLogTargetType } from '@/db/schema';
+import { type AuditLog, AuditLogTargetType } from '@/db';
 
 type AuditLogEntryProps = {
   log: AuditLog;
   onClick: (log: AuditLog) => void;
-};
-
-const getIconByType = (type: AuditLogTargetType) => {
-  switch (type) {
-    case AuditLogTargetType.PROVIDER_WHITELIST:
-      return <Settings className="size-4 text-purple-500" />;
-    case AuditLogTargetType.DEFAULT_PARAMETERS:
-      return <Sliders className="size-4 text-green-500" />;
-    case AuditLogTargetType.MEMBER_CHANGE:
-      return <Users className="size-4 text-amber-500" />;
-    default:
-      return <Settings className="size-4 text-gray-500" />;
-  }
 };
 
 export const AuditLogEntry = ({ log, onClick }: AuditLogEntryProps) => (
@@ -40,3 +27,16 @@ export const AuditLogEntry = ({ log, onClick }: AuditLogEntryProps) => (
     </div>
   </div>
 );
+
+const getIconByType = (type: AuditLogTargetType) => {
+  switch (type) {
+    case AuditLogTargetType.PROVIDER_WHITELIST:
+      return <Settings className="size-4 text-purple-500" />;
+    case AuditLogTargetType.DEFAULT_PARAMETERS:
+      return <Sliders className="size-4 text-green-500" />;
+    case AuditLogTargetType.MEMBER_CHANGE:
+      return <Users className="size-4 text-amber-500" />;
+    default:
+      return <Settings className="size-4 text-gray-500" />;
+  }
+};

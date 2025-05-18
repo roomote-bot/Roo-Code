@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import type { ApiResponse } from '@/types';
 import { handleError, isAuthSuccess } from '@/lib/server';
-import { AuditLogTargetType } from '@/db';
+import { AuditLogTargetType } from '@/db/server';
 
 import { validateAuth } from './auth';
 import { createAuditLog } from './auditLogs';
