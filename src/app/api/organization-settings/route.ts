@@ -1,7 +1,8 @@
-import { auth } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
+import { auth } from '@clerk/nextjs/server';
+
+import { type OrganizationSettings, ORGANIZATION_ALLOW_ALL } from '@/types';
 import { getOrganizationSettings } from '@/actions/organizationSettings';
-import { ORGANIZATION_ALLOW_ALL, type OrganizationSettings } from '@/schemas';
 
 export async function GET() {
   try {

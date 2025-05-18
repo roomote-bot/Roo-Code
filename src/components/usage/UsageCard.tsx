@@ -10,7 +10,7 @@ import { ArrowRightIcon } from 'lucide-react';
 
 import { TelemetryEventName } from '@roo-code/types';
 
-import { type TimePeriod, timePeriods } from '@/schemas';
+import { type TimePeriod, timePeriods } from '@/types';
 import { getUsage } from '@/actions/analytics';
 import { formatCurrency } from '@/lib/formatters';
 

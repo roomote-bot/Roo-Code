@@ -14,7 +14,7 @@ import {
 
 import { updateDefaultParameters } from '@/actions/defaultParameters';
 import { getOrganizationSettings } from '@/actions/organizationSettings';
-import { type OrganizationSettings } from '@/schemas';
+import { type OrganizationSettings } from '@/types';
 import {
   Button,
   Checkbox,

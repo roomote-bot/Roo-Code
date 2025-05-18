@@ -1,10 +1,12 @@
+'use server';
+
 import { eq } from 'drizzle-orm';
 import { clerkClient, currentUser } from '@clerk/nextjs/server';
 
 import { db } from '@/db';
 import { users, type CreateUser, orgs, type CreateOrg } from '@/db/schema';
 
-import { logger } from './logger';
+import { logger } from '../lib/server/logger';
 
 export async function syncCurrentUser({
   userId,

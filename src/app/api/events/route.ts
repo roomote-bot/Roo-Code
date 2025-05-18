@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { rooCodeTelemetryEventSchema } from '@roo-code/types';
 
-import { captureEvent } from '@/lib/server/analytics';
+import { captureEvent } from '@/actions/analytics';
 
 export async function POST(request: NextRequest) {
   const { userId, orgId } = await auth();

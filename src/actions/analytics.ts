@@ -1,10 +1,41 @@
 'use server';
 
 import { z } from 'zod';
-import { TelemetryEventName } from '@roo-code/types';
 
-import { type TimePeriod } from '@/schemas';
-import { client } from '@/lib/server/analytics';
+import {
+  TelemetryEventName,
+  type RooCodeTelemetryEvent,
+} from '@roo-code/types';
+
+import type { TimePeriod } from '@/types';
+import { analytics } from '@/lib/server';
+
+/**
+ * captureEvent
+ */
+
+type AnalyticsEvent = {
+  id: string;
+  orgId: string;
+  userId: string;
+  timestamp: number;
+  event: RooCodeTelemetryEvent;
+};
+
+export const captureEvent = async ({
+  event: { properties, ...cloudEvent },
+  ...analyticsEvent
+}: AnalyticsEvent) => {
+  // The destructuring here flattens the `AnalyticsEvent` to match the ClickHouse
+  // schema.
+  const value = { ...analyticsEvent, ...cloudEvent, ...properties };
+
+  await analytics.insert({
+    table: 'events',
+    values: [value],
+    format: 'JSONEachRow',
+  });
+};
 
 /**
  * Usage
@@ -38,7 +69,7 @@ export const getUsage = async ({
     return {};
   }
 
-  const resultSet = await client.query({
+  const resultSet = await analytics.query({
     query: `
       SELECT
         type,

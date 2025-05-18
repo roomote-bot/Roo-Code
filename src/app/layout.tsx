@@ -5,7 +5,7 @@ import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
 import { auth } from '@clerk/nextjs/server';
 
 import { getClerkLocale } from '@/i18n/locale';
-import { syncAuth } from '@/lib/server/sync';
+import { syncAuth } from '@/actions/sync';
 import { Toaster } from '@/components/ui';
 import {
   ThemeProvider,

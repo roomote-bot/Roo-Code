@@ -1,18 +1,15 @@
 'use server';
 
+import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { type ApiResponse, ORGANIZATION_ALLOW_ALL } from '@/types';
 import { db } from '@/db';
 import { AuditLogTargetType, orgSettings } from '@/db/schema';
-import { insertAuditLog } from '@/lib/server/auditLogs';
-import {
-  handleError,
-  isAuthSuccess,
-  validateAuth,
-  type ApiResponse,
-} from './apiUtils';
-import { sql } from 'drizzle-orm';
-import { ORGANIZATION_ALLOW_ALL } from '@/schemas';
+import { isAuthSuccess, handleError } from '@/lib/server';
+
+import { validateAuth } from './auth';
+import { insertAuditLog } from './auditLogs';
 
 const defaultParametersSchema = z.object({
   experimentalPowerSteering: z.boolean().optional(),

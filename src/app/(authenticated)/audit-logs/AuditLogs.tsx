@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
+import { type TimePeriod, timePeriods } from '@/types';
 import type { AuditLog } from '@/db/schema';
-import { timePeriods, type TimePeriod } from '@/schemas';
 import { getAuditLogs } from '@/actions/auditLogs';
 import {
   Button,

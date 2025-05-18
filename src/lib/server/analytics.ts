@@ -1,35 +1,9 @@
 import { createClient } from '@clickhouse/client';
 
-import type { RooCodeTelemetryEvent } from '@roo-code/types';
-
 import { Env } from './env';
 
-export const client = createClient({
+export const analytics = createClient({
   url: Env.CLICKHOUSE_URL,
   username: Env.CLICKHOUSE_USERNAME,
   password: Env.CLICKHOUSE_PASSWORD,
 });
-
-type AnalyticsEvent = {
-  id: string;
-  orgId: string;
-  userId: string;
-  timestamp: number;
-  event: RooCodeTelemetryEvent;
-};
-
-export const captureEvent = async ({
-  event: { properties, ...cloudEvent },
-  ...analyticsEvent
-}: AnalyticsEvent) => {
-  // The destructuring here flattens the `AnalyticsEvent` to match the ClickHouse
-  // schema.
-  const value = { ...analyticsEvent, ...cloudEvent, ...properties };
-  console.log(`captureEvent`, value);
-
-  await client.insert({
-    table: 'events',
-    values: [value],
-    format: 'JSONEachRow',
-  });
-};

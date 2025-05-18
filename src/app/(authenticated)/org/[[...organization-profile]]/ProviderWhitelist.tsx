@@ -3,19 +3,20 @@
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
+import { type ProviderName } from '@roo-code/types';
+
+import {
+  type OrganizationAllowList,
+  type OrganizationSettings,
+  ORGANIZATION_ALLOW_ALL,
+} from '@/types';
 import {
   getOrganizationSettings,
   updateOrganization,
 } from '@/actions/organizationSettings';
 import { Badge, Button, Checkbox, Label } from '@/components/ui';
-import { toast } from 'sonner';
-import {
-  ORGANIZATION_ALLOW_ALL,
-  type OrganizationAllowList,
-  type OrganizationSettings,
-} from '@/schemas';
-import { type ProviderName } from '@roo-code/types';
 
 type ProviderSetting = {
   allowAll: boolean;

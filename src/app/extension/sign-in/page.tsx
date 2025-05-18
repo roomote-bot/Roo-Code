@@ -1,8 +1,8 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 
-import { getSignInToken } from '@/lib/server/clerk';
-import { Env } from '@/lib/server/env';
+import { Env } from '@/lib/server';
+import { getSignInToken } from '@/actions/auth';
 
 import { DeepLink } from './DeepLink';
 

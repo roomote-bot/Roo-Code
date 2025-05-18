@@ -2,14 +2,12 @@
 
 import { z } from 'zod';
 
+import type { ApiResponse } from '@/types';
+import { handleError, isAuthSuccess } from '@/lib/server';
 import { AuditLogTargetType } from '@/db/schema';
-import { createAuditLog } from '@/lib/server/auditLogs';
-import {
-  handleError,
-  isAuthSuccess,
-  validateAuth,
-  type ApiResponse,
-} from './apiUtils';
+
+import { validateAuth } from './auth';
+import { createAuditLog } from './auditLogs';
 
 const allowAllProvidersSchema = z.object({
   allowAllProviders: z.boolean(),

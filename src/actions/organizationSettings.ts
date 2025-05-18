@@ -1,24 +1,23 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
-import { db } from '@/db';
-import { AuditLogTargetType, orgSettings } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
+import { auth } from '@clerk/nextjs/server';
+import { z } from 'zod';
+
 import {
+  type ApiResponse,
   ORGANIZATION_ALLOW_ALL,
   ORGANIZATION_DEFAULT,
   type OrganizationSettings,
   organizationAllowListSchema,
   organizationDefaultSettingsSchema,
-} from '@/schemas';
-import { z } from 'zod';
-import {
-  handleError,
-  isAuthSuccess,
-  validateAuth,
-  type ApiResponse,
-} from './apiUtils';
-import { insertAuditLog } from '@/lib/server/auditLogs';
+} from '@/types';
+import { db } from '@/db';
+import { AuditLogTargetType, orgSettings } from '@/db/schema';
+import { handleError, isAuthSuccess } from '@/lib/server';
+
+import { validateAuth } from './auth';
+import { insertAuditLog } from './auditLogs';
 
 export async function getOrganizationSettings(): Promise<
   OrganizationSettings | undefined

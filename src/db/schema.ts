@@ -10,10 +10,10 @@ import {
 import { relations } from 'drizzle-orm';
 
 import {
-  ORGANIZATION_ALLOW_ALL,
   type OrganizationDefaultSettings,
   type OrganizationAllowList,
-} from '@/schemas';
+  ORGANIZATION_ALLOW_ALL,
+} from '@/types';
 
 /**
  * users

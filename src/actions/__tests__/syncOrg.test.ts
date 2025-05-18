@@ -1,13 +1,13 @@
-// pnpm test src/lib/server/__tests__/syncOrg.test.ts
+// pnpm test src/actions/__tests__/syncOrg.test.ts
 
 import { eq } from 'drizzle-orm';
 import { clerkClient } from '@clerk/nextjs/server';
 
 import { db } from '@/db';
 import { orgs } from '@/db/schema';
+import { logger } from '@/lib/server/logger';
 
 import { syncOrg } from '../sync';
-import { logger } from '../logger';
 
 vi.mock('@clerk/nextjs/server', () => ({
   clerkClient: vi.fn().mockResolvedValue({
@@ -22,11 +22,8 @@ vi.mock('@clerk/nextjs/server', () => ({
   }),
 }));
 
-vi.mock('../logger', () => ({
-  logger: {
-    info: vi.fn(),
-    error: vi.fn(),
-  },
+vi.mock('@/lib/server/logger', () => ({
+  logger: { info: vi.fn(), error: vi.fn() },
 }));
 
 describe('syncOrg', () => {

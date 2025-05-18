@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm';
 
-import { Env } from '@/lib/server/env';
+import { Env } from '@/lib/server';
 import { testDb, disconnect } from '@/db';
 
 async function resetTestDatabase() {

@@ -1,11 +1,12 @@
-// pnpm test src/lib/server/__tests__/syncCurrentUser.test.ts
+// pnpm test src/actions/__tests__/syncCurrentUser.test.ts
 
 import { db } from '@/db';
 import { users, orgs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
+import { logger } from '@/lib/server/logger';
+
 import { syncCurrentUser } from '../sync';
-import { logger } from '../logger';
 
 const testUserId = 'fake-user-id';
 const testOrgId = 'fake-org-id';
@@ -21,11 +22,8 @@ vi.mock('@clerk/nextjs/server', () => ({
   }),
 }));
 
-vi.mock('../logger', () => ({
-  logger: {
-    info: vi.fn(),
-    error: vi.fn(),
-  },
+vi.mock('@/lib/server/logger', () => ({
+  logger: { info: vi.fn(), error: vi.fn() },
 }));
 
 describe('syncCurrentUser', () => {

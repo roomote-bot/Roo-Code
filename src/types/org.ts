@@ -1,13 +1,5 @@
-/**
- * TimePeriod
- */
-
 import { providerNames } from '@roo-code/types';
 import { z } from 'zod';
-
-export const timePeriods = [7, 30, 90] as const;
-
-export type TimePeriod = (typeof timePeriods)[number];
 
 export const organizationAllowListSchema = z.object({
   allowAll: z.boolean(),
