@@ -1,5 +1,5 @@
-import { UsageCard } from '@/components/usage/UsageCard';
-import { AuditLogCard } from '@/components/audit-logs/AuditLogCard';
+import { UsageCard } from '@/components/usage';
+import { AuditLogCard } from '@/components/audit-logs';
 
 export const Dashboard = () => (
   <>

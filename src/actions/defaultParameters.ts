@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { AuditLogTargetType } from '@/db/schema';
 import { createAuditLog } from '@/lib/server/auditLogs';
+
 import {
   handleError,
   isAuthSuccess,
@@ -48,24 +49,24 @@ export async function updateDefaultParameters(
 ): Promise<ApiResponse> {
   try {
     const authResult = await validateAuth();
-    if (!isAuthSuccess(authResult)) return authResult;
-    const { userId, orgId } = authResult;
+
+    if (!isAuthSuccess(authResult)) {
+      return authResult;
+    }
 
     const result = defaultParametersSchema.safeParse(data);
+
     if (!result.success) {
-      return {
-        success: false,
-        error: 'Invalid request data',
-      };
+      return { success: false, error: 'Invalid request data' };
     }
+
     const validatedData = result.data;
 
-    // TODO: persist data to the database
-
-    // TODO: audit log description should contain more granular information on what changed
+    // TODO: Audit log description should contain more granular information on
+    // what changed.
     await createAuditLog({
-      userId,
-      organizationId: orgId,
+      userId: authResult.userId,
+      orgId: authResult.orgId,
       targetType: AuditLogTargetType.DEFAULT_PARAMETERS,
       targetId: 'default-parameters',
       newValue: validatedData,

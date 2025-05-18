@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
   eslint: { dirs: ['.'] },
   poweredByHeader: false,
   reactStrictMode: true,
+  // If node middleware were stable & enabled, then `syncAuth` could be
+  // implemented in the middleware instead of the layout.
+  // experimental: {
+  //   nodeMiddleware: true,
+  // },
 };
 
 export default withSentryConfig(bundleAnalyzer(withNextIntl(nextConfig)), {

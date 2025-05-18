@@ -15,6 +15,20 @@
       "when": 1747347900000,
       "tag": "0001_add_organization_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747537218300,
+      "tag": "0002_normal_mephistopheles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747551227749,
+      "tag": "0003_strange_wild_pack",
+      "breakpoints": true
     }
   ]
 }

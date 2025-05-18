@@ -1,5 +1,4 @@
 import '@testing-library/jest-dom/vitest';
-
 import failOnConsole from 'vitest-fail-on-console';
 
 failOnConsole({
@@ -9,3 +8,5 @@ failOnConsole({
   shouldFailOnLog: true,
   shouldFailOnWarn: true,
 });
+
+beforeEach(() => vi.clearAllMocks());

@@ -3,23 +3,17 @@
 import { eq, gte, and, desc } from 'drizzle-orm';
 
 import { db } from '@/db';
-import { auditLogs } from '@/db/schema';
+import { auditLogs, type AuditLog } from '@/db/schema';
 import { logger } from '@/lib/server/logger';
-import { AuditLog } from '@/db/schema';
 
-/**
- * getAuditLogs
- *
- * Server action to retrieve audit logs for an organization
- */
 export const getAuditLogs = async ({
   orgId,
   limit = 100,
-  nRecentDays,
+  timePeriod,
 }: {
   orgId?: string | null;
   limit?: number;
-  nRecentDays?: number;
+  timePeriod?: number;
 }): Promise<AuditLog[]> => {
   if (!orgId) {
     return [];
@@ -29,27 +23,27 @@ export const getAuditLogs = async ({
     if (isNaN(limit) || limit <= 0) {
       throw new Error('Limit must be a positive number');
     }
-    if (nRecentDays === undefined) {
+
+    if (timePeriod === undefined) {
       return await db
         .select()
         .from(auditLogs)
-        .where(eq(auditLogs.organizationId, orgId))
+        .where(eq(auditLogs.orgId, orgId))
         .orderBy(desc(auditLogs.createdAt))
         .limit(limit);
     } else {
-      if (isNaN(nRecentDays) || nRecentDays <= 0) {
-        throw new Error('nRecentDays must be a positive number');
+      if (isNaN(timePeriod) || timePeriod <= 0) {
+        throw new Error('timePeriod must be a positive number');
       }
+
       const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - nRecentDays);
+      cutoff.setDate(cutoff.getDate() - timePeriod);
+
       return await db
         .select()
         .from(auditLogs)
         .where(
-          and(
-            eq(auditLogs.organizationId, orgId),
-            gte(auditLogs.createdAt, cutoff),
-          ),
+          and(eq(auditLogs.orgId, orgId), gte(auditLogs.createdAt, cutoff)),
         )
         .orderBy(desc(auditLogs.createdAt))
         .limit(limit);
@@ -59,6 +53,7 @@ export const getAuditLogs = async ({
       event: 'audit_log_fetch_error',
       error: error instanceof Error ? error.message : 'Unknown error',
     });
+
     throw error;
   }
 };

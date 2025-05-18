@@ -9,10 +9,7 @@ const isUnprotectedRoute = createRouteMatcher([
 export default clerkMiddleware(
   async (auth, req) => {
     if (!isUnprotectedRoute(req)) {
-      console.log(`clerkMiddleware: PROTECTED -> ${req.nextUrl.pathname}`);
       await auth.protect();
-    } else {
-      console.log(`clerkMiddleware: UNPROTECTED -> ${req.nextUrl.pathname}`);
     }
   },
   { debug: false },

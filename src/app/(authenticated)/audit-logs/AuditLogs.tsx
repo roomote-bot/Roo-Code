@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useOrganization } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
 import type { AuditLog } from '@/db/schema';
@@ -19,20 +19,17 @@ import {
 import { AuditLogEntry, AuditLogDrawer } from '@/components/audit-logs';
 
 export const AuditLogs = () => {
-  const { organization } = useOrganization();
+  const { orgId } = useAuth();
+  const limit = 20;
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(7);
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   const { data: logs = [], isPending } = useQuery({
-    queryKey: ['auditLogs', organization?.id, timePeriod],
-    queryFn: () =>
-      getAuditLogs({
-        orgId: organization?.id,
-        limit: 20,
-        nRecentDays: timePeriod,
-      }),
-    enabled: !!organization?.id,
+    queryKey: ['auditLogs', orgId, limit, timePeriod],
+    queryFn: () => getAuditLogs({ orgId, limit, timePeriod }),
+    enabled: !!orgId,
   });
+
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
   return (
     <>

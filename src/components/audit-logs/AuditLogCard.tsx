@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useOrganization } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRightIcon } from 'lucide-react';
 
@@ -23,16 +23,18 @@ import { AuditLogEntry } from '@/components/audit-logs';
 import { AuditLogDrawer } from './AuditLogDrawer';
 
 export function AuditLogCard() {
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
-  const { organization } = useOrganization();
-
-  const path = usePathname();
+  const { orgId } = useAuth();
+  const limit = 5;
+  const timePeriod = undefined;
 
   const { data: logs = [], isPending } = useQuery({
-    queryKey: ['auditLogs', organization?.id, 5],
-    queryFn: () => getAuditLogs({ orgId: organization?.id, limit: 5 }),
-    enabled: !!organization?.id,
+    queryKey: ['auditLogs', orgId, limit, timePeriod],
+    queryFn: () => getAuditLogs({ orgId, limit, timePeriod }),
+    enabled: !!orgId,
   });
+
+  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const path = usePathname();
 
   return (
     <>

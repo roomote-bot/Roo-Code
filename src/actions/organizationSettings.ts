@@ -1,16 +1,13 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
-import { db } from '@/db';
-import { organizationSettings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
-import { type OrganizationSettings } from '@/schemas';
+import { auth } from '@clerk/nextjs/server';
 
-/**
- * Get organization settings for the current organization
- */
+import { db } from '@/db';
+import { orgSettings, type OrgSettings } from '@/db/schema';
+
 export async function getOrganizationSettings(): Promise<
-  OrganizationSettings | undefined
+  OrgSettings | undefined
 > {
   const { userId, orgId } = await auth();
 
@@ -24,13 +21,9 @@ export async function getOrganizationSettings(): Promise<
 
   const settings = await db
     .select()
-    .from(organizationSettings)
-    .where(eq(organizationSettings.organizationId, orgId))
+    .from(orgSettings)
+    .where(eq(orgSettings.orgId, orgId))
     .limit(1);
 
-  if (settings.length === 0) {
-    return;
-  }
-
-  return settings[0];
+  return settings.length === 0 ? undefined : settings[0];
 }

@@ -2,9 +2,10 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getTranslations, setRequestLocale } from 'next-intl/server';
+import { auth } from '@clerk/nextjs/server';
 
 import { getClerkLocale } from '@/i18n/locale';
-import { cn } from '@/lib/utils';
+import { syncAuth } from '@/lib/server/sync';
 import { Toaster } from '@/components/ui';
 import {
   ThemeProvider,
@@ -40,8 +41,6 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-const geist = Geist({ subsets: ['latin'] });
-
 const fontSans = Geist({ variable: '--font-sans', subsets: ['latin'] });
 const fontMono = Geist_Mono({ variable: '--font-mono', subsets: ['latin'] });
 
@@ -53,12 +52,10 @@ export default async function RootLayout({
   const locale = await getLocale();
   setRequestLocale(locale);
 
+  syncAuth(await auth());
+
   return (
-    <html
-      lang={locale}
-      className={cn(geist.className)}
-      suppressHydrationWarning
-    >
+    <html lang={locale} suppressHydrationWarning>
       <body
         className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}
         suppressHydrationWarning

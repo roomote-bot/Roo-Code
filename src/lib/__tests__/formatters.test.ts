@@ -1,6 +1,6 @@
-// npx vitest run src/lib/formatters.test.ts
+// pnpm test src/lib/__tests__/formatters.test.ts
 
-import { formatNumber, formatCurrency } from './formatters';
+import { formatNumber, formatCurrency } from '../formatters';
 
 describe('formatNumber', () => {
   it('should return empty string for undefined or null values', () => {

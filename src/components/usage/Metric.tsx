@@ -17,9 +17,11 @@ export const Metric = ({ label, value, isPending }: MetricProps) => (
         </div>
       ) : typeof value === 'number' ? (
         formatNumber(value)
-      ) : value ? (
+      ) : typeof value !== 'undefined' ? (
         value
-      ) : null}
+      ) : (
+        0
+      )}
     </div>
   </div>
 );

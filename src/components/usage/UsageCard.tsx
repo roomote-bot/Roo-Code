@@ -36,6 +36,7 @@ export const UsageCard = () => {
   const { data: usage = {}, isPending } = useQuery({
     queryKey: ['usage', orgId, timePeriod],
     queryFn: () => getUsage({ orgId, timePeriod }),
+    enabled: !!orgId,
   });
 
   return (

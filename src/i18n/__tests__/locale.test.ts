@@ -1,8 +1,8 @@
-// npx vitest run src/lib/locale.test.ts
+// pnpm test src/i18n/__tests__/locale.test.ts
 
 import { enUS, frFR } from '@clerk/localizations';
 
-import { locales, isLocale, Locales, getClerkLocale, Locale } from './locale';
+import { locales, isLocale, Locales, getClerkLocale, Locale } from '../locale';
 
 describe('locale module', () => {
   describe('locales', () => {

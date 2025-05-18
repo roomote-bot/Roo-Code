@@ -33,7 +33,7 @@ export const getUsage = async ({
 }: {
   orgId?: string | null;
   timePeriod: TimePeriod;
-}): Promise<UsageRecord> => {
+}): Promise<UsageRecord | undefined> => {
   if (!orgId) {
     return {};
   }
