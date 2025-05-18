@@ -24,7 +24,7 @@ export const AuditLogs = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(7);
 
   const { data: logs = [], isPending } = useQuery({
-    queryKey: ['auditLogs', orgId, limit, timePeriod],
+    queryKey: ['getAuditLogs', orgId, limit, timePeriod],
     queryFn: () => getAuditLogs({ orgId, limit, timePeriod }),
     enabled: !!orgId,
   });

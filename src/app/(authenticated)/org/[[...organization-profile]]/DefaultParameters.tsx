@@ -809,7 +809,7 @@ export const DefaultParameters = () => {
   const queryClient = useQueryClient();
 
   const { data: orgSettings } = useQuery({
-    queryKey: ['organizationSettings'],
+    queryKey: ['getOrganizationSettings'],
     queryFn: getOrganizationSettings,
   });
 

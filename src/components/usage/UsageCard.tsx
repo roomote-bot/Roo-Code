@@ -80,22 +80,22 @@ export const UsageCard = () => {
           <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
             <Metric
               label={t('analytics_active_developers')}
-              value={usage[TelemetryEventName.TASK_CREATED]?.userCount}
+              value={usage[TelemetryEventName.TASK_CREATED]?.users}
               isPending={isPending}
             />
             <Metric
               label={t('analytics_tasks_started')}
-              value={usage[TelemetryEventName.TASK_CREATED]?.eventCount}
+              value={usage[TelemetryEventName.TASK_CREATED]?.events}
               isPending={isPending}
             />
             <Metric
               label={t('analytics_tasks_completed')}
-              value={usage[TelemetryEventName.TASK_COMPLETED]?.eventCount}
+              value={usage[TelemetryEventName.TASK_COMPLETED]?.events}
               isPending={isPending}
             />
             <Metric
               label={t('analytics_tokens_consumed')}
-              value={usage[TelemetryEventName.LLM_COMPLETION]?.inputTokens}
+              value={usage[TelemetryEventName.LLM_COMPLETION]?.tokens}
               isPending={isPending}
             />
             <Metric

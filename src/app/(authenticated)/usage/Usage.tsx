@@ -1,53 +1,75 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useTranslations } from 'next-intl';
+import { X } from 'lucide-react';
 
-import { type User } from '@/db';
-import { UsageCard } from '@/components/usage/UsageCard';
+import type { Task } from '@/actions/analytics';
+import { Badge, Button } from '@/components/ui';
+import { UsageCard } from '@/components/usage';
 
-import type { Filter, Model, Task, ViewMode } from './types';
-import { ViewModeToggle } from './ViewModeToggle';
-import { ActiveFilter } from './ActiveFilter';
+import { type Filter, type ViewMode, viewModes } from './types';
 import { Developers } from './Developers';
 import { Models } from './Models';
 import { Tasks } from './Tasks';
-import { TaskDetails } from './TaskDetails';
+import { TaskDrawer } from './TaskDrawer';
 
 export const Usage = () => {
+  const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
   const [filter, setFilter] = useState<Filter | null>(null);
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<Task | null>(null);
+
+  const onFilter = useCallback((filter: Filter) => {
+    setFilter(filter);
+    setViewMode('tasks');
+  }, []);
 
   return (
     <>
       <div className="flex flex-col gap-4">
         <UsageCard />
-        <ViewModeToggle viewMode={viewMode} setViewMode={setViewMode} />
+        <div className="flex gap-2">
+          {viewModes.map((mode) => (
+            <Button
+              key={mode}
+              variant={viewMode === mode ? 'default' : 'secondary'}
+              size="sm"
+              onClick={() => setViewMode(mode)}
+            >
+              {t(`view_mode_${mode}`)}
+            </Button>
+          ))}
+        </div>
         {filter && (
-          <ActiveFilter filter={filter} onClear={() => setFilter(null)} />
+          <div className="flex flex-row">
+            <Badge variant="outline">
+              <span className="text-sm">
+                <strong>{filter.label}</strong>
+              </span>
+              <Button
+                variant="link"
+                size="icon"
+                onClick={() => setFilter(null)}
+              >
+                <X className="size-4" />
+              </Button>
+            </Badge>
+          </div>
         )}
         {viewMode === 'tasks' ? (
           <Tasks
             filter={filter}
-            onClick={(task: Task) => setSelectedTask(task)}
+            onFilter={onFilter}
+            onTaskSelected={(task: Task) => setTask(task)}
           />
         ) : viewMode === 'developers' ? (
-          <Developers
-            onDeveloperSelected={({ id, name }: User) => {
-              setFilter({ type: 'developer', id, name });
-              setViewMode('tasks');
-            }}
-          />
+          <Developers onFilter={onFilter} />
         ) : (
-          <Models
-            onClick={({ id, name }: Model) => {
-              setFilter({ type: 'model', id, name });
-              setViewMode('tasks');
-            }}
-          />
+          <Models onFilter={onFilter} />
         )}
       </div>
-      <TaskDetails task={selectedTask} onClose={() => setSelectedTask(null)} />
+      {task && <TaskDrawer task={task} onClose={() => setTask(null)} />}
     </>
   );
 };

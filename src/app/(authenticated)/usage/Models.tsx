@@ -1,69 +1,46 @@
+import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useAuth } from '@clerk/nextjs';
 
+import { type ModelUsage, getModelUsage } from '@/actions/analytics';
+import { formatCurrency, formatNumber } from '@/lib/formatters';
+import { Button } from '@/components/ui';
 import { DataTable } from '@/components/layout/DataTable';
 
-import type { Model } from './types';
+import type { Filter } from './types';
+import { Loader } from './Loader';
 
-const mockModels: Model[] = [
-  {
-    id: 'model1',
-    name: 'GPT-4',
-    provider: 'OpenAI',
-    tasks: 45,
-    tokensConsumed: 1500000,
-    cost: 30.0,
-  },
-  {
-    id: 'model2',
-    name: 'Claude 3 Opus',
-    provider: 'Anthropic',
-    tasks: 35,
-    tokensConsumed: 1000000,
-    cost: 20.0,
-  },
-  {
-    id: 'model3',
-    name: 'Mistral Large',
-    provider: 'Mistral AI',
-    tasks: 25,
-    tokensConsumed: 430000,
-    cost: 9.1,
-  },
-  {
-    id: 'model4',
-    name: 'GPT-3.5 Turbo',
-    provider: 'OpenAI',
-    tasks: 38,
-    tokensConsumed: 850000,
-    cost: 8.5,
-  },
-  {
-    id: 'model5',
-    name: 'Claude 3 Sonnet',
-    provider: 'Anthropic',
-    tasks: 30,
-    tokensConsumed: 720000,
-    cost: 14.4,
-  },
-];
+export const Models = ({
+  onFilter,
+}: {
+  onFilter: (filter: Filter) => void;
+}) => {
+  const { orgId } = useAuth();
 
-export const Models = ({ onClick }: { onClick: (model: Model) => void }) => {
-  const modelColumns: ColumnDef<Model>[] = [
+  const { data = [], isPending } = useQuery({
+    queryKey: ['getModelUsage', orgId],
+    queryFn: () => getModelUsage({ orgId }),
+    enabled: !!orgId,
+  });
+
+  const columns: ColumnDef<ModelUsage>[] = [
     {
-      accessorKey: 'name',
       header: 'Model',
-      cell: ({ row }) => {
-        const model = row.original;
-
-        return (
-          <button
-            onClick={() => onClick(model)}
-            className="text-left font-medium text-primary hover:underline"
-          >
-            {model.name}
-          </button>
-        );
-      },
+      cell: ({ row: { original: model } }) => (
+        <Button
+          variant="link"
+          onClick={() =>
+            onFilter({
+              type: 'model',
+              value: model.model,
+              label: model.model,
+            })
+          }
+          className="px-0"
+        >
+          {model.model}
+        </Button>
+      ),
     },
     {
       accessorKey: 'provider',
@@ -74,26 +51,18 @@ export const Models = ({ onClick }: { onClick: (model: Model) => void }) => {
       header: 'Tasks',
     },
     {
-      accessorKey: 'tokensConsumed',
       header: 'Tokens',
-      cell: ({ row }) => {
-        const tokens = row.getValue('tokensConsumed') as number;
-        return tokens >= 1000000
-          ? `${(tokens / 1000000).toFixed(1)}M`
-          : tokens >= 1000
-            ? `${(tokens / 1000).toFixed(1)}K`
-            : tokens;
-      },
+      cell: ({ row }) => formatNumber(row.original.tokens),
     },
     {
-      accessorKey: 'cost',
       header: 'Cost (USD)',
-      cell: ({ row }) => {
-        const cost = row.getValue('cost') as number;
-        return `$${cost.toFixed(2)}`;
-      },
+      cell: ({ row }) => formatCurrency(row.original.cost),
     },
   ];
 
-  return <DataTable columns={modelColumns} data={mockModels} />;
+  if (isPending) {
+    return <Loader />;
+  }
+
+  return <DataTable columns={columns} data={data} />;
 };

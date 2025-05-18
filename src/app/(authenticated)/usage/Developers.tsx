@@ -2,35 +2,44 @@ import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useAuth } from '@clerk/nextjs';
 
-import { type User } from '@/db';
 import { type DeveloperUsage, getDeveloperUsage } from '@/actions/analytics';
-import { DataTable } from '@/components/layout/DataTable';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
+import { Button } from '@/components/ui';
+import { DataTable } from '@/components/layout/DataTable';
+
+import type { Filter } from './types';
+import { Loader } from './Loader';
 
 export const Developers = ({
-  onDeveloperSelected,
+  onFilter,
 }: {
-  onDeveloperSelected: (user: User) => void;
+  onFilter: (filter: Filter) => void;
 }) => {
   const { orgId } = useAuth();
 
-  const { data = [] } = useQuery({
-    queryKey: ['developers'],
-    queryFn: () => getDeveloperUsage({ orgId, timePeriod: 30 }),
+  const { data = [], isPending } = useQuery({
+    queryKey: ['getDeveloperUsage', orgId],
+    queryFn: () => getDeveloperUsage({ orgId }),
     enabled: !!orgId,
   });
 
   const columns: ColumnDef<DeveloperUsage>[] = [
     {
-      accessorKey: 'user.name',
       header: 'Developer',
       cell: ({ row }) => (
-        <button
-          onClick={() => onDeveloperSelected(row.original.user)}
-          className="text-left font-medium text-primary hover:underline"
+        <Button
+          variant="link"
+          onClick={() =>
+            onFilter({
+              type: 'userId',
+              value: row.original.userId,
+              label: row.original.user.name,
+            })
+          }
+          className="px-0"
         >
           {row.original.user.name}
-        </button>
+        </Button>
       ),
     },
     {
@@ -46,16 +55,18 @@ export const Developers = ({
       header: 'Tasks Completed',
     },
     {
-      accessorKey: 'tokens',
       header: 'Tokens',
       cell: ({ row }) => formatNumber(row.original.tokens),
     },
     {
-      accessorKey: 'cost',
       header: 'Cost (USD)',
       cell: ({ row }) => formatCurrency(row.original.cost),
     },
   ];
+
+  if (isPending) {
+    return <Loader />;
+  }
 
   return <DataTable columns={columns} data={data} />;
 };
