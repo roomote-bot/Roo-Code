@@ -1,4 +1,4 @@
-import type { AuditLog } from '@/db/schema';
+import type { AuditLog } from '@/db';
 import {
   Drawer,
   DrawerContent,

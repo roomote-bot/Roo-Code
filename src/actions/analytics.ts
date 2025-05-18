@@ -9,6 +9,8 @@ import {
 
 import type { TimePeriod } from '@/types';
 import { analytics } from '@/lib/server';
+import * as db from '@/db';
+import { inArray } from 'drizzle-orm';
 
 /**
  * captureEvent
@@ -38,7 +40,7 @@ export const captureEvent = async ({
 };
 
 /**
- * Usage
+ * getUsage
  */
 
 const usageSchema = z.object({
@@ -52,10 +54,6 @@ const usageSchema = z.object({
 
 export type Usage = z.infer<typeof usageSchema>;
 
-/**
- * getUsage
- */
-
 type UsageRecord = Partial<Record<TelemetryEventName, Usage>>;
 
 export const getUsage = async ({
@@ -64,7 +62,7 @@ export const getUsage = async ({
 }: {
   orgId?: string | null;
   timePeriod: TimePeriod;
-}): Promise<UsageRecord | undefined> => {
+}): Promise<UsageRecord> => {
   if (!orgId) {
     return {};
   }
@@ -78,23 +76,89 @@ export const getUsage = async ({
         SUM(COALESCE(inputTokens, 0)) AS inputTokens,
         SUM(COALESCE(outputTokens, 0)) AS outputTokens,
         SUM(COALESCE(cost, 0)) AS cost
-      FROM
-        events
-      WHERE
-        orgId = {orgId: String}
-        AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
-      GROUP BY
-        type
+      FROM events
+      WHERE orgId = {orgId: String} AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
+      GROUP BY 1
     `,
     format: 'JSONEachRow',
     query_params: { orgId, timePeriod },
   });
 
-  const data = await resultSet.json();
-  const usages = z.array(usageSchema).parse(data);
+  return z
+    .array(usageSchema)
+    .parse(await resultSet.json())
+    .reduce(
+      (collect, usage) => ({ ...collect, [usage.type]: usage }),
+      {} as UsageRecord,
+    );
+};
 
-  return usages.reduce(
-    (collect, usage) => ({ ...collect, [usage.type]: usage }),
-    {} as UsageRecord,
+/**
+ * getDeveloperUsage
+ */
+
+const developerUsageSchema = z.object({
+  userId: z.string(),
+  tasksStarted: z.coerce.number(),
+  tasksCompleted: z.coerce.number(),
+  tokens: z.coerce.number(),
+  cost: z.coerce.number(),
+});
+
+export type DeveloperUsage = z.infer<typeof developerUsageSchema> & {
+  user: db.User;
+};
+
+export const getDeveloperUsage = async ({
+  orgId,
+  timePeriod,
+}: {
+  orgId?: string | null;
+  timePeriod: TimePeriod;
+}): Promise<DeveloperUsage[]> => {
+  if (!orgId) {
+    return [];
+  }
+
+  const resultSet = await analytics.query({
+    query: `
+      SELECT
+        userId,
+        SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasksStarted,
+        SUM(CASE WHEN type = '${TelemetryEventName.TASK_COMPLETED}' THEN 1 ELSE 0 END) AS tasksCompleted,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
+      FROM events
+      WHERE orgId = {orgId: String} AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
+      GROUP BY 1
+    `,
+    format: 'JSONEachRow',
+    query_params: { orgId, timePeriod },
+  });
+
+  const developerUsages = z
+    .array(developerUsageSchema)
+    .parse(await resultSet.json());
+
+  const users = (
+    await db.client
+      .select()
+      .from(db.users)
+      .where(
+        inArray(
+          db.users.id,
+          developerUsages.map(({ userId }) => userId),
+        ),
+      )
+  ).reduce(
+    (acc, user) => ({ ...acc, [user.id]: user }),
+    {} as Record<string, db.User>,
   );
+
+  return developerUsages
+    .map((usage) => ({
+      ...usage,
+      user: users[usage.userId],
+    }))
+    .filter((usage): usage is DeveloperUsage => !!usage.user);
 };

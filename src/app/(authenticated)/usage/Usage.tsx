@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 
+import { type User } from '@/db';
 import { UsageCard } from '@/components/usage/UsageCard';
 
-import type { Developer, Filter, Model, Task, ViewMode } from './types';
+import type { Filter, Model, Task, ViewMode } from './types';
 import { ViewModeToggle } from './ViewModeToggle';
 import { ActiveFilter } from './ActiveFilter';
 import { Developers } from './Developers';
@@ -32,7 +33,7 @@ export const Usage = () => {
           />
         ) : viewMode === 'developers' ? (
           <Developers
-            onClick={({ id, name }: Developer) => {
+            onDeveloperSelected={({ id, name }: User) => {
               setFilter({ type: 'developer', id, name });
               setViewMode('tasks');
             }}

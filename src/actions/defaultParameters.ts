@@ -4,8 +4,7 @@ import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { type ApiResponse, ORGANIZATION_ALLOW_ALL } from '@/types';
-import { db } from '@/db';
-import { AuditLogTargetType, orgSettings } from '@/db/schema';
+import { client as db, AuditLogTargetType, orgSettings } from '@/db';
 import { isAuthSuccess, handleError } from '@/lib/server';
 
 import { validateAuth } from './auth';

@@ -7,7 +7,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRightIcon } from 'lucide-react';
 
-import type { AuditLog } from '@/db/schema';
+import type { AuditLog } from '@/db';
 import { getAuditLogs } from '@/actions/auditLogs';
 import {
   Card,

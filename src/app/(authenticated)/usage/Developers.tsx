@@ -1,81 +1,40 @@
+import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
+import { useAuth } from '@clerk/nextjs';
 
+import { type User } from '@/db';
+import { type DeveloperUsage, getDeveloperUsage } from '@/actions/analytics';
 import { DataTable } from '@/components/layout/DataTable';
-
-import type { Developer } from './types';
-
-const mockDevelopers: Developer[] = [
-  {
-    id: 'dev1',
-    name: 'John Doe',
-    email: 'john@example.com',
-    tasksStarted: 42,
-    tasksCompleted: 38,
-    tokensConsumed: 1200000,
-    cost: 24.5,
-  },
-  {
-    id: 'dev2',
-    name: 'Jane Smith',
-    email: 'jane@example.com',
-    tasksStarted: 35,
-    tasksCompleted: 32,
-    tokensConsumed: 980000,
-    cost: 19.6,
-  },
-  {
-    id: 'dev3',
-    name: 'Bob Johnson',
-    email: 'bob@example.com',
-    tasksStarted: 28,
-    tasksCompleted: 25,
-    tokensConsumed: 750000,
-    cost: 15.0,
-  },
-  {
-    id: 'dev4',
-    name: 'Alice Williams',
-    email: 'alice@example.com',
-    tasksStarted: 31,
-    tasksCompleted: 29,
-    tokensConsumed: 820000,
-    cost: 16.4,
-  },
-  {
-    id: 'dev5',
-    name: 'Charlie Brown',
-    email: 'charlie@example.com',
-    tasksStarted: 22,
-    tasksCompleted: 19,
-    tokensConsumed: 650000,
-    cost: 13.0,
-  },
-];
+import { formatCurrency, formatNumber } from '@/lib/formatters';
 
 export const Developers = ({
-  onClick,
+  onDeveloperSelected,
 }: {
-  onClick: (developer: Developer) => void;
+  onDeveloperSelected: (user: User) => void;
 }) => {
-  const developerColumns: ColumnDef<Developer>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Developer',
-      cell: ({ row }) => {
-        const developer = row.original;
+  const { orgId } = useAuth();
 
-        return (
-          <button
-            onClick={() => onClick(developer)}
-            className="text-left font-medium text-primary hover:underline"
-          >
-            {developer.name}
-          </button>
-        );
-      },
+  const { data = [] } = useQuery({
+    queryKey: ['developers'],
+    queryFn: () => getDeveloperUsage({ orgId, timePeriod: 30 }),
+    enabled: !!orgId,
+  });
+
+  const columns: ColumnDef<DeveloperUsage>[] = [
+    {
+      accessorKey: 'user.name',
+      header: 'Developer',
+      cell: ({ row }) => (
+        <button
+          onClick={() => onDeveloperSelected(row.original.user)}
+          className="text-left font-medium text-primary hover:underline"
+        >
+          {row.original.user.name}
+        </button>
+      ),
     },
     {
-      accessorKey: 'email',
+      accessorKey: 'user.email',
       header: 'Email',
     },
     {
@@ -87,26 +46,16 @@ export const Developers = ({
       header: 'Tasks Completed',
     },
     {
-      accessorKey: 'tokensConsumed',
+      accessorKey: 'tokens',
       header: 'Tokens',
-      cell: ({ row }) => {
-        const tokens = row.getValue('tokensConsumed') as number;
-        return tokens >= 1000000
-          ? `${(tokens / 1000000).toFixed(1)}M`
-          : tokens >= 1000
-            ? `${(tokens / 1000).toFixed(1)}K`
-            : tokens;
-      },
+      cell: ({ row }) => formatNumber(row.original.tokens),
     },
     {
       accessorKey: 'cost',
       header: 'Cost (USD)',
-      cell: ({ row }) => {
-        const cost = row.getValue('cost') as number;
-        return `$${cost.toFixed(2)}`;
-      },
+      cell: ({ row }) => formatCurrency(row.original.cost),
     },
   ];
 
-  return <DataTable columns={developerColumns} data={mockDevelopers} />;
+  return <DataTable columns={columns} data={data} />;
 };

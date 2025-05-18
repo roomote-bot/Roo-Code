@@ -3,10 +3,14 @@
 import { eq } from 'drizzle-orm';
 import { clerkClient, currentUser } from '@clerk/nextjs/server';
 
-import { db } from '@/db';
-import { users, type CreateUser, orgs, type CreateOrg } from '@/db/schema';
-
-import { logger } from '../lib/server/logger';
+import {
+  type CreateUser,
+  type CreateOrg,
+  client as db,
+  users,
+  orgs,
+} from '@/db';
+import { logger } from '@/lib/server';
 
 export async function syncCurrentUser({
   userId,

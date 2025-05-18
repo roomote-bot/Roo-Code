@@ -3,8 +3,13 @@
 import { eq, gte, and, desc } from 'drizzle-orm';
 
 import { logger } from '@/lib/server';
-import { db, type DB_OR_TX } from '@/db';
-import { auditLogs, type AuditLog, type CreateAuditLog } from '@/db/schema';
+import {
+  type DatabaseOrTransaction,
+  type AuditLog,
+  type CreateAuditLog,
+  client as db,
+  auditLogs,
+} from '@/db';
 
 export const getAuditLogs = async ({
   orgId,
@@ -59,7 +64,7 @@ export const getAuditLogs = async ({
 };
 
 export async function insertAuditLog(
-  db: DB_OR_TX,
+  db: DatabaseOrTransaction,
   values: CreateAuditLog,
 ): Promise<void> {
   await db.insert(auditLogs).values(values);

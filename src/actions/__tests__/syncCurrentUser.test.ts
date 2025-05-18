@@ -1,10 +1,9 @@
 // pnpm test src/actions/__tests__/syncCurrentUser.test.ts
 
-import { db } from '@/db';
-import { users, orgs } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 import { logger } from '@/lib/server/logger';
+import { client as db, users, orgs } from '@/db';
 
 import { syncCurrentUser } from '../sync';
 

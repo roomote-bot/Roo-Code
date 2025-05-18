@@ -3,7 +3,7 @@
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 import Link from 'next/link';
 
-import type { AuditLog } from '@/db/schema';
+import type { AuditLog } from '@/db';
 
 type AuditLogDetailsProps = {
   log: AuditLog;

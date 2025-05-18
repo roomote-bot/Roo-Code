@@ -3,9 +3,8 @@
 import { eq } from 'drizzle-orm';
 import { clerkClient } from '@clerk/nextjs/server';
 
-import { db } from '@/db';
-import { orgs } from '@/db/schema';
 import { logger } from '@/lib/server/logger';
+import { client as db, orgs } from '@/db';
 
 import { syncOrg } from '../sync';
 

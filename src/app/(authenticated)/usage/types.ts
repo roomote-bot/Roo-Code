@@ -2,16 +2,6 @@ export const viewModes = ['developers', 'models', 'tasks'] as const;
 
 export type ViewMode = (typeof viewModes)[number];
 
-export type Developer = {
-  id: string;
-  name: string;
-  email: string;
-  tasksStarted: number;
-  tasksCompleted: number;
-  tokensConsumed: number;
-  cost: number;
-};
-
 export type Model = {
   id: string;
   name: string;
