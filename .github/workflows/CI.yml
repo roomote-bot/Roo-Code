@@ -86,7 +86,7 @@ jobs:
         run: pnpm check-types
 
       - name: Setup database schema
-        run: pnpm db:test:push
+        run: pnpm db:test:push --force
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/roo_code_test
 
