@@ -18,14 +18,16 @@ export default async function Page(props: Props) {
   }
 
   const { userId, orgId } = await auth();
-  const code = userId ? await getSignInToken(userId) : undefined;
+  const code = userId
+    ? await getSignInToken(userId).catch(() => undefined)
+    : undefined;
 
   if (!code) {
     redirect(`/sign-in?state=${state}`);
   }
 
   if (!orgId) {
-    redirect(`/select-org?state=${state}`);
+    redirect(`/select-org/${state}`);
   }
 
   const searchParams = new URLSearchParams({ state, code });
