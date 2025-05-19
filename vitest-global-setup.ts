@@ -14,7 +14,7 @@ async function resetTestDatabase() {
       AND table_type = 'BASE TABLE';
     `);
 
-    const tableNames = (tables.rows || []).map(({ table_name }) => table_name);
+    const tableNames = tables.map((t) => t.table_name);
 
     for (const tableName of tableNames) {
       await db.execute(sql`TRUNCATE TABLE "${sql.raw(tableName)}" CASCADE;`);

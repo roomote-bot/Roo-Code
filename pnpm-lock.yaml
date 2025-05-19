@@ -94,10 +94,10 @@ importers:
         version: 4.1.0
       drizzle-orm:
         specifier: ^0.43.1
-        version: 0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)
+        version: 0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)(postgres@3.4.5)
       drizzle-zod:
         specifier: ^0.7.1
-        version: 0.7.1(drizzle-orm@0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6))(zod@3.24.4)
+        version: 0.7.1(drizzle-orm@0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)(postgres@3.4.5))(zod@3.24.4)
       lucide-react:
         specifier: ^0.509.0
         version: 0.509.0(react@19.1.0)
@@ -113,15 +113,15 @@ importers:
       next-typesafe-url:
         specifier: ^5.1.7
         version: 5.1.7(next@15.3.2(@babel/core@7.27.1)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(zod@3.24.4)
-      pg:
-        specifier: ^8.13.0
-        version: 8.15.6
       pino:
         specifier: ^9.5.0
         version: 9.6.0
       pino-pretty:
         specifier: ^13.0.0
         version: 13.0.0
+      postgres:
+        specifier: ^3.4.5
+        version: 3.4.5
       prettier:
         specifier: ^3.5.3
         version: 3.5.3
@@ -7175,6 +7175,10 @@ packages:
   postgres-range@1.1.4:
     resolution: {integrity: sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==}
 
+  postgres@3.4.5:
+    resolution: {integrity: sha512-cDWgoah1Gez9rN3H4165peY9qfpEo+SA61oQv65O3cRUE1pOEoJWwddwcqKE8XZYjbblOJlYDlLV4h67HrEVDg==}
+    engines: {node: '>=12'}
+
   prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
     engines: {node: '>= 0.8.0'}
@@ -13848,17 +13852,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  drizzle-orm@0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6):
+  drizzle-orm@0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)(postgres@3.4.5):
     optionalDependencies:
       '@electric-sql/pglite': 0.3.0
       '@libsql/client-wasm': 0.15.5
       '@opentelemetry/api': 1.9.0
       '@types/pg': 8.15.1
       pg: 8.15.6
+      postgres: 3.4.5
 
-  drizzle-zod@0.7.1(drizzle-orm@0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6))(zod@3.24.4):
+  drizzle-zod@0.7.1(drizzle-orm@0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)(postgres@3.4.5))(zod@3.24.4):
     dependencies:
-      drizzle-orm: 0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)
+      drizzle-orm: 0.43.1(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.1)(pg@8.15.6)(postgres@3.4.5)
       zod: 3.24.4
 
   dunder-proto@1.0.1:
@@ -16430,7 +16435,8 @@ snapshots:
   pg-cloudflare@1.2.5:
     optional: true
 
-  pg-connection-string@2.8.5: {}
+  pg-connection-string@2.8.5:
+    optional: true
 
   pg-int8@1.0.1: {}
 
@@ -16439,6 +16445,7 @@ snapshots:
   pg-pool@3.9.6(pg@8.15.6):
     dependencies:
       pg: 8.15.6
+    optional: true
 
   pg-protocol@1.9.5: {}
 
@@ -16469,10 +16476,12 @@ snapshots:
       pgpass: 1.0.5
     optionalDependencies:
       pg-cloudflare: 1.2.5
+    optional: true
 
   pgpass@1.0.5:
     dependencies:
       split2: 4.2.0
+    optional: true
 
   picocolors@1.1.1: {}
 
@@ -16638,6 +16647,8 @@ snapshots:
   postgres-interval@3.0.0: {}
 
   postgres-range@1.1.4: {}
+
+  postgres@3.4.5: {}
 
   prelude-ls@1.2.1: {}
 

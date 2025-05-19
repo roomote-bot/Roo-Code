@@ -146,13 +146,11 @@ type SyncAuth = {
 };
 
 export async function syncAuth({ userId, orgId, orgRole }: SyncAuth) {
-  if (!userId) {
-    return;
-  }
-
-  await syncCurrentUser({ userId, orgId, orgRole });
-
   if (orgId) {
     await syncOrg(orgId);
+  }
+
+  if (userId) {
+    await syncCurrentUser({ userId, orgId, orgRole });
   }
 }

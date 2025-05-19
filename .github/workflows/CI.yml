@@ -34,7 +34,7 @@ jobs:
         run: pnpm install
 
       - name: Build Next.js
-        run: pnpm build
+        run: npx dotenvx run -f .env.test -- pnpm build
 
   test:
     runs-on: ubuntu-latest
