@@ -10,14 +10,11 @@ import { cn } from '@/lib/utils';
 type LogoProps = Omit<
   SVGProps<SVGSVGElement>,
   'xmlns' | 'viewBox' | 'onClick' | 'fill'
->;
+> & {
+  scale?: number;
+};
 
-export const Logo = ({
-  width = 50,
-  height = 32,
-  className,
-  ...props
-}: LogoProps) => {
+export const Logo = ({ scale = 0.4, className, ...props }: LogoProps) => {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
   const [fill, setFill] = useState('#000');
@@ -31,8 +28,8 @@ export const Logo = ({
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width={width}
-      height={height}
+      width={100 * scale}
+      height={64 * scale}
       viewBox="90 12 100 64"
       onClick={() => router.push('/')}
       className={cn('logo cursor-pointer', className)}

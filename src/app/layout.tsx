@@ -52,7 +52,7 @@ export default async function RootLayout({
   const locale = await getLocale();
   setRequestLocale(locale);
 
-  syncAuth(await auth());
+  await syncAuth(await auth());
 
   return (
     <html lang={locale} suppressHydrationWarning>

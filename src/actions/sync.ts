@@ -150,9 +150,9 @@ export async function syncAuth({ userId, orgId, orgRole }: SyncAuth) {
     return;
   }
 
-  syncCurrentUser({ userId, orgId, orgRole });
+  await syncCurrentUser({ userId, orgId, orgRole });
 
   if (orgId) {
-    syncOrg(orgId);
+    await syncOrg(orgId);
   }
 }
