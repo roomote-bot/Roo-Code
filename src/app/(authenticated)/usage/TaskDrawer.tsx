@@ -67,7 +67,59 @@ export const TaskDrawer = ({ task, onClose }: TaskDrawerProps) => (
             <Status completed={task.completed} />
           </div>
         </div>
+
+        <h3 className="mb-2 text-lg font-medium">Conversation</h3>
+        <div className="space-y-4">
+          {conversation.map((message) => (
+            <div
+              key={message.id}
+              className={`rounded-lg p-3 ${
+                message.role === 'user'
+                  ? 'ml-4 bg-primary/10'
+                  : message.role === 'assistant'
+                    ? 'mr-4 bg-secondary/10'
+                    : 'bg-muted'
+              }`}
+            >
+              <div className="mb-1 text-xs font-medium text-muted-foreground">
+                {message.role.charAt(0).toUpperCase() + message.role.slice(1)} •
+                {message.timestamp.toLocaleTimeString()}
+              </div>
+              <div className="text-sm">{message.content}</div>
+            </div>
+          ))}
+        </div>
       </div>
     </DrawerContent>
   </Drawer>
 );
+
+const conversation = [
+  {
+    id: 'msg1',
+    role: 'user',
+    content:
+      'Create a React component that displays a list of items with pagination.',
+    timestamp: new Date('2025-05-01T10:00:00'),
+  },
+  {
+    id: 'msg2',
+    role: 'assistant',
+    content:
+      "I'll create a React component for displaying a paginated list. Here's how we can implement it...",
+    timestamp: new Date('2025-05-01T10:00:30'),
+  },
+  {
+    id: 'msg3',
+    role: 'user',
+    content: 'Can you add sorting functionality as well?',
+    timestamp: new Date('2025-05-01T10:02:00'),
+  },
+  {
+    id: 'msg4',
+    role: 'assistant',
+    content:
+      "Certainly! I'll add sorting functionality to the component. Here's the updated implementation...",
+    timestamp: new Date('2025-05-01T10:02:30'),
+  },
+];
