@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { useSessionStorage } from 'react-use';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { LoaderCircle, CircleCheck, CircleX } from 'lucide-react';
@@ -12,6 +13,7 @@ export const Authorized = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isLoadingRef = useRef(true);
   const router = useRouter();
+  const [state, setState] = useSessionStorage<string | undefined>('state');
 
   useEffect(() => {
     if (typeof isSignedIn !== 'undefined' && isLoadingRef.current) {
@@ -22,17 +24,19 @@ export const Authorized = () => {
 
   useEffect(() => {
     if (!isLoading) {
-      let path = '/dashboard';
+      let path;
 
       if (!isSignedIn) {
-        path = '/sign-in';
+        path = state ? `/sign-in?state=${state}` : '/sign-in';
       } else if (!orgId) {
-        path = '/select-org';
+        path = state ? `/select-org/${state}` : '/select-org';
+      } else {
+        path = state ? `/extension/sign-in?state=${state}` : '/dashboard';
       }
 
       setTimeout(() => router.push(path), 1000);
     }
-  }, [router, isLoading, isSignedIn, orgId]);
+  }, [router, isLoading, isSignedIn, orgId, state, setState]);
 
   return (
     <Card className="max-w-md mx-auto">
