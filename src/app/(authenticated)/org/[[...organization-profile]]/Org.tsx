@@ -15,7 +15,7 @@ export const Org = () => {
       <OrganizationProfile
         routing="path"
         path="/org"
-        afterLeaveOrganizationUrl="/onboarding/select-org"
+        afterLeaveOrganizationUrl="/select-org"
       >
         <OrganizationProfile.Page
           label={t('provider_whitelist')}

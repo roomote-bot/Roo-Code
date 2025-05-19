@@ -17,11 +17,15 @@ export default async function Page(props: Props) {
     redirect(`/sign-in`);
   }
 
-  const { userId } = await auth();
+  const { userId, orgId } = await auth();
   const code = userId ? await getSignInToken(userId) : undefined;
 
   if (!code) {
     redirect(`/sign-in?state=${state}`);
+  }
+
+  if (!orgId) {
+    redirect(`/select-org?state=${state}`);
   }
 
   const searchParams = new URLSearchParams({ state, code });

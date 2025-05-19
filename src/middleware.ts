@@ -3,6 +3,7 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 const isUnprotectedRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/extension/sign-in(.*)',
   '/',
 ]);
 

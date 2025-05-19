@@ -11,7 +11,7 @@ export default async function AuthenticatedLayout({
   const { orgId } = await auth();
 
   if (!orgId) {
-    redirect('/onboarding/select-org');
+    redirect('/select-org');
   }
 
   return (
