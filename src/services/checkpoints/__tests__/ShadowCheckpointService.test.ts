@@ -12,11 +12,7 @@ import * as fileSearch from "../../../services/search/file-search"
 
 import { RepoPerTaskCheckpointService } from "../RepoPerTaskCheckpointService"
 jest.setTimeout(10_000)
-
-// Mock ripgrep service
 jest.mock("../../../services/ripgrep")
-
-// Mock file search service
 jest.mock("../../../services/search/file-search", () => ({
 	executeRipgrep: jest.fn().mockResolvedValue([]),
 }))
@@ -449,7 +445,7 @@ describe.each([[RepoPerTaskCheckpointService, "RepoPerTaskCheckpointService"]])(
 						) {
 							// Construct the relative path of the nested .git/HEAD file with respect to workspaceDir
 							const nestedHeadFileAbsPath = path.join(nestedGitDir, "HEAD")
-							const relativeNestedHeadFilePath = path.relative(workspaceDir, nestedHeadFileAbsPath) // e.g., "nested-project/.git/HEAD"
+							const relativeNestedHeadFilePath = path.relative(workspaceDir, nestedHeadFileAbsPath)
 
 							return Promise.resolve([
 								{
