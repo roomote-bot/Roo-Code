@@ -11,6 +11,8 @@ import type { TimePeriod } from '@/types';
 import { analytics } from '@/lib/server';
 import { type User, getUsersById } from '@/db/server';
 
+type Table = 'events' | 'messages';
+
 /**
  * captureEvent
  */
@@ -23,19 +25,26 @@ type AnalyticsEvent = {
   event: RooCodeTelemetryEvent;
 };
 
-export const captureEvent = async ({
-  event: { properties, ...cloudEvent },
-  ...analyticsEvent
-}: AnalyticsEvent) => {
-  // The destructuring here flattens the `AnalyticsEvent` to match the ClickHouse
-  // schema.
-  const value = { ...analyticsEvent, ...cloudEvent, ...properties };
+export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
+  let value;
+  let table: Table;
 
-  await analytics.insert({
-    table: 'events',
-    values: [value],
-    format: 'JSONEachRow',
-  });
+  switch (event.type) {
+    case TelemetryEventName.TASK_MESSAGE: {
+      table = 'messages';
+      const { taskId, message } = event.properties;
+      const { ts, type, ask, say, text, reasoning, partial } = message;
+      value = { ...rest, taskId, ts, type, ask, say, text, reasoning, partial };
+      break;
+    }
+    default: {
+      table = 'events';
+      value = { ...rest, type: event.type, ...event.properties };
+      break;
+    }
+  }
+
+  await analytics.insert({ table, values: [value], format: 'JSONEachRow' });
 };
 
 /**

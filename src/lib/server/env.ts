@@ -9,7 +9,6 @@ export const Env = createEnv({
     VSCODE_EXTENSION_BASE_URL: z.string().min(1),
     CURSOR_EXTENSION_BASE_URL: z.string().min(1),
     CLICKHOUSE_URL: z.string().min(1),
-    CLICKHOUSE_USERNAME: z.string().min(1),
     CLICKHOUSE_PASSWORD: z.string().min(1),
   },
   client: {
@@ -47,7 +46,6 @@ export const Env = createEnv({
       process.env.NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL,
     NODE_ENV: process.env.NODE_ENV,
     CLICKHOUSE_URL: process.env.CLICKHOUSE_URL,
-    CLICKHOUSE_USERNAME: process.env.CLICKHOUSE_USERNAME,
     CLICKHOUSE_PASSWORD: process.env.CLICKHOUSE_PASSWORD,
   },
 });

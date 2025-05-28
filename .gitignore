@@ -5,7 +5,7 @@
 /.pnp
 .pnp.js
 
-# Database
+# database
 *.db
 
 # testing
@@ -41,8 +41,9 @@ pnpm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
+# .env
 .env*.local
+.env*.production
 
 # local folder
 local

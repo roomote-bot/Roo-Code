@@ -44,7 +44,13 @@ pnpm test
 
 ### Start Development Server
 
-Copy `.env.local.sample` to `.env.local` and fill in the required secrets.
+Create an `.env.local` file and fill out the required secrets, including:
+
+- `CLICKHOUSE_URL`
+- `CLICKHOUSE_PASSWORD`
+- `CLERK_SECRET_KEY`
+- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
+- `NEXT_PUBLIC_CLERK_FRONTEND_API`
 
 You can now start the Next.js app and [Spotlight](https://spotlightjs.com/) with:
 
