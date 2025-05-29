@@ -4,9 +4,12 @@ import Link from 'next/link';
 import { OrganizationList, useOrganizationList } from '@clerk/nextjs';
 import { LoaderCircle } from 'lucide-react';
 
+import { useAuthState } from '@/hooks/useAuthState';
 import { Button } from '@/components/ui';
 
-export const SelectOrg = ({ state }: { state?: string }) => {
+export const SelectOrg = () => {
+  const authState = useAuthState();
+
   const { isLoaded, userMemberships, userSuggestions, userInvitations } =
     useOrganizationList({
       userMemberships: true,
@@ -14,8 +17,8 @@ export const SelectOrg = ({ state }: { state?: string }) => {
       userSuggestions: true,
     });
 
-  const redirectUrl = state
-    ? `/extension/sign-in?state=${state}`
+  const redirectUrl = authState.params
+    ? `/extension/sign-in?${authState.params.toString()}`
     : '/dashboard';
 
   const isLoading =

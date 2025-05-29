@@ -12,8 +12,7 @@ export default function Page() {
   const [isLoading, setIsLoading] = useState(true);
   const isLoadingRef = useRef(true);
   const router = useRouter();
-
-  const { state, ide } = useAuthState();
+  const authState = useAuthState();
 
   useEffect(() => {
     if (typeof isSignedIn !== 'undefined' && isLoadingRef.current) {
@@ -27,18 +26,22 @@ export default function Page() {
       let path;
 
       if (!isSignedIn) {
-        path = state ? `/sign-in?state=${state}&ide=${ide}` : '/sign-in';
+        path = authState.params
+          ? `/sign-in?${authState.params.toString()}`
+          : '/sign-in';
       } else if (!orgId) {
-        path = state ? `/select-org/${state}?ide=${ide}` : '/select-org';
+        path = authState.params
+          ? `/select-org?${authState.params.toString()}`
+          : '/select-org';
       } else {
-        path = state
-          ? `/extension/sign-in?state=${state}&ide=${ide}`
+        path = authState.params
+          ? `/extension/sign-in?${authState.params.toString()}`
           : '/dashboard';
       }
 
       setTimeout(() => router.push(path), 1000);
     }
-  }, [router, isLoading, isSignedIn, orgId, state, ide]);
+  }, [router, isLoading, isSignedIn, orgId, authState.params]);
 
   return (
     <div className="flex flex-row items-center gap-2">

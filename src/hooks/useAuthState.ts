@@ -4,40 +4,52 @@ import { useCallback } from 'react';
 import { useSessionStorage, useMount } from 'react-use';
 import { useSearchParams } from 'next/navigation';
 
-import { EXTENSION_URL } from '@/lib/constants';
+import { AuthStateParam, type AuthState } from '@/types';
+import { EXTENSION_URI_SCHEME } from '@/lib/constants';
 
-export type AuthState = {
-  state?: string;
-  ide?: string;
-};
+export const useAuthState = () => {
+  const searchParams = useSearchParams();
 
-export type SetAuthState = (state: AuthState) => void;
+  const [state, setState] = useSessionStorage<string | undefined>(
+    AuthStateParam.State,
+    searchParams.get(AuthStateParam.State) ?? undefined,
+  );
 
-export const useAuthState = (): AuthState & { set: SetAuthState } => {
-  const [state, setState] = useSessionStorage<string | undefined>('state');
-  const [ide, setIde] = useSessionStorage<string | undefined>('ide');
+  const [authRedirect, setAuthRedirect] = useSessionStorage<string | undefined>(
+    AuthStateParam.AuthRedirect,
+    searchParams.get(AuthStateParam.AuthRedirect) ?? undefined,
+  );
 
   const set = useCallback(
     (state: AuthState) => {
       setState(state.state);
-      setIde(state.ide);
+      setAuthRedirect(state.authRedirect);
     },
-    [setState, setIde],
+    [setState, setAuthRedirect],
   );
 
-  return { state, ide, set };
+  const params = state
+    ? new URLSearchParams({
+        [AuthStateParam.State]: state,
+        [AuthStateParam.AuthRedirect]: authRedirect ?? EXTENSION_URI_SCHEME,
+      })
+    : undefined;
+
+  const authState: AuthState = {
+    state,
+    authRedirect,
+    params,
+  };
+
+  return { ...authState, set };
 };
 
 export const useSetAuthState = () => {
-  const { set } = useAuthState();
-  const searchParams = useSearchParams();
+  const { state, authRedirect = EXTENSION_URI_SCHEME, set } = useAuthState();
 
   useMount(() => {
-    const state = searchParams.get('state');
-    const ide = searchParams.get('ide');
-
     if (state) {
-      set({ state, ide: ide ?? EXTENSION_URL });
+      set({ state, authRedirect });
     }
   });
 };

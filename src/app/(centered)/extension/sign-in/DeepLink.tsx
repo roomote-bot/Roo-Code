@@ -13,17 +13,17 @@ import { TraeLogo } from './TraeLogo';
 
 interface DeepLinkProps {
   editor: string;
-  deepLinkUrl: string;
+  editorRedirect: string;
 }
 
-export const DeepLink = ({ editor, deepLinkUrl }: DeepLinkProps) => {
+export const DeepLink = ({ editor, editorRedirect }: DeepLinkProps) => {
   const [redirectAttempted, setRedirectAttempted] = useState(false);
 
   useEffect(() => {
-    window.location.href = deepLinkUrl;
+    window.location.href = editorRedirect;
     const timer = setTimeout(() => setRedirectAttempted(true), 2000);
     return () => clearTimeout(timer);
-  }, [deepLinkUrl]);
+  }, [editorRedirect]);
 
   const ides = useMemo(
     () => [
@@ -31,34 +31,34 @@ export const DeepLink = ({ editor, deepLinkUrl }: DeepLinkProps) => {
         editor: 'vscode',
         title: 'Visual Studio Code',
         logo: VSCodeLogo,
-        href: deepLinkUrl.replace(`${editor}://`, 'vscode://'),
+        href: editorRedirect.replace(`${editor}://`, 'vscode://'),
       },
       {
         editor: 'vscode-insiders',
         title: 'Visual Studio Code (Insiders)',
         logo: VSCodeInsidersLogo,
-        href: deepLinkUrl.replace(`${editor}://`, 'vscode-insiders://'),
+        href: editorRedirect.replace(`${editor}://`, 'vscode-insiders://'),
       },
       {
         editor: 'cursor',
         title: 'Cursor',
         logo: CursorLogo,
-        href: deepLinkUrl.replace(`${editor}://`, 'cursor://'),
+        href: editorRedirect.replace(`${editor}://`, 'cursor://'),
       },
       {
         editor: 'windsurf',
         title: 'Windsurf',
         logo: WindsurfLogo,
-        href: deepLinkUrl.replace(`${editor}://`, 'windsurf://'),
+        href: editorRedirect.replace(`${editor}://`, 'windsurf://'),
       },
       {
         editor: 'trae',
         title: 'Trae',
         logo: TraeLogo,
-        href: deepLinkUrl.replace(`${editor}://`, 'trae://'),
+        href: editorRedirect.replace(`${editor}://`, 'trae://'),
       },
     ],
-    [editor, deepLinkUrl],
+    [editor, editorRedirect],
   );
 
   const currentIde = ides.find((ide) => ide.editor === editor) ?? ides[0]!;
@@ -70,7 +70,7 @@ export const DeepLink = ({ editor, deepLinkUrl }: DeepLinkProps) => {
           <div className="text-sm text-muted-foreground">
             Redirecting to {currentIde.title}...
           </div>
-          <Link href={deepLinkUrl} title={currentIde.title}>
+          <Link href={editorRedirect} title={currentIde.title}>
             <currentIde.logo />
           </Link>
         </div>

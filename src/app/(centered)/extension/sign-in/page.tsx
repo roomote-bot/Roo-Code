@@ -1,21 +1,28 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 
+import { AuthStateParam } from '@/types';
 import { getSignInToken } from '@/actions/auth';
-import { EXTENSION_EDITOR, EXTENSION_URL } from '@/lib/constants';
+import { EXTENSION_EDITOR, EXTENSION_URI_SCHEME } from '@/lib/constants';
 
 import { DeepLink } from './DeepLink';
 
 type Props = {
-  searchParams: Promise<{ state?: string; ide?: string }>;
+  searchParams: Promise<{ state?: string; auth_redirect?: string }>;
 };
 
 export default async function Page(props: Props) {
-  const { state, ide } = await props.searchParams;
+  const { state, auth_redirect: authRedirect = EXTENSION_URI_SCHEME } =
+    await props.searchParams;
 
   if (!state) {
     redirect(`/sign-in`);
   }
+
+  const authParams = new URLSearchParams({
+    [AuthStateParam.State]: state,
+    [AuthStateParam.AuthRedirect]: authRedirect,
+  });
 
   const { userId, orgId } = await auth();
 
@@ -24,30 +31,28 @@ export default async function Page(props: Props) {
     : undefined;
 
   if (!code) {
-    redirect(`/sign-in?state=${state}&ide=${ide}`);
+    redirect(`/sign-in?${authParams.toString()}`);
   }
 
   if (!orgId) {
-    redirect(`/select-org/${state}?ide=${ide}`);
+    redirect(`/select-org?${authParams.toString()}`);
   }
 
-  let editor;
-  let deepLinkUrl;
+  let editor = EXTENSION_EDITOR;
+  let editorRedirect = EXTENSION_URI_SCHEME;
 
   try {
     const params = new URLSearchParams({ state, code });
 
-    deepLinkUrl = new URL(
+    editorRedirect = new URL(
       `/auth/clerk/callback?${params.toString()}`,
-      ide ?? EXTENSION_URL,
+      authRedirect,
     ).toString();
 
-    editor = new URL(deepLinkUrl).protocol.slice(0, -1);
+    editor = new URL(editorRedirect).protocol.slice(0, -1);
   } catch (_) {
     // Use the defaults if we can't parse the URL.
-    editor = EXTENSION_EDITOR;
-    deepLinkUrl = EXTENSION_URL;
   }
 
-  return <DeepLink editor={editor} deepLinkUrl={deepLinkUrl} />;
+  return <DeepLink editor={editor} editorRedirect={editorRedirect} />;
 }
