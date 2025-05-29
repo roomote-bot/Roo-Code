@@ -1,39 +1,53 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 
-import { Env } from '@/lib/server';
 import { getSignInToken } from '@/actions/auth';
+import { EXTENSION_EDITOR, EXTENSION_URL } from '@/lib/constants';
 
 import { DeepLink } from './DeepLink';
 
 type Props = {
-  searchParams: Promise<{ state?: string }>;
+  searchParams: Promise<{ state?: string; ide?: string }>;
 };
 
 export default async function Page(props: Props) {
-  const { state } = await props.searchParams;
+  const { state, ide } = await props.searchParams;
 
   if (!state) {
     redirect(`/sign-in`);
   }
 
   const { userId, orgId } = await auth();
+
   const code = userId
     ? await getSignInToken(userId).catch(() => undefined)
     : undefined;
 
   if (!code) {
-    redirect(`/sign-in?state=${state}`);
+    redirect(`/sign-in?state=${state}&ide=${ide}`);
   }
 
   if (!orgId) {
-    redirect(`/select-org/${state}`);
+    redirect(`/select-org/${state}?ide=${ide}`);
   }
 
-  const searchParams = new URLSearchParams({ state, code });
-  const path = `/auth/clerk/callback?${searchParams.toString()}`;
-  const vsCodeUrl = new URL(path, Env.VSCODE_EXTENSION_BASE_URL);
-  const cursorUrl = new URL(path, Env.CURSOR_EXTENSION_BASE_URL);
+  let editor;
+  let deepLinkUrl;
 
-  return <DeepLink vsCodeUrl={vsCodeUrl.href} cursorUrl={cursorUrl.href} />;
+  try {
+    const params = new URLSearchParams({ state, code });
+
+    deepLinkUrl = new URL(
+      `/auth/clerk/callback?${params.toString()}`,
+      ide ?? EXTENSION_URL,
+    ).toString();
+
+    editor = new URL(deepLinkUrl).protocol.slice(0, -1);
+  } catch (_) {
+    // Use the defaults if we can't parse the URL.
+    editor = EXTENSION_EDITOR;
+    deepLinkUrl = EXTENSION_URL;
+  }
+
+  return <DeepLink editor={editor} deepLinkUrl={deepLinkUrl} />;
 }

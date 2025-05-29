@@ -1,20 +1,11 @@
 'use client';
 
-import { useSessionStorage, useMount } from 'react-use';
-import { useSearchParams } from 'next/navigation';
 import { SignIn } from '@clerk/nextjs';
 
+import { useSetAuthState } from '@/hooks/useAuthState';
+
 export default function Page() {
-  const searchParams = useSearchParams();
-  const [, setState] = useSessionStorage<string | undefined>('state');
-
-  useMount(() => {
-    const state = searchParams.get('state');
-
-    if (state) {
-      setState(state);
-    }
-  });
+  useSetAuthState();
 
   return <SignIn />;
 }
