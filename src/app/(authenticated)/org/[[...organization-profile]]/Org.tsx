@@ -2,9 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { OrganizationProfile } from '@clerk/nextjs';
-import { ListTodo, SlidersHorizontal, Cloud } from 'lucide-react';
+import { ListTodo, Cloud } from 'lucide-react';
 
-import { DefaultParameters } from './DefaultParameters';
 import { ProviderWhitelist } from './ProviderWhitelist';
 import { CloudSettings } from './CloudSettings';
 
@@ -31,13 +30,6 @@ export const Org = () => {
           labelIcon={<Cloud className="size-4" />}
         >
           <CloudSettings />
-        </OrganizationProfile.Page>
-        <OrganizationProfile.Page
-          label={t('default_parameters')}
-          url="default-parameters"
-          labelIcon={<SlidersHorizontal className="size-4" />}
-        >
-          <DefaultParameters />
         </OrganizationProfile.Page>
       </OrganizationProfile>
     </div>
