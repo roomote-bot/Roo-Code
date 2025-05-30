@@ -4,7 +4,7 @@ import axios from "axios"
 
 import type { ModelInfo } from "@roo-code/types"
 
-import { ApiHandlerOptions, openAiModelInfoSaneDefaults } from "../../shared/api"
+import { ApiHandlerOptions, openAiModelInfoSaneDefaults, ModelRecord } from "../../shared/api"
 import { XmlMatcher } from "../../utils/xml-matcher"
 
 import { convertToOpenAiMessages } from "../transform/openai-format"
@@ -163,16 +163,31 @@ export class LmStudioHandler extends BaseProvider implements SingleCompletionHan
 	}
 }
 
-export async function getLmStudioModels(baseUrl = "http://localhost:1234") {
+export async function getLmStudioModels(baseUrl: string = "http://localhost:1234"): Promise<ModelRecord> {
 	try {
-		if (!URL.canParse(baseUrl)) {
-			return []
+		if (baseUrl && !URL.canParse(baseUrl)) {
+			console.warn(
+				`Invalid LMStudio baseUrl provided: ${baseUrl}. Using default or expecting empty if intentionally omitted.`,
+			)
+			if (baseUrl !== "http://localhost:1234") return {}
 		}
+		const targetUrl = baseUrl || "http://localhost:1234"
 
-		const response = await axios.get(`${baseUrl}/v1/models`)
-		const modelsArray = response.data?.data?.map((model: any) => model.id) || []
-		return [...new Set<string>(modelsArray)]
+		const response = await axios.get(`${targetUrl}/v1/models`)
+		const modelsArray = response.data?.data?.map((model: any) => model.id) || [] // LM Studio API returns models in data.data array with id property
+
+		const modelRecord: ModelRecord = {}
+		for (const modelId of new Set<string>(modelsArray)) {
+			modelRecord[modelId] = {
+				...openAiModelInfoSaneDefaults,
+				description: `LM Studio model: ${modelId}`,
+				inputPrice: undefined,
+				outputPrice: undefined,
+			}
+		}
+		return modelRecord
 	} catch (error) {
-		return []
+		console.error("Error fetching LM Studio models:", error)
+		return {}
 	}
 }

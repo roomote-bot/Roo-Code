@@ -54,30 +54,55 @@ export const ModelPicker = ({
 
 	const [open, setOpen] = useState(false)
 	const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false)
-	const isInitialized = useRef(false)
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
-	const modelIds = useMemo(() => {
-		const filteredModels = filterModels(models, apiConfiguration.apiProvider, organizationAllowList)
+	const currentConfiguredModelId = apiConfiguration[modelIdKey]
 
+	const modelIdsForDropdown = useMemo(() => {
+		const filteredModels = filterModels(models, apiConfiguration.apiProvider, organizationAllowList)
 		return Object.keys(filteredModels ?? {}).sort((a, b) => a.localeCompare(b))
 	}, [models, apiConfiguration.apiProvider, organizationAllowList])
 
-	const { id: selectedModelId, info: selectedModelInfo } = useSelectedModel(apiConfiguration)
+	const { id: selectedModelIdForInfo, info: selectedModelInfo } = useSelectedModel(apiConfiguration)
 
-	const [searchValue, setSearchValue] = useState(selectedModelId || "")
+	const [searchValue, setSearchValue] = useState(currentConfiguredModelId || "")
+
+	useEffect(() => {
+		const currentIdInSettings = apiConfiguration[modelIdKey]
+
+		if (!models || Object.keys(models).length === 0) {
+			if (currentIdInSettings !== undefined) {
+				setApiConfigurationField(modelIdKey, undefined)
+			}
+			if (searchValue !== "") setSearchValue("")
+		} else {
+			const availableIds = Object.keys(models)
+			let newIdToSet: string | undefined = undefined
+
+			if (currentIdInSettings && availableIds.includes(currentIdInSettings)) {
+				newIdToSet = currentIdInSettings
+			} else if (availableIds.includes(defaultModelId)) {
+				newIdToSet = defaultModelId
+			} else if (availableIds.length > 0) {
+				newIdToSet = availableIds[0]
+			}
+
+			if (currentIdInSettings !== newIdToSet) {
+				setApiConfigurationField(modelIdKey, newIdToSet)
+			}
+			const targetSearchValue = newIdToSet || ""
+			if (searchValue !== targetSearchValue) setSearchValue(targetSearchValue)
+		}
+	}, [models, apiConfiguration, searchValue, defaultModelId, modelIdKey, setApiConfigurationField])
 
 	const onSelect = useCallback(
 		(modelId: string) => {
 			if (!modelId) {
 				return
 			}
-
 			setOpen(false)
 			setApiConfigurationField(modelIdKey, modelId)
-
-			// Delay to ensure the popover is closed before setting the search value.
-			setTimeout(() => setSearchValue(modelId), 100)
+			setSearchValue(modelId)
 		},
 		[modelIdKey, setApiConfigurationField],
 	)
@@ -85,29 +110,17 @@ export const ModelPicker = ({
 	const onOpenChange = useCallback(
 		(open: boolean) => {
 			setOpen(open)
-
-			// Abandon the current search if the popover is closed.
 			if (!open) {
-				// Delay to ensure the popover is closed before setting the search value.
-				setTimeout(() => setSearchValue(selectedModelId), 100)
+				setSearchValue(apiConfiguration[modelIdKey] || "")
 			}
 		},
-		[selectedModelId],
+		[apiConfiguration, modelIdKey],
 	)
 
 	const onClearSearch = useCallback(() => {
 		setSearchValue("")
 		searchInputRef.current?.focus()
 	}, [])
-
-	useEffect(() => {
-		if (!selectedModelId && !isInitialized.current) {
-			const initialValue = modelIds.includes(selectedModelId) ? selectedModelId : defaultModelId
-			setApiConfigurationField(modelIdKey, initialValue)
-		}
-
-		isInitialized.current = true
-	}, [modelIds, setApiConfigurationField, modelIdKey, selectedModelId, defaultModelId])
 
 	return (
 		<>
@@ -120,7 +133,7 @@ export const ModelPicker = ({
 							role="combobox"
 							aria-expanded={open}
 							className="w-full justify-between">
-							<div>{selectedModelId ?? t("settings:common.select")}</div>
+							<div>{currentConfiguredModelId ?? t("settings:common.select")}</div>
 							<ChevronsUpDown className="opacity-50" />
 						</Button>
 					</PopoverTrigger>
@@ -153,20 +166,20 @@ export const ModelPicker = ({
 									)}
 								</CommandEmpty>
 								<CommandGroup>
-									{modelIds.map((model) => (
+									{modelIdsForDropdown.map((model) => (
 										<CommandItem key={model} value={model} onSelect={onSelect}>
 											{model}
 											<Check
 												className={cn(
 													"size-4 p-0.5 ml-auto",
-													model === selectedModelId ? "opacity-100" : "opacity-0",
+													model === currentConfiguredModelId ? "opacity-100" : "opacity-0",
 												)}
 											/>
 										</CommandItem>
 									))}
 								</CommandGroup>
 							</CommandList>
-							{searchValue && !modelIds.includes(searchValue) && (
+							{searchValue && !modelIdsForDropdown.includes(searchValue) && (
 								<div className="p-1 border-t border-vscode-input-border">
 									<CommandItem data-testid="use-custom-model" value={searchValue} onSelect={onSelect}>
 										{t("settings:modelPicker.useCustomModel", { modelId: searchValue })}
@@ -177,10 +190,10 @@ export const ModelPicker = ({
 					</PopoverContent>
 				</Popover>
 			</div>
-			{selectedModelId && selectedModelInfo && (
+			{selectedModelIdForInfo && selectedModelInfo && (
 				<ModelInfoView
 					apiProvider={apiConfiguration.apiProvider}
-					selectedModelId={selectedModelId}
+					selectedModelId={selectedModelIdForInfo}
 					modelInfo={selectedModelInfo}
 					isDescriptionExpanded={isDescriptionExpanded}
 					setIsDescriptionExpanded={setIsDescriptionExpanded}

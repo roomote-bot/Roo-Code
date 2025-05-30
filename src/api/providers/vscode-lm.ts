@@ -2,9 +2,9 @@ import { Anthropic } from "@anthropic-ai/sdk"
 import * as vscode from "vscode"
 
 import type { ModelInfo } from "@roo-code/types"
-
+import { ApiHandlerOptions, ModelRecord, openAiModelInfoSaneDefaults } from "../../shared/api"
 import { SELECTOR_SEPARATOR, stringifyVsCodeLmModelSelector } from "../../shared/vsCodeSelectorUtils"
-import { ApiHandlerOptions, openAiModelInfoSaneDefaults } from "../../shared/api"
+import { XmlMatcher } from "../../utils/xml-matcher"
 
 import { ApiStream } from "../transform/stream"
 import { convertToVsCodeLmMessages } from "../transform/vscode-lm-format"
@@ -567,14 +567,32 @@ export class VsCodeLmHandler extends BaseProvider implements SingleCompletionHan
 // Static blacklist of VS Code Language Model IDs that should be excluded from the model list e.g. because they will never work
 const VSCODE_LM_STATIC_BLACKLIST: string[] = ["claude-3.7-sonnet", "claude-3.7-sonnet-thought"]
 
-export async function getVsCodeLmModels() {
+export async function getVsCodeLmModels(): Promise<ModelRecord> {
 	try {
-		const models = (await vscode.lm.selectChatModels({})) || []
-		return models.filter((model) => !VSCODE_LM_STATIC_BLACKLIST.includes(model.id))
+		const availableModelsMeta = (await vscode.lm.selectChatModels({})) || []
+		const filteredModelsMeta = availableModelsMeta.filter((model) => !VSCODE_LM_STATIC_BLACKLIST.includes(model.id))
+
+		const modelRecord: ModelRecord = {}
+		for (const modelMeta of filteredModelsMeta) {
+			// Construct a unique ID if modelMeta.id is not sufficiently unique or suitable as a key
+			const modelKey =
+				modelMeta.id || `${modelMeta.vendor}-${modelMeta.family}-${modelMeta.version}`.toLowerCase()
+			modelRecord[modelKey] = {
+				...openAiModelInfoSaneDefaults,
+				// id: modelMeta.id, // ID is the key in ModelRecord
+				description: `VSCode LM: ${modelMeta.name || modelKey} (Vendor: ${modelMeta.vendor}, Family: ${modelMeta.family})`,
+				contextWindow: modelMeta.maxInputTokens,
+				supportsImages: false, // Default for VS Code LM, can be refined if API provides this
+				inputPrice: undefined,
+				outputPrice: undefined,
+				// Add other relevant properties from modelMeta if they map to ModelInfo
+			}
+		}
+		return modelRecord
 	} catch (error) {
 		console.error(
 			`Error fetching VS Code LM models: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 		)
-		return []
+		return {} // Return empty ModelRecord on error
 	}
 }

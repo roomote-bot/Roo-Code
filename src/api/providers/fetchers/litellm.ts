@@ -68,6 +68,9 @@ export async function getLiteLLMModels(apiKey: string, baseUrl: string): Promise
 		return models
 	} catch (error: any) {
 		console.error("Error fetching LiteLLM models:", error.message ? error.message : error)
+		console.log(
+			`[DEBUG] LiteLLM error details - isAxiosError: ${axios.isAxiosError(error)}, has response: ${!!(error as any)?.response}, has request: ${!!(error as any)?.request}`,
+		)
 		if (axios.isAxiosError(error) && error.response) {
 			throw new Error(
 				`Failed to fetch LiteLLM models: ${error.response.status} ${error.response.statusText}. Check base URL and API key.`,

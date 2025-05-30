@@ -4,7 +4,7 @@ import axios from "axios"
 
 import type { ModelInfo } from "@roo-code/types"
 
-import { ApiHandlerOptions, openAiModelInfoSaneDefaults } from "../../shared/api"
+import { ApiHandlerOptions, openAiModelInfoSaneDefaults, ModelRecord } from "../../shared/api"
 import { XmlMatcher } from "../../utils/xml-matcher"
 
 import { convertToOpenAiMessages } from "../transform/openai-format"
@@ -113,16 +113,31 @@ export class OllamaHandler extends BaseProvider implements SingleCompletionHandl
 	}
 }
 
-export async function getOllamaModels(baseUrl = "http://localhost:11434") {
+export async function getOllamaModels(baseUrl: string = "http://localhost:11434"): Promise<ModelRecord> {
 	try {
-		if (!URL.canParse(baseUrl)) {
-			return []
+		if (baseUrl && !URL.canParse(baseUrl)) {
+			console.warn(
+				`Invalid Ollama baseUrl provided: ${baseUrl}. Using default or expecting empty if intentionally omitted.`,
+			)
+			if (baseUrl !== "http://localhost:11434") return {}
 		}
+		const targetUrl = baseUrl || "http://localhost:11434"
 
-		const response = await axios.get(`${baseUrl}/api/tags`)
+		const response = await axios.get(`${targetUrl}/api/tags`)
 		const modelsArray = response.data?.models?.map((model: any) => model.name) || []
-		return [...new Set<string>(modelsArray)]
+
+		const modelRecord: ModelRecord = {}
+		for (const modelId of new Set<string>(modelsArray)) {
+			modelRecord[modelId] = {
+				...openAiModelInfoSaneDefaults,
+				description: `Ollama model: ${modelId}`,
+				inputPrice: undefined,
+				outputPrice: undefined,
+			}
+		}
+		return modelRecord
 	} catch (error) {
-		return []
+		console.error("Error fetching Ollama models:", error)
+		return {}
 	}
 }

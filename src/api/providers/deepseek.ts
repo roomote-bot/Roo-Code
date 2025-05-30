@@ -4,7 +4,7 @@ import type { ApiHandlerOptions } from "../../shared/api"
 import type { ApiStreamUsageChunk } from "../transform/stream"
 import { getModelParams } from "../transform/model-params"
 
-import { OpenAiHandler } from "./openai"
+import { OpenAiHandler } from "./openai-compatible"
 
 export class DeepSeekHandler extends OpenAiHandler {
 	constructor(options: ApiHandlerOptions) {

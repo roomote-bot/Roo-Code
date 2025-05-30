@@ -152,6 +152,7 @@
 		"requestyApiKey": "Requesty API-sleutel",
 		"refreshModels": {
 			"label": "Modellen verversen",
+			"noModelsFound": "Geen modellen gevonden. Probeer het opnieuw.",
 			"hint": "Open de instellingen opnieuw om de nieuwste modellen te zien.",
 			"loading": "Modellenlijst wordt vernieuwd...",
 			"success": "Modellenlijst succesvol vernieuwd!",

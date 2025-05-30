@@ -1,15 +1,11 @@
-import { useState, useCallback } from "react"
-import { useEvent } from "react-use"
+import { useCallback } from "react"
 import { LanguageModelChatSelector } from "vscode"
 
 import type { ProviderSettings } from "@roo-code/types"
-
-import { ExtensionMessage } from "@roo/ExtensionMessage"
+import { useProviderModels } from "../../ui/hooks/useProviderModels"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui"
-
-import { inputEventTransform } from "../transforms"
 
 type VSCodeLMProps = {
 	apiConfiguration: ProviderSettings
@@ -19,69 +15,90 @@ type VSCodeLMProps = {
 export const VSCodeLM = ({ apiConfiguration, setApiConfigurationField }: VSCodeLMProps) => {
 	const { t } = useAppTranslation()
 
-	const [vsCodeLmModels, setVsCodeLmModels] = useState<LanguageModelChatSelector[]>([])
+	const { models: vsCodeLmModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("vscodelm")
 
-	const handleInputChange = useCallback(
-		<K extends keyof ProviderSettings, E>(
-			field: K,
-			transform: (event: E) => ProviderSettings[K] = inputEventTransform,
-		) =>
-			(event: E | Event) => {
-				setApiConfigurationField(field, transform(event as E))
-			},
-		[setApiConfigurationField],
+	const handleModelSelectionChange = useCallback(
+		(selectedModelId: string) => {
+			const modelInfo = vsCodeLmModelsData?.[selectedModelId]
+
+			let selector: LanguageModelChatSelector = { id: selectedModelId }
+
+			if (modelInfo && typeof modelInfo.description === "string") {
+				const vendorMatch = modelInfo.description.match(/Vendor: ([^,]+)/)
+				const familyMatch = modelInfo.description.match(/Family: ([^,)]+)/)
+				if (vendorMatch?.[1] && familyMatch?.[1]) {
+					selector = { vendor: vendorMatch[1].trim(), family: familyMatch[1].trim(), id: selectedModelId }
+				} else if (selectedModelId.includes("/")) {
+					const parts = selectedModelId.split("/")
+					if (parts.length >= 2) {
+						selector = { vendor: parts[0], family: parts[1], id: selectedModelId }
+						if (parts.length >= 3) selector.version = parts[2]
+					}
+				}
+			}
+
+			setApiConfigurationField("vsCodeLmModelSelector", selector)
+		},
+		[setApiConfigurationField, vsCodeLmModelsData],
 	)
 
-	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
+	if (isLoadingModels) {
+		return <div className="p-2 text-sm text-vscode-descriptionForeground">{t("settings:common.loadingModels")}</div>
+	}
 
-		switch (message.type) {
-			case "vsCodeLmModels":
-				{
-					const newModels = message.vsCodeLmModels ?? []
-					setVsCodeLmModels(newModels)
-				}
-				break
+	if (modelsError) {
+		return (
+			<div className="p-2 text-sm text-vscode-errorForeground">
+				{t("settings:common.errorModels")}: {modelsError}
+			</div>
+		)
+	}
+
+	const availableModels = vsCodeLmModelsData ? Object.entries(vsCodeLmModelsData) : []
+
+	let currentSelectedValue = ""
+	const currentSelector = apiConfiguration?.vsCodeLmModelSelector
+	if (currentSelector) {
+		if (currentSelector.id && availableModels.some(([id]) => id === currentSelector.id)) {
+			currentSelectedValue = currentSelector.id
+		} else if (currentSelector.vendor && currentSelector.family) {
+			const constructedId = `${currentSelector.vendor}/${currentSelector.family}`.toLowerCase()
+			if (availableModels.some(([id]) => id.startsWith(constructedId))) {
+				currentSelectedValue = availableModels.find(([id]) => id.startsWith(constructedId))?.[0] || ""
+			}
 		}
-	}, [])
-
-	useEvent("message", onMessage)
+	}
+	if (!currentSelectedValue && availableModels.length > 0) {
+		// If still no value and models exist, maybe pick the first one or default?
+		// For now, leave as empty string if no match from config.
+	}
 
 	return (
 		<>
 			<div>
 				<label className="block font-medium mb-1">{t("settings:providers.vscodeLmModel")}</label>
-				{vsCodeLmModels.length > 0 ? (
-					<Select
-						value={
-							apiConfiguration?.vsCodeLmModelSelector
-								? `${apiConfiguration.vsCodeLmModelSelector.vendor ?? ""}/${apiConfiguration.vsCodeLmModelSelector.family ?? ""}`
-								: ""
-						}
-						onValueChange={handleInputChange("vsCodeLmModelSelector", (value) => {
-							const [vendor, family] = value.split("/")
-							return { vendor, family }
-						})}>
+				{availableModels.length > 0 ? (
+					<Select value={currentSelectedValue} onValueChange={handleModelSelectionChange}>
 						<SelectTrigger className="w-full">
 							<SelectValue placeholder={t("settings:common.select")} />
 						</SelectTrigger>
 						<SelectContent>
-							{vsCodeLmModels.map((model) => (
-								<SelectItem
-									key={`${model.vendor}/${model.family}`}
-									value={`${model.vendor}/${model.family}`}>
-									{`${model.vendor} - ${model.family}`}
+							{availableModels.map(([id, modelInfo]) => (
+								<SelectItem key={id} value={id}>
+									{modelInfo?.description || id}
 								</SelectItem>
 							))}
 						</SelectContent>
 					</Select>
 				) : (
 					<div className="text-sm text-vscode-descriptionForeground">
-						{t("settings:providers.vscodeLmDescription")}
+						{isLoadingModels
+							? t("settings:common.loadingModels")
+							: t("settings:providers.vscodeLmDescription")}
 					</div>
 				)}
 			</div>
-			<div className="text-sm text-vscode-errorForeground">{t("settings:providers.vscodeLmWarning")}</div>
+			<div className="text-sm text-vscode-errorForeground mt-1">{t("settings:providers.vscodeLmWarning")}</div>
 		</>
 	)
 }

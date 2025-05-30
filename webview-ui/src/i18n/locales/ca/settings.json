@@ -152,6 +152,7 @@
 		"requestyApiKey": "Clau API de Requesty",
 		"refreshModels": {
 			"label": "Actualitzar models",
+			"noModelsFound": "No s'han trobat models. Si us plau, torneu-ho a provar.",
 			"hint": "Si us plau, torneu a obrir la configuració per veure els models més recents.",
 			"loading": "Actualitzant la llista de models...",
 			"success": "Llista de models actualitzada correctament!",

@@ -2,12 +2,12 @@ import { useCallback } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
-
-import { RouterModels, glamaDefaultModelId } from "@roo/api"
+import { glamaDefaultModelId } from "@roo/api"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { getGlamaAuthUrl } from "@src/oauth/urls"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
+import { useProviderModels } from "../../ui/hooks/useProviderModels"
 
 import { inputEventTransform } from "../transforms"
 import { ModelPicker } from "../ModelPicker"
@@ -15,19 +15,14 @@ import { ModelPicker } from "../ModelPicker"
 type GlamaProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	routerModels?: RouterModels
 	uriScheme?: string
 	organizationAllowList: OrganizationAllowList
 }
 
-export const Glama = ({
-	apiConfiguration,
-	setApiConfigurationField,
-	routerModels,
-	uriScheme,
-	organizationAllowList,
-}: GlamaProps) => {
+export const Glama = ({ apiConfiguration, setApiConfigurationField, uriScheme, organizationAllowList }: GlamaProps) => {
 	const { t } = useAppTranslation()
+
+	const { models: glamaModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("glama")
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -39,6 +34,14 @@ export const Glama = ({
 			},
 		[setApiConfigurationField],
 	)
+
+	if (isLoadingModels) {
+		return <p>{t("settings:providers.refreshModels.loading")}</p>
+	}
+
+	if (modelsError) {
+		return <p className="text-vscode-errorForeground">{t("settings:providers.refreshModels.error")}</p>
+	}
 
 	return (
 		<>
@@ -62,7 +65,7 @@ export const Glama = ({
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId={glamaDefaultModelId}
-				models={routerModels?.glama ?? {}}
+				models={glamaModelsData ?? {}}
 				modelIdKey="glamaModelId"
 				serviceName="Glama"
 				serviceUrl="https://glama.ai/models"

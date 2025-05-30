@@ -152,6 +152,7 @@
 		"requestyApiKey": "Requesty API 密钥",
 		"refreshModels": {
 			"label": "刷新模型",
+			"noModelsFound": "未找到模型。请重试。",
 			"hint": "请重新打开设置以查看最新模型。",
 			"loading": "正在刷新模型列表...",
 			"success": "模型列表刷新成功！",

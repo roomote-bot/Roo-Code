@@ -152,6 +152,7 @@
 		"requestyApiKey": "Requesty API Anahtarı",
 		"refreshModels": {
 			"label": "Modelleri Yenile",
+			"noModelsFound": "Model bulunamadı. Lütfen tekrar deneyin.",
 			"hint": "En son modelleri görmek için lütfen ayarları yeniden açın.",
 			"loading": "Model listesi yenileniyor...",
 			"success": "Model listesi başarıyla yenilendi!",

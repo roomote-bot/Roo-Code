@@ -152,6 +152,7 @@
 		"requestyApiKey": "Requesty APIキー",
 		"refreshModels": {
 			"label": "モデルを更新",
+			"noModelsFound": "モデルが見つかりません。もう一度お試しください。",
 			"hint": "最新のモデルを表示するには設定を再度開いてください。",
 			"loading": "モデルリストを更新中...",
 			"success": "モデルリストが正常に更新されました！",

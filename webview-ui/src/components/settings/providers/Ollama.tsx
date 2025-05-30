@@ -1,13 +1,10 @@
-import { useState, useCallback } from "react"
-import { useEvent } from "react-use"
+import { useCallback } from "react"
 import { VSCodeTextField, VSCodeRadioGroup, VSCodeRadio } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings } from "@roo-code/types"
-
-import { ExtensionMessage } from "@roo/ExtensionMessage"
+import { useProviderModels } from "../../ui/hooks/useProviderModels"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-
 import { inputEventTransform } from "../transforms"
 
 type OllamaProps = {
@@ -18,7 +15,7 @@ type OllamaProps = {
 export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaProps) => {
 	const { t } = useAppTranslation()
 
-	const [ollamaModels, setOllamaModels] = useState<string[]>([])
+	const { models: ollamaModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("ollama")
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -31,20 +28,19 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 		[setApiConfigurationField],
 	)
 
-	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
+	if (isLoadingModels) {
+		return <div className="p-2 text-sm text-vscode-descriptionForeground">{t("settings:common.loadingModels")}</div>
+	}
 
-		switch (message.type) {
-			case "ollamaModels":
-				{
-					const newModels = message.ollamaModels ?? []
-					setOllamaModels(newModels)
-				}
-				break
-		}
-	}, [])
+	if (modelsError) {
+		return (
+			<div className="p-2 text-sm text-vscode-errorForeground">
+				{t("settings:common.errorModels")}: {modelsError}
+			</div>
+		)
+	}
 
-	useEvent("message", onMessage)
+	const availableModelIds = ollamaModelsData ? Object.keys(ollamaModelsData) : []
 
 	return (
 		<>
@@ -63,17 +59,27 @@ export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaPro
 				className="w-full">
 				<label className="block font-medium mb-1">{t("settings:providers.ollama.modelId")}</label>
 			</VSCodeTextField>
-			{ollamaModels.length > 0 && (
+
+			{!isLoadingModels && !modelsError && availableModelIds.length === 0 && (
+				<div className="p-2 text-sm text-vscode-descriptionForeground">
+					{t("settings:common.noModelsFound")}
+				</div>
+			)}
+
+			{availableModelIds.length > 0 && (
 				<VSCodeRadioGroup
 					value={
-						ollamaModels.includes(apiConfiguration?.ollamaModelId || "")
+						availableModelIds.includes(apiConfiguration?.ollamaModelId || "")
 							? apiConfiguration?.ollamaModelId
 							: ""
 					}
 					onChange={handleInputChange("ollamaModelId")}>
-					{ollamaModels.map((model) => (
-						<VSCodeRadio key={model} value={model} checked={apiConfiguration?.ollamaModelId === model}>
-							{model}
+					{availableModelIds.map((modelId) => (
+						<VSCodeRadio
+							key={modelId}
+							value={modelId}
+							checked={apiConfiguration?.ollamaModelId === modelId}>
+							{modelId}
 						</VSCodeRadio>
 					))}
 				</VSCodeRadioGroup>

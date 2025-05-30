@@ -152,6 +152,7 @@
 		"requestyApiKey": "Chave de API Requesty",
 		"refreshModels": {
 			"label": "Atualizar modelos",
+			"noModelsFound": "Nenhum modelo encontrado. Tente novamente.",
 			"hint": "Por favor, reabra as configurações para ver os modelos mais recentes.",
 			"loading": "Atualizando lista de modelos...",
 			"success": "Lista de modelos atualizada com sucesso!",

@@ -152,6 +152,7 @@
 		"requestyApiKey": "Chiave API Requesty",
 		"refreshModels": {
 			"label": "Aggiorna modelli",
+			"noModelsFound": "Nessun modello trovato. Riprova.",
 			"hint": "Riapri le impostazioni per vedere i modelli più recenti.",
 			"loading": "Aggiornamento dell'elenco dei modelli...",
 			"success": "Elenco dei modelli aggiornato con successo!",

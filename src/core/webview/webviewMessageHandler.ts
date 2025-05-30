@@ -27,18 +27,14 @@ import { playTts, setTtsEnabled, setTtsSpeed, stopTts } from "../../utils/tts"
 import { singleCompletionHandler } from "../../utils/single-completion-handler"
 import { searchCommits } from "../../utils/git"
 import { exportSettings, importSettings } from "../config/importExport"
-import { getOpenAiModels } from "../../api/providers/openai"
-import { getOllamaModels } from "../../api/providers/ollama"
-import { getVsCodeLmModels } from "../../api/providers/vscode-lm"
-import { getLmStudioModels } from "../../api/providers/lmstudio"
 import { openMention } from "../mentions"
 import { TelemetrySetting } from "../../shared/TelemetrySetting"
 import { getWorkspacePath } from "../../utils/path"
 import { Mode, defaultModeSlug } from "../../shared/modes"
 import { getModels, flushModels } from "../../api/providers/fetchers/modelCache"
-import { GetModelsOptions } from "../../shared/api"
 import { generateSystemPrompt } from "./generateSystemPrompt"
 import { getCommand } from "../../utils/commands"
+import { modelProviderStrategies } from "../../api/providers/fetchers"
 
 const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
@@ -296,104 +292,86 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			break
 		case "requestRouterModels":
 			const { apiConfiguration } = await provider.getState()
+			console.log("apiconfig1212", apiConfiguration, message.values)
+			const providerNameValue = message.values?.provider as string | undefined
+			const routerName = toRouterName(providerNameValue)
+			const flushCacheFirst = !!message.values?.flushCacheFirst
 
-			const routerModels: Partial<Record<RouterName, ModelRecord>> = {
-				openrouter: {},
-				requesty: {},
-				glama: {},
-				unbound: {},
-				litellm: {},
-			}
-
-			const safeGetModels = async (options: GetModelsOptions): Promise<ModelRecord> => {
-				try {
-					return await getModels(options)
-				} catch (error) {
-					console.error(
-						`Failed to fetch models in webviewMessageHandler requestRouterModels for ${options.provider}:`,
-						error,
-					)
-					throw error // Re-throw to be caught by Promise.allSettled
-				}
-			}
-
-			const modelFetchPromises: Array<{ key: RouterName; options: GetModelsOptions }> = [
-				{ key: "openrouter", options: { provider: "openrouter" } },
-				{ key: "requesty", options: { provider: "requesty", apiKey: apiConfiguration.requestyApiKey } },
-				{ key: "glama", options: { provider: "glama" } },
-				{ key: "unbound", options: { provider: "unbound", apiKey: apiConfiguration.unboundApiKey } },
-			]
-
-			const litellmApiKey = apiConfiguration.litellmApiKey || message?.values?.litellmApiKey
-			const litellmBaseUrl = apiConfiguration.litellmBaseUrl || message?.values?.litellmBaseUrl
-			if (litellmApiKey && litellmBaseUrl) {
-				modelFetchPromises.push({
-					key: "litellm",
-					options: { provider: "litellm", apiKey: litellmApiKey, baseUrl: litellmBaseUrl },
-				})
-			}
-
-			const results = await Promise.allSettled(
-				modelFetchPromises.map(async ({ key, options }) => {
-					const models = await safeGetModels(options)
-					return { key, models } // key is RouterName here
-				}),
+			console.log(
+				`[requestRouterModels] Received request for ${routerName}. flushCacheFirst: ${flushCacheFirst}. Message values:`,
+				message.values,
 			)
 
-			const fetchedRouterModels: Partial<Record<RouterName, ModelRecord>> = { ...routerModels }
+			if (!providerNameValue || !routerName) {
+				provider.postMessageToWebview({
+					type: "singleRouterModelFetchResponse",
+					success: false,
+					error: "Invalid or missing provider name for requestRouterModels",
+					values: { provider: providerNameValue || "unknown" },
+				})
+				break
+			}
 
-			results.forEach((result, index) => {
-				const routerName = modelFetchPromises[index].key // Get RouterName using index
+			const strategy = modelProviderStrategies[routerName]
 
-				if (result.status === "fulfilled") {
-					fetchedRouterModels[routerName] = result.value.models
+			if (!strategy || !strategy.getOptions) {
+				provider.postMessageToWebview({
+					type: "singleRouterModelFetchResponse",
+					success: false,
+					error: `Unsupported provider or strategy misconfiguration: ${routerName}`,
+					values: { provider: routerName },
+				})
+				break
+			}
+
+			const modelOptions = strategy.getOptions(apiConfiguration, message)
+			console.log(`[requestRouterModels] strategy.getOptions returned:`, modelOptions)
+
+			if (!modelOptions) {
+				provider.postMessageToWebview({
+					type: "singleRouterModelFetchResponse",
+					success: false,
+					error: `Required options missing for ${routerName} (e.g., API key/URL for LiteLLM/OpenAI-Compatible, or valid BaseURL for Ollama/LMStudio if passed via message.values)`,
+					values: { provider: routerName },
+				})
+				break
+			}
+
+			try {
+				console.log(
+					`[requestRouterModels] In try block. routerName: ${routerName}, flushCacheFirst: ${flushCacheFirst}`,
+				)
+				if (flushCacheFirst) {
+					console.log("[requestRouterModels] Condition for flushCacheFirst is TRUE. Calling flushModels.")
+					await flushModels(routerName)
 				} else {
-					// Handle rejection: Post a specific error message for this provider
-					const errorMessage = result.reason instanceof Error ? result.reason.message : String(result.reason)
-					console.error(`Error fetching models for ${routerName}:`, result.reason)
+					console.log("[requestRouterModels] Condition for flushCacheFirst is FALSE. Skipping flushModels.")
+				}
+				console.log("[requestRouterModels] About to call getModels with options:", modelOptions)
+				const models = await getModels(modelOptions)
+				console.log("models1212", models)
+				provider.postMessageToWebview({
+					type: "singleRouterModelFetchResponse",
+					success: true,
+					values: { provider: routerName, models },
+				})
+			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : String(error)
+				console.error(`Error fetching models for ${routerName} via requestRouterModels:`, error)
+				console.log(`[DEBUG] About to post error message for ${routerName}:`, errorMessage)
 
-					fetchedRouterModels[routerName] = {} // Ensure it's an empty object in the main routerModels message
-
+				try {
 					provider.postMessageToWebview({
 						type: "singleRouterModelFetchResponse",
 						success: false,
 						error: errorMessage,
 						values: { provider: routerName },
 					})
+					console.log(`[DEBUG] Error message posted successfully for ${routerName}`)
+				} catch (postError) {
+					console.error(`[DEBUG] Failed to post error message to webview:`, postError)
 				}
-			})
-
-			provider.postMessageToWebview({
-				type: "routerModels",
-				routerModels: fetchedRouterModels as Record<RouterName, ModelRecord>,
-			})
-			break
-		case "requestOpenAiModels":
-			if (message?.values?.baseUrl && message?.values?.apiKey) {
-				const openAiModels = await getOpenAiModels(
-					message?.values?.baseUrl,
-					message?.values?.apiKey,
-					message?.values?.openAiHeaders,
-				)
-
-				provider.postMessageToWebview({ type: "openAiModels", openAiModels })
 			}
-
-			break
-		case "requestOllamaModels":
-			const ollamaModels = await getOllamaModels(message.text)
-			// TODO: Cache like we do for OpenRouter, etc?
-			provider.postMessageToWebview({ type: "ollamaModels", ollamaModels })
-			break
-		case "requestLmStudioModels":
-			const lmStudioModels = await getLmStudioModels(message.text)
-			// TODO: Cache like we do for OpenRouter, etc?
-			provider.postMessageToWebview({ type: "lmStudioModels", lmStudioModels })
-			break
-		case "requestVsCodeLmModels":
-			const vsCodeLmModels = await getVsCodeLmModels()
-			// TODO: Cache like we do for OpenRouter, etc?
-			provider.postMessageToWebview({ type: "vsCodeLmModels", vsCodeLmModels })
 			break
 		case "openImage":
 			openImage(message.text!)

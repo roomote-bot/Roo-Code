@@ -152,6 +152,7 @@
 		"requestyApiKey": "Requesty API 金鑰",
 		"refreshModels": {
 			"label": "重新整理模型",
+			"noModelsFound": "找不到模型。請重試。",
 			"hint": "請重新開啟設定以查看最新模型。",
 			"loading": "正在重新整理模型列表...",
 			"success": "模型列表重新整理成功！",

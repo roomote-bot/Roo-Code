@@ -16,7 +16,6 @@ import {
 import { vscode } from "@src/utils/vscode"
 import { validateApiConfiguration } from "@src/utils/validate"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
-import { useRouterModels } from "@src/components/ui/hooks/useRouterModels"
 import { useSelectedModel } from "@src/components/ui/hooks/useSelectedModel"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { filterProviders, filterModels } from "./utils/organizationFilters"
@@ -75,6 +74,13 @@ const ApiOptions = ({
 	const { t } = useAppTranslation()
 	const { organizationAllowList } = useExtensionState()
 
+	const refetchRouterModels = useCallback(() => {
+		vscode.postMessage({
+			type: "flushRouterModels",
+			values: { provider: apiConfiguration.apiProvider },
+		})
+	}, [apiConfiguration.apiProvider])
+
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
 		return Object.entries(headers)
@@ -82,22 +88,15 @@ const ApiOptions = ({
 
 	useEffect(() => {
 		const propHeaders = apiConfiguration?.openAiHeaders || {}
-
 		if (JSON.stringify(customHeaders) !== JSON.stringify(Object.entries(propHeaders))) {
 			setCustomHeaders(Object.entries(propHeaders))
 		}
 	}, [apiConfiguration?.openAiHeaders, customHeaders])
 
-	// Helper to convert array of tuples to object (filtering out empty keys).
-
-	// Debounced effect to update the main configuration when local
-	// customHeaders state stabilizes.
 	useDebounce(
 		() => {
 			const currentConfigHeaders = apiConfiguration?.openAiHeaders || {}
 			const newHeadersObject = convertHeadersToObject(customHeaders)
-
-			// Only update if the processed object is different from the current config.
 			if (JSON.stringify(currentConfigHeaders) !== JSON.stringify(newHeadersObject)) {
 				setApiConfigurationField("openAiHeaders", newHeadersObject)
 			}
@@ -125,61 +124,17 @@ const ApiOptions = ({
 		info: selectedModelInfo,
 	} = useSelectedModel(apiConfiguration)
 
-	const { data: routerModels, refetch: refetchRouterModels } = useRouterModels()
-
-	// Update `apiModelId` whenever `selectedModelId` changes.
 	useEffect(() => {
 		if (selectedModelId) {
 			setApiConfigurationField("apiModelId", selectedModelId)
 		}
 	}, [selectedModelId, setApiConfigurationField])
 
-	// Debounced refresh model updates, only executed 250ms after the user
-	// stops typing.
-	useDebounce(
-		() => {
-			if (selectedProvider === "openai") {
-				// Use our custom headers state to build the headers object.
-				const headerObject = convertHeadersToObject(customHeaders)
-
-				vscode.postMessage({
-					type: "requestOpenAiModels",
-					values: {
-						baseUrl: apiConfiguration?.openAiBaseUrl,
-						apiKey: apiConfiguration?.openAiApiKey,
-						customHeaders: {}, // Reserved for any additional headers
-						openAiHeaders: headerObject,
-					},
-				})
-			} else if (selectedProvider === "ollama") {
-				vscode.postMessage({ type: "requestOllamaModels", text: apiConfiguration?.ollamaBaseUrl })
-			} else if (selectedProvider === "lmstudio") {
-				vscode.postMessage({ type: "requestLmStudioModels", text: apiConfiguration?.lmStudioBaseUrl })
-			} else if (selectedProvider === "vscode-lm") {
-				vscode.postMessage({ type: "requestVsCodeLmModels" })
-			} else if (selectedProvider === "litellm") {
-				vscode.postMessage({ type: "requestRouterModels" })
-			}
-		},
-		250,
-		[
-			selectedProvider,
-			apiConfiguration?.requestyApiKey,
-			apiConfiguration?.openAiBaseUrl,
-			apiConfiguration?.openAiApiKey,
-			apiConfiguration?.ollamaBaseUrl,
-			apiConfiguration?.lmStudioBaseUrl,
-			apiConfiguration?.litellmBaseUrl,
-			apiConfiguration?.litellmApiKey,
-			customHeaders,
-		],
-	)
-
 	useEffect(() => {
-		const apiValidationResult = validateApiConfiguration(apiConfiguration, routerModels, organizationAllowList)
+		const apiValidationResult = validateApiConfiguration(apiConfiguration, organizationAllowList)
 
 		setErrorMessage(apiValidationResult)
-	}, [apiConfiguration, routerModels, organizationAllowList, setErrorMessage])
+	}, [apiConfiguration, organizationAllowList, setErrorMessage])
 
 	const selectedProviderModels = useMemo(() => {
 		const models = MODELS_BY_PROVIDER[selectedProvider]
@@ -197,13 +152,6 @@ const ApiOptions = ({
 
 	const onProviderChange = useCallback(
 		(value: ProviderName) => {
-			// It would be much easier to have a single attribute that stores
-			// the modelId, but we have a separate attribute for each of
-			// OpenRouter, Glama, Unbound, and Requesty.
-			// If you switch to one of these providers and the corresponding
-			// modelId is not set then you immediately end up in an error state.
-			// To address that we set the modelId to the default value for th
-			// provider if it's not already set.
 			switch (value) {
 				case "openrouter":
 					if (!apiConfiguration.openRouterModelId) {
@@ -231,7 +179,6 @@ const ApiOptions = ({
 					}
 					break
 			}
-
 			setApiConfigurationField("apiProvider", value)
 		},
 		[
@@ -247,22 +194,10 @@ const ApiOptions = ({
 	const docs = useMemo(() => {
 		const provider = PROVIDERS.find(({ value }) => value === selectedProvider)
 		const name = provider?.label
-
-		if (!name) {
-			return undefined
-		}
-
-		// Get the URL slug - use custom mapping if available, otherwise use the provider key.
-		const slugs: Record<string, string> = {
-			"openai-native": "openai",
-			openai: "openai-compatible",
-		}
-
+		if (!name) return undefined
+		const slugs: Record<string, string> = { "openai-native": "openai", openai: "openai-compatible" }
 		const slug = slugs[selectedProvider] || selectedProvider
-		return {
-			url: buildDocLink(`providers/${slug}`, "provider_docs"),
-			name,
-		}
+		return { url: buildDocLink(`providers/${slug}`, "provider_docs"), name }
 	}, [selectedProvider])
 
 	return (
@@ -298,7 +233,6 @@ const ApiOptions = ({
 				<OpenRouter
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
-					routerModels={routerModels}
 					selectedModelId={selectedModelId}
 					uriScheme={uriScheme}
 					fromWelcomeView={fromWelcomeView}
@@ -310,7 +244,6 @@ const ApiOptions = ({
 				<Requesty
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
-					routerModels={routerModels}
 					refetchRouterModels={refetchRouterModels}
 					organizationAllowList={organizationAllowList}
 				/>
@@ -320,7 +253,6 @@ const ApiOptions = ({
 				<Glama
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
-					routerModels={routerModels}
 					uriScheme={uriScheme}
 					organizationAllowList={organizationAllowList}
 				/>
@@ -330,7 +262,6 @@ const ApiOptions = ({
 				<Unbound
 					apiConfiguration={apiConfiguration}
 					setApiConfigurationField={setApiConfigurationField}
-					routerModels={routerModels}
 					organizationAllowList={organizationAllowList}
 				/>
 			)}
@@ -427,7 +358,6 @@ const ApiOptions = ({
 							onValueChange={(value) => {
 								setApiConfigurationField("apiModelId", value)
 
-								// Clear custom ARN if not using custom ARN option.
 								if (value !== "custom-arn" && selectedProvider === "bedrock") {
 									setApiConfigurationField("awsCustomArn", "")
 								}

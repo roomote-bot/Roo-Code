@@ -1972,7 +1972,17 @@ export const OPEN_ROUTER_REQUIRED_REASONING_BUDGET_MODELS = new Set([
 	"google/gemini-2.5-flash-preview-05-20:thinking",
 ])
 
-const routerNames = ["openrouter", "requesty", "glama", "unbound", "litellm"] as const
+const routerNames = [
+	"openrouter",
+	"requesty",
+	"glama",
+	"unbound",
+	"litellm",
+	"ollama",
+	"lmstudio",
+	"vscodelm",
+	"openai-compatible",
+] as const
 
 export type RouterName = (typeof routerNames)[number]
 
@@ -1987,8 +1997,6 @@ export function toRouterName(value?: string): RouterName {
 }
 
 export type ModelRecord = Record<string, ModelInfo>
-
-export type RouterModels = Record<RouterName, ModelRecord>
 
 export const shouldUseReasoningBudget = ({
 	model,
@@ -2045,3 +2053,13 @@ export type GetModelsOptions =
 	| { provider: "requesty"; apiKey?: string }
 	| { provider: "unbound"; apiKey?: string }
 	| { provider: "litellm"; apiKey: string; baseUrl: string }
+	| { provider: "ollama"; baseUrl?: string } // Ollama might take an optional base URL
+	| { provider: "lmstudio"; baseUrl?: string } // LM Studio might take an optional base URL
+	| { provider: "vscodelm" } // VSCodeLM likely takes no specific options here
+	| {
+			provider: "openai-compatible"
+			baseUrl: string
+			apiKey?: string
+			headers?: Record<string, string>
+			// We might not need openAiUseAzure and azureApiVersion here if getOpenAiModels can infer from baseUrl or they are passed to OpenAiHandler via general apiConfig
+	  }

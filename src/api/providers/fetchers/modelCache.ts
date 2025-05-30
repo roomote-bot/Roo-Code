@@ -5,7 +5,7 @@ import NodeCache from "node-cache"
 
 import { ContextProxy } from "../../../core/config/ContextProxy"
 import { getCacheDirectoryPath } from "../../../utils/storage"
-import { RouterName, ModelRecord } from "../../../shared/api"
+import { RouterName, ModelRecord, GetModelsOptions } from "../../../shared/api"
 import { fileExistsAtPath } from "../../../utils/fs"
 
 import { getOpenRouterModels } from "./openrouter"
@@ -13,21 +13,42 @@ import { getRequestyModels } from "./requesty"
 import { getGlamaModels } from "./glama"
 import { getUnboundModels } from "./unbound"
 import { getLiteLLMModels } from "./litellm"
-import { GetModelsOptions } from "../../../shared/api"
+import { getOllamaModels } from "../ollama"
+import { getLmStudioModels } from "../lmstudio"
+import { getVsCodeLmModels } from "../vscode-lm"
+import { getOpenAiCompatibleModels } from "../openai-compatible"
+
 const memoryCache = new NodeCache({ stdTTL: 5 * 60, checkperiod: 5 * 60 })
 
 async function writeModels(router: RouterName, data: ModelRecord) {
 	const filename = `${router}_models.json`
 	const cacheDir = await getCacheDirectoryPath(ContextProxy.instance.globalStorageUri.fsPath)
-	await fs.writeFile(path.join(cacheDir, filename), JSON.stringify(data))
+	try {
+		await fs.writeFile(path.join(cacheDir, filename), JSON.stringify(data))
+	} catch (writeError) {
+		console.error(`[writeModels] Error writing ${router} models to file cache:`, writeError)
+		// Optionally, re-throw or handle as per application's error strategy
+	}
 }
 
 async function readModels(router: RouterName): Promise<ModelRecord | undefined> {
 	const filename = `${router}_models.json`
 	const cacheDir = await getCacheDirectoryPath(ContextProxy.instance.globalStorageUri.fsPath)
 	const filePath = path.join(cacheDir, filename)
-	const exists = await fileExistsAtPath(filePath)
-	return exists ? JSON.parse(await fs.readFile(filePath, "utf8")) : undefined
+	try {
+		const exists = await fileExistsAtPath(filePath)
+		if (exists) {
+			const fileContent = await fs.readFile(filePath, "utf8")
+			const data = JSON.parse(fileContent) as ModelRecord
+			console.log(`[readModels] Successfully read and parsed ${filePath}. Data: ${JSON.stringify(data)}`)
+			return data
+		}
+		console.log(`[readModels] File ${filePath} does not exist.`)
+		return undefined
+	} catch (readError) {
+		console.error(`[readModels] Error reading ${router} models from file cache at ${filePath}:`, readError)
+		return undefined
+	}
 }
 
 /**
@@ -44,55 +65,82 @@ async function readModels(router: RouterName): Promise<ModelRecord | undefined> 
 export const getModels = async (options: GetModelsOptions): Promise<ModelRecord> => {
 	const { provider } = options
 	let models = memoryCache.get<ModelRecord>(provider)
-	if (models) {
+
+	if (models && Object.keys(models).length > 0) {
+		console.log(`[getModels] Returning non-empty models from memory cache for ${provider}`)
 		return models
+	} else if (models) {
+		console.log(`[getModels] Memory cache for ${provider} is empty object, treating as miss.`)
 	}
 
+	models = await readModels(provider)
+	if (models && Object.keys(models).length > 0) {
+		console.log(
+			`[getModels] Returning non-empty models from file cache for ${provider} and populating memory cache.`,
+		)
+		memoryCache.set(provider, models) // Populate memory cache with non-empty file cache data
+		return models
+	} else if (models) {
+		console.log(`[getModels] File cache for ${provider} is empty object, treating as miss.`)
+	}
+
+	console.log(`[getModels] No valid cache hit for ${provider}, attempting to fetch from provider.`)
 	try {
+		let fetchedModels: ModelRecord | undefined
 		switch (provider) {
 			case "openrouter":
-				models = await getOpenRouterModels()
+				fetchedModels = await getOpenRouterModels()
 				break
 			case "requesty":
-				// Requesty models endpoint requires an API key for per-user custom policies
-				models = await getRequestyModels(options.apiKey)
+				fetchedModels = await getRequestyModels(options.apiKey)
 				break
 			case "glama":
-				models = await getGlamaModels()
+				fetchedModels = await getGlamaModels()
 				break
 			case "unbound":
-				// Unbound models endpoint requires an API key to fetch application specific models
-				models = await getUnboundModels(options.apiKey)
+				fetchedModels = await getUnboundModels(options.apiKey)
 				break
 			case "litellm":
-				// Type safety ensures apiKey and baseUrl are always provided for litellm
-				models = await getLiteLLMModels(options.apiKey, options.baseUrl)
+				if (!options.apiKey || !options.baseUrl) {
+					throw new Error("LiteLLM provider requires apiKey and baseUrl.")
+				}
+				fetchedModels = await getLiteLLMModels(options.apiKey, options.baseUrl)
 				break
+			case "ollama":
+				fetchedModels = await getOllamaModels(options.baseUrl)
+				break
+			case "lmstudio":
+				fetchedModels = await getLmStudioModels(options.baseUrl)
+				break
+			case "vscodelm":
+				fetchedModels = await getVsCodeLmModels()
+				break
+			case "openai-compatible": {
+				const opts = options as Extract<GetModelsOptions, { provider: "openai-compatible" }>
+				if (!opts.baseUrl) {
+					throw new Error("OpenAI-Compatible provider requires baseUrl.")
+				}
+				fetchedModels = await getOpenAiCompatibleModels(opts.baseUrl, opts.apiKey, opts.headers)
+				break
+			}
 			default: {
-				// Ensures router is exhaustively checked if RouterName is a strict union
 				const exhaustiveCheck: never = provider
 				throw new Error(`Unknown provider: ${exhaustiveCheck}`)
 			}
 		}
 
-		// Cache the fetched models (even if empty, to signify a successful fetch with no models)
-		memoryCache.set(provider, models)
-		await writeModels(provider, models).catch((err) =>
-			console.error(`[getModels] Error writing ${provider} models to file cache:`, err),
-		)
-
-		try {
-			models = await readModels(provider)
-			// console.log(`[getModels] read ${router} models from file cache`)
-		} catch (error) {
-			console.error(`[getModels] error reading ${provider} models from file cache`, error)
-		}
-		return models || {}
+		// Ensure fetchedModels is not undefined before caching. If a fetch truly returns no models, it should be an empty object.
+		const modelsToCache = fetchedModels || {}
+		console.log(`[getModels] Successfully fetched models for ${provider}. Caching now.`)
+		memoryCache.set(provider, modelsToCache)
+		await writeModels(provider, modelsToCache)
+		return modelsToCache
 	} catch (error) {
-		// Log the error and re-throw it so the caller can handle it (e.g., show a UI message).
-		console.error(`[getModels] Failed to fetch models in modelCache for ${provider}:`, error)
-
-		throw error // Re-throw the original error to be handled by the caller.
+		console.error(`[getModels] Failed to fetch models for ${provider}:`, error)
+		console.log(`[getModels] Clearing cache for ${provider} due to fetch error.`)
+		memoryCache.set(provider, {}) // Clear memory cache by setting to empty object
+		await writeModels(provider, {}) // Clear persisted file cache by writing empty object
+		throw error // Re-throw the original error
 	}
 }
 
@@ -101,5 +149,7 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
  * @param router - The router to flush models for.
  */
 export const flushModels = async (router: RouterName) => {
-	memoryCache.del(router)
+	console.log(`[flushModels] Flushing both memory and file cache for ${router}`)
+	memoryCache.del(router) // Deleting from memory cache is fine, will be treated as miss
+	await writeModels(router, {}) // Write an empty object to clear the file cache
 }

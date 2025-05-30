@@ -1,14 +1,13 @@
-import { useCallback, useState } from "react"
+import { useCallback } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
 
-import { RouterModels, requestyDefaultModelId } from "@roo/api"
+import { requestyDefaultModelId } from "@roo/api"
 
-import { vscode } from "@src/utils/vscode"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
-import { Button } from "@src/components/ui"
+import { useProviderModels } from "../../ui/hooks/useProviderModels"
 
 import { inputEventTransform } from "../transforms"
 import { ModelPicker } from "../ModelPicker"
@@ -17,21 +16,14 @@ import { RequestyBalanceDisplay } from "./RequestyBalanceDisplay"
 type RequestyProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	routerModels?: RouterModels
 	refetchRouterModels: () => void
 	organizationAllowList: OrganizationAllowList
 }
 
-export const Requesty = ({
-	apiConfiguration,
-	setApiConfigurationField,
-	routerModels,
-	refetchRouterModels,
-	organizationAllowList,
-}: RequestyProps) => {
+export const Requesty = ({ apiConfiguration, setApiConfigurationField, organizationAllowList }: RequestyProps) => {
 	const { t } = useAppTranslation()
 
-	const [didRefetch, setDidRefetch] = useState<boolean>()
+	const { models: requestyModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("requesty")
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -43,6 +35,18 @@ export const Requesty = ({
 			},
 		[setApiConfigurationField],
 	)
+
+	if (isLoadingModels) {
+		return <div className="p-2 text-sm text-vscode-descriptionForeground">{t("settings:common.loadingModels")}</div>
+	}
+
+	if (modelsError) {
+		return (
+			<div className="p-2 text-sm text-vscode-errorForeground">
+				{t("settings:common.errorModels")}: {modelsError}
+			</div>
+		)
+	}
 
 	return (
 		<>
@@ -70,28 +74,11 @@ export const Requesty = ({
 					{t("settings:providers.getRequestyApiKey")}
 				</VSCodeButtonLink>
 			)}
-			<Button
-				variant="outline"
-				onClick={() => {
-					vscode.postMessage({ type: "flushRouterModels", text: "requesty" })
-					refetchRouterModels()
-					setDidRefetch(true)
-				}}>
-				<div className="flex items-center gap-2">
-					<span className="codicon codicon-refresh" />
-					{t("settings:providers.refreshModels.label")}
-				</div>
-			</Button>
-			{didRefetch && (
-				<div className="flex items-center text-vscode-errorForeground">
-					{t("settings:providers.refreshModels.hint")}
-				</div>
-			)}
 			<ModelPicker
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId={requestyDefaultModelId}
-				models={routerModels?.requesty ?? {}}
+				models={requestyModelsData ?? {}}
 				modelIdKey="requestyModelId"
 				serviceName="Requesty"
 				serviceUrl="https://requesty.ai"

@@ -4,7 +4,12 @@ import axios from "axios"
 
 import type { ModelInfo } from "@roo-code/types"
 
-import { ApiHandlerOptions, azureOpenAiDefaultApiVersion, openAiModelInfoSaneDefaults } from "../../shared/api"
+import {
+	ApiHandlerOptions,
+	azureOpenAiDefaultApiVersion,
+	openAiModelInfoSaneDefaults,
+	ModelRecord,
+} from "../../shared/api"
 
 import { XmlMatcher } from "../../utils/xml-matcher"
 
@@ -367,14 +372,20 @@ export class OpenAiHandler extends BaseProvider implements SingleCompletionHandl
 	}
 }
 
-export async function getOpenAiModels(baseUrl?: string, apiKey?: string, openAiHeaders?: Record<string, string>) {
+export async function getOpenAiCompatibleModels(
+	baseUrl?: string,
+	apiKey?: string,
+	openAiHeaders?: Record<string, string>,
+): Promise<ModelRecord> {
 	try {
 		if (!baseUrl) {
-			return []
+			console.warn("[getOpenAiModels] Base URL is missing, returning empty models.")
+			return {}
 		}
 
 		if (!URL.canParse(baseUrl)) {
-			return []
+			console.warn(`[getOpenAiModels] Invalid Base URL: ${baseUrl}, returning empty models.`)
+			return {}
 		}
 
 		const config: Record<string, any> = {}
@@ -392,9 +403,21 @@ export async function getOpenAiModels(baseUrl?: string, apiKey?: string, openAiH
 		}
 
 		const response = await axios.get(`${baseUrl}/models`, config)
-		const modelsArray = response.data?.data?.map((model: any) => model.id) || []
-		return [...new Set<string>(modelsArray)]
+		const modelsList = response.data?.data || response.data || []
+		const modelsArray = modelsList.map((model: any) => model.id).filter(Boolean) || []
+
+		const modelRecord: ModelRecord = {}
+		for (const modelId of new Set<string>(modelsArray)) {
+			modelRecord[modelId] = {
+				...openAiModelInfoSaneDefaults,
+				description: `OpenAI-compatible: ${modelId} (${baseUrl})`,
+				inputPrice: undefined,
+				outputPrice: undefined,
+			}
+		}
+		return modelRecord
 	} catch (error) {
-		return []
+		console.error(`[getOpenAiModels] Error fetching OpenAI-compatible models from ${baseUrl}:`, error)
+		return {}
 	}
 }

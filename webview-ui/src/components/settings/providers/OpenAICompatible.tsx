@@ -1,15 +1,14 @@
 import { useState, useCallback, useEffect } from "react"
-import { useEvent } from "react-use"
 import { Checkbox } from "vscrui"
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
-import type { ProviderSettings, ModelInfo, ReasoningEffort, OrganizationAllowList } from "@roo-code/types"
+import type { ProviderSettings, ReasoningEffort, OrganizationAllowList } from "@roo-code/types"
 
 import { azureOpenAiDefaultApiVersion, openAiModelInfoSaneDefaults } from "@roo/api"
-import { ExtensionMessage } from "@roo/ExtensionMessage"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { Button } from "@src/components/ui"
+import { useProviderModels } from "@src/components/ui/hooks/useProviderModels"
 
 import { convertHeadersToObject } from "../utils/headers"
 import { inputEventTransform, noTransform } from "../transforms"
@@ -33,7 +32,11 @@ export const OpenAICompatible = ({
 	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(!!apiConfiguration?.azureApiVersion)
 	const [openAiLegacyFormatSelected, setOpenAiLegacyFormatSelected] = useState(!!apiConfiguration?.openAiLegacyFormat)
 
-	const [openAiModels, setOpenAiModels] = useState<Record<string, ModelInfo> | null>(null)
+	const {
+		models: openAiCompatibleModels,
+		isLoading: isLoadingOpenAiCompatibleModels,
+		error: openAiCompatibleModelsError,
+	} = useProviderModels("openai-compatible")
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
@@ -97,20 +100,6 @@ export const OpenAICompatible = ({
 		[setApiConfigurationField],
 	)
 
-	const onMessage = useCallback((event: MessageEvent) => {
-		const message: ExtensionMessage = event.data
-
-		switch (message.type) {
-			case "openAiModels": {
-				const updatedModels = message.openAiModels ?? []
-				setOpenAiModels(Object.fromEntries(updatedModels.map((item) => [item, openAiModelInfoSaneDefaults])))
-				break
-			}
-		}
-	}, [])
-
-	useEvent("message", onMessage)
-
 	return (
 		<>
 			<VSCodeTextField
@@ -129,11 +118,15 @@ export const OpenAICompatible = ({
 				className="w-full">
 				<label className="block font-medium mb-1">{t("settings:providers.openAiApiKey")}</label>
 			</VSCodeTextField>
+			{isLoadingOpenAiCompatibleModels && <p>{t("settings:providers.refreshModels.loading")}</p>}
+			{openAiCompatibleModelsError && (
+				<p className="text-vscode-errorForeground">{t("settings:providers.refreshModels.error")}</p>
+			)}
 			<ModelPicker
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId="gpt-4o"
-				models={openAiModels}
+				models={openAiCompatibleModels ?? null}
 				modelIdKey="openAiModelId"
 				serviceName="OpenAI"
 				serviceUrl="https://platform.openai.com"

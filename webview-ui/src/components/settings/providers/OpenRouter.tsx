@@ -6,7 +6,7 @@ import { ExternalLinkIcon } from "@radix-ui/react-icons"
 
 import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
 
-import { RouterModels, openRouterDefaultModelId } from "@roo/api"
+import { openRouterDefaultModelId } from "@roo/api"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { getOpenRouterAuthUrl } from "@src/oauth/urls"
@@ -16,16 +16,15 @@ import {
 } from "@src/components/ui/hooks/useOpenRouterModelProviders"
 import { VSCodeButtonLink } from "@src/components/common/VSCodeButtonLink"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@src/components/ui"
+import { useProviderModels } from "../../ui/hooks/useProviderModels"
 
 import { inputEventTransform, noTransform } from "../transforms"
-
 import { ModelPicker } from "../ModelPicker"
 import { OpenRouterBalanceDisplay } from "./OpenRouterBalanceDisplay"
 
 type OpenRouterProps = {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: (field: keyof ProviderSettings, value: ProviderSettings[keyof ProviderSettings]) => void
-	routerModels?: RouterModels
 	selectedModelId: string
 	uriScheme: string | undefined
 	fromWelcomeView?: boolean
@@ -35,13 +34,18 @@ type OpenRouterProps = {
 export const OpenRouter = ({
 	apiConfiguration,
 	setApiConfigurationField,
-	routerModels,
 	selectedModelId,
 	uriScheme,
 	fromWelcomeView,
 	organizationAllowList,
 }: OpenRouterProps) => {
 	const { t } = useAppTranslation()
+
+	const {
+		models: openRouterModelsData,
+		isLoading: isLoadingModels,
+		error: modelsError,
+	} = useProviderModels("openrouter")
 
 	const [openRouterBaseUrlSelected, setOpenRouterBaseUrlSelected] = useState(!!apiConfiguration?.openRouterBaseUrl)
 
@@ -56,13 +60,25 @@ export const OpenRouter = ({
 		[setApiConfigurationField],
 	)
 
-	const { data: openRouterModelProviders } = useOpenRouterModelProviders(apiConfiguration?.openRouterModelId, {
+	const { data: openRouterModelProviders } = useOpenRouterModelProviders(selectedModelId, {
 		enabled:
-			!!apiConfiguration?.openRouterModelId &&
-			routerModels?.openrouter &&
-			Object.keys(routerModels.openrouter).length > 1 &&
-			apiConfiguration.openRouterModelId in routerModels.openrouter,
+			!!selectedModelId &&
+			!!openRouterModelsData &&
+			Object.keys(openRouterModelsData).length > 0 &&
+			selectedModelId in openRouterModelsData,
 	})
+
+	if (isLoadingModels) {
+		return <div className="p-2 text-sm text-vscode-descriptionForeground">{t("settings:common.loadingModels")}</div>
+	}
+
+	if (modelsError) {
+		return (
+			<div className="p-2 text-sm text-vscode-errorForeground">
+				{t("settings:common.errorModels")}: {modelsError}
+			</div>
+		)
+	}
 
 	return (
 		<>
@@ -120,7 +136,13 @@ export const OpenRouter = ({
 						<Trans
 							i18nKey="settings:providers.openRouterTransformsText"
 							components={{
-								a: <a href="https://openrouter.ai/docs/transforms" />,
+								_blank: (
+									<a
+										href="https://openrouter.ai/docs/transforms"
+										target="_blank"
+										rel="noopener noreferrer"
+									/>
+								),
 							}}
 						/>
 					</Checkbox>
@@ -130,7 +152,7 @@ export const OpenRouter = ({
 				apiConfiguration={apiConfiguration}
 				setApiConfigurationField={setApiConfigurationField}
 				defaultModelId={openRouterDefaultModelId}
-				models={routerModels?.openrouter ?? {}}
+				models={openRouterModelsData ?? {}}
 				modelIdKey="openRouterModelId"
 				serviceName="OpenRouter"
 				serviceUrl="https://openrouter.ai/models"
@@ -142,7 +164,10 @@ export const OpenRouter = ({
 						<label className="block font-medium mb-1">
 							{t("settings:providers.openRouter.providerRouting.title")}
 						</label>
-						<a href={`https://openrouter.ai/${selectedModelId}/providers`}>
+						<a
+							href={`https://openrouter.ai/${selectedModelId}/providers`}
+							target="_blank"
+							rel="noopener noreferrer">
 							<ExternalLinkIcon className="w-4 h-4" />
 						</a>
 					</div>
@@ -165,7 +190,10 @@ export const OpenRouter = ({
 					</Select>
 					<div className="text-sm text-vscode-descriptionForeground mt-1">
 						{t("settings:providers.openRouter.providerRouting.description")}{" "}
-						<a href="https://openrouter.ai/docs/features/provider-routing">
+						<a
+							href="https://openrouter.ai/docs/features/provider-routing"
+							target="_blank"
+							rel="noopener noreferrer">
 							{t("settings:providers.openRouter.providerRouting.learnMore")}.
 						</a>
 					</div>

@@ -15,7 +15,6 @@ import { GitCommit } from "../utils/git"
 
 import { McpServer } from "./mcp"
 import { Mode } from "./modes"
-import { RouterModels } from "./api"
 
 export interface LanguageModelChatSelector {
 	vendor?: string
@@ -40,7 +39,6 @@ export interface ExtensionMessage {
 		| "enhancedPrompt"
 		| "commitSearchResults"
 		| "listApiConfig"
-		| "routerModels"
 		| "openAiModels"
 		| "ollamaModels"
 		| "lmStudioModels"
@@ -93,7 +91,6 @@ export interface ExtensionMessage {
 		path?: string
 	}>
 	partialMessage?: ClineMessage
-	routerModels?: RouterModels
 	openAiModels?: string[]
 	ollamaModels?: string[]
 	lmStudioModels?: string[]

@@ -152,6 +152,7 @@
 		"requestyApiKey": "Requesty API Key",
 		"refreshModels": {
 			"label": "Refresh Models",
+			"noModelsFound": "No models found. Please try again.",
 			"hint": "Please reopen the settings to see the latest models.",
 			"loading": "Refreshing models list...",
 			"success": "Models list refreshed successfully!",

@@ -152,6 +152,7 @@
 		"requestyApiKey": "Khóa API Requesty",
 		"refreshModels": {
 			"label": "Làm mới mô hình",
+			"noModelsFound": "Không tìm thấy mô hình nào. Vui lòng thử lại.",
 			"hint": "Vui lòng mở lại cài đặt để xem các mô hình mới nhất.",
 			"loading": "Đang làm mới danh sách mô hình...",
 			"success": "Danh sách mô hình đã được làm mới thành công!",

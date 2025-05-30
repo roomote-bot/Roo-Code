@@ -152,6 +152,7 @@
 		"requestyApiKey": "Klucz API Requesty",
 		"refreshModels": {
 			"label": "Odśwież modele",
+			"noModelsFound": "Nie znaleziono modeli. Spróbuj ponownie.",
 			"hint": "Proszę ponownie otworzyć ustawienia, aby zobaczyć najnowsze modele.",
 			"loading": "Odświeżanie listy modeli...",
 			"success": "Lista modeli została pomyślnie odświeżona!",
