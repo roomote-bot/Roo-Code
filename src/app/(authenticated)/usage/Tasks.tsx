@@ -3,7 +3,9 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
-import { type Task, getTasks } from '@/actions/analytics';
+import type { User } from '@/db/server';
+import type { Task } from '@/types/analytics';
+import { getTasks } from '@/actions/analytics';
 import { formatNumber, formatCurrency } from '@/lib/formatters';
 import { Button, Skeleton } from '@/components/ui';
 import { DataTable } from '@/components/layout/DataTable';
@@ -18,7 +20,7 @@ export const Tasks = ({
 }: {
   filter: Filter | null;
   onFilter: (filter: Filter) => void;
-  onTaskSelected: (task: Task) => void;
+  onTaskSelected: (task: Task & { user: User }) => void;
 }) => {
   const { orgId } = useAuth();
 
@@ -40,7 +42,7 @@ export const Tasks = ({
     );
   }, [filter, data]);
 
-  const cols: ColumnDef<Task>[] = useMemo(
+  const cols: ColumnDef<Task & { user: User }>[] = useMemo(
     () => [
       {
         header: 'Task ID',

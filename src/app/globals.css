@@ -217,3 +217,61 @@
     letter-spacing: var(--tracking-normal);
   }
 }
+
+@layer components {
+  .markdown-prose {
+    & > * {
+      @apply mb-3;
+    }
+    & > *:last-child {
+      @apply mb-0;
+    }
+    & h1 {
+      @apply text-lg font-bold;
+    }
+    & h2 {
+      @apply text-base font-bold;
+    }
+    & h3 {
+      @apply font-semibold;
+    }
+    & h4,
+    & h5,
+    & h6 {
+      @apply font-medium;
+    }
+    & p {
+      @apply leading-relaxed;
+    }
+    & code {
+      @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+    }
+    & pre {
+      @apply bg-muted p-3 rounded overflow-x-auto;
+      & code {
+        @apply bg-transparent p-0;
+      }
+    }
+    & blockquote {
+      @apply border-l-4 border-muted-foreground pl-4 italic;
+    }
+    & ul {
+      @apply list-disc ml-6;
+    }
+    & ol {
+      @apply list-decimal ml-6;
+    }
+    & li {
+      @apply mb-1;
+    }
+    & a {
+      @apply text-primary underline hover:no-underline;
+    }
+    & strong {
+      @apply font-semibold;
+    }
+    & em {
+      @apply italic;
+    }
+  }
+}

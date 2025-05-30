@@ -8,6 +8,7 @@ import {
 } from '@roo-code/types';
 
 import type { TimePeriod } from '@/types';
+import { type Task, taskSchema } from '@/types/analytics';
 import { analytics } from '@/lib/server';
 import { type User, getUsersById } from '@/db/server';
 
@@ -224,26 +225,11 @@ export const getModelUsage = async ({
  * getTasks
  */
 
-const taskSchema = z.object({
-  taskId: z.string(),
-  userId: z.string(),
-  provider: z.string(),
-  model: z.string(),
-  completed: z.coerce.boolean(),
-  tokens: z.coerce.number(),
-  cost: z.coerce.number(),
-  timestamp: z.coerce.number(),
-});
-
-export type Task = z.infer<typeof taskSchema> & {
-  user: User;
-};
-
 export const getTasks = async ({
   orgId,
 }: {
   orgId?: string | null;
-}): Promise<Task[]> => {
+}): Promise<(Task & { user: User })[]> => {
   if (!orgId) {
     return [];
   }
@@ -283,5 +269,5 @@ export const getTasks = async ({
 
   return tasks
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
-    .filter((usage): usage is Task => !!usage.user);
+    .filter((usage): usage is Task & { user: User } => !!usage.user);
 };

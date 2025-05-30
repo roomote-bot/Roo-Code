@@ -50,3 +50,6 @@ export function formatCurrency(
     maximumFractionDigits: 2,
   }).format(value);
 }
+
+export const formatTimestamp = (timestamp: number) =>
+  new Date(timestamp * 1000).toLocaleString();
