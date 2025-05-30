@@ -35,7 +35,6 @@ export const LiteLLM = ({ apiConfiguration, setApiConfigurationField, organizati
 		error: modelsError,
 		refetch: refetchLiteLLMModels,
 	} = useProviderModels("litellm", providerModelsOptions)
-	console.log("litellmModelsData1212", litellmModelsData, isLoadingModels, modelsError)
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -76,7 +75,7 @@ export const LiteLLM = ({ apiConfiguration, setApiConfigurationField, organizati
 				<p className="text-vscode-errorForeground">{t("settings:providers.refreshModels.error")}</p>
 			)}
 			{!isLoadingModels && !modelsError && litellmModelsData && Object.keys(litellmModelsData).length === 0 && (
-				<p>{t("settings:common.noModelsFound")}</p>
+				<p>{t("settings:providers.refreshModels.noModelsFound")}</p>
 			)}
 
 			<ModelPicker

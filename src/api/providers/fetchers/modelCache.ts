@@ -40,10 +40,8 @@ async function readModels(router: RouterName): Promise<ModelRecord | undefined> 
 		if (exists) {
 			const fileContent = await fs.readFile(filePath, "utf8")
 			const data = JSON.parse(fileContent) as ModelRecord
-			console.log(`[readModels] Successfully read and parsed ${filePath}. Data: ${JSON.stringify(data)}`)
 			return data
 		}
-		console.log(`[readModels] File ${filePath} does not exist.`)
 		return undefined
 	} catch (readError) {
 		console.error(`[readModels] Error reading ${router} models from file cache at ${filePath}:`, readError)
@@ -67,24 +65,15 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 	let models = memoryCache.get<ModelRecord>(provider)
 
 	if (models && Object.keys(models).length > 0) {
-		console.log(`[getModels] Returning non-empty models from memory cache for ${provider}`)
 		return models
-	} else if (models) {
-		console.log(`[getModels] Memory cache for ${provider} is empty object, treating as miss.`)
 	}
 
 	models = await readModels(provider)
 	if (models && Object.keys(models).length > 0) {
-		console.log(
-			`[getModels] Returning non-empty models from file cache for ${provider} and populating memory cache.`,
-		)
 		memoryCache.set(provider, models) // Populate memory cache with non-empty file cache data
 		return models
-	} else if (models) {
-		console.log(`[getModels] File cache for ${provider} is empty object, treating as miss.`)
 	}
 
-	console.log(`[getModels] No valid cache hit for ${provider}, attempting to fetch from provider.`)
 	try {
 		let fetchedModels: ModelRecord | undefined
 		switch (provider) {
@@ -131,13 +120,11 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 
 		// Ensure fetchedModels is not undefined before caching. If a fetch truly returns no models, it should be an empty object.
 		const modelsToCache = fetchedModels || {}
-		console.log(`[getModels] Successfully fetched models for ${provider}. Caching now.`)
 		memoryCache.set(provider, modelsToCache)
 		await writeModels(provider, modelsToCache)
 		return modelsToCache
 	} catch (error) {
 		console.error(`[getModels] Failed to fetch models for ${provider}:`, error)
-		console.log(`[getModels] Clearing cache for ${provider} due to fetch error.`)
 		memoryCache.set(provider, {}) // Clear memory cache by setting to empty object
 		await writeModels(provider, {}) // Clear persisted file cache by writing empty object
 		throw error // Re-throw the original error
@@ -149,7 +136,6 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
  * @param router - The router to flush models for.
  */
 export const flushModels = async (router: RouterName) => {
-	console.log(`[flushModels] Flushing both memory and file cache for ${router}`)
 	memoryCache.del(router) // Deleting from memory cache is fine, will be treated as miss
 	await writeModels(router, {}) // Write an empty object to clear the file cache
 }

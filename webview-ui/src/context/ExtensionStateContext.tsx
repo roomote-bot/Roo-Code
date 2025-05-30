@@ -114,8 +114,6 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setAutoCondenseContext: (value: boolean) => void
 	autoCondenseContextPercent: number
 	setAutoCondenseContextPercent: (value: number) => void
-	areProviderModelsLoading?: boolean
-	setAreProviderModelsLoading?: (isLoading: boolean) => void
 }
 
 export const ExtensionStateContext = createContext<ExtensionStateContextType | undefined>(undefined)
@@ -148,9 +146,7 @@ export const mergeExtensionState = (prevState: ExtensionState, newState: Extensi
 }
 
 export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-	const [state, setState] = useState<
-		ExtensionState & { organizationAllowList?: OrganizationAllowList; areProviderModelsLoading?: boolean }
-	>({
+	const [state, setState] = useState<ExtensionState & { organizationAllowList?: OrganizationAllowList }>({
 		version: "",
 		clineMessages: [],
 		taskHistory: [],
@@ -210,7 +206,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 			codebaseIndexEmbedderModelId: "",
 		},
 		codebaseIndexModels: { ollama: {}, openai: {} },
-		areProviderModelsLoading: false,
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -396,9 +391,6 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		setCondensingApiConfigId: (value) => setState((prevState) => ({ ...prevState, condensingApiConfigId: value })),
 		setCustomCondensingPrompt: (value) =>
 			setState((prevState) => ({ ...prevState, customCondensingPrompt: value })),
-		areProviderModelsLoading: state.areProviderModelsLoading,
-		setAreProviderModelsLoading: (isLoading: boolean) =>
-			setState((prevState) => ({ ...prevState, areProviderModelsLoading: isLoading })),
 	}
 
 	return <ExtensionStateContext.Provider value={contextValue}>{children}</ExtensionStateContext.Provider>

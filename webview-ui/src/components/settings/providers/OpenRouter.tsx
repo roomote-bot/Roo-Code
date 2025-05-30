@@ -69,13 +69,17 @@ export const OpenRouter = ({
 	})
 
 	if (isLoadingModels) {
-		return <div className="p-2 text-sm text-vscode-descriptionForeground">{t("settings:common.loadingModels")}</div>
+		return (
+			<div className="p-2 text-sm text-vscode-descriptionForeground">
+				{t("settings:providers.refreshModels.loading")}
+			</div>
+		)
 	}
 
 	if (modelsError) {
 		return (
 			<div className="p-2 text-sm text-vscode-errorForeground">
-				{t("settings:common.errorModels")}: {modelsError}
+				{t("settings:providers.refreshModels.error")}: {modelsError}
 			</div>
 		)
 	}

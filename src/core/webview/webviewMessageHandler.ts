@@ -292,15 +292,9 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			break
 		case "requestRouterModels":
 			const { apiConfiguration } = await provider.getState()
-			console.log("apiconfig1212", apiConfiguration, message.values)
 			const providerNameValue = message.values?.provider as string | undefined
 			const routerName = toRouterName(providerNameValue)
 			const flushCacheFirst = !!message.values?.flushCacheFirst
-
-			console.log(
-				`[requestRouterModels] Received request for ${routerName}. flushCacheFirst: ${flushCacheFirst}. Message values:`,
-				message.values,
-			)
 
 			if (!providerNameValue || !routerName) {
 				provider.postMessageToWebview({
@@ -325,7 +319,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 
 			const modelOptions = strategy.getOptions(apiConfiguration, message)
-			console.log(`[requestRouterModels] strategy.getOptions returned:`, modelOptions)
 
 			if (!modelOptions) {
 				provider.postMessageToWebview({
@@ -338,18 +331,10 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			}
 
 			try {
-				console.log(
-					`[requestRouterModels] In try block. routerName: ${routerName}, flushCacheFirst: ${flushCacheFirst}`,
-				)
 				if (flushCacheFirst) {
-					console.log("[requestRouterModels] Condition for flushCacheFirst is TRUE. Calling flushModels.")
 					await flushModels(routerName)
-				} else {
-					console.log("[requestRouterModels] Condition for flushCacheFirst is FALSE. Skipping flushModels.")
 				}
-				console.log("[requestRouterModels] About to call getModels with options:", modelOptions)
 				const models = await getModels(modelOptions)
-				console.log("models1212", models)
 				provider.postMessageToWebview({
 					type: "singleRouterModelFetchResponse",
 					success: true,
@@ -357,20 +342,13 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 				})
 			} catch (error) {
 				const errorMessage = error instanceof Error ? error.message : String(error)
-				console.error(`Error fetching models for ${routerName} via requestRouterModels:`, error)
-				console.log(`[DEBUG] About to post error message for ${routerName}:`, errorMessage)
 
-				try {
-					provider.postMessageToWebview({
-						type: "singleRouterModelFetchResponse",
-						success: false,
-						error: errorMessage,
-						values: { provider: routerName },
-					})
-					console.log(`[DEBUG] Error message posted successfully for ${routerName}`)
-				} catch (postError) {
-					console.error(`[DEBUG] Failed to post error message to webview:`, postError)
-				}
+				provider.postMessageToWebview({
+					type: "singleRouterModelFetchResponse",
+					success: false,
+					error: errorMessage,
+					values: { provider: routerName },
+				})
 			}
 			break
 		case "openImage":

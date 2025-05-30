@@ -5,7 +5,6 @@ import { RouterName, ModelRecord } from "@roo/api"
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import { vscode } from "@src/utils/vscode"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
-import { useExtensionState } from "@src/context/ExtensionStateContext"
 
 // --- START: Type definitions for provider-specific params ---
 // Inspired by GetModelsOptions from src/shared/api.ts
@@ -100,61 +99,70 @@ const fetchProviderModels = async <P extends RouterName>(
 }
 
 export const useProviderModels = <P extends RouterName>(
-	providerName: P,
+	providerName: P | undefined,
 	options?: UseProviderModelsOptions<P>,
 ): UseProviderModelsResult => {
 	const queryClient = useQueryClient()
-	const { setAreProviderModelsLoading } = useExtensionState()
+	// const { setAreProviderModelsLoading } = useExtensionState()
 
-	// Track if we're currently debouncing
-	const debouncingRef = useRef(false)
-	const [debouncedReady, setDebouncedReady] = useState(false)
-
-	// Debounce the options to avoid rapid re-fetches
 	const [debouncedOptions, setDebouncedOptions] = useState(options)
+	const [isDebouncingInput, setIsDebouncingInput] = useState(false)
+	const initialOptionsSetByDebounce = useRef(false)
+	const lastQueryErrorRef = useRef<Error | null>(null)
 
-	// Extract relevant options for debouncing (exclude flushCacheFirst)
-	const { flushCacheFirst: _flush, ...relevantOptions } = options || {}
-	const optionsKey = JSON.stringify({ providerName, ...relevantOptions })
+	const { flushCacheFirst: _flush, ...relevantOptionsForDebounce } = options || {}
+	const stringifiedRelevantOptions = JSON.stringify({ providerName, ...relevantOptionsForDebounce })
 
-	// Reset debouncing state when options change
 	useEffect(() => {
-		debouncingRef.current = true
-		setDebouncedReady(false)
-	}, [optionsKey])
+		if (providerName) {
+			setIsDebouncingInput(true)
+			initialOptionsSetByDebounce.current = false
+			lastQueryErrorRef.current = null
+		}
+	}, [stringifiedRelevantOptions, providerName])
 
-	// Debounce the options update
 	useDebounceEffect(
 		() => {
-			setDebouncedOptions(options)
-			debouncingRef.current = false
-			setDebouncedReady(true)
+			if (providerName) {
+				setDebouncedOptions(options)
+				setIsDebouncingInput(false)
+				initialOptionsSetByDebounce.current = true
+			}
 		},
 		DEBOUNCE_DELAY,
 		[options, providerName],
 	)
 
-	// Create a stable query key based on debounced options
 	const queryKey: QueryKey = useMemo(
-		() => ["providerModels", providerName, debouncedOptions || {}],
+		() => ["providerModels", providerName || "no-provider", debouncedOptions || {}],
 		[providerName, debouncedOptions],
 	)
 
-	// Query for provider models
 	const {
 		data,
-		isLoading: isQueryLoading,
+		isLoading: isQueryFetching,
 		error: queryError,
 		refetch,
-	} = useQuery<ModelRecord, Error>({
+	} = useQuery<ModelRecord, Error, ModelRecord, QueryKey>({
 		queryKey,
-		queryFn: () => fetchProviderModels(providerName, debouncedOptions),
-		enabled: !!providerName && debouncedReady,
+		queryFn: () => {
+			if (!providerName) return Promise.reject(new Error("No provider name for useQuery"))
+			if (!debouncedOptions) {
+				return Promise.reject(new Error("Debounced options not available for fetching models."))
+			}
+			return fetchProviderModels(providerName, debouncedOptions)
+		},
+		enabled: !!providerName && !!debouncedOptions && initialOptionsSetByDebounce.current,
 		retry: false,
-		staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+		staleTime: 5 * 60 * 1000,
 	})
 
-	// Listen for cache invalidation messages
+	useEffect(() => {
+		lastQueryErrorRef.current = queryError
+	}, [queryError])
+
+	const combinedIsLoading = isDebouncingInput || isQueryFetching
+
 	useEffect(() => {
 		const handler = (event: MessageEvent) => {
 			const message: ExtensionMessage = event.data
@@ -167,23 +175,12 @@ export const useProviderModels = <P extends RouterName>(
 		return () => window.removeEventListener("message", handler)
 	}, [providerName, queryClient, queryKey])
 
-	// Combine debouncing and query loading states
-	const isLoading = debouncingRef.current || isQueryLoading
-
-	// Clear error when in loading state
-	const error = isLoading ? undefined : queryError?.message
-
-	// Update global loading state
-	useEffect(() => {
-		if (setAreProviderModelsLoading) {
-			setAreProviderModelsLoading(isLoading)
-		}
-	}, [isLoading, setAreProviderModelsLoading])
+	const finalErrorToShow = combinedIsLoading ? undefined : lastQueryErrorRef.current?.message
 
 	return {
 		models: data,
-		isLoading,
-		error,
+		isLoading: combinedIsLoading,
+		error: finalErrorToShow,
 		refetch,
 	}
 }
