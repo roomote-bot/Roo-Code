@@ -7,6 +7,7 @@ import { convertToOpenAiMessages } from "../transform/openai-format"
 import { getModelParams } from "../transform/model-params"
 import type { SingleCompletionHandler, ApiHandlerCreateMessageMetadata } from "../index"
 import { RouterProvider } from "./router-provider"
+import { XmlMatcher } from "../../utils/xml-matcher"
 
 /**
  * LiteLLM provider handler
@@ -55,7 +56,7 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 
 		const requestOptions: OpenAI.Chat.Completions.ChatCompletionCreateParamsStreaming = {
 			model: modelId,
-			max_tokens: maxTokens,
+			max_tokens: 20000,
 			messages: openAiMessages,
 			stream: true,
 			stream_options: {
@@ -71,22 +72,116 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 		try {
 			const { data: completion } = await this.client.chat.completions.create(requestOptions).withResponse()
 
+			const matcher = new XmlMatcher(
+				"think",
+				(chunk) =>
+					({
+						type: chunk.matched ? "reasoning" : "text",
+						text: chunk.data,
+					}) as const,
+			)
 			let lastUsage
 
 			for await (const chunk of completion) {
 				const delta = chunk.choices[0]?.delta
+				let reasoningIndicatorFoundInChunk = false
 
-				// Check for any field that might contain reasoning
 				if (delta) {
+					// Handle explicit reasoning_content field
+					if (
+						"reasoning_content" in delta &&
+						delta.reasoning_content &&
+						typeof delta.reasoning_content === "string" &&
+						delta.reasoning_content.length > 0
+					) {
+						yield { type: "reasoning", text: delta.reasoning_content }
+						console.log("@litellm.ts: Hit explicit 'reasoning_content'", delta.reasoning_content)
+						reasoningIndicatorFoundInChunk = true
+					}
+
+					// Handle explicit thinking_blocks field
+					if (
+						"thinking_blocks" in delta &&
+						delta.thinking_blocks &&
+						typeof delta.thinking_blocks === "string" &&
+						delta.thinking_blocks.length > 0
+					) {
+						yield { type: "reasoning", text: delta.thinking_blocks }
+						console.log("@litellm.ts: Hit explicit 'thinking_blocks'", delta.thinking_blocks)
+						reasoningIndicatorFoundInChunk = true
+					}
+
+					// Catch-all for other potential reasoning fields
+					const commonReasoningKeys = [
+						"thought",
+						"reasoning",
+						"rationale",
+						"explanation",
+						"log",
+						"verbose",
+						"scratchpad",
+						"steps",
+					]
+					const keySuffixes = ["_reasoning", "_thought", "_thinking", "_explanation", "_rationale"]
+					const keySubstrings = ["think", "reason", "explain", "rational", "interim", "tool_input"] // Case-insensitive
+
 					for (const [key, value] of Object.entries(delta)) {
-						if (typeof value === "string" && value.length > 0 && key.includes("reason")) {
-							yield { type: "reasoning", text: value }
+						// Skip already handled keys and primary content key
+						if (key === "content" || key === "reasoning_content" || key === "thinking_blocks") continue
+
+						let isPotentialReasoningKey = commonReasoningKeys.includes(key.toLowerCase())
+
+						if (!isPotentialReasoningKey) {
+							for (const suffix of keySuffixes) {
+								if (key.toLowerCase().endsWith(suffix)) {
+									isPotentialReasoningKey = true
+									break
+								}
+							}
+						}
+						if (!isPotentialReasoningKey) {
+							for (const substring of keySubstrings) {
+								if (key.toLowerCase().includes(substring)) {
+									isPotentialReasoningKey = true
+									break
+								}
+							}
+						}
+
+						if (isPotentialReasoningKey) {
+							if (typeof value === "string" && value.length > 0) {
+								yield { type: "reasoning", text: value }
+								console.log(`@litellm.ts: Hit catch-all reasoning key '${key}'`, value)
+								reasoningIndicatorFoundInChunk = true
+							} else if (value && typeof value !== "string") {
+								// Log if a potential key has a non-string value, as it might need special handling
+								console.log(
+									`@litellm.ts: Potential reasoning key '${key}' found with non-string value:`,
+									value,
+								)
+							}
+						}
+					}
+
+					// Process content through XmlMatcher for text and embedded reasoning
+					if (delta.content && typeof delta.content === "string") {
+						for (const matched_chunk of matcher.update(delta.content)) {
+							yield matched_chunk
+							if (matched_chunk.type === "reasoning") {
+								console.log("@litellm.ts: Hit XmlMatcher reasoning", matched_chunk.text)
+								reasoningIndicatorFoundInChunk = true
+							}
 						}
 					}
 				}
 
-				if (delta?.content) {
-					yield { type: "text", text: delta.content }
+				if (!reasoningIndicatorFoundInChunk && delta) {
+					console.log(
+						"@litellm.ts: No specific reasoning indicators hit in this chunk's delta. Delta:",
+						JSON.parse(JSON.stringify(delta)),
+					)
+				} else if (!delta) {
+					console.log("@litellm.ts: Delta was undefined or null for this chunk.")
 				}
 
 				const usage = chunk.usage as OpenAI.CompletionUsage
@@ -94,6 +189,10 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 				if (usage) {
 					lastUsage = usage
 				}
+			}
+
+			for (const final_chunk of matcher.final()) {
+				yield final_chunk
 			}
 
 			if (lastUsage) {
