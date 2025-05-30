@@ -20,17 +20,15 @@
     "cloud_settings": "Cloud Settings",
     "default_parameters": "Default Parameters"
   },
-  "ProviderWhitelist": {
-    "title": "Provider Whitelist & Default Parameters",
-    "description": "Control which AI providers are allowed and set default parameters for your organization",
-    "providers_section_title": "Allowed Providers",
-    "providers_section_description": "Select which AI providers and models are allowed to be used",
+  "ProviderSettings": {
+    "title": "Provider Settings",
+    "description": "Select which AI providers and models are allowed to be used",
     "parameters_section_title": "Default Parameters",
     "parameters_section_description": "Set global default parameters for AI model calls"
   },
-  "CloudSettings": {
-    "cloud_section_title": "Cloud Settings",
-    "cloud_section_description": "Configure how your organization's data is handled in the cloud.",
+  "TelemetrySettings": {
+    "title": "Telemetry Settings",
+    "description": "Configure how your organization's data is handled in the cloud.",
     "record_task_messages": "Record task messages",
     "record_task_messages_description": "When enabled task messages and interactions will be recorded."
   },

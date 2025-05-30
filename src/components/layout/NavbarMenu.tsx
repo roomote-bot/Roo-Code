@@ -13,6 +13,8 @@ const tabValues = [
   '/dashboard',
   '/usage',
   '/audit-logs',
+  '/providers',
+  '/telemetry',
   '/org',
   '/hidden',
 ] as const;
@@ -51,6 +53,8 @@ export const NavbarMenu = (props: NavbarMenuProps) => {
               <TabsTrigger value="/dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="/usage">Usage</TabsTrigger>
               <TabsTrigger value="/audit-logs">Audit Logs</TabsTrigger>
+              <TabsTrigger value="/providers">Providers</TabsTrigger>
+              <TabsTrigger value="/telemetry">Telemetry</TabsTrigger>
               <TabsTrigger value="/org">Organization</TabsTrigger>
               <TabsTrigger value="/hidden" className="hidden" />
             </TabsList>

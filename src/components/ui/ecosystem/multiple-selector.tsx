@@ -1,18 +1,18 @@
 'use client';
 
-import { Command as CommandPrimitive, useCommandState } from 'cmdk';
-import { X } from 'lucide-react';
 import * as React from 'react';
 import { forwardRef, useEffect } from 'react';
+import { Command as CommandPrimitive, useCommandState } from 'cmdk';
+import { X } from 'lucide-react';
 
-import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import {
+  Badge,
   Command,
   CommandGroup,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
-import { cn } from '@/lib/utils';
+} from '@/components/ui';
 
 export interface Option {
   value: string;
@@ -176,7 +176,7 @@ const CommandEmpty = forwardRef<
 
 CommandEmpty.displayName = 'CommandEmpty';
 
-const MultipleSelector = React.forwardRef<
+export const MultipleSelector = React.forwardRef<
   MultipleSelectorRef,
   MultipleSelectorProps
 >(
@@ -634,4 +634,3 @@ const MultipleSelector = React.forwardRef<
 );
 
 MultipleSelector.displayName = 'MultipleSelector';
-export default MultipleSelector;

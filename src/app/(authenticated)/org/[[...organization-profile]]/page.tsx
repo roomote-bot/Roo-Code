@@ -1,5 +1,13 @@
-import { Org } from './Org';
+import { OrganizationProfile } from '@clerk/nextjs';
 
 export default function Page() {
-  return <Org />;
+  return (
+    <div className="mx-auto">
+      <OrganizationProfile
+        routing="path"
+        path="/org"
+        afterLeaveOrganizationUrl="/select-org"
+      />
+    </div>
+  );
 }

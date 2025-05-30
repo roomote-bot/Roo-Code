@@ -6,7 +6,7 @@ import { useAuth } from '@clerk/nextjs';
 import { type ModelUsage, getModelUsage } from '@/actions/analytics';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 import { Button, Skeleton } from '@/components/ui';
-import { DataTable } from '@/components/layout/DataTable';
+import { DataTable } from '@/components/layout';
 
 import type { Filter } from './types';
 

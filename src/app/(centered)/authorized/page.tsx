@@ -44,7 +44,7 @@ export default function Page() {
   }, [router, isLoading, isSignedIn, orgId, authState.params]);
 
   return (
-    <div className="flex flex-row items-center gap-2">
+    <div className="flex justify-center">
       {isLoading ? (
         <LoaderCircle className="animate-spin" />
       ) : isSignedIn ? (

@@ -20,17 +20,15 @@
     "cloud_settings": "Paramètres Cloud",
     "default_parameters": "Paramètres par défaut"
   },
-  "ProviderWhitelist": {
-    "title": "Liste blanche des fournisseurs et paramètres par défaut",
-    "description": "Contrôlez quels fournisseurs d'IA sont autorisés et définissez les paramètres par défaut pour votre organisation",
-    "providers_section_title": "Fournisseurs autorisés",
-    "providers_section_description": "Sélectionnez quels fournisseurs et modèles d'IA sont autorisés à être utilisés",
+  "ProviderSettings": {
+    "title": "Fournisseurs autorisés",
+    "description": "Sélectionnez quels fournisseurs et modèles d'IA sont autorisés à être utilisés",
     "parameters_section_title": "Paramètres par défaut",
     "parameters_section_description": "Définissez les paramètres par défaut globaux pour les appels aux modèles d'IA"
   },
-  "CloudSettings": {
-    "cloud_section_title": "Paramètres Cloud",
-    "cloud_section_description": "Configurez la manière dont les données de votre organisation sont gérées dans le cloud.",
+  "TelemetrySettings": {
+    "title": "Paramètres Cloud",
+    "description": "Configurez la manière dont les données de votre organisation sont gérées dans le cloud.",
     "record_task_messages": "Enregistrer les messages de tâche",
     "record_task_messages_description": "Lorsque cette option est activée, les messages et interactions de tâche seront enregistrés."
   },

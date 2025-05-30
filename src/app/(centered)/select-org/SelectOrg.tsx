@@ -28,11 +28,7 @@ export const SelectOrg = () => {
     userSuggestions.isLoading;
 
   if (isLoading) {
-    return (
-      <div className="flex flex-row items-center gap-2">
-        <LoaderCircle className="animate-spin" />
-      </div>
-    );
+    return <LoaderCircle className="animate-spin" />;
   }
 
   const isBlocked =

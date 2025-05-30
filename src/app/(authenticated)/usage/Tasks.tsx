@@ -8,7 +8,7 @@ import type { Task } from '@/types/analytics';
 import { getTasks } from '@/actions/analytics';
 import { formatNumber, formatCurrency } from '@/lib/formatters';
 import { Button, Skeleton } from '@/components/ui';
-import { DataTable } from '@/components/layout/DataTable';
+import { DataTable } from '@/components/layout';
 
 import type { Filter } from './types';
 import { Status } from './Status';
