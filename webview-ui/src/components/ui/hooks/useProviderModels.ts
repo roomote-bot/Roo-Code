@@ -5,19 +5,20 @@ import { RouterName, ModelRecord } from "@roo/api"
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import { vscode } from "@src/utils/vscode"
 import { useDebounceEffect } from "@src/utils/useDebounceEffect"
+import { useExtensionState } from "@src/context/ExtensionStateContext"
 
 // --- START: Type definitions for provider-specific params ---
 // Inspired by GetModelsOptions from src/shared/api.ts
 // These are the *additional* params a provider might need, sent from the UI.
 export type ProviderSpecificParamsMap = {
-	openrouter: Record<string, never>
-	glama: Record<string, never>
+	openrouter: object
+	glama: object
 	requesty: { requestyApiKey?: string }
 	unbound: { unboundApiKey?: string }
 	litellm: { litellmApiKey?: string; litellmBaseUrl?: string }
 	ollama: { baseUrl?: string }
 	lmstudio: { baseUrl?: string }
-	vscodelm: Record<string, never>
+	vscodelm: object
 	"openai-compatible": {
 		baseUrl: string
 		apiKey?: string
@@ -103,6 +104,7 @@ export const useProviderModels = <P extends RouterName>(
 	options?: UseProviderModelsOptions<P>,
 ): UseProviderModelsResult => {
 	const queryClient = useQueryClient()
+	const { setAreProviderModelsLoading } = useExtensionState()
 
 	// Track if we're currently debouncing
 	const debouncingRef = useRef(false)
@@ -170,6 +172,13 @@ export const useProviderModels = <P extends RouterName>(
 
 	// Clear error when in loading state
 	const error = isLoading ? undefined : queryError?.message
+
+	// Update global loading state
+	useEffect(() => {
+		if (setAreProviderModelsLoading) {
+			setAreProviderModelsLoading(isLoading)
+		}
+	}, [isLoading, setAreProviderModelsLoading])
 
 	return {
 		models: data,

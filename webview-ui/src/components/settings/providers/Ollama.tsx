@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import { VSCodeTextField, VSCodeRadioGroup, VSCodeRadio } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings } from "@roo-code/types"
@@ -15,7 +15,20 @@ type OllamaProps = {
 export const Ollama = ({ apiConfiguration, setApiConfigurationField }: OllamaProps) => {
 	const { t } = useAppTranslation()
 
-	const { models: ollamaModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("ollama")
+	const providerModelsOptions = useMemo(
+		() => ({
+			flushCacheFirst: true,
+			baseUrl: apiConfiguration?.ollamaBaseUrl,
+		}),
+		[apiConfiguration?.ollamaBaseUrl],
+	)
+
+	const {
+		models: ollamaModelsData,
+		isLoading: isLoadingModels,
+		error: modelsError,
+		// refetch is not used directly by this component for now
+	} = useProviderModels("ollama", providerModelsOptions)
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(

@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
@@ -23,7 +23,20 @@ type RequestyProps = {
 export const Requesty = ({ apiConfiguration, setApiConfigurationField, organizationAllowList }: RequestyProps) => {
 	const { t } = useAppTranslation()
 
-	const { models: requestyModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("requesty")
+	const providerModelsOptions = useMemo(
+		() => ({
+			flushCacheFirst: true,
+			requestyApiKey: apiConfiguration?.requestyApiKey,
+		}),
+		[apiConfiguration?.requestyApiKey],
+	)
+
+	const {
+		models: requestyModelsData,
+		isLoading: isLoadingModels,
+		error: modelsError,
+		refetch: refetchRequestyModels,
+	} = useProviderModels("requesty", providerModelsOptions)
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -83,6 +96,7 @@ export const Requesty = ({ apiConfiguration, setApiConfigurationField, organizat
 				serviceName="Requesty"
 				serviceUrl="https://requesty.ai"
 				organizationAllowList={organizationAllowList}
+				onOpenRefetch={refetchRequestyModels}
 			/>
 		</>
 	)

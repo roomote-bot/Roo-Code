@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect, useRef } from "react"
+import { useCallback, useState, useEffect, useRef, useMemo } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
@@ -20,7 +20,20 @@ type UnboundProps = {
 export const Unbound = ({ apiConfiguration, setApiConfigurationField, organizationAllowList }: UnboundProps) => {
 	const { t } = useAppTranslation()
 
-	const { models: unboundModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("unbound")
+	const providerModelsOptions = useMemo(
+		() => ({
+			flushCacheFirst: true,
+			unboundApiKey: apiConfiguration?.unboundApiKey,
+		}),
+		[apiConfiguration?.unboundApiKey],
+	)
+
+	const {
+		models: unboundModelsData,
+		isLoading: isLoadingModels,
+		error: modelsError,
+		refetch: refetchUnboundModels,
+	} = useProviderModels("unbound", providerModelsOptions)
 
 	const [isInvalidKeyFeedback, setIsInvalidKeyFeedback] = useState<boolean>(false)
 	const invalidKeyTimerRef = useRef<NodeJS.Timeout>()
@@ -101,6 +114,7 @@ export const Unbound = ({ apiConfiguration, setApiConfigurationField, organizati
 				serviceUrl="https://api.getunbound.ai/models"
 				setApiConfigurationField={setApiConfigurationField}
 				organizationAllowList={organizationAllowList}
+				onOpenRefetch={refetchUnboundModels}
 			/>
 		</>
 	)

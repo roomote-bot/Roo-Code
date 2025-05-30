@@ -1,4 +1,4 @@
-import { useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import { VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
 import type { ProviderSettings, OrganizationAllowList } from "@roo-code/types"
@@ -22,7 +22,19 @@ type GlamaProps = {
 export const Glama = ({ apiConfiguration, setApiConfigurationField, uriScheme, organizationAllowList }: GlamaProps) => {
 	const { t } = useAppTranslation()
 
-	const { models: glamaModelsData, isLoading: isLoadingModels, error: modelsError } = useProviderModels("glama")
+	const providerModelsOptions = useMemo(
+		() => ({
+			flushCacheFirst: true,
+		}),
+		[],
+	)
+
+	const {
+		models: glamaModelsData,
+		isLoading: isLoadingModels,
+		error: modelsError,
+		refetch: refetchGlamaModels,
+	} = useProviderModels("glama", providerModelsOptions)
 
 	const handleInputChange = useCallback(
 		<K extends keyof ProviderSettings, E>(
@@ -70,6 +82,7 @@ export const Glama = ({ apiConfiguration, setApiConfigurationField, uriScheme, o
 				serviceName="Glama"
 				serviceUrl="https://glama.ai/models"
 				organizationAllowList={organizationAllowList}
+				onOpenRefetch={refetchGlamaModels}
 			/>
 		</>
 	)

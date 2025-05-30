@@ -72,7 +72,7 @@ const ApiOptions = ({
 	setErrorMessage,
 }: ApiOptionsProps) => {
 	const { t } = useAppTranslation()
-	const { organizationAllowList } = useExtensionState()
+	const { organizationAllowList, areProviderModelsLoading } = useExtensionState()
 
 	const refetchRouterModels = useCallback(() => {
 		vscode.postMessage({
@@ -130,11 +130,16 @@ const ApiOptions = ({
 		}
 	}, [selectedModelId, setApiConfigurationField])
 
+	// Validation logic using the global loading state
 	useEffect(() => {
-		const apiValidationResult = validateApiConfiguration(apiConfiguration, organizationAllowList)
-
-		setErrorMessage(apiValidationResult)
-	}, [apiConfiguration, organizationAllowList, setErrorMessage])
+		if (!areProviderModelsLoading) {
+			// Only validate if provider models are not currently loading
+			const apiValidationResult = validateApiConfiguration(apiConfiguration, organizationAllowList)
+			setErrorMessage(apiValidationResult)
+		} else {
+			setErrorMessage(undefined)
+		}
+	}, [apiConfiguration, organizationAllowList, setErrorMessage, areProviderModelsLoading])
 
 	const selectedProviderModels = useMemo(() => {
 		const models = MODELS_BY_PROVIDER[selectedProvider]

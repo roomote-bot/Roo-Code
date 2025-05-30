@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react"
+import { useState, useCallback, useEffect, useMemo } from "react"
 import { Checkbox } from "vscrui"
 import { VSCodeButton, VSCodeTextField } from "@vscode/webview-ui-toolkit/react"
 
@@ -32,11 +32,24 @@ export const OpenAICompatible = ({
 	const [azureApiVersionSelected, setAzureApiVersionSelected] = useState(!!apiConfiguration?.azureApiVersion)
 	const [openAiLegacyFormatSelected, setOpenAiLegacyFormatSelected] = useState(!!apiConfiguration?.openAiLegacyFormat)
 
+	const providerModelsOptions = useMemo(() => {
+		if (!apiConfiguration?.openAiBaseUrl) {
+			return undefined
+		}
+		return {
+			flushCacheFirst: true,
+			baseUrl: apiConfiguration.openAiBaseUrl,
+			apiKey: apiConfiguration?.openAiApiKey,
+			openAiHeaders: apiConfiguration?.openAiHeaders,
+		}
+	}, [apiConfiguration?.openAiBaseUrl, apiConfiguration?.openAiApiKey, apiConfiguration?.openAiHeaders])
+
 	const {
 		models: openAiCompatibleModels,
 		isLoading: isLoadingOpenAiCompatibleModels,
 		error: openAiCompatibleModelsError,
-	} = useProviderModels("openai-compatible")
+		refetch: refetchOpenAiCompatibleModels,
+	} = useProviderModels("openai-compatible", providerModelsOptions)
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
@@ -131,6 +144,7 @@ export const OpenAICompatible = ({
 				serviceName="OpenAI"
 				serviceUrl="https://platform.openai.com"
 				organizationAllowList={organizationAllowList}
+				onOpenRefetch={refetchOpenAiCompatibleModels}
 			/>
 			<R1FormatSetting
 				onChange={handleInputChange("openAiR1FormatEnabled", noTransform)}
