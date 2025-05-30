@@ -76,15 +76,10 @@ export class LiteLLMHandler extends RouterProvider implements SingleCompletionHa
 			for await (const chunk of completion) {
 				const delta = chunk.choices[0]?.delta
 
-				// Log all available fields in delta
-				console.log("[LiteLLM] Delta fields:", Object.keys(delta || {}))
-				console.log("[LiteLLM] Full delta:", JSON.stringify(delta, null, 2))
-
 				// Check for any field that might contain reasoning
 				if (delta) {
 					for (const [key, value] of Object.entries(delta)) {
 						if (typeof value === "string" && value.length > 0 && key.includes("reason")) {
-							console.log(`[LiteLLM] Found potential reasoning field '${key}':`, value)
 							yield { type: "reasoning", text: value }
 						}
 					}
