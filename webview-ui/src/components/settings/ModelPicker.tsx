@@ -38,6 +38,7 @@ interface ModelPickerProps {
 	apiConfiguration: ProviderSettings
 	setApiConfigurationField: <K extends keyof ProviderSettings>(field: K, value: ProviderSettings[K]) => void
 	organizationAllowList: OrganizationAllowList
+	onOpenRefetch?: () => void
 }
 
 export const ModelPicker = ({
@@ -49,6 +50,7 @@ export const ModelPicker = ({
 	apiConfiguration,
 	setApiConfigurationField,
 	organizationAllowList,
+	onOpenRefetch,
 }: ModelPickerProps) => {
 	const { t } = useAppTranslation()
 
@@ -57,64 +59,78 @@ export const ModelPicker = ({
 	const searchInputRef = useRef<HTMLInputElement>(null)
 
 	const currentConfiguredModelId = apiConfiguration[modelIdKey]
+	const [searchValue, setSearchValue] = useState(currentConfiguredModelId || "")
 
 	const modelIdsForDropdown = useMemo(() => {
 		const filteredModels = filterModels(models, apiConfiguration.apiProvider, organizationAllowList)
 		return Object.keys(filteredModels ?? {}).sort((a, b) => a.localeCompare(b))
 	}, [models, apiConfiguration.apiProvider, organizationAllowList])
 
-	const { id: selectedModelIdForInfo, info: selectedModelInfo } = useSelectedModel(apiConfiguration)
-
-	const [searchValue, setSearchValue] = useState(currentConfiguredModelId || "")
-
+	// Synchronize apiConfiguration and searchValue when models/selection changes
+	const currentIdInSettings = apiConfiguration[modelIdKey]
 	useEffect(() => {
-		const currentIdInSettings = apiConfiguration[modelIdKey]
-
-		if (!models || Object.keys(models).length === 0) {
+		if (!models || modelIdsForDropdown.length === 0) {
+			// Use modelIdsForDropdown for check after filtering
 			if (currentIdInSettings !== undefined) {
 				setApiConfigurationField(modelIdKey, undefined)
 			}
-			if (searchValue !== "") setSearchValue("")
 		} else {
-			const availableIds = Object.keys(models)
 			let newIdToSet: string | undefined = undefined
-
-			if (currentIdInSettings && availableIds.includes(currentIdInSettings)) {
+			if (currentIdInSettings && modelIdsForDropdown.includes(currentIdInSettings)) {
 				newIdToSet = currentIdInSettings
-			} else if (availableIds.includes(defaultModelId)) {
+			} else if (modelIdsForDropdown.includes(defaultModelId)) {
 				newIdToSet = defaultModelId
-			} else if (availableIds.length > 0) {
-				newIdToSet = availableIds[0]
+			} else {
+				newIdToSet = modelIdsForDropdown[0] // Fallback to the first available model
 			}
 
 			if (currentIdInSettings !== newIdToSet) {
 				setApiConfigurationField(modelIdKey, newIdToSet)
 			}
-			const targetSearchValue = newIdToSet || ""
-			if (searchValue !== targetSearchValue) setSearchValue(targetSearchValue)
 		}
-	}, [models, apiConfiguration, searchValue, defaultModelId, modelIdKey, setApiConfigurationField])
+		// This effect primarily ensures the configured ID is valid against the available models.
+		// SearchValue will be synced by another effect or callbacks.
+	}, [models, modelIdsForDropdown, currentIdInSettings, defaultModelId, modelIdKey, setApiConfigurationField])
+
+	// Effect to sync searchValue with currentConfiguredModelId.
+	// Primarily handles changes when the popover is closed.
+	// When open, user input and specific actions (onSelect, onClearSearch) manage searchValue.
+	// onOpenChange handles resetting searchValue when the popover closes.
+	useEffect(() => {
+		if (!open) {
+			// Only act if the popover is closed
+			// If currentConfiguredModelId has changed and searchValue is out of sync, update it.
+			// Also handles if searchValue somehow changed while closed.
+			if (searchValue !== (currentConfiguredModelId || "")) {
+				setSearchValue(currentConfiguredModelId || "")
+			}
+		}
+		// When 'open' is true, do nothing here to allow user input to control searchValue.
+	}, [currentConfiguredModelId, open, searchValue]) // Rerun if currentConfiguredModelId changes or popover opens/closes
+
+	const { id: selectedModelIdForInfo, info: selectedModelInfo } = useSelectedModel(apiConfiguration)
 
 	const onSelect = useCallback(
 		(modelId: string) => {
-			if (!modelId) {
-				return
-			}
+			if (!modelId) return
+			setApiConfigurationField(modelIdKey, modelId) // This will trigger currentConfiguredModelId update
+			setSearchValue(modelId) // Directly set search for immediate feedback in closed popover
 			setOpen(false)
-			setApiConfigurationField(modelIdKey, modelId)
-			setSearchValue(modelId)
 		},
 		[modelIdKey, setApiConfigurationField],
 	)
 
 	const onOpenChange = useCallback(
-		(open: boolean) => {
-			setOpen(open)
-			if (!open) {
-				setSearchValue(apiConfiguration[modelIdKey] || "")
+		(newOpenState: boolean) => {
+			setOpen(newOpenState)
+			if (newOpenState && onOpenRefetch) {
+				onOpenRefetch()
+			}
+			if (!newOpenState) {
+				setSearchValue(currentConfiguredModelId || "")
 			}
 		},
-		[apiConfiguration, modelIdKey],
+		[currentConfiguredModelId, onOpenRefetch],
 	)
 
 	const onClearSearch = useCallback(() => {
@@ -132,8 +148,13 @@ export const ModelPicker = ({
 							variant="combobox"
 							role="combobox"
 							aria-expanded={open}
-							className="w-full justify-between">
-							<div>{currentConfiguredModelId ?? t("settings:common.select")}</div>
+							className="w-full justify-between"
+							disabled={modelIdsForDropdown.length === 0}>
+							<div>
+								{modelIdsForDropdown.length === 0
+									? ""
+									: (currentConfiguredModelId ?? t("settings:common.select"))}
+							</div>
 							<ChevronsUpDown className="opacity-50" />
 						</Button>
 					</PopoverTrigger>
@@ -142,8 +163,8 @@ export const ModelPicker = ({
 							<div className="relative">
 								<CommandInput
 									ref={searchInputRef}
-									value={searchValue}
-									onValueChange={setSearchValue}
+									value={searchValue} // Controlled input
+									onValueChange={setSearchValue} // User types, updates searchValue directly
 									placeholder={t("settings:modelPicker.searchPlaceholder")}
 									className="h-9 mr-4"
 									data-testid="model-input"
@@ -167,7 +188,7 @@ export const ModelPicker = ({
 								</CommandEmpty>
 								<CommandGroup>
 									{modelIdsForDropdown.map((model) => (
-										<CommandItem key={model} value={model} onSelect={onSelect}>
+										<CommandItem key={model} value={model} onSelect={() => onSelect(model)}>
 											{model}
 											<Check
 												className={cn(
@@ -181,7 +202,10 @@ export const ModelPicker = ({
 							</CommandList>
 							{searchValue && !modelIdsForDropdown.includes(searchValue) && (
 								<div className="p-1 border-t border-vscode-input-border">
-									<CommandItem data-testid="use-custom-model" value={searchValue} onSelect={onSelect}>
+									<CommandItem
+										data-testid="use-custom-model"
+										value={searchValue}
+										onSelect={() => onSelect(searchValue)}>
 										{t("settings:modelPicker.useCustomModel", { modelId: searchValue })}
 									</CommandItem>
 								</div>

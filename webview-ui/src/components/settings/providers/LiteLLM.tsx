@@ -33,6 +33,7 @@ export const LiteLLM = ({ apiConfiguration, setApiConfigurationField, organizati
 		models: litellmModelsData,
 		isLoading: isLoadingModels,
 		error: modelsError,
+		refetch: refetchLiteLLMModels,
 	} = useProviderModels("litellm", providerModelsOptions)
 	console.log("litellmModelsData1212", litellmModelsData, isLoadingModels, modelsError)
 
@@ -87,6 +88,7 @@ export const LiteLLM = ({ apiConfiguration, setApiConfigurationField, organizati
 				serviceUrl="https://docs.litellm.ai/"
 				setApiConfigurationField={setApiConfigurationField}
 				organizationAllowList={organizationAllowList}
+				onOpenRefetch={refetchLiteLLMModels}
 			/>
 		</>
 	)
