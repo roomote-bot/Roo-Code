@@ -1,17 +1,27 @@
-import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 
-import { NavbarHeader, NavbarMenu, Section } from '@/components/layout';
+import {
+  NavbarHeader,
+  NavbarMenu,
+  Section,
+  Connected,
+} from '@/components/layout';
 
 export default async function AuthenticatedLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { orgId } = await auth();
+  const { orgId, orgRole } = await auth();
 
   if (!orgId) {
     redirect('/select-org');
+  }
+
+  // For now, a non-admin just get a "You're connected" message.
+  if (orgRole !== 'org:admin') {
+    return <Connected />;
   }
 
   return (

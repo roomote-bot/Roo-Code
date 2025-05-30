@@ -4,6 +4,7 @@ export { ThemeSwitcher } from './ThemeSwitcher';
 export { Logo, HoppingLogo } from './Logo';
 export { NavbarHeader } from './NavbarHeader';
 export { NavbarMenu } from './NavbarMenu';
+export { Connected } from './Connected';
 
 export { ThemeProvider } from './ThemeProvider';
 export { AuthProvider } from './AuthProvider';
