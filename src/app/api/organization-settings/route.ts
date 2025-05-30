@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 
-import { type OrganizationSettings, ORGANIZATION_ALLOW_ALL } from '@/types';
 import { getOrganizationSettings } from '@/actions/organizationSettings';
 
 export async function GET() {
@@ -22,12 +21,7 @@ export async function GET() {
       );
     }
 
-    const settings: OrganizationSettings =
-      (await getOrganizationSettings()) || {
-        defaultSettings: {},
-        allowList: ORGANIZATION_ALLOW_ALL,
-        version: 0,
-      };
+    const settings = await getOrganizationSettings();
 
     return NextResponse.json(settings);
   } catch (error) {

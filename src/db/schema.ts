@@ -13,6 +13,7 @@ import {
   type OrganizationDefaultSettings,
   type OrganizationAllowList,
   ORGANIZATION_ALLOW_ALL,
+  type OrganizationCloudSettings,
 } from '@/types';
 
 import { AuditLogTargetType } from './enums';
@@ -93,6 +94,10 @@ export const orgSettings = pgTable(
       .primaryKey()
       .references(() => orgs.id), // Assigned by Clerk.
     version: integer('version').notNull().default(1),
+    cloudSettings: jsonb('cloud_settings')
+      .notNull()
+      .$type<OrganizationCloudSettings>()
+      .default({}),
     defaultSettings: jsonb('default_settings')
       .notNull()
       .$type<OrganizationDefaultSettings>()

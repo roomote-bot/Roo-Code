@@ -40,8 +40,17 @@ export type OrganizationDefaultSettings = z.infer<
   typeof organizationDefaultSettingsSchema
 >;
 
+export const organizationCloudSettingsSchema = z.object({
+  recordTaskMessages: z.boolean().optional(),
+});
+
+export type OrganizationCloudSettings = z.infer<
+  typeof organizationCloudSettingsSchema
+>;
+
 export const organizationSettingsSchema = z.object({
   version: z.number(),
+  cloudSettings: organizationCloudSettingsSchema.optional(),
   defaultSettings: organizationDefaultSettingsSchema,
   allowList: organizationAllowListSchema,
 });
@@ -50,6 +59,7 @@ export type OrganizationSettings = z.infer<typeof organizationSettingsSchema>;
 
 export const ORGANIZATION_DEFAULT: OrganizationSettings = {
   version: 0,
+  cloudSettings: {},
   defaultSettings: {},
   allowList: ORGANIZATION_ALLOW_ALL,
 } as const;

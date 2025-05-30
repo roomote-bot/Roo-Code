@@ -11,6 +11,7 @@ import {
   type OrganizationSettings,
   organizationAllowListSchema,
   organizationDefaultSettingsSchema,
+  organizationCloudSettingsSchema,
 } from '@/types';
 import { AuditLogTargetType, client as db, orgSettings } from '@/db/server';
 import { handleError, isAuthSuccess } from '@/lib/server';
@@ -18,9 +19,7 @@ import { handleError, isAuthSuccess } from '@/lib/server';
 import { validateAuth } from './auth';
 import { insertAuditLog } from './auditLogs';
 
-export async function getOrganizationSettings(): Promise<
-  OrganizationSettings | undefined
-> {
+export async function getOrganizationSettings(): Promise<OrganizationSettings> {
   const { userId, orgId } = await auth();
 
   if (!userId) {
@@ -37,7 +36,7 @@ export async function getOrganizationSettings(): Promise<
     .where(eq(orgSettings.orgId, orgId))
     .limit(1);
 
-  return settings.length === 0 ? ORGANIZATION_DEFAULT : settings[0];
+  return settings[0] || ORGANIZATION_DEFAULT;
 }
 
 /**
@@ -47,12 +46,16 @@ const updateOrganizationSchema = z
   .object({
     defaultSettings: organizationDefaultSettingsSchema.optional(),
     allowList: organizationAllowListSchema.optional(),
+    cloudSettings: organizationCloudSettingsSchema.optional(),
   })
   .refine(
     (data) =>
-      data.defaultSettings !== undefined || data.allowList !== undefined,
+      data.defaultSettings !== undefined ||
+      data.allowList !== undefined ||
+      data.cloudSettings !== undefined,
     {
-      message: 'At least one of defaultSettings or allowList must be provided',
+      message:
+        'At least one of defaultSettings, allowList, or cloudSettings must be provided',
     },
   );
 
@@ -96,12 +99,17 @@ export async function updateOrganization(
         updateData.allowList = validatedData.allowList;
       }
 
+      if (validatedData.cloudSettings) {
+        updateData.cloudSettings = validatedData.cloudSettings;
+      }
+
       if (isNewRecord) {
         await tx.insert(orgSettings).values({
           orgId,
           version: 1,
           defaultSettings: validatedData.defaultSettings || {},
           allowList: validatedData.allowList || ORGANIZATION_ALLOW_ALL,
+          cloudSettings: validatedData.cloudSettings || {},
         });
       } else {
         await tx
@@ -133,6 +141,17 @@ export async function updateOrganization(
           targetId: 'organization-allow-list',
           newValue: validatedData.allowList,
           description: 'Updated organization allow list',
+        });
+      }
+
+      if (validatedData.cloudSettings) {
+        await insertAuditLog(tx, {
+          userId,
+          orgId,
+          targetType: AuditLogTargetType.CLOUD_SETTINGS,
+          targetId: 'organization-cloud-settings',
+          newValue: validatedData.cloudSettings,
+          description: 'Updated organization cloud settings',
         });
       }
     });

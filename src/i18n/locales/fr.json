@@ -17,6 +17,7 @@
   },
   "OrganizationProfile": {
     "provider_whitelist": "Liste blanche des fournisseurs",
+    "cloud_settings": "Paramètres Cloud",
     "default_parameters": "Paramètres par défaut"
   },
   "ProviderWhitelist": {
@@ -26,6 +27,12 @@
     "providers_section_description": "Sélectionnez quels fournisseurs et modèles d'IA sont autorisés à être utilisés",
     "parameters_section_title": "Paramètres par défaut",
     "parameters_section_description": "Définissez les paramètres par défaut globaux pour les appels aux modèles d'IA"
+  },
+  "CloudSettings": {
+    "cloud_section_title": "Paramètres Cloud",
+    "cloud_section_description": "Configurez la manière dont les données de votre organisation sont gérées dans le cloud.",
+    "record_task_messages": "Enregistrer les messages de tâche",
+    "record_task_messages_description": "Lorsque cette option est activée, les messages et interactions de tâche seront enregistrés."
   },
   "Analytics": {
     "view_mode_title": "Afficher Par",

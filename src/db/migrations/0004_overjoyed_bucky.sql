@@ -1,0 +1,1 @@
+ALTER TABLE "organization_settings" ADD COLUMN "cloud_settings" jsonb DEFAULT '{}'::jsonb NOT NULL;
