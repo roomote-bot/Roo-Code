@@ -32,3 +32,22 @@ CREATE TABLE IF NOT EXISTS default.events
 ENGINE = MergeTree()
 ORDER BY (id, type, timestamp)
 SETTINGS index_granularity = 8192;
+
+CREATE TABLE IF NOT EXISTS default.messages
+(
+    `id` UUID,
+    `orgId` String,
+    `userId` String,
+    `taskId` String,
+    `ts` Int32,
+    `type` String,
+    `ask` Nullable(String),
+    `say` Nullable(String),
+    `text` Nullable(String),
+    `reasoning` Nullable(String),
+    `partial` Nullable(Bool),
+    `timestamp` Int32
+)
+ENGINE = MergeTree()
+ORDER BY (id, timestamp)
+SETTINGS index_granularity = 8192;
