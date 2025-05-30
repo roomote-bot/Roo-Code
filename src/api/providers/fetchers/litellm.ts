@@ -52,6 +52,8 @@ export async function getLiteLLMModels(apiKey: string, baseUrl: string): Promise
 					// litellm_params.model may have a prefix like openrouter/
 					supportsComputerUse,
 					supportsPromptCache: Boolean(modelInfo.supports_prompt_caching),
+					supportsReasoningEffort: Boolean(modelInfo.supports_reasoning),
+					shouldExposeDefaultReasoningEffort: Boolean(modelInfo.supports_reasoning),
 					inputPrice: modelInfo.input_cost_per_token ? modelInfo.input_cost_per_token * 1000000 : undefined,
 					outputPrice: modelInfo.output_cost_per_token
 						? modelInfo.output_cost_per_token * 1000000

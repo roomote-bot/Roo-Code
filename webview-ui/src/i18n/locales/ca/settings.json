@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "Esforç de raonament del model",
+			"default": "Per defecte",
 			"high": "Alt",
 			"medium": "Mitjà",
 			"low": "Baix"

@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "Nỗ lực suy luận của mô hình",
+			"default": "Mặc định",
 			"high": "Cao",
 			"medium": "Trung bình",
 			"low": "Thấp"

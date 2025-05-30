@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "Model Akıl Yürütme Çabası",
+			"default": "Varsayılan",
 			"high": "Yüksek",
 			"medium": "Orta",
 			"low": "Düşük"

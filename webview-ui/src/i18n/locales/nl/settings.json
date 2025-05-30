@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "Model redeneervermogen",
+			"default": "Standaard",
 			"high": "Hoog",
 			"medium": "Middel",
 			"low": "Laag"

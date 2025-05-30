@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "모델 추론 노력",
+			"default": "기본값",
 			"high": "높음",
 			"medium": "중간",
 			"low": "낮음"

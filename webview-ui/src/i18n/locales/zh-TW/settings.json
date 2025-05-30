@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "模型推理強度",
+			"default": "預設",
 			"high": "高",
 			"medium": "中",
 			"low": "低"

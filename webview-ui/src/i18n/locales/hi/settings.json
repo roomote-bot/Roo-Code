@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "मॉडल तर्क प्रयास",
+			"default": "डिफ़ॉल्ट",
 			"high": "उच्च",
 			"medium": "मध्यम",
 			"low": "निम्न"

@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "モデル推論の労力",
+			"default": "デフォルト",
 			"high": "高",
 			"medium": "中",
 			"low": "低"

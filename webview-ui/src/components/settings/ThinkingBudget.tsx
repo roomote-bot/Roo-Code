@@ -1,7 +1,13 @@
 import { useEffect } from "react"
 import { Checkbox } from "vscrui"
 
-import { type ProviderSettings, type ModelInfo, type ReasoningEffort, reasoningEfforts } from "@roo-code/types"
+import {
+	type ProviderSettings,
+	type ModelInfo,
+	type ReasoningEffort,
+	reasoningEfforts,
+	reasoningEffortsWithDefault,
+} from "@roo-code/types"
 
 import { DEFAULT_HYBRID_REASONING_MODEL_MAX_TOKENS, DEFAULT_HYBRID_REASONING_MODEL_THINKING_TOKENS } from "@roo/api"
 
@@ -20,6 +26,7 @@ export const ThinkingBudget = ({ apiConfiguration, setApiConfigurationField, mod
 	const isReasoningBudgetSupported = !!modelInfo && modelInfo.supportsReasoningBudget
 	const isReasoningBudgetRequired = !!modelInfo && modelInfo.requiredReasoningBudget
 	const isReasoningEffortSupported = !!modelInfo && modelInfo.supportsReasoningEffort
+	const shouldExposeDefaultReasoningEffort = !!modelInfo && modelInfo.shouldExposeDefaultReasoningEffort
 
 	const enableReasoningEffort = apiConfiguration.enableReasoningEffort
 	const customMaxOutputTokens = apiConfiguration.modelMaxTokens || DEFAULT_HYBRID_REASONING_MODEL_MAX_TOKENS
@@ -95,17 +102,23 @@ export const ThinkingBudget = ({ apiConfiguration, setApiConfigurationField, mod
 				<label className="block font-medium mb-1">{t("settings:providers.reasoningEffort.label")}</label>
 			</div>
 			<Select
-				value={apiConfiguration.reasoningEffort}
-				onValueChange={(value) => setApiConfigurationField("reasoningEffort", value as ReasoningEffort)}>
+				value={apiConfiguration.reasoningEffort || (shouldExposeDefaultReasoningEffort ? "default" : undefined)}
+				onValueChange={(value) => {
+					// If "default" is selected, set reasoningEffort to undefined so it's not sent in the request
+					const reasoningEffort = value === "default" ? undefined : (value as ReasoningEffort)
+					setApiConfigurationField("reasoningEffort", reasoningEffort)
+				}}>
 				<SelectTrigger className="w-full">
 					<SelectValue placeholder={t("settings:common.select")} />
 				</SelectTrigger>
 				<SelectContent>
-					{reasoningEfforts.map((value) => (
-						<SelectItem key={value} value={value}>
-							{t(`settings:providers.reasoningEffort.${value}`)}
-						</SelectItem>
-					))}
+					{(shouldExposeDefaultReasoningEffort ? reasoningEffortsWithDefault : reasoningEfforts).map(
+						(value) => (
+							<SelectItem key={value} value={value}>
+								{t(`settings:providers.reasoningEffort.${value}`)}
+							</SelectItem>
+						),
+					)}
 				</SelectContent>
 			</Select>
 		</div>

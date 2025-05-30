@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "Model Reasoning Effort",
+			"default": "Default",
 			"high": "High",
 			"medium": "Medium",
 			"low": "Low"

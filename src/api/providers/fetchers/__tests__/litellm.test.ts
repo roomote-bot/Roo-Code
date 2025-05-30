@@ -69,6 +69,8 @@ describe("getLiteLLMModels", () => {
 				supportsImages: true,
 				supportsComputerUse: true,
 				supportsPromptCache: false,
+				supportsReasoningEffort: false,
+				shouldExposeDefaultReasoningEffort: false,
 				inputPrice: 3,
 				outputPrice: 15,
 				description: "claude-3-5-sonnet via LiteLLM proxy",
@@ -79,6 +81,8 @@ describe("getLiteLLMModels", () => {
 				supportsImages: false,
 				supportsComputerUse: false,
 				supportsPromptCache: false,
+				supportsReasoningEffort: false,
+				shouldExposeDefaultReasoningEffort: false,
 				inputPrice: 10,
 				outputPrice: 30,
 				description: "gpt-4-turbo via LiteLLM proxy",
@@ -147,6 +151,8 @@ describe("getLiteLLMModels", () => {
 			supportsImages: true,
 			supportsComputerUse: true,
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "test-computer-model via LiteLLM proxy",
@@ -158,6 +164,8 @@ describe("getLiteLLMModels", () => {
 			supportsImages: false,
 			supportsComputerUse: false,
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "test-non-computer-model via LiteLLM proxy",
@@ -293,6 +301,8 @@ describe("getLiteLLMModels", () => {
 			supportsImages: true,
 			supportsComputerUse: true, // Should be true due to fallback
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "claude-3-5-sonnet-latest via LiteLLM proxy",
@@ -304,6 +314,8 @@ describe("getLiteLLMModels", () => {
 			supportsImages: false,
 			supportsComputerUse: false, // Should be false as it's not in fallback list
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "gpt-4-turbo via LiteLLM proxy",
@@ -367,6 +379,8 @@ describe("getLiteLLMModels", () => {
 			supportsImages: true,
 			supportsComputerUse: false, // False because explicitly set to false (fallback ignored)
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "claude-3-5-sonnet-latest via LiteLLM proxy",
@@ -378,6 +392,8 @@ describe("getLiteLLMModels", () => {
 			supportsImages: false,
 			supportsComputerUse: true, // True because explicitly set to true
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "custom-model via LiteLLM proxy",
@@ -389,9 +405,50 @@ describe("getLiteLLMModels", () => {
 			supportsImages: false,
 			supportsComputerUse: false, // False because explicitly set to false
 			supportsPromptCache: false,
+			supportsReasoningEffort: false,
+			shouldExposeDefaultReasoningEffort: false,
 			inputPrice: undefined,
 			outputPrice: undefined,
 			description: "another-custom-model via LiteLLM proxy",
+		})
+	})
+
+	it("sets shouldExposeDefaultReasoningEffort when supports_reasoning is true", async () => {
+		const mockResponse = {
+			data: {
+				data: [
+					{
+						model_name: "reasoning-model",
+						model_info: {
+							max_tokens: 4096,
+							max_input_tokens: 200000,
+							supports_vision: true,
+							supports_prompt_caching: false,
+							supports_reasoning: true, // This should set shouldExposeDefaultReasoningEffort to true
+						},
+						litellm_params: {
+							model: "openai/o1-preview",
+						},
+					},
+				],
+			},
+		}
+
+		mockedAxios.get.mockResolvedValue(mockResponse)
+
+		const result = await getLiteLLMModels("test-api-key", "http://localhost:4000")
+
+		expect(result["reasoning-model"]).toEqual({
+			maxTokens: 4096,
+			contextWindow: 200000,
+			supportsImages: true,
+			supportsComputerUse: false,
+			supportsPromptCache: false,
+			supportsReasoningEffort: true,
+			shouldExposeDefaultReasoningEffort: true,
+			inputPrice: undefined,
+			outputPrice: undefined,
+			description: "reasoning-model via LiteLLM proxy",
 		})
 	})
 

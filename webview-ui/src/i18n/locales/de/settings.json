@@ -283,6 +283,7 @@
 		},
 		"reasoningEffort": {
 			"label": "Modell-Denkaufwand",
+			"default": "Standard",
 			"high": "Hoch",
 			"medium": "Mittel",
 			"low": "Niedrig"

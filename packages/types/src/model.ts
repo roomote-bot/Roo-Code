@@ -6,6 +6,8 @@ import { z } from "zod"
 
 export const reasoningEfforts = ["low", "medium", "high"] as const
 
+export const reasoningEffortsWithDefault = ["default", "low", "medium", "high"] as const
+
 export const reasoningEffortsSchema = z.enum(reasoningEfforts)
 
 export type ReasoningEffort = z.infer<typeof reasoningEffortsSchema>
@@ -37,6 +39,7 @@ export const modelInfoSchema = z.object({
 	supportsReasoningBudget: z.boolean().optional(),
 	requiredReasoningBudget: z.boolean().optional(),
 	supportsReasoningEffort: z.boolean().optional(),
+	shouldExposeDefaultReasoningEffort: z.boolean().optional(),
 	supportedParameters: z.array(modelParametersSchema).optional(),
 	inputPrice: z.number().optional(),
 	outputPrice: z.number().optional(),
