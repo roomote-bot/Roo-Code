@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { X } from 'lucide-react';
 
-import type { User } from '@/db/server';
-import type { Task } from '@/types/analytics';
+import type { TaskWithUser } from '@/actions/analytics';
 import { getMessages } from '@/actions/analytics';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
+import { generateFallbackTitle } from '@/lib/taskUtils';
 import {
   Drawer,
   DrawerContent,
@@ -18,7 +18,7 @@ import { Status } from './Status';
 import { Messages } from './Messages';
 
 type TaskDrawerProps = {
-  task: Task & { user: User };
+  task: TaskWithUser;
   onClose: () => void;
 };
 
@@ -32,7 +32,7 @@ export const TaskDrawer = ({ task, onClose }: TaskDrawerProps) => {
     <Drawer open={true} onOpenChange={onClose} direction="right">
       <DrawerContent className="flex flex-col h-full">
         <DrawerHeader className="flex-shrink-0">
-          <DrawerTitle>Task</DrawerTitle>
+          <DrawerTitle>{task.title || generateFallbackTitle(task)}</DrawerTitle>
           <DrawerDescription>{task.taskId}</DrawerDescription>
           <div className="absolute top-2 right-2">
             <Button variant="ghost" size="sm" onClick={onClose}>

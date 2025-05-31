@@ -4,8 +4,7 @@ import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { X } from 'lucide-react';
 
-import type { User } from '@/db/server';
-import type { Task } from '@/types/analytics';
+import type { TaskWithUser } from '@/actions/analytics';
 import { Badge, Button } from '@/components/ui';
 import { UsageCard } from '@/components/usage';
 
@@ -19,7 +18,7 @@ export const Usage = () => {
   const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
   const [filter, setFilter] = useState<Filter | null>(null);
-  const [task, setTask] = useState<(Task & { user: User }) | null>(null);
+  const [task, setTask] = useState<TaskWithUser | null>(null);
 
   const onFilter = useCallback((filter: Filter) => {
     setFilter(filter);
@@ -62,7 +61,7 @@ export const Usage = () => {
           <Tasks
             filter={filter}
             onFilter={onFilter}
-            onTaskSelected={(task: Task & { user: User }) => setTask(task)}
+            onTaskSelected={(task: TaskWithUser) => setTask(task)}
           />
         ) : viewMode === 'developers' ? (
           <Developers onFilter={onFilter} />

@@ -8,7 +8,7 @@ import {
 } from '@roo-code/types';
 
 import type { TimePeriod } from '@/types';
-import { type Task, taskSchema } from '@/types/analytics';
+import { taskSchema } from '@/types/analytics';
 import { analytics } from '@/lib/server';
 import { type User, getUsersById } from '@/db/server';
 
@@ -225,30 +225,48 @@ export const getModelUsage = async ({
  * getTasks
  */
 
+const taskWithTitleSchema = taskSchema.extend({
+  title: z.string().nullable(),
+});
+
+export type TaskWithTitle = z.infer<typeof taskWithTitleSchema>;
+
+export type TaskWithUser = TaskWithTitle & { user: User };
+
 export const getTasks = async ({
   orgId,
 }: {
   orgId?: string | null;
-}): Promise<(Task & { user: User })[]> => {
+}): Promise<TaskWithUser[]> => {
   if (!orgId) {
     return [];
   }
 
   const results = await analytics.query({
     query: `
+      WITH first_messages AS (
+        SELECT
+          taskId,
+          argMin(text, ts) as title
+        FROM messages
+        WHERE orgId = {orgId: String}
+        GROUP BY taskId
+      )
       SELECT
-        taskId,
-        userId,
-        apiProvider AS provider,
-        modelId as model,
-        MAX(CASE WHEN type = 'Task Completed' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN type = 'LLM Completion' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
-        SUM(CASE WHEN type = 'LLM Completion' THEN COALESCE(cost, 0) ELSE 0 END) AS cost,
-        MIN(timestamp) AS timestamp
-      FROM events
+        e.taskId,
+        e.userId,
+        e.apiProvider AS provider,
+        e.modelId as model,
+        MAX(CASE WHEN e.type = 'Task Completed' THEN 1 ELSE 0 END) AS completed,
+        SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.inputTokens, 0) + COALESCE(e.outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.cost, 0) ELSE 0 END) AS cost,
+        MIN(e.timestamp) AS timestamp,
+        any(fm.title) AS title
+      FROM events e
+      LEFT JOIN first_messages fm ON e.taskId = fm.taskId
       WHERE
-        orgId = {orgId: String}
-        AND type IN ({types: Array(String)})
+        e.orgId = {orgId: String}
+        AND e.type IN ({types: Array(String)})
       GROUP BY 1, 2, 3, 4
       ORDER BY timestamp DESC
     `,
@@ -263,11 +281,11 @@ export const getTasks = async ({
     },
   });
 
-  const tasks = z.array(taskSchema).parse(await results.json());
+  const tasks = z.array(taskWithTitleSchema).parse(await results.json());
 
   const users = await getUsersById(tasks.map(({ userId }) => userId));
 
   return tasks
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
-    .filter((usage): usage is Task & { user: User } => !!usage.user);
+    .filter((usage): usage is TaskWithUser => !!usage.user);
 };

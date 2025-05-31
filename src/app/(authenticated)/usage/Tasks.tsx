@@ -1,17 +1,13 @@
 import { useMemo } from 'react';
-import type { ColumnDef } from '@tanstack/react-table';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
-import type { User } from '@/db/server';
-import type { Task } from '@/types/analytics';
+import type { TaskWithUser } from '@/actions/analytics';
 import { getTasks } from '@/actions/analytics';
-import { formatNumber, formatCurrency } from '@/lib/formatters';
-import { Button, Skeleton } from '@/components/ui';
-import { DataTable } from '@/components/layout';
+import { Skeleton } from '@/components/ui';
+import { TaskCard } from '@/components/usage';
 
 import type { Filter } from './types';
-import { Status } from './Status';
 
 export const Tasks = ({
   filter,
@@ -20,11 +16,11 @@ export const Tasks = ({
 }: {
   filter: Filter | null;
   onFilter: (filter: Filter) => void;
-  onTaskSelected: (task: Task & { user: User }) => void;
+  onTaskSelected: (task: TaskWithUser) => void;
 }) => {
   const { orgId } = useAuth();
 
-  const { data = Array(3).fill({}), isPending } = useQuery({
+  const { data = [], isPending } = useQuery({
     queryKey: ['getTasks', orgId],
     queryFn: () => getTasks({ orgId }),
     enabled: !!orgId,
@@ -42,87 +38,36 @@ export const Tasks = ({
     );
   }, [filter, data]);
 
-  const cols: ColumnDef<Task & { user: User }>[] = useMemo(
-    () => [
-      {
-        header: 'Task ID',
-        cell: ({ row: { original: task } }) => (
-          <Button
-            variant="link"
-            onClick={() => onTaskSelected(task)}
-            className="px-0"
-          >
-            {task.taskId.slice(0, 8)}
-          </Button>
-        ),
-      },
-      {
-        header: 'Developer',
-        cell: ({ row }) => (
-          <Button
-            variant="link"
-            onClick={() =>
-              onFilter({
-                type: 'userId',
-                value: row.original.userId,
-                label: row.original.user.name,
-              })
-            }
-            className="px-0"
-          >
-            {row.original.user.name}
-          </Button>
-        ),
-      },
-      {
-        header: 'Model',
-        cell: ({ row }) => (
-          <Button
-            variant="link"
-            onClick={() =>
-              onFilter({
-                type: 'model',
-                value: row.original.model,
-                label: row.original.model,
-              })
-            }
-            className="px-0"
-          >
-            {row.original.model}
-          </Button>
-        ),
-      },
-      {
-        header: 'Tokens',
-        cell: ({ row }) => formatNumber(row.original.tokens),
-      },
-      {
-        header: 'Cost (USD)',
-        cell: ({ row }) => formatCurrency(row.original.cost),
-      },
-      {
-        header: 'Date',
-        cell: ({ row }) =>
-          new Date(1000 * row.original.timestamp).toLocaleString(),
-      },
-      {
-        header: 'Status',
-        cell: ({ row }) => <Status completed={row.original.completed} />,
-      },
-    ],
-    [onFilter, onTaskSelected],
-  );
+  if (isPending) {
+    return (
+      <div className="space-y-3">
+        {Array(8)
+          .fill(0)
+          .map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
+          ))}
+      </div>
+    );
+  }
 
-  const columns = useMemo(
-    () =>
-      isPending
-        ? cols.map((col) => ({
-            ...col,
-            cell: () => <Skeleton className="h-9 w-full" />,
-          }))
-        : cols,
-    [isPending, cols],
-  );
+  if (tasks.length === 0) {
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No tasks found
+      </div>
+    );
+  }
 
-  return <DataTable columns={columns} data={tasks} />;
+  return (
+    <div className="space-y-3">
+      {tasks.map((task) => (
+        <TaskCard
+          key={task.taskId}
+          task={task}
+          onFilter={onFilter}
+          onTaskSelected={onTaskSelected}
+        />
+      ))}
+    </div>
+  );
 };
