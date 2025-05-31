@@ -33,9 +33,20 @@ export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
   switch (event.type) {
     case TelemetryEventName.TASK_MESSAGE: {
       table = 'messages';
-      const { taskId, message } = event.properties;
+      const { taskId, mode, message } = event.properties;
       const { ts, type, ask, say, text, reasoning, partial } = message;
-      value = { ...rest, taskId, ts, type, ask, say, text, reasoning, partial };
+      value = {
+        ...rest,
+        taskId,
+        mode,
+        ts,
+        type,
+        ask,
+        say,
+        text,
+        reasoning,
+        partial,
+      };
       break;
     }
     default: {

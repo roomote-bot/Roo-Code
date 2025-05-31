@@ -16,3 +16,5 @@ CREATE TABLE default.messages
 ENGINE = ReplicatedMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}')
 ORDER BY (id, timestamp)
 SETTINGS index_granularity = 8192;
+
+ALTER TABLE default.messages ADD COLUMN mode Nullable(String);

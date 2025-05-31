@@ -46,7 +46,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@radix-ui/react-tooltip": "^1.2.7",
-    "@roo-code/types": "^1.23.0",
+    "@roo-code/types": "^1.24.0",
     "@sentry/nextjs": "^9.23.0",
     "@t3-oss/env-nextjs": "^0.13.6",
     "@tailwindcss/postcss": "^4.1.8",
