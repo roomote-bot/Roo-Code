@@ -4,7 +4,14 @@ import { useTranslations } from 'next-intl';
 import { useQuery } from '@tanstack/react-query';
 
 import { getOrganizationSettings } from '@/actions/organizationSettings';
-import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  Badge,
+} from '@/components/ui';
 import { Loading } from '@/components/layout';
 
 import { ProviderForm } from './ProviderForm';
@@ -24,6 +31,11 @@ export const ProviderSettings = () => {
           <CardTitle>{t('title')}</CardTitle>
           <CardDescription>{t('description')}</CardDescription>
         </CardHeader>
+        <CardContent>
+          <Badge variant="outline" className="text-xs">
+            {`Policy v${orgSettings?.version || 1}`}
+          </Badge>
+        </CardContent>
       </Card>
       {orgSettings ? <ProviderForm orgSettings={orgSettings} /> : <Loading />}
     </>

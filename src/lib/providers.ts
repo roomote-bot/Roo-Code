@@ -1,47 +1,51 @@
-import { type ProviderName } from '@roo-code/types';
+import {
+  type ProviderName,
+  type ModelInfo,
+  anthropicModels,
+  bedrockModels,
+  chutesModels,
+  deepSeekModels,
+  geminiModels,
+  groqModels,
+  vertexModels,
+  mistralModels,
+  openAiNativeModels,
+  vscodeLlmModels,
+  xaiModels,
+} from '@roo-code/types';
 
-import openRouterModels from '@/lib/data/openrouter-models.json';
-import anthropicModels from '@/lib/data/anthropic.json';
-import geminiModels from '@/lib/data/gemini.json';
-import deepseekModels from '@/lib/data/deepseek.json';
-import openaiNativeModels from '@/lib/data/openai-native.json';
-import vertexModels from '@/lib/data/vertex.json';
-import bedrockModels from '@/lib/data/bedrock.json';
-import mistralModels from '@/lib/data/mistral.json';
-import requestyModels from '@/lib/data/requesty-models.json';
-import groqModels from '@/lib/data/groq.json';
-import xaiModels from '@/lib/data/xai.json';
-import unboundModels from '@/lib/data/unbound.json';
-import glamaModels from '@/lib/data/glama.json';
-import chutesModels from '@/lib/data/chutes.json';
+export const providers: Record<
+  Exclude<ProviderName, 'fake-ai' | 'human-relay'>,
+  { id: ProviderName; label: string; models?: Record<string, ModelInfo> }
+> = {
+  anthropic: { id: 'anthropic', label: 'Anthropic', models: anthropicModels },
+  bedrock: { id: 'bedrock', label: 'Amazon Bedrock', models: bedrockModels },
+  chutes: { id: 'chutes', label: 'Chutes AI', models: chutesModels },
+  deepseek: { id: 'deepseek', label: 'DeepSeek', models: deepSeekModels },
+  gemini: { id: 'gemini', label: 'Google Gemini', models: geminiModels },
+  'openai-native': {
+    id: 'openai-native',
+    label: 'OpenAI',
+    models: openAiNativeModels,
+  },
+  vertex: { id: 'vertex', label: 'GCP Vertex AI', models: vertexModels },
+  'vscode-lm': {
+    id: 'vscode-lm',
+    label: 'VS Code LM API',
+    models: vscodeLlmModels,
+  },
+  mistral: { id: 'mistral', label: 'Mistral', models: mistralModels },
+  xai: { id: 'xai', label: 'xAI (Grok)', models: xaiModels },
+  groq: { id: 'groq', label: 'Groq', models: groqModels },
 
-type BaseProvider = {
-  id: ProviderName;
-  label: string;
-  models: string[];
+  openai: { id: 'openai', label: 'OpenAI Compatible' }, // Models are manually added.
+  ollama: { id: 'ollama', label: 'Ollama' }, // Models pulled locally from the Ollama server.
+  lmstudio: { id: 'lmstudio', label: 'LM Studio' }, // Not sure...
+
+  // Models pulled from the respective APIs.
+  openrouter: { id: 'openrouter', label: 'OpenRouter' },
+  requesty: { id: 'requesty', label: 'Requesty' },
+  litellm: { id: 'litellm', label: 'LiteLLM' },
+  unbound: { id: 'unbound', label: 'Unbound' },
+  glama: { id: 'glama', label: 'Glama' },
 };
-
-export const providers = (
-  [
-    { id: 'openrouter', label: 'OpenRouter', models: openRouterModels },
-    { id: 'anthropic', label: 'Anthropic', models: anthropicModels },
-    { id: 'gemini', label: 'Google Gemini', models: geminiModels },
-    { id: 'deepseek', label: 'DeepSeek', models: deepseekModels },
-    { id: 'openai-native', label: 'OpenAI', models: openaiNativeModels },
-    { id: 'openai', label: 'OpenAI Compatible', models: [] },
-    { id: 'vertex', label: 'GCP Vertex AI', models: vertexModels },
-    { id: 'bedrock', label: 'Amazon Bedrock', models: bedrockModels },
-    { id: 'glama', label: 'Glama', models: glamaModels },
-    { id: 'vscode-lm', label: 'VS Code LM API', models: [] },
-    { id: 'mistral', label: 'Mistral', models: mistralModels },
-    { id: 'lmstudio', label: 'LM Studio', models: [] },
-    { id: 'ollama', label: 'Ollama', models: [] },
-    { id: 'unbound', label: 'Unbound', models: unboundModels },
-    { id: 'requesty', label: 'Requesty', models: requestyModels },
-    { id: 'human-relay', label: 'Human Relay', models: [] },
-    { id: 'xai', label: 'xAI (Grok)', models: xaiModels },
-    { id: 'groq', label: 'Groq', models: groqModels },
-    { id: 'chutes', label: 'Chutes AI', models: chutesModels },
-    { id: 'litellm', label: 'LiteLLM', models: [] },
-  ] satisfies BaseProvider[]
-).sort((a, b) => a.label.localeCompare(b.label));

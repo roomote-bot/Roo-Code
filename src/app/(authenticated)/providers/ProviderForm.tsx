@@ -7,7 +7,8 @@ import type { ProviderName } from '@roo-code/types';
 import { type OrganizationSettings, ORGANIZATION_ALLOW_ALL } from '@/types';
 import { providers } from '@/lib/providers';
 import { updateOrganization } from '@/actions/organizationSettings';
-import { Badge, Button, Checkbox, Label } from '@/components/ui';
+import { cn } from '@/lib/utils';
+import { Switch, Button, Checkbox, Label } from '@/components/ui';
 import { MultipleSelector } from '@/components/ui/ecosystem';
 import { Loading } from '@/components/layout';
 
@@ -20,21 +21,17 @@ export const ProviderForm = ({ orgSettings }: ProviderFormProps) => {
 
   const fullProviderMetadata = useMemo(
     () =>
-      providers.map((provider) => {
-        const models = orgSettings.allowList.providers[provider.id]?.models;
+      Object.entries(providers).map(([id, provider]) => {
+        const models =
+          orgSettings.allowList.providers[id as ProviderName]?.models;
 
         if (models) {
-          const providerModels = new Set(provider.models);
-
-          const difference = models.filter(
-            (model) => !providerModels.has(model),
-          );
+          const providerModels = Object.keys(provider.models || {});
+          const set = new Set(providerModels);
+          const difference = models.filter((model) => !set.has(model));
 
           if (difference.length > 0) {
-            return {
-              ...provider,
-              models: [...provider.models, ...difference],
-            };
+            return { ...provider, models: [...providerModels, ...difference] };
           }
         }
 
@@ -60,7 +57,12 @@ export const ProviderForm = ({ orgSettings }: ProviderFormProps) => {
 
   const [providerModels, setProviderModels] = useState(
     fullProviderMetadata.reduce((acc, meta) => {
-      acc.set(meta.id, orgSettings.allowList.providers[meta.id]?.models || []);
+      const models = Object.keys(
+        orgSettings.allowList.providers[meta.id]?.models || {},
+      );
+
+      acc.set(meta.id, models);
+
       return acc;
     }, new Map<ProviderName, string[]>()),
   );
@@ -70,12 +72,6 @@ export const ProviderForm = ({ orgSettings }: ProviderFormProps) => {
 
   const isProviderAllowAll = (providerId: ProviderName) =>
     providerAllowAll.has(providerId);
-
-  const toggleAllowAll = () => {
-    setAllowAll(!allowAll);
-
-    setHasChanges(true);
-  };
 
   const toggleProvider = (providerId: ProviderName) => {
     const newProviderAllowAll = new Set(providerAllowAll);
@@ -133,35 +129,37 @@ export const ProviderForm = ({ orgSettings }: ProviderFormProps) => {
       const result = await updateOrganization({ allowList: allowList });
 
       if (!result.success) {
-        throw new Error(result.error || 'Failed to update settings');
+        throw new Error(result.error || 'Failed to update settings.');
       }
 
       queryClient.invalidateQueries({ queryKey: ['organizationSettings'] });
-
-      toast.success('Provider settings saved successfully');
+      toast.success('Changes will be deployed within 30 seconds.');
       setHasChanges(false);
     } catch (error) {
-      console.error('Failed to save provider settings', error);
-      toast.error('Failed to save provider settings');
+      console.error('Failed to save provider settings.', error);
+      toast.error('Failed to save provider settings.');
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <>
+    <div className="mb-[80px]">
       <div className="mb-4 flex items-center space-x-2">
-        <Checkbox
-          id="allow-all-providers"
-          checked={allowAll}
-          onCheckedChange={toggleAllowAll}
-          disabled={isSaving}
-        />
-        <Label htmlFor="allow-all-providers" className="text-sm font-medium">
-          Allow All Providers
+        <Label className="text-sm font-medium">
+          Restrict Providers
+          <Switch
+            checked={!allowAll}
+            onCheckedChange={() => {
+              setAllowAll(!allowAll);
+              setHasChanges(true);
+            }}
+            disabled={isSaving}
+          />
         </Label>
       </div>
-      <div className={allowAll ? 'opacity-50' : ''}>
+
+      <div className={cn({ hidden: allowAll })}>
         {fullProviderMetadata.map((provider) => (
           <div key={provider.id} className="mb-4">
             <div className="mb-2 flex items-center justify-between">
@@ -180,11 +178,13 @@ export const ProviderForm = ({ orgSettings }: ProviderFormProps) => {
             </div>
             <div className="max-w-full">
               <MultipleSelector
-                defaultOptions={provider.models.map((model) => ({
-                  label: model,
-                  value: model,
-                  disable: providerModels.get(provider.id)?.includes(model),
-                }))}
+                defaultOptions={Object.keys(provider.models || {}).map(
+                  (model) => ({
+                    label: model,
+                    value: model,
+                    disable: providerModels.get(provider.id)?.includes(model),
+                  }),
+                )}
                 value={(providerModels.get(provider.id) || []).map((model) => ({
                   label: model,
                   value: model,
@@ -203,25 +203,18 @@ export const ProviderForm = ({ orgSettings }: ProviderFormProps) => {
           </div>
         ))}
       </div>
-      <div className="flex items-center space-x-2 pt-2">
-        <Badge variant="outline" className="text-xs">
-          {`Policy v${orgSettings?.version || 1}`}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {isSaving
-            ? 'Updating provider whitelist...'
-            : hasChanges
-              ? 'You have unsaved changes'
-              : 'Changes will be pushed to SSE stream within 30 seconds'}
-        </span>
-      </div>
-      <Button
-        onClick={saveChanges}
-        disabled={!hasChanges || isSaving}
-        className="mt-4"
+
+      <div
+        className={cn('fixed bottom-0 left-0 right-0', {
+          hidden: !hasChanges && !isSaving,
+        })}
       >
-        {isSaving ? <Loading /> : 'Save Changes'}
-      </Button>
-    </>
+        <div className="flex items-center justify-end h-[80px] bg-card border-t px-6">
+          <Button onClick={saveChanges} disabled={!hasChanges || isSaving}>
+            {isSaving ? <Loading /> : 'Save Changes'}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 };

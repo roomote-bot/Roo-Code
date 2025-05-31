@@ -66,8 +66,8 @@ importers:
         specifier: ^1.2.7
         version: 1.2.7(@types/react@19.1.6)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@roo-code/types':
-        specifier: ^1.22.0
-        version: 1.22.0
+        specifier: ^1.23.0
+        version: 1.23.0
       '@sentry/nextjs':
         specifier: ^9.23.0
         version: 9.23.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.3.3(@babel/core@7.27.3)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(webpack@5.99.9(@swc/core@1.11.29)(esbuild@0.25.5))
@@ -1845,8 +1845,8 @@ packages:
     bundledDependencies:
       - '@libsql/libsql-wasm-experimental'
 
-  '@libsql/core@0.15.7':
-    resolution: {integrity: sha512-hW1++8iKAEnb7Y3EZ2zXRR+1K0MKdRT7SLaNgFkfwz6CmiIBY3sYN7VSftNS7IR6xKRvFBpoz10CC63NoFGkaQ==}
+  '@libsql/core@0.15.8':
+    resolution: {integrity: sha512-oX2fQqDbZkaBUvFMGvJq1Jh+mVzJrgNbEwK6Wzvp91z3uMe9iaIIXgO8yxB72RpUf7BqzjiKHjEiRXytfTdbUw==}
 
   '@logtail/core@0.5.4':
     resolution: {integrity: sha512-UlbxvUg5MDroqk6gEhtfKuuBShrvD/VaXl3T3jGU1U6I19Y1OwfB7e681LvH7RbsCAnOJFziM/7rMQib/CJTdg==}
@@ -2917,8 +2917,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@roo-code/types@1.22.0':
-    resolution: {integrity: sha512-yTBVf/bp3vMBLIBL+wWMWg4NFjYyEv8SygnjZMN5StEFxVojDOASS4MRWHM821UaJrnGSB/tpf0UJoRf7o41fA==}
+  '@roo-code/types@1.23.0':
+    resolution: {integrity: sha512-CFZ2UFlrNdHymUKrqB7iu7U6X6WwoDncvkrAidMcMzQU175o/GkLLgetIIVFVuYXyvRu01xUkReU0r9esQJVeg==}
 
   '@schummar/icu-type-parser@1.21.5':
     resolution: {integrity: sha512-bXHSaW5jRTmke9Vd0h5P7BtWZG9Znqb8gSDxZnxaGSJnGwPLDPfS+3g0BKzeWqzgZPsIVZkM7m2tbo18cm5HBw==}
@@ -10563,11 +10563,11 @@ snapshots:
 
   '@libsql/client-wasm@0.15.5':
     dependencies:
-      '@libsql/core': 0.15.7
+      '@libsql/core': 0.15.8
       js-base64: 3.7.7
     optional: true
 
-  '@libsql/core@0.15.7':
+  '@libsql/core@0.15.8':
     dependencies:
       js-base64: 3.7.7
     optional: true
@@ -11656,7 +11656,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.41.1':
     optional: true
 
-  '@roo-code/types@1.22.0': {}
+  '@roo-code/types@1.23.0': {}
 
   '@schummar/icu-type-parser@1.21.5': {}
 
