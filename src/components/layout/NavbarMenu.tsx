@@ -10,7 +10,6 @@ import { Section } from './Section';
 type NavbarMenuProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'>;
 
 const tabValues = [
-  '/dashboard',
   '/usage',
   '/audit-logs',
   '/providers',
@@ -50,7 +49,6 @@ export const NavbarMenu = (props: NavbarMenuProps) => {
             value={tabValue}
           >
             <TabsList>
-              <TabsTrigger value="/dashboard">Dashboard</TabsTrigger>
               <TabsTrigger value="/usage">Usage</TabsTrigger>
               <TabsTrigger value="/audit-logs">Audit Logs</TabsTrigger>
               <TabsTrigger value="/providers">Providers</TabsTrigger>

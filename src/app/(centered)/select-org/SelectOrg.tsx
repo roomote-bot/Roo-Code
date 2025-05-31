@@ -19,7 +19,7 @@ export const SelectOrg = () => {
 
   const redirectUrl = authState.params
     ? `/extension/sign-in?${authState.params.toString()}`
-    : '/dashboard';
+    : '/usage';
 
   const isLoading =
     !isLoaded ||

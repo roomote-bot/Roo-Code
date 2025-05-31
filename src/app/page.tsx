@@ -3,5 +3,5 @@ import { currentUser } from '@clerk/nextjs/server';
 
 export default async function Page() {
   const user = await currentUser().catch(() => null);
-  redirect(user !== null ? '/dashboard' : '/sign-in');
+  redirect(user !== null ? '/usage' : '/sign-in');
 }

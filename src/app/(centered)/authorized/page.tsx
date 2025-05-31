@@ -36,7 +36,7 @@ export default function Page() {
       } else {
         path = authState.params
           ? `/extension/sign-in?${authState.params.toString()}`
-          : '/dashboard';
+          : '/usage';
       }
 
       setTimeout(() => router.push(path), 1000);

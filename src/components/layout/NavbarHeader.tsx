@@ -11,13 +11,13 @@ export const NavbarHeader = (props: NavbarHeaderProps) => (
   <Section {...props}>
     <div className="flex justify-between items-center h-full">
       <div className="flex items-center gap-2">
-        <Link href="/dashboard">
+        <Link href="/usage">
           <HoppingLogo />
         </Link>
         <OrganizationSwitcher
           organizationProfileMode="navigation"
           organizationProfileUrl="/org"
-          afterCreateOrganizationUrl="/dashboard"
+          afterCreateOrganizationUrl="/usage"
           hidePersonal
         />
       </div>
