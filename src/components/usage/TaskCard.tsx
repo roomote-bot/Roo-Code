@@ -51,6 +51,11 @@ export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
               >
                 {task.user.name}
               </Button>
+              {task.mode && (
+                <span className="px-2 py-1 bg-muted rounded text-xs font-medium">
+                  {task.mode}
+                </span>
+              )}
               <Button
                 variant="link"
                 size="sm"

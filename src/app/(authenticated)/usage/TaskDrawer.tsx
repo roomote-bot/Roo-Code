@@ -56,6 +56,12 @@ export const TaskDrawer = ({ task, onClose }: TaskDrawerProps) => {
               <span className="text-muted-foreground">Model</span>
               <span className="max-w-64 truncate font-mono">{task.model}</span>
             </div>
+            {task.mode && (
+              <div className="flex justify-between items-center">
+                <span className="text-muted-foreground">Mode</span>
+                <span className="max-w-64 truncate">{task.mode}</span>
+              </div>
+            )}
             <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Tokens</span>
               <span className="max-w-64 truncate font-mono">

@@ -5,6 +5,7 @@ export const messageSchema = z.object({
   orgId: z.string(),
   userId: z.string(),
   taskId: z.string(),
+  mode: z.string().nullable(),
   ts: z.number(),
   type: z.enum(['ask', 'say']),
   ask: z.string().nullable(),

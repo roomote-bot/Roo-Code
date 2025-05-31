@@ -28,10 +28,17 @@ export const Messages = ({ messages }: MessagesProps) => {
             message.role === 'user' ? 'bg-primary/10' : 'bg-secondary/10',
           )}
         >
-          <div className="flex flex-row items-center gap-1 text-xs font-medium text-muted-foreground">
-            <div>{message.name}</div>
-            <div>&middot;</div>
-            <div>{message.timestamp}</div>
+          <div className="flex flex-row items-center justify-between gap-1 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <div>{message.name}</div>
+              <div>&middot;</div>
+              <div>{message.timestamp}</div>
+            </div>
+            {message.mode && (
+              <div className="px-2 py-1 bg-muted rounded text-xs font-medium">
+                {message.mode}
+              </div>
+            )}
           </div>
           <div className="text-sm markdown-prose">
             <ReactMarkdown>{message.text}</ReactMarkdown>

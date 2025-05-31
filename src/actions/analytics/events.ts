@@ -258,7 +258,8 @@ export const getTasks = async ({
       WITH first_messages AS (
         SELECT
           taskId,
-          argMin(text, ts) as title
+          argMin(text, ts) as title,
+          argMin(mode, ts) as mode
         FROM messages
         WHERE orgId = {orgId: String}
         GROUP BY taskId
@@ -268,6 +269,7 @@ export const getTasks = async ({
         e.userId,
         e.apiProvider AS provider,
         e.modelId as model,
+        any(fm.mode) AS mode,
         MAX(CASE WHEN e.type = 'Task Completed' THEN 1 ELSE 0 END) AS completed,
         SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.inputTokens, 0) + COALESCE(e.outputTokens, 0) ELSE 0 END) AS tokens,
         SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.cost, 0) ELSE 0 END) AS cost,
