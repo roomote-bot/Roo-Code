@@ -1,8 +1,4 @@
-import {
-  formatNumber,
-  formatCurrency,
-  formatTimestamp,
-} from '@/lib/formatters';
+import { formatNumber, formatCurrency } from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/taskUtils';
 import { Card, CardContent, Button } from '@/components/ui';
 
@@ -16,6 +12,27 @@ type TaskCardProps = {
   onTaskSelected: (task: TaskWithUser) => void;
 };
 
+// Helper function for elegant timestamp display
+const formatElegantTime = (timestamp: number): string => {
+  const date = new Date(timestamp * 1000);
+  const now = new Date();
+
+  // Check if it's today
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+
+  // Check if it's yesterday
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return 'Yesterday';
+  }
+
+  // Otherwise return a short date format
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+};
+
 export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
   return (
     <Card
@@ -23,19 +40,23 @@ export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
       onClick={() => onTaskSelected(task)}
     >
       <CardContent className="p-0">
-        <div className="px-4 py-2">
-          {/* First line - Title and Status */}
-          <div className="flex items-center justify-between gap-2 mb-1">
+        <div className="px-4 py-2.5">
+          {/* Line 1: Title and Status */}
+          <div className="flex items-center justify-between gap-2 mb-1.5">
             <h3 className="font-medium text-sm truncate flex-1 leading-none">
               {task.title || generateFallbackTitle(task)}
             </h3>
             <Status completed={task.completed} />
           </div>
 
-          {/* Second line - All metadata */}
-          <div className="flex items-center justify-between gap-3 text-xs text-muted-foreground">
-            <div className="flex items-center gap-3">
-              <span>{formatTimestamp(task.timestamp)}</span>
+          {/* Line 2: All metadata in a single line with bullet separators between items */}
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            {/* Left side: Date, User, and Mode (if present) with bullet separators */}
+            <div className="flex items-center">
+              <span className="whitespace-nowrap">
+                {formatElegantTime(task.timestamp)}
+              </span>
+              <div className="mx-2 text-muted-foreground/30">•</div>
               <Button
                 variant="link"
                 size="sm"
@@ -51,33 +72,24 @@ export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
               >
                 {task.user.name}
               </Button>
+
+              {/* Mode (if present) */}
               {task.mode && (
-                <span className="px-2 py-1 bg-muted rounded text-xs font-medium">
-                  {task.mode}
-                </span>
+                <>
+                  <div className="mx-2 text-muted-foreground/30">•</div>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {task.mode}
+                  </span>
+                </>
               )}
-              <Button
-                variant="link"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFilter({
-                    type: 'model',
-                    value: task.model,
-                    label: task.model,
-                  });
-                }}
-                className="px-0 h-auto text-xs font-normal font-mono text-muted-foreground hover:text-foreground"
-              >
-                {task.model}
-              </Button>
             </div>
 
-            {/* Metrics on the right */}
-            <div className="flex items-center gap-3">
+            {/* Right side: Tokens and Cost with bullet separator */}
+            <div className="flex items-center whitespace-nowrap">
               <span className="font-medium">
                 {formatNumber(task.tokens)} tokens
               </span>
+              <div className="mx-2 text-muted-foreground/30">•</div>
               <span className="font-medium">{formatCurrency(task.cost)}</span>
             </div>
           </div>

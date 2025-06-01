@@ -64,20 +64,21 @@ export const UsageCard = () => {
         )}
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-row gap-2">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-row flex-wrap gap-1.5">
             {timePeriods.map((period) => (
               <Button
                 key={period}
                 variant={period === timePeriod ? 'default' : 'secondary'}
                 size="sm"
                 onClick={() => setTimePeriod(period)}
+                className="text-xs px-2.5 h-8"
               >
                 {t(`analytics_period_${period}_days`)}
               </Button>
             ))}
           </div>
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
             <Metric
               label={t('analytics_active_developers')}
               value={usage[TelemetryEventName.TASK_CREATED]?.users}

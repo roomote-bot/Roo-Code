@@ -59,7 +59,7 @@ export const Tasks = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 sm:space-y-4">
       {tasks.map((task) => (
         <TaskCard
           key={task.taskId}

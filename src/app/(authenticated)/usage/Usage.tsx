@@ -27,15 +27,16 @@ export const Usage = () => {
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-4 sm:gap-6">
         <UsageCard />
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {viewModes.map((mode) => (
             <Button
               key={mode}
               variant={viewMode === mode ? 'default' : 'secondary'}
               size="sm"
               onClick={() => setViewMode(mode)}
+              className="min-w-[80px]"
             >
               {t(`view_mode_${mode}`)}
             </Button>
