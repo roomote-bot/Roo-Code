@@ -2,10 +2,13 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
 import { Env } from '@/lib/server';
+import * as schema from './schema';
 
 const pgClient = postgres(Env.DATABASE_URL, { prepare: false });
 
-let testDb: ReturnType<typeof drizzle> | undefined = undefined;
+const client = drizzle({ client: pgClient, schema });
+
+let testDb: typeof client | undefined = undefined;
 
 if (process.env.NODE_ENV === 'test') {
   if (
@@ -15,11 +18,8 @@ if (process.env.NODE_ENV === 'test') {
     throw new Error('DATABASE_URL is not a test database');
   }
 
-  testDb = drizzle({ client: pgClient });
+  testDb = client;
 }
-
-const client =
-  process.env.NODE_ENV === 'test' ? testDb! : drizzle({ client: pgClient });
 
 const disconnect = async () => {
   await pgClient.end();

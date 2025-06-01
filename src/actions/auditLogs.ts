@@ -5,7 +5,7 @@ import { eq, gte, and, desc } from 'drizzle-orm';
 import { logger } from '@/lib/server';
 import {
   type DatabaseOrTransaction,
-  type AuditLog,
+  type AuditLogWithUser,
   type CreateAuditLog,
   client as db,
   auditLogs,
@@ -19,7 +19,7 @@ export const getAuditLogs = async ({
   orgId?: string | null;
   limit?: number;
   timePeriod?: number;
-}): Promise<AuditLog[]> => {
+}): Promise<AuditLogWithUser[]> => {
   if (!orgId) {
     return [];
   }
@@ -30,12 +30,14 @@ export const getAuditLogs = async ({
     }
 
     if (timePeriod === undefined) {
-      return await db
-        .select()
-        .from(auditLogs)
-        .where(eq(auditLogs.orgId, orgId))
-        .orderBy(desc(auditLogs.createdAt))
-        .limit(limit);
+      return await db.query.auditLogs.findMany({
+        where: eq(auditLogs.orgId, orgId),
+        with: {
+          user: true,
+        },
+        orderBy: desc(auditLogs.createdAt),
+        limit: limit,
+      });
     } else {
       if (isNaN(timePeriod) || timePeriod <= 0) {
         throw new Error('timePeriod must be a positive number');
@@ -44,14 +46,17 @@ export const getAuditLogs = async ({
       const cutoff = new Date();
       cutoff.setDate(cutoff.getDate() - timePeriod);
 
-      return await db
-        .select()
-        .from(auditLogs)
-        .where(
-          and(eq(auditLogs.orgId, orgId), gte(auditLogs.createdAt, cutoff)),
-        )
-        .orderBy(desc(auditLogs.createdAt))
-        .limit(limit);
+      return await db.query.auditLogs.findMany({
+        where: and(
+          eq(auditLogs.orgId, orgId),
+          gte(auditLogs.createdAt, cutoff),
+        ),
+        with: {
+          user: true,
+        },
+        orderBy: desc(auditLogs.createdAt),
+        limit: limit,
+      });
     }
   } catch (error) {
     logger.error({

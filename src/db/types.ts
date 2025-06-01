@@ -36,3 +36,7 @@ export type CreateOrgSettings = Omit<
 export type AuditLog = typeof auditLogs.$inferSelect;
 
 export type CreateAuditLog = Omit<typeof auditLogs.$inferInsert, Generated>;
+
+export type AuditLogWithUser = AuditLog & {
+  user: User;
+};

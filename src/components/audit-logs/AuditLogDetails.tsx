@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 
-import type { AuditLog } from '@/db';
+import type { AuditLogWithUser } from '@/db';
 
-export const AuditLogDetails = ({ log }: { log: AuditLog }) => (
+export const AuditLogDetails = ({ log }: { log: AuditLogWithUser }) => (
   <div className="space-y-6">
     <div className="space-y-4">
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -14,7 +14,9 @@ export const AuditLogDetails = ({ log }: { log: AuditLog }) => (
       </div>
       <div className="flex items-center space-x-2 text-sm text-muted-foreground">
         <User className="size-4" />
-        <span>{log.userId}</span>
+        <span>
+          {log.user.name} ({log.user.email})
+        </span>
       </div>
       {log.targetId && (
         <Link

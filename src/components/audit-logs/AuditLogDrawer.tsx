@@ -1,4 +1,4 @@
-import type { AuditLog } from '@/db';
+import type { AuditLogWithUser } from '@/db';
 import {
   Drawer,
   DrawerContent,
@@ -8,7 +8,7 @@ import {
 import { AuditLogDetails } from '@/components/audit-logs';
 
 type AuditLogDrawerProps = {
-  selectedLog: AuditLog | null;
+  selectedLog: AuditLogWithUser | null;
   onClose: () => void;
 };
 

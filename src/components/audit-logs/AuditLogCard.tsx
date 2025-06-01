@@ -7,7 +7,7 @@ import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowRightIcon } from 'lucide-react';
 
-import type { AuditLog } from '@/db';
+import type { AuditLogWithUser } from '@/db';
 import { getAuditLogs } from '@/actions/auditLogs';
 import {
   Card,
@@ -33,7 +33,7 @@ export function AuditLogCard() {
     enabled: !!orgId,
   });
 
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogWithUser | null>(null);
   const path = usePathname();
 
   return (
@@ -70,11 +70,11 @@ export function AuditLogCard() {
                 <Skeleton className="h-[64px] w-full" />
               </>
             ) : logs.length > 0 ? (
-              logs.map((log: AuditLog) => (
+              logs.map((log: AuditLogWithUser) => (
                 <AuditLogEntry
                   key={log.id}
                   log={log}
-                  onClick={(log: AuditLog) => setSelectedLog(log)}
+                  onClick={(log: AuditLogWithUser) => setSelectedLog(log)}
                 />
               ))
             ) : (
