@@ -72,6 +72,7 @@
     "react-hook-form": "^7.56.4",
     "react-markdown": "^10.1.0",
     "react-use": "^17.6.0",
+    "recharts": "^2.15.3",
     "sonner": "^2.0.3",
     "stripe": "^18.2.0",
     "tailwind-merge": "^3.3.0",

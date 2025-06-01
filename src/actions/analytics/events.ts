@@ -302,3 +302,69 @@ export const getTasks = async ({
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
     .filter((usage): usage is TaskWithUser => !!usage.user);
 };
+
+/**
+ * getDailyUsageByUser
+ */
+
+const dailyUsageByUserSchema = z.object({
+  date: z.string(),
+  userId: z.string(),
+  tasks: z.coerce.number(),
+  tokens: z.coerce.number(),
+  cost: z.coerce.number(),
+});
+
+export type DailyUsageByUser = z.infer<typeof dailyUsageByUserSchema> & {
+  user: User;
+};
+
+export const getDailyUsageByUser = async ({
+  orgId,
+  timePeriod = 90,
+}: {
+  orgId?: string | null;
+  timePeriod?: TimePeriod;
+}): Promise<DailyUsageByUser[]> => {
+  if (!orgId) {
+    return [];
+  }
+
+  const results = await analytics.query({
+    query: `
+      SELECT
+        toString(toDate(fromUnixTimestamp(timestamp))) as date,
+        userId,
+        SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasks,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
+      FROM events
+      WHERE
+        orgId = {orgId: String}
+        AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
+        AND type IN ({types: Array(String)})
+      GROUP BY 1, 2
+      ORDER BY date DESC, userId
+    `,
+    format: 'JSONEachRow',
+    query_params: {
+      orgId,
+      timePeriod,
+      types: [
+        TelemetryEventName.TASK_CREATED,
+        TelemetryEventName.TASK_COMPLETED,
+        TelemetryEventName.LLM_COMPLETION,
+      ],
+    },
+  });
+
+  const dailyUsages = z
+    .array(dailyUsageByUserSchema)
+    .parse(await results.json());
+
+  const users = await getUsersById(dailyUsages.map(({ userId }) => userId));
+
+  return dailyUsages
+    .map((usage) => ({ ...usage, user: users[usage.userId] }))
+    .filter((usage): usage is DailyUsageByUser => !!usage.user);
+};

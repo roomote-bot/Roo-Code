@@ -12,10 +12,9 @@ import { TelemetryEventName } from '@roo-code/types';
 
 import { type TimePeriod, timePeriods } from '@/types';
 import { getUsage } from '@/actions/analytics';
-import { formatCurrency } from '@/lib/formatters';
+import { formatCurrency, formatNumber } from '@/lib/formatters';
 
 import {
-  Button,
   Card,
   CardHeader,
   CardTitle,
@@ -24,12 +23,15 @@ import {
 } from '@/components/ui';
 import { Button as EnhancedButton } from '@/components/ui/ecosystem';
 
-import { Metric } from './Metric';
+import { UsageChart } from './UsageChart';
+
+type MetricType = 'tasks' | 'tokens' | 'cost';
 
 export const UsageCard = () => {
   const t = useTranslations('DashboardIndex');
   const { orgId } = useAuth();
   const [timePeriod, setTimePeriod] = useState<TimePeriod>(7);
+  const [selectedMetric, setSelectedMetric] = useState<MetricType>('tasks');
 
   const path = usePathname();
 
@@ -65,48 +67,95 @@ export const UsageCard = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">
-          <div className="flex flex-row flex-wrap gap-1.5">
-            {timePeriods.map((period) => (
-              <Button
-                key={period}
-                variant={period === timePeriod ? 'default' : 'secondary'}
-                size="sm"
-                onClick={() => setTimePeriod(period)}
-                className="text-xs px-2.5 h-8"
-              >
-                {t(`analytics_period_${period}_days`)}
-              </Button>
-            ))}
-          </div>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
-            <Metric
-              label={t('analytics_active_developers')}
-              value={usage[TelemetryEventName.TASK_CREATED]?.users}
-              isPending={isPending}
-            />
-            <Metric
-              label={t('analytics_tasks_started')}
-              value={usage[TelemetryEventName.TASK_CREATED]?.events}
-              isPending={isPending}
-            />
-            <Metric
-              label={t('analytics_tasks_completed')}
-              value={usage[TelemetryEventName.TASK_COMPLETED]?.events}
-              isPending={isPending}
-            />
-            <Metric
-              label={t('analytics_tokens_consumed')}
-              value={usage[TelemetryEventName.LLM_COMPLETION]?.tokens}
-              isPending={isPending}
-            />
-            <Metric
-              label={t('analytics_llm_costs')}
-              value={formatCurrency(
-                usage[TelemetryEventName.LLM_COMPLETION]?.cost,
+          <div className="flex flex-row flex-wrap gap-4 justify-between items-center">
+            <div className="flex flex-row gap-3 items-center">
+              {/* Time period toggles */}
+              <div className="flex flex-row gap-1">
+                {timePeriods.map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => setTimePeriod(period)}
+                    className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
+                      period === timePeriod
+                        ? 'bg-primary text-primary-foreground'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    {period}d
+                  </button>
+                ))}
+              </div>
+
+              {/* Chart metric toggles - only show on usage page */}
+              {path === '/usage' && (
+                <div className="flex flex-row gap-1">
+                  {(['tasks', 'tokens', 'cost'] as MetricType[]).map(
+                    (metric) => (
+                      <button
+                        key={metric}
+                        onClick={() => setSelectedMetric(metric)}
+                        className={`px-2 py-1 text-xs font-medium rounded transition-colors capitalize ${
+                          metric === selectedMetric
+                            ? 'bg-primary text-primary-foreground'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {metric}
+                      </button>
+                    ),
+                  )}
+                </div>
               )}
-              isPending={isPending}
-            />
+            </div>
+
+            {/* Compact inline metrics */}
+            <div className="flex flex-wrap gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Developers:</span>
+                <span className="font-medium">
+                  {isPending
+                    ? '...'
+                    : usage[TelemetryEventName.TASK_CREATED]?.users || 0}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Tasks:</span>
+                <span className="font-medium">
+                  {isPending
+                    ? '...'
+                    : `${usage[TelemetryEventName.TASK_CREATED]?.events || 0}/${usage[TelemetryEventName.TASK_COMPLETED]?.events || 0}`}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Tokens:</span>
+                <span className="font-medium">
+                  {isPending
+                    ? '...'
+                    : formatNumber(
+                        usage[TelemetryEventName.LLM_COMPLETION]?.tokens || 0,
+                      )}
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-muted-foreground">Cost:</span>
+                <span className="font-medium">
+                  {isPending
+                    ? '...'
+                    : formatCurrency(
+                        usage[TelemetryEventName.LLM_COMPLETION]?.cost || 0,
+                      )}
+                </span>
+              </div>
+            </div>
           </div>
+
+          {/* Chart displayed below on usage page */}
+          {path === '/usage' && (
+            <UsageChart
+              timePeriod={timePeriod}
+              selectedMetric={selectedMetric}
+            />
+          )}
         </div>
       </CardContent>
     </Card>

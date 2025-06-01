@@ -36,6 +36,9 @@
     "view_mode_title": "View By",
     "view_mode_developers": "Developers",
     "view_mode_models": "Models",
-    "view_mode_tasks": "Tasks"
+    "view_mode_tasks": "Tasks",
+    "chart_metric_tasks": "Tasks",
+    "chart_metric_tokens": "Tokens",
+    "chart_metric_cost": "Cost"
   }
 }
