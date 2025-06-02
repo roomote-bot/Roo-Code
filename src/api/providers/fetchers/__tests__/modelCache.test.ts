@@ -2,7 +2,6 @@ import { getModels } from "../modelCache"
 import { getLiteLLMModels } from "../litellm"
 import { getOpenRouterModels } from "../openrouter"
 import { getRequestyModels } from "../requesty"
-import { getGlamaModels } from "../glama"
 import { getUnboundModels } from "../unbound"
 
 // Mock NodeCache to avoid cache interference
@@ -25,13 +24,11 @@ jest.mock("fs/promises", () => ({
 jest.mock("../litellm")
 jest.mock("../openrouter")
 jest.mock("../requesty")
-jest.mock("../glama")
 jest.mock("../unbound")
 
 const mockGetLiteLLMModels = getLiteLLMModels as jest.MockedFunction<typeof getLiteLLMModels>
 const mockGetOpenRouterModels = getOpenRouterModels as jest.MockedFunction<typeof getOpenRouterModels>
 const mockGetRequestyModels = getRequestyModels as jest.MockedFunction<typeof getRequestyModels>
-const mockGetGlamaModels = getGlamaModels as jest.MockedFunction<typeof getGlamaModels>
 const mockGetUnboundModels = getUnboundModels as jest.MockedFunction<typeof getUnboundModels>
 
 const DUMMY_REQUESTY_KEY = "requesty-key-for-testing"
@@ -94,23 +91,6 @@ describe("getModels with new GetModelsOptions", () => {
 		const result = await getModels({ provider: "requesty", apiKey: DUMMY_REQUESTY_KEY })
 
 		expect(mockGetRequestyModels).toHaveBeenCalledWith(DUMMY_REQUESTY_KEY)
-		expect(result).toEqual(mockModels)
-	})
-
-	it("calls getGlamaModels for glama provider", async () => {
-		const mockModels = {
-			"glama/model": {
-				maxTokens: 4096,
-				contextWindow: 8192,
-				supportsPromptCache: false,
-				description: "Glama model",
-			},
-		}
-		mockGetGlamaModels.mockResolvedValue(mockModels)
-
-		const result = await getModels({ provider: "glama" })
-
-		expect(mockGetGlamaModels).toHaveBeenCalled()
 		expect(result).toEqual(mockModels)
 	})
 

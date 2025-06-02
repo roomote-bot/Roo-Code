@@ -32,11 +32,6 @@ function validateModelsAndKeysProvided(apiConfiguration: ProviderSettings): stri
 				return i18next.t("settings:validation.apiKey")
 			}
 			break
-		case "glama":
-			if (!apiConfiguration.glamaApiKey) {
-				return i18next.t("settings:validation.apiKey")
-			}
-			break
 		case "unbound":
 			if (!apiConfiguration.unboundApiKey) {
 				return i18next.t("settings:validation.apiKey")
@@ -138,8 +133,6 @@ function getModelIdForProvider(apiConfiguration: ProviderSettings, provider: str
 	switch (provider) {
 		case "openrouter":
 			return apiConfiguration.openRouterModelId
-		case "glama":
-			return apiConfiguration.glamaModelId
 		case "unbound":
 			return apiConfiguration.unboundModelId
 		case "requesty":
@@ -206,9 +199,6 @@ export function validateModelId(apiConfiguration: ProviderSettings, routerModels
 	switch (provider) {
 		case "openrouter":
 			modelId = apiConfiguration.openRouterModelId
-			break
-		case "glama":
-			modelId = apiConfiguration.glamaModelId
 			break
 		case "unbound":
 			modelId = apiConfiguration.unboundModelId

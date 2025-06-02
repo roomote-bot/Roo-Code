@@ -10,7 +10,6 @@ import { fileExistsAtPath } from "../../../utils/fs"
 
 import { getOpenRouterModels } from "./openrouter"
 import { getRequestyModels } from "./requesty"
-import { getGlamaModels } from "./glama"
 import { getUnboundModels } from "./unbound"
 import { getLiteLLMModels } from "./litellm"
 import { GetModelsOptions } from "../../../shared/api"
@@ -56,9 +55,6 @@ export const getModels = async (options: GetModelsOptions): Promise<ModelRecord>
 			case "requesty":
 				// Requesty models endpoint requires an API key for per-user custom policies
 				models = await getRequestyModels(options.apiKey)
-				break
-			case "glama":
-				models = await getGlamaModels()
 				break
 			case "unbound":
 				// Unbound models endpoint requires an API key to fetch application specific models

@@ -2241,7 +2241,6 @@ describe("ClineProvider - Router Models", () => {
 			apiConfiguration: {
 				openRouterApiKey: "openrouter-key",
 				requestyApiKey: "requesty-key",
-				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
 				litellmApiKey: "litellm-key",
 				litellmBaseUrl: "http://localhost:4000",
@@ -2261,7 +2260,6 @@ describe("ClineProvider - Router Models", () => {
 		// Verify getModels was called for each provider with correct options
 		expect(getModels).toHaveBeenCalledWith({ provider: "openrouter" })
 		expect(getModels).toHaveBeenCalledWith({ provider: "requesty", apiKey: "requesty-key" })
-		expect(getModels).toHaveBeenCalledWith({ provider: "glama" })
 		expect(getModels).toHaveBeenCalledWith({ provider: "unbound", apiKey: "unbound-key" })
 		expect(getModels).toHaveBeenCalledWith({
 			provider: "litellm",
@@ -2275,7 +2273,6 @@ describe("ClineProvider - Router Models", () => {
 			routerModels: {
 				openrouter: mockModels,
 				requesty: mockModels,
-				glama: mockModels,
 				unbound: mockModels,
 				litellm: mockModels,
 			},
@@ -2290,7 +2287,6 @@ describe("ClineProvider - Router Models", () => {
 			apiConfiguration: {
 				openRouterApiKey: "openrouter-key",
 				requestyApiKey: "requesty-key",
-				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
 				litellmApiKey: "litellm-key",
 				litellmBaseUrl: "http://localhost:4000",
@@ -2304,7 +2300,6 @@ describe("ClineProvider - Router Models", () => {
 		getModels
 			.mockResolvedValueOnce(mockModels) // openrouter success
 			.mockRejectedValueOnce(new Error("Requesty API error")) // requesty fail
-			.mockResolvedValueOnce(mockModels) // glama success
 			.mockRejectedValueOnce(new Error("Unbound API error")) // unbound fail
 			.mockRejectedValueOnce(new Error("LiteLLM connection failed")) // litellm fail
 
@@ -2316,7 +2311,6 @@ describe("ClineProvider - Router Models", () => {
 			routerModels: {
 				openrouter: mockModels,
 				requesty: {},
-				glama: mockModels,
 				unbound: {},
 				litellm: {},
 			},
@@ -2354,7 +2348,6 @@ describe("ClineProvider - Router Models", () => {
 			apiConfiguration: {
 				openRouterApiKey: "openrouter-key",
 				requestyApiKey: "requesty-key",
-				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
 				// No litellm config
 			},
@@ -2388,7 +2381,6 @@ describe("ClineProvider - Router Models", () => {
 			apiConfiguration: {
 				openRouterApiKey: "openrouter-key",
 				requestyApiKey: "requesty-key",
-				glamaApiKey: "glama-key",
 				unboundApiKey: "unbound-key",
 				// No litellm config
 			},
@@ -2413,7 +2405,6 @@ describe("ClineProvider - Router Models", () => {
 			routerModels: {
 				openrouter: mockModels,
 				requesty: mockModels,
-				glama: mockModels,
 				unbound: mockModels,
 				litellm: {},
 			},

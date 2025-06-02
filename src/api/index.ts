@@ -5,7 +5,6 @@ import type { ProviderSettings, ModelInfo } from "@roo-code/types"
 import { ApiStream } from "./transform/stream"
 
 import {
-	GlamaHandler,
 	AnthropicHandler,
 	AwsBedrockHandler,
 	OpenRouterHandler,
@@ -64,8 +63,6 @@ export function buildApiHandler(configuration: ProviderSettings): ApiHandler {
 	switch (apiProvider) {
 		case "anthropic":
 			return new AnthropicHandler(options)
-		case "glama":
-			return new GlamaHandler(options)
 		case "openrouter":
 			return new OpenRouterHandler(options)
 		case "bedrock":

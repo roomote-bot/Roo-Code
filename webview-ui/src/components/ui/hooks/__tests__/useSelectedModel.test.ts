@@ -56,7 +56,6 @@ describe("useSelectedModel", () => {
 						"test-model": baseModelInfo,
 					},
 					requesty: {},
-					glama: {},
 					unbound: {},
 					litellm: {},
 				},
@@ -108,7 +107,6 @@ describe("useSelectedModel", () => {
 				data: {
 					openrouter: {},
 					requesty: {},
-					glama: {},
 					unbound: {},
 					litellm: {},
 				},
@@ -162,7 +160,6 @@ describe("useSelectedModel", () => {
 						"test-model": baseModelInfo,
 					},
 					requesty: {},
-					glama: {},
 					unbound: {},
 					litellm: {},
 				},
@@ -217,7 +214,6 @@ describe("useSelectedModel", () => {
 				data: {
 					openrouter: { "test-model": baseModelInfo },
 					requesty: {},
-					glama: {},
 					unbound: {},
 					litellm: {},
 				},
@@ -261,7 +257,6 @@ describe("useSelectedModel", () => {
 						},
 					},
 					requesty: {},
-					glama: {},
 					unbound: {},
 					litellm: {},
 				},
@@ -321,7 +316,7 @@ describe("useSelectedModel", () => {
 
 		it("should return loading state when open router model providers are loading", () => {
 			mockUseRouterModels.mockReturnValue({
-				data: { openrouter: {}, requesty: {}, glama: {}, unbound: {}, litellm: {} },
+				data: { openrouter: {}, requesty: {}, unbound: {}, litellm: {} },
 				isLoading: false,
 				isError: false,
 			} as any)

@@ -8,7 +8,6 @@ import {
 	type ProviderSettings,
 	openRouterDefaultModelId,
 	requestyDefaultModelId,
-	glamaDefaultModelId,
 	unboundDefaultModelId,
 	litellmDefaultModelId,
 } from "@roo-code/types"
@@ -28,7 +27,6 @@ import {
 	Chutes,
 	DeepSeek,
 	Gemini,
-	Glama,
 	Groq,
 	LMStudio,
 	LiteLLM,
@@ -199,7 +197,7 @@ const ApiOptions = ({
 		(value: ProviderName) => {
 			// It would be much easier to have a single attribute that stores
 			// the modelId, but we have a separate attribute for each of
-			// OpenRouter, Glama, Unbound, and Requesty.
+			// OpenRouter, Unbound, and Requesty.
 			// If you switch to one of these providers and the corresponding
 			// modelId is not set then you immediately end up in an error state.
 			// To address that we set the modelId to the default value for th
@@ -208,11 +206,6 @@ const ApiOptions = ({
 				case "openrouter":
 					if (!apiConfiguration.openRouterModelId) {
 						setApiConfigurationField("openRouterModelId", openRouterDefaultModelId)
-					}
-					break
-				case "glama":
-					if (!apiConfiguration.glamaModelId) {
-						setApiConfigurationField("glamaModelId", glamaDefaultModelId)
 					}
 					break
 				case "unbound":
@@ -237,7 +230,6 @@ const ApiOptions = ({
 		[
 			setApiConfigurationField,
 			apiConfiguration.openRouterModelId,
-			apiConfiguration.glamaModelId,
 			apiConfiguration.unboundModelId,
 			apiConfiguration.requestyModelId,
 			apiConfiguration.litellmModelId,
@@ -312,16 +304,6 @@ const ApiOptions = ({
 					setApiConfigurationField={setApiConfigurationField}
 					routerModels={routerModels}
 					refetchRouterModels={refetchRouterModels}
-					organizationAllowList={organizationAllowList}
-				/>
-			)}
-
-			{selectedProvider === "glama" && (
-				<Glama
-					apiConfiguration={apiConfiguration}
-					setApiConfigurationField={setApiConfigurationField}
-					routerModels={routerModels}
-					uriScheme={uriScheme}
 					organizationAllowList={organizationAllowList}
 				/>
 			)}

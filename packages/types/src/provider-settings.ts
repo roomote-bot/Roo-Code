@@ -10,7 +10,6 @@ import { codebaseIndexProviderSchema } from "./codebase-index.js"
 
 export const providerNames = [
 	"anthropic",
-	"glama",
 	"openrouter",
 	"bedrock",
 	"vertex",
@@ -75,11 +74,6 @@ const anthropicSchema = apiModelIdProviderModelSchema.extend({
 	apiKey: z.string().optional(),
 	anthropicBaseUrl: z.string().optional(),
 	anthropicUseAuthToken: z.boolean().optional(),
-})
-
-const glamaSchema = baseProviderSettingsSchema.extend({
-	glamaModelId: z.string().optional(),
-	glamaApiKey: z.string().optional(),
 })
 
 const openRouterSchema = baseProviderSettingsSchema.extend({
@@ -208,7 +202,6 @@ const defaultSchema = z.object({
 
 export const providerSettingsSchemaDiscriminated = z.discriminatedUnion("apiProvider", [
 	anthropicSchema.merge(z.object({ apiProvider: z.literal("anthropic") })),
-	glamaSchema.merge(z.object({ apiProvider: z.literal("glama") })),
 	openRouterSchema.merge(z.object({ apiProvider: z.literal("openrouter") })),
 	bedrockSchema.merge(z.object({ apiProvider: z.literal("bedrock") })),
 	vertexSchema.merge(z.object({ apiProvider: z.literal("vertex") })),
@@ -234,7 +227,6 @@ export const providerSettingsSchemaDiscriminated = z.discriminatedUnion("apiProv
 export const providerSettingsSchema = z.object({
 	apiProvider: providerNamesSchema.optional(),
 	...anthropicSchema.shape,
-	...glamaSchema.shape,
 	...openRouterSchema.shape,
 	...bedrockSchema.shape,
 	...vertexSchema.shape,
@@ -266,9 +258,6 @@ export const PROVIDER_SETTINGS_KEYS = keysOf<ProviderSettings>()([
 	"apiKey",
 	"anthropicBaseUrl",
 	"anthropicUseAuthToken",
-	// Glama
-	"glamaModelId",
-	"glamaApiKey",
 	// OpenRouter
 	"openRouterApiKey",
 	"openRouterModelId",

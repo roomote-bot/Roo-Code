@@ -27,7 +27,6 @@ import {
 	vscodeLlmDefaultModelId,
 	openRouterDefaultModelId,
 	requestyDefaultModelId,
-	glamaDefaultModelId,
 	unboundDefaultModelId,
 	litellmDefaultModelId,
 } from "@roo-code/types"
@@ -101,11 +100,6 @@ function getSelectedModel({
 			return info
 				? { id, info }
 				: { id: requestyDefaultModelId, info: routerModels.requesty[requestyDefaultModelId] }
-		}
-		case "glama": {
-			const id = apiConfiguration.glamaModelId ?? glamaDefaultModelId
-			const info = routerModels.glama[id]
-			return info ? { id, info } : { id: glamaDefaultModelId, info: routerModels.glama[glamaDefaultModelId] }
 		}
 		case "unbound": {
 			const id = apiConfiguration.unboundModelId ?? unboundDefaultModelId

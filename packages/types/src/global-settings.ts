@@ -48,7 +48,7 @@ export const globalSettingsSchema = z.object({
 	allowedMaxRequests: z.number().nullish(),
 	autoCondenseContext: z.boolean().optional(),
 	autoCondenseContextPercent: z.number().optional(),
- 	maxConcurrentFileReads: z.number().optional(),
+	maxConcurrentFileReads: z.number().optional(),
 
 	browserToolEnabled: z.boolean().optional(),
 	browserViewportSize: z.string().optional(),
@@ -205,7 +205,6 @@ export type RooCodeSettings = GlobalSettings & ProviderSettings
 export type SecretState = Pick<
 	ProviderSettings,
 	| "apiKey"
-	| "glamaApiKey"
 	| "openRouterApiKey"
 	| "awsAccessKey"
 	| "awsSecretKey"
@@ -227,7 +226,6 @@ export type SecretState = Pick<
 
 export const SECRET_STATE_KEYS = keysOf<SecretState>()([
 	"apiKey",
-	"glamaApiKey",
 	"openRouterApiKey",
 	"awsAccessKey",
 	"awsSecretKey",

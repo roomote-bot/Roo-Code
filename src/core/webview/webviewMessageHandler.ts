@@ -300,7 +300,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			const routerModels: Partial<Record<RouterName, ModelRecord>> = {
 				openrouter: {},
 				requesty: {},
-				glama: {},
 				unbound: {},
 				litellm: {},
 			}
@@ -320,7 +319,6 @@ export const webviewMessageHandler = async (provider: ClineProvider, message: We
 			const modelFetchPromises: Array<{ key: RouterName; options: GetModelsOptions }> = [
 				{ key: "openrouter", options: { provider: "openrouter" } },
 				{ key: "requesty", options: { provider: "requesty", apiKey: apiConfiguration.requestyApiKey } },
-				{ key: "glama", options: { provider: "glama" } },
 				{ key: "unbound", options: { provider: "unbound", apiKey: apiConfiguration.unboundApiKey } },
 			]
 

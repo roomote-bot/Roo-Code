@@ -8,7 +8,6 @@ import { Equals, Keys, AssertEqual } from "./utils.js"
 
 export const providerNames = [
 	"anthropic",
-	"glama",
 	"openrouter",
 	"bedrock",
 	"vertex",
@@ -353,11 +352,6 @@ const anthropicSchema = z.object({
 	anthropicUseAuthToken: z.boolean().optional(),
 })
 
-const glamaSchema = z.object({
-	glamaModelId: z.string().optional(),
-	glamaApiKey: z.string().optional(),
-})
-
 const openRouterSchema = z.object({
 	openRouterApiKey: z.string().optional(),
 	openRouterModelId: z.string().optional(),
@@ -488,11 +482,6 @@ export const providerSettingsSchemaDiscriminated = z
 				apiProvider: z.literal("anthropic"),
 			}),
 		),
-		glamaSchema.merge(
-			z.object({
-				apiProvider: z.literal("glama"),
-			}),
-		),
 		openRouterSchema.merge(
 			z.object({
 				apiProvider: z.literal("openrouter"),
@@ -595,7 +584,6 @@ export const providerSettingsSchemaDiscriminated = z
 export const providerSettingsSchema = z.object({
 	apiProvider: providerNamesSchema.optional(),
 	...anthropicSchema.shape,
-	...glamaSchema.shape,
 	...openRouterSchema.shape,
 	...bedrockSchema.shape,
 	...vertexSchema.shape,
@@ -629,9 +617,6 @@ const providerSettingsRecord: ProviderSettingsRecord = {
 	apiKey: undefined,
 	anthropicBaseUrl: undefined,
 	anthropicUseAuthToken: undefined,
-	// Glama
-	glamaModelId: undefined,
-	glamaApiKey: undefined,
 	// OpenRouter
 	openRouterApiKey: undefined,
 	openRouterModelId: undefined,
@@ -896,7 +881,6 @@ export const ROO_CODE_SETTINGS_KEYS = [...GLOBAL_SETTINGS_KEYS, ...PROVIDER_SETT
 export type SecretState = Pick<
 	ProviderSettings,
 	| "apiKey"
-	| "glamaApiKey"
 	| "openRouterApiKey"
 	| "awsAccessKey"
 	| "awsSecretKey"
@@ -915,7 +899,6 @@ type SecretStateRecord = Record<Keys<SecretState>, undefined>
 
 const secretStateRecord: SecretStateRecord = {
 	apiKey: undefined,
-	glamaApiKey: undefined,
 	openRouterApiKey: undefined,
 	awsAccessKey: undefined,
 	awsSecretKey: undefined,

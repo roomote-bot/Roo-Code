@@ -170,7 +170,6 @@ export function NewRun() {
 					apiProvider,
 					apiModelId,
 					openRouterModelId,
-					glamaModelId,
 					requestyModelId,
 					unboundModelId,
 					ollamaModelId,
@@ -191,9 +190,6 @@ export function NewRun() {
 						break
 					case "openrouter":
 						setValue("model", openRouterModelId ?? "")
-						break
-					case "glama":
-						setValue("model", glamaModelId ?? "")
 						break
 					case "requesty":
 						setValue("model", requestyModelId ?? "")
