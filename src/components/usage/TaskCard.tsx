@@ -1,6 +1,18 @@
-import { formatNumber, formatCurrency } from '@/lib/formatters';
+import {
+  formatNumber,
+  formatCurrency,
+  formatTimestamp,
+} from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/taskUtils';
-import { Card, CardContent, Button } from '@/components/ui';
+import {
+  Card,
+  CardContent,
+  Button,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import type { Filter } from '@/app/(authenticated)/usage/types';
@@ -35,66 +47,75 @@ const formatElegantTime = (timestamp: number): string => {
 
 export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
   return (
-    <Card
-      className="cursor-pointer hover:shadow-md transition-shadow py-0"
-      onClick={() => onTaskSelected(task)}
-    >
-      <CardContent className="p-0">
-        <div className="px-4 py-2.5">
-          {/* Line 1: Title and Status */}
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <h3 className="font-medium text-sm truncate flex-1 leading-none">
-              {task.title || generateFallbackTitle(task)}
-            </h3>
-            <Status completed={task.completed} />
-          </div>
-
-          {/* Line 2: All metadata in a single line with bullet separators between items */}
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            {/* Left side: Date, User, and Mode (if present) with bullet separators */}
-            <div className="flex items-center">
-              <span className="whitespace-nowrap">
-                {formatElegantTime(task.timestamp)}
-              </span>
-              <div className="mx-2 text-muted-foreground/30">•</div>
-              <Button
-                variant="link"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onFilter({
-                    type: 'userId',
-                    value: task.userId,
-                    label: task.user.name,
-                  });
-                }}
-                className="px-0 h-auto text-xs font-normal text-muted-foreground hover:text-foreground"
-              >
-                {task.user.name}
-              </Button>
-
-              {/* Mode (if present) */}
-              {task.mode && (
-                <>
-                  <div className="mx-2 text-muted-foreground/30">•</div>
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {task.mode}
-                  </span>
-                </>
-              )}
+    <TooltipProvider>
+      <Card
+        className="cursor-pointer hover:shadow-md transition-shadow py-0"
+        onClick={() => onTaskSelected(task)}
+      >
+        <CardContent className="p-0">
+          <div className="px-4 py-2.5">
+            {/* Line 1: Title and Status */}
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <h3 className="font-medium text-sm truncate flex-1 leading-none">
+                {task.title || generateFallbackTitle(task)}
+              </h3>
+              <Status completed={task.completed} />
             </div>
 
-            {/* Right side: Tokens and Cost with bullet separator */}
-            <div className="flex items-center whitespace-nowrap">
-              <span className="font-medium">
-                {formatNumber(task.tokens)} tokens
-              </span>
-              <div className="mx-2 text-muted-foreground/30">•</div>
-              <span className="font-medium">{formatCurrency(task.cost)}</span>
+            {/* Line 2: All metadata in a single line with bullet separators between items */}
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              {/* Left side: Date, User, and Mode (if present) with bullet separators */}
+              <div className="flex items-center">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="whitespace-nowrap">
+                      {formatElegantTime(task.timestamp)}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{formatTimestamp(task.timestamp)}</p>
+                  </TooltipContent>
+                </Tooltip>
+                <div className="mx-2 text-muted-foreground/30">•</div>
+                <Button
+                  variant="link"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onFilter({
+                      type: 'userId',
+                      value: task.userId,
+                      label: task.user.name,
+                    });
+                  }}
+                  className="px-0 h-auto text-xs font-normal text-muted-foreground hover:text-foreground"
+                >
+                  {task.user.name}
+                </Button>
+
+                {/* Mode (if present) */}
+                {task.mode && (
+                  <>
+                    <div className="mx-2 text-muted-foreground/30">•</div>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {task.mode}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              {/* Right side: Tokens and Cost with bullet separator */}
+              <div className="flex items-center whitespace-nowrap">
+                <span className="font-medium">
+                  {formatNumber(task.tokens)} tokens
+                </span>
+                <div className="mx-2 text-muted-foreground/30">•</div>
+                <span className="font-medium">{formatCurrency(task.cost)}</span>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
   );
 };
