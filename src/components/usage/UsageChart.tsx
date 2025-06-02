@@ -45,7 +45,7 @@ interface TooltipProps {
 interface ChartDataPoint {
   date: string;
   total: number;
-  [userKey: string]: string | number;
+  [userKey: string]: string | number | null;
 }
 
 // Elegant color palette inspired by modern design systems
@@ -148,23 +148,23 @@ const processHourlyDataForChart = (
 
     const completeHours = generateCompleteHourlyTimeSeries(startOfPeriod, now);
 
-    // Fill in missing hours with zero values
+    // Fill in missing hours with null values for users (creates blank spaces but maintains timeline)
     completeHours.forEach((hour) => {
       if (!hourGroups[hour]) {
         hourGroups[hour] = { date: hour, total: 0 };
-        // Initialize all users with 0 for this hour
+        // Add null values for all users in empty hours - this maintains spacing but shows no bars
         allUsers.forEach((userName) => {
           const hourGroup = hourGroups[hour];
           if (hourGroup) {
-            hourGroup[userName] = 0;
+            hourGroup[userName] = null;
           }
         });
       } else {
-        // Ensure all users have values for existing hours (fill with 0 if missing)
+        // For hours with data, ensure all users have values (fill with null if missing)
         allUsers.forEach((userName) => {
           const hourGroup = hourGroups[hour];
           if (hourGroup && !(userName in hourGroup)) {
-            hourGroup[userName] = 0;
+            hourGroup[userName] = null;
           }
         });
       }
@@ -242,23 +242,23 @@ const processDailyDataForChart = (
 
     const completeDays = generateCompleteDailyTimeSeries(startOfPeriod, now);
 
-    // Fill in missing days with zero values
+    // Fill in missing days with null values for users (creates blank spaces but maintains timeline)
     completeDays.forEach((day) => {
       if (!dateGroups[day]) {
         dateGroups[day] = { date: day, total: 0 };
-        // Initialize all users with 0 for this day
+        // Add null values for all users in empty days - this maintains spacing but shows no bars
         allUsers.forEach((userName) => {
           const dateGroup = dateGroups[day];
           if (dateGroup) {
-            dateGroup[userName] = 0;
+            dateGroup[userName] = null;
           }
         });
       } else {
-        // Ensure all users have values for existing days (fill with 0 if missing)
+        // For days with data, ensure all users have values (fill with null if missing)
         allUsers.forEach((userName) => {
           const dateGroup = dateGroups[day];
           if (dateGroup && !(userName in dateGroup)) {
-            dateGroup[userName] = 0;
+            dateGroup[userName] = null;
           }
         });
       }
@@ -581,7 +581,7 @@ export const UsageChart = ({
               bottom: 5,
             }}
             barCategoryGap={
-              timePeriodConfig.granularity === 'hourly' ? '5%' : '10%'
+              timePeriodConfig.granularity === 'hourly' ? '2%' : '10%'
             }
           >
             <CartesianGrid
