@@ -65,6 +65,25 @@ const generateUserColor = (index: number): string => {
   return colors[index % colors.length]!;
 };
 
+// Helper function to generate complete hourly time series for 24h period
+const generateCompleteHourlyTimeSeries = (
+  startDate: Date,
+  endDate: Date,
+): string[] => {
+  const hours: string[] = [];
+  const current = new Date(startDate);
+
+  // Round down to the start of the hour
+  current.setMinutes(0, 0, 0);
+
+  while (current <= endDate) {
+    hours.push(current.toISOString());
+    current.setHours(current.getHours() + 1);
+  }
+
+  return hours;
+};
+
 // Helper function to process hourly data for chart display
 const processHourlyDataForChart = (
   hourlyData: Array<{
@@ -79,6 +98,7 @@ const processHourlyDataForChart = (
 ) => {
   // Group by UTC hour and user (display conversion happens in chart components)
   const hourGroups: Record<string, ChartDataPoint> = {};
+  const allUsers = new Set<string>();
 
   hourlyData.forEach((item) => {
     // Use UTC hour as-is, conversion to local time happens in display components
@@ -110,6 +130,8 @@ const processHourlyDataForChart = (
 
     const value = item[selectedMetric];
     const userName = item.user.name || item.user.email || 'Unknown';
+    allUsers.add(userName);
+
     const hourGroup = hourGroups[isoHour];
     if (hourGroup) {
       hourGroup[userName] = value;
@@ -117,10 +139,64 @@ const processHourlyDataForChart = (
     }
   });
 
+  // Generate complete 24-hour time series if we have any data
+  if (Object.keys(hourGroups).length > 0) {
+    // For 24h view, ensure we show a full 24-hour period
+    const now = new Date();
+    const startOfPeriod = new Date(now);
+    startOfPeriod.setHours(startOfPeriod.getHours() - 23, 0, 0, 0); // 24 hours ago
+
+    const completeHours = generateCompleteHourlyTimeSeries(startOfPeriod, now);
+
+    // Fill in missing hours with zero values
+    completeHours.forEach((hour) => {
+      if (!hourGroups[hour]) {
+        hourGroups[hour] = { date: hour, total: 0 };
+        // Initialize all users with 0 for this hour
+        allUsers.forEach((userName) => {
+          const hourGroup = hourGroups[hour];
+          if (hourGroup) {
+            hourGroup[userName] = 0;
+          }
+        });
+      } else {
+        // Ensure all users have values for existing hours (fill with 0 if missing)
+        allUsers.forEach((userName) => {
+          const hourGroup = hourGroups[hour];
+          if (hourGroup && !(userName in hourGroup)) {
+            hourGroup[userName] = 0;
+          }
+        });
+      }
+    });
+  }
+
   // Convert to array and sort by hour
   return Object.values(hourGroups).sort((a, b) => {
     return new Date(a.date).getTime() - new Date(b.date).getTime();
   });
+};
+
+// Helper function to generate complete daily time series
+const generateCompleteDailyTimeSeries = (
+  startDate: Date,
+  endDate: Date,
+): string[] => {
+  const days: string[] = [];
+  const current = new Date(startDate);
+
+  // Set to start of day
+  current.setHours(0, 0, 0, 0);
+
+  while (current <= endDate) {
+    const year = current.getFullYear();
+    const month = String(current.getMonth() + 1).padStart(2, '0');
+    const day = String(current.getDate()).padStart(2, '0');
+    days.push(`${year}-${month}-${day}`);
+    current.setDate(current.getDate() + 1);
+  }
+
+  return days;
 };
 
 // Helper function to process daily data for chart display
@@ -134,9 +210,11 @@ const processDailyDataForChart = (
     user: { name?: string | null; email?: string | null };
   }>,
   selectedMetric: MetricType,
+  timePeriodDays: number,
 ) => {
   // Group by date and user
   const dateGroups: Record<string, ChartDataPoint> = {};
+  const allUsers = new Set<string>();
 
   dailyData.forEach((item) => {
     const date = item.date;
@@ -145,9 +223,47 @@ const processDailyDataForChart = (
     }
 
     const value = item[selectedMetric];
-    dateGroups[date][item.user.name || item.user.email || 'Unknown'] = value;
-    dateGroups[date].total += value;
+    const userName = item.user.name || item.user.email || 'Unknown';
+    allUsers.add(userName);
+
+    const dateGroup = dateGroups[date];
+    if (dateGroup) {
+      dateGroup[userName] = value;
+      dateGroup.total += value;
+    }
   });
+
+  // Generate complete time series for the period
+  if (Object.keys(dateGroups).length > 0 || timePeriodDays > 0) {
+    const now = new Date();
+    const startOfPeriod = new Date(now);
+    startOfPeriod.setDate(startOfPeriod.getDate() - (timePeriodDays - 1));
+    startOfPeriod.setHours(0, 0, 0, 0);
+
+    const completeDays = generateCompleteDailyTimeSeries(startOfPeriod, now);
+
+    // Fill in missing days with zero values
+    completeDays.forEach((day) => {
+      if (!dateGroups[day]) {
+        dateGroups[day] = { date: day, total: 0 };
+        // Initialize all users with 0 for this day
+        allUsers.forEach((userName) => {
+          const dateGroup = dateGroups[day];
+          if (dateGroup) {
+            dateGroup[userName] = 0;
+          }
+        });
+      } else {
+        // Ensure all users have values for existing days (fill with 0 if missing)
+        allUsers.forEach((userName) => {
+          const dateGroup = dateGroups[day];
+          if (dateGroup && !(userName in dateGroup)) {
+            dateGroup[userName] = 0;
+          }
+        });
+      }
+    });
+  }
 
   // Convert to array and sort by date
   return Object.values(dateGroups).sort((a, b) => {
@@ -347,9 +463,19 @@ export const UsageChart = ({
     } else {
       // For daily view, aggregate hourly data to daily
       const dailyUsage = aggregateHourlyToDaily(hourlyUsage);
-      return processDailyDataForChart(dailyUsage, selectedMetric);
+      return processDailyDataForChart(
+        dailyUsage,
+        selectedMetric,
+        timePeriodConfig.value,
+      );
     }
-  }, [hourlyUsage, isClient, timePeriodConfig.granularity, selectedMetric]);
+  }, [
+    hourlyUsage,
+    isClient,
+    timePeriodConfig.granularity,
+    timePeriodConfig.value,
+    selectedMetric,
+  ]);
 
   const uniqueUsers = useMemo(() => {
     const users = new Set<string>();
@@ -454,7 +580,9 @@ export const UsageChart = ({
               left: 0,
               bottom: 5,
             }}
-            barCategoryGap="10%"
+            barCategoryGap={
+              timePeriodConfig.granularity === 'hourly' ? '5%' : '10%'
+            }
           >
             <CartesianGrid
               strokeDasharray="3 3"
@@ -472,6 +600,12 @@ export const UsageChart = ({
                 />
               }
               height={25}
+              interval={
+                timePeriodConfig.granularity === 'hourly'
+                  ? 3
+                  : 'preserveStartEnd'
+              }
+              minTickGap={timePeriodConfig.granularity === 'hourly' ? 10 : 5}
             />
             <YAxis
               tickFormatter={formatValue}
