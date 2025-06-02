@@ -267,8 +267,8 @@ export const getTasks = async ({
       SELECT
         e.taskId,
         e.userId,
-        e.apiProvider AS provider,
-        e.modelId as model,
+        argMin(e.apiProvider, e.timestamp) AS provider,
+        argMin(e.modelId, e.timestamp) as model,
         any(fm.mode) AS mode,
         MAX(CASE WHEN e.type = 'Task Completed' THEN 1 ELSE 0 END) AS completed,
         SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.inputTokens, 0) + COALESCE(e.outputTokens, 0) ELSE 0 END) AS tokens,
@@ -280,7 +280,7 @@ export const getTasks = async ({
       WHERE
         e.orgId = {orgId: String}
         AND e.type IN ({types: Array(String)})
-      GROUP BY 1, 2, 3, 4
+      GROUP BY 1, 2
       ORDER BY timestamp DESC
     `,
     format: 'JSONEachRow',
