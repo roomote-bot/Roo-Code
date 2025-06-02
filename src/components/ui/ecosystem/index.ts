@@ -1,3 +1,3 @@
 export * from './button';
-export * from './multiple-selector';
+export * from './multi-select';
 export * from './tabs';
