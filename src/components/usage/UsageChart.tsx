@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 import {
@@ -13,14 +13,11 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 
-import type { TimePeriod } from '@/types';
-import { getDailyUsageByUser } from '@/actions/analytics';
+import type { TimePeriodConfig } from '@/types';
+import { getHourlyUsageByUser } from '@/actions/analytics';
 import { formatNumber } from '@/lib/formatters';
-import { Skeleton } from '@/components/ui';
-
+import { aggregateHourlyToDaily } from '@/lib/timezoneUtils';
 type MetricType = 'tasks' | 'tokens' | 'cost';
-
-const metricTypes: MetricType[] = ['tasks', 'tokens', 'cost'];
 
 interface TickProps {
   x?: number;
@@ -68,26 +65,140 @@ const generateUserColor = (index: number): string => {
   return colors[index % colors.length]!;
 };
 
+// Helper function to process hourly data for chart display
+const processHourlyDataForChart = (
+  hourlyData: Array<{
+    hour_utc: string;
+    userId: string;
+    tasks: number;
+    tokens: number;
+    cost: number;
+    user: { name?: string | null; email?: string | null };
+  }>,
+  selectedMetric: MetricType,
+) => {
+  // Group by UTC hour and user (display conversion happens in chart components)
+  const hourGroups: Record<string, ChartDataPoint> = {};
+
+  hourlyData.forEach((item) => {
+    // Use UTC hour as-is, conversion to local time happens in display components
+    const utcHour = item.hour_utc;
+    let isoHour: string;
+
+    try {
+      // Convert to ISO format for consistent handling
+      if (utcHour.includes('T')) {
+        isoHour = utcHour + 'Z';
+      } else {
+        isoHour = utcHour.replace(' ', 'T') + 'Z';
+      }
+
+      // Validate the date format
+      const testDate = new Date(isoHour);
+      if (isNaN(testDate.getTime())) {
+        console.warn('Invalid UTC hour format:', utcHour);
+        return;
+      }
+    } catch (error) {
+      console.warn('Error processing UTC hour:', error, utcHour);
+      return;
+    }
+
+    if (!hourGroups[isoHour]) {
+      hourGroups[isoHour] = { date: isoHour, total: 0 };
+    }
+
+    const value = item[selectedMetric];
+    const userName = item.user.name || item.user.email || 'Unknown';
+    const hourGroup = hourGroups[isoHour];
+    if (hourGroup) {
+      hourGroup[userName] = value;
+      hourGroup.total += value;
+    }
+  });
+
+  // Convert to array and sort by hour
+  return Object.values(hourGroups).sort((a, b) => {
+    return new Date(a.date).getTime() - new Date(b.date).getTime();
+  });
+};
+
+// Helper function to process daily data for chart display
+const processDailyDataForChart = (
+  dailyData: Array<{
+    date: string;
+    userId: string;
+    tasks: number;
+    tokens: number;
+    cost: number;
+    user: { name?: string | null; email?: string | null };
+  }>,
+  selectedMetric: MetricType,
+) => {
+  // Group by date and user
+  const dateGroups: Record<string, ChartDataPoint> = {};
+
+  dailyData.forEach((item) => {
+    const date = item.date;
+    if (!dateGroups[date]) {
+      dateGroups[date] = { date, total: 0 };
+    }
+
+    const value = item[selectedMetric];
+    dateGroups[date][item.user.name || item.user.email || 'Unknown'] = value;
+    dateGroups[date].total += value;
+  });
+
+  // Convert to array and sort by date
+  return Object.values(dateGroups).sort((a, b) => {
+    const [yearA, monthA, dayA] = a.date.split('-').map(Number);
+    const [yearB, monthB, dayB] = b.date.split('-').map(Number);
+
+    if (!yearA || !monthA || !dayA || !yearB || !monthB || !dayB) {
+      return 0;
+    }
+
+    const dateA = new Date(yearA, monthA - 1, dayA);
+    const dateB = new Date(yearB, monthB - 1, dayB);
+    return dateA.getTime() - dateB.getTime();
+  });
+};
+
 interface UsageChartProps {
-  timePeriod: TimePeriod;
+  timePeriodConfig: TimePeriodConfig;
   selectedMetric?: MetricType;
 }
 
 // Custom tick components for theme-aware labels
-const CustomXAxisTick = (props: TickProps) => {
-  const { x, y, payload } = props;
+const CustomXAxisTick = (props: TickProps & { isHourly?: boolean }) => {
+  const { x, y, payload, isHourly } = props;
 
   if (!payload?.value) return null;
 
-  // Parse date string as local date to avoid timezone issues
-  const [year, month, day] = payload.value.split('-').map(Number);
-  if (!year || !month || !day) return null;
+  let formattedDate: string;
 
-  const date = new Date(year, month - 1, day); // month is 0-indexed
-  const formattedDate = date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
+  if (isHourly) {
+    // For hourly data, show hour format
+    const date = new Date(payload.value);
+    if (isNaN(date.getTime())) return null;
+
+    // Convert UTC time to local time for display
+    formattedDate = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      hour12: true,
+      timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    });
+  } else {
+    // For daily data, show date format
+    const [year, month, day] = payload.value.split('-').map(Number);
+    if (!year || !month || !day) return null;
+
+    const date = new Date(year, month - 1, day); // month is 0-indexed
+    formattedDate = date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+    });
+  }
 
   return (
     <g transform={`translate(${x},${y})`}>
@@ -137,18 +248,36 @@ const CustomTooltip = ({
   payload,
   label,
   formatValue,
-}: TooltipProps) => {
+  isHourly,
+}: TooltipProps & { isHourly?: boolean }) => {
   if (active && payload && payload.length && label) {
-    // Parse date string as local date to avoid timezone issues
-    const [year, month, day] = label.split('-').map(Number);
-    if (!year || !month || !day) return null;
+    let formattedDate: string;
 
-    const date = new Date(year, month - 1, day); // month is 0-indexed
-    const formattedDate = date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-    });
+    if (isHourly) {
+      // For hourly data, label is an ISO datetime string
+      const date = new Date(label);
+      if (isNaN(date.getTime())) return null;
+
+      formattedDate = date.toLocaleString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        hour12: true,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+    } else {
+      // For daily data, label is a date string "YYYY-MM-DD"
+      const [year, month, day] = label.split('-').map(Number);
+      if (!year || !month || !day) return null;
+
+      const date = new Date(year, month - 1, day); // month is 0-indexed
+      formattedDate = date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+      });
+    }
 
     return (
       <div className="bg-popover border border-border rounded-lg shadow-lg p-3 min-w-[200px]">
@@ -185,62 +314,50 @@ const CustomTooltip = ({
 };
 
 export const UsageChart = ({
-  timePeriod,
+  timePeriodConfig,
   selectedMetric = 'tasks',
 }: UsageChartProps) => {
   const { orgId } = useAuth();
+  const [isClient, setIsClient] = useState(false);
 
-  const { data: dailyUsage = [], isPending } = useQuery({
-    queryKey: ['getDailyUsageByUser', orgId, timePeriod],
-    queryFn: () => getDailyUsageByUser({ orgId, timePeriod }),
+  // Ensure we only run timezone-dependent code on the client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  const { data: hourlyUsage = [], isPending } = useQuery({
+    queryKey: [
+      'getHourlyUsageByUser',
+      orgId,
+      timePeriodConfig.value,
+      timePeriodConfig.granularity,
+    ],
+    queryFn: () =>
+      getHourlyUsageByUser({ orgId, timePeriod: timePeriodConfig.value }),
     enabled: !!orgId,
   });
 
+  // Process data based on granularity
   const chartData = useMemo(() => {
-    if (!dailyUsage.length) return [];
+    if (!hourlyUsage.length || !isClient) return [];
 
-    // Group data by date
-    const dateGroups = dailyUsage.reduce(
-      (acc, item) => {
-        const date = item.date;
-        if (!acc[date]) {
-          acc[date] = { date, total: 0 };
-        }
-
-        const value = item[selectedMetric];
-        acc[date][item.user.name || item.user.email || 'Unknown'] = value;
-        acc[date].total += value;
-
-        return acc;
-      },
-      {} as Record<string, ChartDataPoint>,
-    );
-
-    // Convert to array and sort by date
-    const result = Object.values(dateGroups).sort((a, b) => {
-      // Parse dates as local dates to avoid timezone issues
-      const [yearA, monthA, dayA] = a.date.split('-').map(Number);
-      const [yearB, monthB, dayB] = b.date.split('-').map(Number);
-
-      if (!yearA || !monthA || !dayA || !yearB || !monthB || !dayB) {
-        return 0;
-      }
-
-      const dateA = new Date(yearA, monthA - 1, dayA);
-      const dateB = new Date(yearB, monthB - 1, dayB);
-      return dateA.getTime() - dateB.getTime();
-    });
-
-    return result;
-  }, [dailyUsage, selectedMetric]);
+    if (timePeriodConfig.granularity === 'hourly') {
+      // For hourly view, show hourly data directly
+      return processHourlyDataForChart(hourlyUsage, selectedMetric);
+    } else {
+      // For daily view, aggregate hourly data to daily
+      const dailyUsage = aggregateHourlyToDaily(hourlyUsage);
+      return processDailyDataForChart(dailyUsage, selectedMetric);
+    }
+  }, [hourlyUsage, isClient, timePeriodConfig.granularity, selectedMetric]);
 
   const uniqueUsers = useMemo(() => {
     const users = new Set<string>();
-    dailyUsage.forEach((item) => {
+    hourlyUsage.forEach((item) => {
       users.add(item.user.name || item.user.email || 'Unknown');
     });
     return Array.from(users).sort();
-  }, [dailyUsage]);
+  }, [hourlyUsage]);
 
   const formatValue = (value: number) => {
     switch (selectedMetric) {
@@ -255,30 +372,34 @@ export const UsageChart = ({
     }
   };
 
-  if (isPending) {
+  if (isPending || !isClient) {
     return (
       <div className="space-y-6">
-        <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
-          {metricTypes.map((metric) => (
-            <Skeleton key={metric} className="h-9 w-20 rounded-md" />
-          ))}
-        </div>
         <div className="h-72 w-full rounded-lg border bg-card p-3">
           <div className="h-full w-full flex items-center justify-center">
-            <div className="space-y-6 w-full">
-              <div className="flex justify-between items-end h-48 px-4">
-                {Array.from({ length: 7 }).map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="w-12 rounded-t-md"
-                    style={{ height: `${Math.random() * 60 + 30}%` }}
+            <div className="text-center space-y-3">
+              <div className="w-12 h-12 mx-auto rounded-full bg-muted/20 flex items-center justify-center">
+                <svg
+                  className="w-6 h-6 text-muted-foreground/50 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                   />
-                ))}
+                </svg>
               </div>
-              <div className="flex justify-center gap-4 pt-4">
-                <Skeleton className="h-3 w-20" />
-                <Skeleton className="h-3 w-24" />
-                <Skeleton className="h-3 w-16" />
+              <div>
+                <p className="text-sm font-medium text-foreground">
+                  Loading chart data...
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Processing timezone data
+                </p>
               </div>
             </div>
           </div>
@@ -345,7 +466,11 @@ export const UsageChart = ({
               dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={<CustomXAxisTick />}
+              tick={
+                <CustomXAxisTick
+                  isHourly={timePeriodConfig.granularity === 'hourly'}
+                />
+              }
               height={25}
             />
             <YAxis
@@ -360,6 +485,7 @@ export const UsageChart = ({
                 <CustomTooltip
                   selectedMetric={selectedMetric}
                   formatValue={formatValue}
+                  isHourly={timePeriodConfig.granularity === 'hourly'}
                 />
               }
               cursor={{

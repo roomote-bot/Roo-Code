@@ -10,7 +10,7 @@ import { ArrowRightIcon } from 'lucide-react';
 
 import { TelemetryEventName } from '@roo-code/types';
 
-import { type TimePeriod, timePeriods } from '@/types';
+import { type TimePeriodConfig, allTimePeriods } from '@/types';
 import { getUsage } from '@/actions/analytics';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 
@@ -30,14 +30,28 @@ type MetricType = 'tasks' | 'tokens' | 'cost';
 export const UsageCard = () => {
   const t = useTranslations('DashboardIndex');
   const { orgId } = useAuth();
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>(7);
+  const [selectedPeriod, setSelectedPeriod] = useState<TimePeriodConfig>(
+    allTimePeriods.find((p) => p.value === 7 && p.granularity === 'daily')!,
+  );
   const [selectedMetric, setSelectedMetric] = useState<MetricType>('tasks');
 
   const path = usePathname();
 
   const { data: usage = {}, isPending } = useQuery({
-    queryKey: ['usage', orgId, timePeriod],
-    queryFn: () => getUsage({ orgId, timePeriod }),
+    queryKey: [
+      'usage',
+      orgId,
+      selectedPeriod.value,
+      selectedPeriod.granularity,
+    ],
+    queryFn: () =>
+      getUsage({
+        orgId,
+        timePeriod:
+          selectedPeriod.granularity === 'daily'
+            ? (selectedPeriod.value as 7 | 30 | 90)
+            : (selectedPeriod.value as 1), // Use 1 day for 24h view
+      }),
     enabled: !!orgId,
   });
 
@@ -71,17 +85,18 @@ export const UsageCard = () => {
             <div className="flex flex-row gap-3 items-center">
               {/* Time period toggles */}
               <div className="flex flex-row gap-1">
-                {timePeriods.map((period) => (
+                {allTimePeriods.map((periodConfig) => (
                   <button
-                    key={period}
-                    onClick={() => setTimePeriod(period)}
+                    key={`${periodConfig.value}-${periodConfig.granularity}`}
+                    onClick={() => setSelectedPeriod(periodConfig)}
                     className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                      period === timePeriod
+                      periodConfig.value === selectedPeriod.value &&
+                      periodConfig.granularity === selectedPeriod.granularity
                         ? 'bg-primary text-primary-foreground'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted'
                     }`}
                   >
-                    {period}d
+                    {periodConfig.label}
                   </button>
                 ))}
               </div>
@@ -152,7 +167,7 @@ export const UsageCard = () => {
           {/* Chart displayed below on usage page */}
           {path === '/usage' && (
             <UsageChart
-              timePeriod={timePeriod}
+              timePeriodConfig={selectedPeriod}
               selectedMetric={selectedMetric}
             />
           )}

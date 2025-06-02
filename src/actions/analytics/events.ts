@@ -7,7 +7,7 @@ import {
   type RooCodeTelemetryEvent,
 } from '@roo-code/types';
 
-import type { TimePeriod } from '@/types';
+import type { AnyTimePeriod } from '@/types';
 import { taskSchema } from '@/types/analytics';
 import { analytics } from '@/lib/server';
 import { type User, getUsersById } from '@/db/server';
@@ -80,7 +80,7 @@ export const getUsage = async ({
   timePeriod = 90,
 }: {
   orgId?: string | null;
-  timePeriod?: TimePeriod;
+  timePeriod?: AnyTimePeriod;
 }): Promise<UsageRecord> => {
   if (!orgId) {
     return {};
@@ -134,7 +134,7 @@ export const getDeveloperUsage = async ({
   timePeriod = 90,
 }: {
   orgId?: string | null;
-  timePeriod?: TimePeriod;
+  timePeriod?: AnyTimePeriod;
 }): Promise<DeveloperUsage[]> => {
   if (!orgId) {
     return [];
@@ -196,7 +196,7 @@ export const getModelUsage = async ({
   timePeriod = 90,
 }: {
   orgId?: string | null;
-  timePeriod?: TimePeriod;
+  timePeriod?: AnyTimePeriod;
 }): Promise<ModelUsage[]> => {
   if (!orgId) {
     return [];
@@ -304,28 +304,28 @@ export const getTasks = async ({
 };
 
 /**
- * getDailyUsageByUser
+ * getHourlyUsageByUser
  */
 
-const dailyUsageByUserSchema = z.object({
-  date: z.string(),
+const hourlyUsageByUserSchema = z.object({
+  hour_utc: z.string(),
   userId: z.string(),
   tasks: z.coerce.number(),
   tokens: z.coerce.number(),
   cost: z.coerce.number(),
 });
 
-export type DailyUsageByUser = z.infer<typeof dailyUsageByUserSchema> & {
+export type HourlyUsageByUser = z.infer<typeof hourlyUsageByUserSchema> & {
   user: User;
 };
 
-export const getDailyUsageByUser = async ({
+export const getHourlyUsageByUser = async ({
   orgId,
   timePeriod = 90,
 }: {
   orgId?: string | null;
-  timePeriod?: TimePeriod;
-}): Promise<DailyUsageByUser[]> => {
+  timePeriod?: AnyTimePeriod;
+}): Promise<HourlyUsageByUser[]> => {
   if (!orgId) {
     return [];
   }
@@ -333,7 +333,7 @@ export const getDailyUsageByUser = async ({
   const results = await analytics.query({
     query: `
       SELECT
-        toString(toDate(fromUnixTimestamp(timestamp))) as date,
+        toString(toStartOfHour(fromUnixTimestamp(timestamp))) as hour_utc,
         userId,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasks,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
@@ -344,7 +344,7 @@ export const getDailyUsageByUser = async ({
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
       GROUP BY 1, 2
-      ORDER BY date DESC, userId
+      ORDER BY hour_utc DESC, userId
     `,
     format: 'JSONEachRow',
     query_params: {
@@ -358,13 +358,13 @@ export const getDailyUsageByUser = async ({
     },
   });
 
-  const dailyUsages = z
-    .array(dailyUsageByUserSchema)
+  const hourlyUsages = z
+    .array(hourlyUsageByUserSchema)
     .parse(await results.json());
 
-  const users = await getUsersById(dailyUsages.map(({ userId }) => userId));
+  const users = await getUsersById(hourlyUsages.map(({ userId }) => userId));
 
-  return dailyUsages
+  return hourlyUsages
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
-    .filter((usage): usage is DailyUsageByUser => !!usage.user);
+    .filter((usage): usage is HourlyUsageByUser => !!usage.user);
 };

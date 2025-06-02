@@ -53,3 +53,71 @@ export function formatCurrency(
 
 export const formatTimestamp = (timestamp: number) =>
   new Date(timestamp * 1000).toLocaleString();
+
+/**
+ * Convert UTC hour string to user's local date
+ * @param utcHour UTC hour string in format "2025-06-02 14:00:00"
+ * @param userTimezone User's timezone (defaults to browser timezone)
+ * @returns Local date string in YYYY-MM-DD format
+ */
+export const convertUTCHourToLocalDate = (
+  utcHour: string,
+  userTimezone?: string,
+): string => {
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') {
+    // On server, just return the UTC date part to avoid hydration mismatch
+    return utcHour.split(' ')[0] || '';
+  }
+
+  try {
+    // Parse UTC hour string - handle different formats
+    let utcDate: Date;
+
+    if (utcHour.includes('T')) {
+      // ISO format: "2025-06-02T14:00:00"
+      utcDate = new Date(utcHour + 'Z');
+    } else if (utcHour.includes(' ')) {
+      // Space format: "2025-06-02 14:00:00"
+      utcDate = new Date(utcHour.replace(' ', 'T') + 'Z');
+    } else {
+      // Just date: "2025-06-02"
+      utcDate = new Date(utcHour + 'T00:00:00Z');
+    }
+
+    // Validate the date
+    if (isNaN(utcDate.getTime())) {
+      console.warn('Invalid UTC hour format:', utcHour);
+      return utcHour.split(' ')[0] || utcHour.split('T')[0] || '';
+    }
+
+    // Get user's timezone (default to browser timezone)
+    const timezone =
+      userTimezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    // Convert to user's local timezone and get the date part
+    const localDateString = utcDate.toLocaleDateString('en-CA', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+
+    return localDateString;
+  } catch (error) {
+    console.warn('Error converting UTC hour to local date:', error, utcHour);
+    // Fallback: return the date part of the input
+    return utcHour.split(' ')[0] || utcHour.split('T')[0] || '';
+  }
+};
+
+/**
+ * Get user's current timezone
+ * @returns User's timezone string (e.g., "America/New_York")
+ */
+export const getUserTimezone = (): string => {
+  if (typeof window === 'undefined') {
+    return 'UTC'; // Default to UTC on server
+  }
+  return Intl.DateTimeFormat().resolvedOptions().timeZone;
+};

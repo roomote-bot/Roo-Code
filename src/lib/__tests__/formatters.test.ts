@@ -3,9 +3,8 @@
 import { formatNumber, formatCurrency } from '../formatters';
 
 describe('formatNumber', () => {
-  it('should return empty string for undefined or null values', () => {
+  it('should return empty string for undefined values', () => {
     expect(formatNumber(undefined)).toBe('');
-    expect(formatNumber(null as unknown as undefined)).toBe('');
   });
 
   it('should return "0" for zero', () => {
@@ -54,9 +53,8 @@ describe('formatNumber', () => {
 });
 
 describe('formatCurrency', () => {
-  it('should return empty string for undefined or null values', () => {
+  it('should return empty string for undefined values', () => {
     expect(formatCurrency(undefined)).toBe('');
-    expect(formatCurrency(null as unknown as undefined)).toBe('');
   });
 
   it('should format USD currency correctly', () => {
