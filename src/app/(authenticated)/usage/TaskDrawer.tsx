@@ -3,7 +3,6 @@ import { X } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { getMessages } from '@/actions/analytics';
-import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/taskUtils';
 import {
@@ -14,7 +13,6 @@ import {
   DrawerTitle,
   Button,
 } from '@/components/ui';
-import { ShareButton } from '@/components/task-sharing/ShareButton';
 
 import { Status } from './Status';
 import { Messages } from './Messages';
@@ -30,23 +28,17 @@ export const TaskDrawer = ({ task, onClose }: TaskDrawerProps) => {
     queryFn: () => getMessages(task.taskId),
   });
 
-  const { data: orgSettings } = useOrganizationSettings();
-
-  const isTaskSharingEnabled =
-    orgSettings?.cloudSettings?.enableTaskSharing ?? false;
-
   return (
     <Drawer open={true} onOpenChange={onClose} direction="right">
       <DrawerContent className="flex flex-col h-full">
         <DrawerHeader className="flex-shrink-0">
-          <div className="flex justify-end gap-2 mb-4">
-            {isTaskSharingEnabled && <ShareButton task={task} />}
+          <DrawerTitle>{task.title || generateFallbackTitle(task)}</DrawerTitle>
+          <DrawerDescription>{task.taskId}</DrawerDescription>
+          <div className="absolute top-2 right-2">
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="size-4" />
             </Button>
           </div>
-          <DrawerTitle>{task.title || generateFallbackTitle(task)}</DrawerTitle>
-          <DrawerDescription>{task.taskId}</DrawerDescription>
         </DrawerHeader>
         <div className="flex-1 overflow-y-auto p-4">
           <div className="mb-6 space-y-2">

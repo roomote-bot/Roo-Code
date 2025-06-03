@@ -18,7 +18,7 @@ const tabValues = [
   '/usage',
   '/audit-logs',
   '/providers',
-  '/settings',
+  '/telemetry',
   '/org',
   '/hidden',
 ] as const;
@@ -62,7 +62,7 @@ export const NavbarMenu = ({
                 <>
                   <TabsTrigger value="/audit-logs">Audit Logs</TabsTrigger>
                   <TabsTrigger value="/providers">Providers</TabsTrigger>
-                  <TabsTrigger value="/settings">Settings</TabsTrigger>
+                  <TabsTrigger value="/telemetry">Telemetry</TabsTrigger>
                   <TabsTrigger value="/org">Organization</TabsTrigger>
                 </>
               )}

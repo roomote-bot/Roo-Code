@@ -95,7 +95,7 @@ describe('timezoneUtils', () => {
     });
 
     it('should handle empty data', () => {
-      const result = aggregateHourlyToDaily([], mockTimezone);
+      const result = aggregateHourlyToDaily([]);
       expect(result).toEqual([]);
     });
 
