@@ -1,4 +1,4 @@
-// npx vitest run src/hooks/__tests__/useAuthState.test.ts
+// pnpm test src/hooks/__tests__/useAuthState.test.ts
 
 import { renderHook, act } from '@testing-library/react';
 import { useSessionStorage, useMount } from 'react-use';
@@ -32,7 +32,6 @@ const mockedUseSearchParams = vi.mocked(useSearchParams);
 
 describe('useAuthState', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     mockSearchParams.clear();
 
     mockedUseSessionStorage.mockImplementation(
@@ -216,7 +215,6 @@ describe('useAuthState', () => {
 
 describe('useSetAuthState', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
     mockSearchParams.clear();
 
     mockedUseSessionStorage.mockImplementation(
