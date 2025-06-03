@@ -42,6 +42,8 @@ export type OrganizationDefaultSettings = z.infer<
 
 export const organizationCloudSettingsSchema = z.object({
   recordTaskMessages: z.boolean().optional(),
+  enableTaskSharing: z.boolean().optional(),
+  taskShareExpirationDays: z.number().int().positive().optional(),
 });
 
 export type OrganizationCloudSettings = z.infer<
@@ -59,7 +61,10 @@ export type OrganizationSettings = z.infer<typeof organizationSettingsSchema>;
 
 export const ORGANIZATION_DEFAULT: OrganizationSettings = {
   version: 0,
-  cloudSettings: {},
+  cloudSettings: {
+    enableTaskSharing: true,
+    taskShareExpirationDays: 30,
+  },
   defaultSettings: {},
   allowList: ORGANIZATION_ALLOW_ALL,
 } as const;
