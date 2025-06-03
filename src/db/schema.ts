@@ -76,6 +76,7 @@ export const orgs = pgTable(
 export const orgsRelations = relations(orgs, ({ many, one }) => ({
   users: many(users),
   auditLogs: many(auditLogs),
+  taskShares: many(taskShares),
   orgSettings: one(orgSettings, {
     fields: [orgs.id],
     references: [orgSettings.orgId],
@@ -157,5 +158,45 @@ export const auditLogsRelations = relations(auditLogs, ({ one }) => ({
   org: one(orgs, {
     fields: [auditLogs.orgId],
     references: [orgs.id],
+  }),
+}));
+
+/**
+ * task_shares
+ */
+
+export const taskShares = pgTable(
+  'task_shares',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    taskId: text('task_id').notNull(),
+    orgId: text('organization_id')
+      .notNull()
+      .references(() => orgs.id),
+    createdByUserId: text('created_by_user_id')
+      .notNull()
+      .references(() => users.id),
+    shareToken: text('share_token').notNull().unique(),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (table) => [
+    index('task_shares_share_token_idx').on(table.shareToken),
+    index('task_shares_task_id_idx').on(table.taskId),
+    index('task_shares_org_id_idx').on(table.orgId),
+    index('task_shares_expires_at_idx').on(table.expiresAt),
+    index('task_shares_created_by_user_id_idx').on(table.createdByUserId),
+  ],
+);
+
+export const taskSharesRelations = relations(taskShares, ({ one }) => ({
+  org: one(orgs, {
+    fields: [taskShares.orgId],
+    references: [orgs.id],
+  }),
+  createdByUser: one(users, {
+    fields: [taskShares.createdByUserId],
+    references: [users.id],
   }),
 }));
