@@ -2,9 +2,9 @@ import { useForm } from 'react-hook-form';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import type { ProviderName } from '@roo-code/types';
+import type { ProviderName, OrganizationAllowList } from '@roo-code/types';
 
-import { type OrganizationAllowList, QueryKey } from '@/types';
+import { QueryKey } from '@/types';
 import { updateOrganization } from '@/actions/organizationSettings';
 import { useAvailableProviders } from '@/hooks/useAvailableProviders';
 import { cn } from '@/lib/utils';

@@ -7,7 +7,11 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Cloud } from 'lucide-react';
 
-import type { OrganizationSettings, OrganizationCloudSettings } from '@/types';
+import type {
+  OrganizationSettings,
+  OrganizationCloudSettings,
+} from '@roo-code/types';
+
 import { updateOrganization } from '@/actions/organizationSettings';
 import {
   Button,

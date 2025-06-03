@@ -12,9 +12,9 @@ import { relations } from 'drizzle-orm';
 import {
   type OrganizationDefaultSettings,
   type OrganizationAllowList,
-  ORGANIZATION_ALLOW_ALL,
   type OrganizationCloudSettings,
-} from '@/types';
+  ORGANIZATION_ALLOW_ALL,
+} from '@roo-code/types';
 
 import { AuditLogTargetType } from './enums';
 

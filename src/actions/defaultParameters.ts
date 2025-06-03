@@ -3,7 +3,9 @@
 import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { type ApiResponse, ORGANIZATION_ALLOW_ALL } from '@/types';
+import { ORGANIZATION_ALLOW_ALL } from '@roo-code/types';
+
+import type { ApiResponse } from '@/types';
 import { AuditLogTargetType, client as db, orgSettings } from '@/db/server';
 import { isAuthSuccess, handleError } from '@/lib/server';
 

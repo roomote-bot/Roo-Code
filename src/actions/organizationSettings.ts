@@ -5,14 +5,15 @@ import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 
 import {
-  type ApiResponse,
-  ORGANIZATION_ALLOW_ALL,
-  ORGANIZATION_DEFAULT,
   type OrganizationSettings,
   organizationAllowListSchema,
   organizationDefaultSettingsSchema,
   organizationCloudSettingsSchema,
-} from '@/types';
+  ORGANIZATION_ALLOW_ALL,
+  ORGANIZATION_DEFAULT,
+} from '@roo-code/types';
+
+import type { ApiResponse } from '@/types';
 import { AuditLogTargetType, client as db, orgSettings } from '@/db/server';
 import { handleError, isAuthSuccess } from '@/lib/server';
 
