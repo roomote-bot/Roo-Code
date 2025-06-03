@@ -20,7 +20,7 @@ import { Status } from '@/app/(authenticated)/usage/Status';
 
 type TaskCardProps = {
   task: TaskWithUser;
-  onFilter: (filter: Filter) => void;
+  onFilter?: (filter: Filter) => void;
   onTaskSelected: (task: TaskWithUser) => void;
 };
 
@@ -82,13 +82,17 @@ export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
                   size="sm"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onFilter({
-                      type: 'userId',
-                      value: task.userId,
-                      label: task.user.name,
-                    });
+                    // Only allow filtering if onFilter is provided (disabled for members)
+                    if (onFilter) {
+                      onFilter({
+                        type: 'userId',
+                        value: task.userId,
+                        label: task.user.name,
+                      });
+                    }
                   }}
                   className="px-0 h-auto text-xs font-normal text-muted-foreground hover:text-foreground"
+                  disabled={!onFilter}
                 >
                   {task.user.name}
                 </Button>

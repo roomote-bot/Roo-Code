@@ -13,16 +13,24 @@ export const Tasks = ({
   filter,
   onFilter,
   onTaskSelected,
+  userRole = 'admin',
+  currentUserId,
 }: {
   filter: Filter | null;
   onFilter: (filter: Filter) => void;
   onTaskSelected: (task: TaskWithUser) => void;
+  userRole?: 'admin' | 'member';
+  currentUserId?: string | null;
 }) => {
   const { orgId } = useAuth();
 
   const { data = [], isPending } = useQuery({
-    queryKey: ['getTasks', orgId],
-    queryFn: () => getTasks({ orgId }),
+    queryKey: ['getTasks', orgId, userRole === 'member' ? currentUserId : null],
+    queryFn: () =>
+      getTasks({
+        orgId,
+        userId: userRole === 'member' ? currentUserId : undefined,
+      }),
     enabled: !!orgId,
   });
 
@@ -64,7 +72,7 @@ export const Tasks = ({
         <TaskCard
           key={task.taskId}
           task={task}
-          onFilter={onFilter}
+          onFilter={userRole === 'member' ? undefined : onFilter}
           onTaskSelected={onTaskSelected}
         />
       ))}

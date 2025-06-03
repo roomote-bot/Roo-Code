@@ -27,7 +27,15 @@ import { UsageChart } from './UsageChart';
 
 type MetricType = 'tasks' | 'tokens' | 'cost';
 
-export const UsageCard = () => {
+type UsageCardProps = {
+  userRole?: 'admin' | 'member';
+  currentUserId?: string | null;
+};
+
+export const UsageCard = ({
+  userRole = 'admin',
+  currentUserId,
+}: UsageCardProps) => {
   const t = useTranslations('DashboardIndex');
   const { orgId } = useAuth();
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriodConfig>(
@@ -43,6 +51,7 @@ export const UsageCard = () => {
       orgId,
       selectedPeriod.value,
       selectedPeriod.granularity,
+      userRole === 'member' ? currentUserId : null,
     ],
     queryFn: () =>
       getUsage({
@@ -51,6 +60,7 @@ export const UsageCard = () => {
           selectedPeriod.granularity === 'daily'
             ? (selectedPeriod.value as 7 | 30 | 90)
             : (selectedPeriod.value as 1), // Use 1 day for 24h view
+        userId: userRole === 'member' ? currentUserId : undefined,
       }),
     enabled: !!orgId,
   });
@@ -169,6 +179,8 @@ export const UsageCard = () => {
             <UsageChart
               timePeriodConfig={selectedPeriod}
               selectedMetric={selectedMetric}
+              userRole={userRole}
+              currentUserId={currentUserId}
             />
           )}
         </div>

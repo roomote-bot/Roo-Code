@@ -7,7 +7,12 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/ecosystem';
 
 import { Section } from './Section';
 
-type NavbarMenuProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'children'>;
+type NavbarMenuProps = Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  'children'
+> & {
+  userRole?: 'admin' | 'member';
+};
 
 const tabValues = [
   '/usage',
@@ -23,7 +28,10 @@ type TabValue = (typeof tabValues)[number];
 const isTabValue = (value: string): value is TabValue =>
   tabValues.includes(value as TabValue);
 
-export const NavbarMenu = (props: NavbarMenuProps) => {
+export const NavbarMenu = ({
+  userRole = 'admin',
+  ...props
+}: NavbarMenuProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const [tabValue, setTabValue] = useState<TabValue | undefined>(undefined);
@@ -50,10 +58,14 @@ export const NavbarMenu = (props: NavbarMenuProps) => {
           >
             <TabsList>
               <TabsTrigger value="/usage">Usage</TabsTrigger>
-              <TabsTrigger value="/audit-logs">Audit Logs</TabsTrigger>
-              <TabsTrigger value="/providers">Providers</TabsTrigger>
-              <TabsTrigger value="/telemetry">Telemetry</TabsTrigger>
-              <TabsTrigger value="/org">Organization</TabsTrigger>
+              {userRole === 'admin' && (
+                <>
+                  <TabsTrigger value="/audit-logs">Audit Logs</TabsTrigger>
+                  <TabsTrigger value="/providers">Providers</TabsTrigger>
+                  <TabsTrigger value="/telemetry">Telemetry</TabsTrigger>
+                  <TabsTrigger value="/org">Organization</TabsTrigger>
+                </>
+              )}
               <TabsTrigger value="/hidden" className="hidden" />
             </TabsList>
           </Tabs>

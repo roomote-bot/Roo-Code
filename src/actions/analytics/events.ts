@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { auth } from '@clerk/nextjs/server';
 
 import {
   TelemetryEventName,
@@ -13,6 +14,56 @@ import { analytics } from '@/lib/server';
 import { type User, getUsersById } from '@/db/server';
 
 type Table = 'events' | 'messages';
+
+/**
+ * Validates authentication and authorization for analytics functions
+ */
+async function validateAnalyticsAccess({
+  requestedOrgId,
+  requestedUserId,
+  requireAdmin = false,
+}: {
+  requestedOrgId?: string | null;
+  requestedUserId?: string | null;
+  requireAdmin?: boolean;
+}): Promise<{
+  authOrgId: string;
+  authUserId: string;
+  orgRole: string;
+  effectiveUserId: string | null;
+}> {
+  const { orgId: authOrgId, orgRole, userId: authUserId } = await auth();
+
+  // Ensure user is authenticated and belongs to the organization
+  if (!authOrgId || !authUserId || authOrgId !== requestedOrgId) {
+    throw new Error('Unauthorized: Invalid organization access');
+  }
+
+  // Check if admin access is required
+  if (requireAdmin && orgRole !== 'org:admin') {
+    throw new Error('Unauthorized: Administrator access required');
+  }
+
+  // If user is not an admin and trying to access data other than their own
+  if (
+    orgRole !== 'org:admin' &&
+    requestedUserId &&
+    requestedUserId !== authUserId
+  ) {
+    throw new Error('Unauthorized: Members can only access their own data');
+  }
+
+  // For non-admin users, force userId filter to their own ID
+  const effectiveUserId =
+    orgRole !== 'org:admin' ? authUserId : requestedUserId || null;
+
+  return {
+    authOrgId,
+    authUserId,
+    orgRole: orgRole || 'unknown',
+    effectiveUserId,
+  };
+}
 
 /**
  * captureEvent
@@ -78,12 +129,28 @@ type UsageRecord = Partial<Record<TelemetryEventName, Usage>>;
 export const getUsage = async ({
   orgId,
   timePeriod = 90,
+  userId,
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
+  userId?: string | null;
 }): Promise<UsageRecord> => {
+  const { effectiveUserId } = await validateAnalyticsAccess({
+    requestedOrgId: orgId,
+    requestedUserId: userId,
+  });
+
   if (!orgId) {
     return {};
+  }
+
+  const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
+  const queryParams: Record<string, string | number> = {
+    orgId: orgId!,
+    timePeriod,
+  };
+  if (effectiveUserId) {
+    queryParams.userId = effectiveUserId;
   }
 
   const results = await analytics.query({
@@ -98,10 +165,11 @@ export const getUsage = async ({
       WHERE
         orgId = {orgId: String}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
+        ${userFilter}
       GROUP BY 1
     `,
     format: 'JSONEachRow',
-    query_params: { orgId, timePeriod },
+    query_params: queryParams,
   });
 
   return z
@@ -132,12 +200,34 @@ export type DeveloperUsage = z.infer<typeof developerUsageSchema> & {
 export const getDeveloperUsage = async ({
   orgId,
   timePeriod = 90,
+  userId,
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
+  userId?: string | null;
 }): Promise<DeveloperUsage[]> => {
+  await validateAnalyticsAccess({
+    requestedOrgId: orgId,
+    requestedUserId: userId,
+    requireAdmin: true,
+  });
+
   if (!orgId) {
     return [];
+  }
+
+  const userFilter = userId ? 'AND userId = {userId: String}' : '';
+  const queryParams: Record<string, string | number | string[]> = {
+    orgId: orgId!,
+    timePeriod,
+    types: [
+      TelemetryEventName.TASK_CREATED,
+      TelemetryEventName.TASK_COMPLETED,
+      TelemetryEventName.LLM_COMPLETION,
+    ],
+  };
+  if (userId) {
+    queryParams.userId = userId;
   }
 
   const results = await analytics.query({
@@ -152,18 +242,11 @@ export const getDeveloperUsage = async ({
       WHERE orgId = {orgId: String}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
+        ${userFilter}
       GROUP BY 1
     `,
     format: 'JSONEachRow',
-    query_params: {
-      orgId,
-      timePeriod,
-      types: [
-        TelemetryEventName.TASK_CREATED,
-        TelemetryEventName.TASK_COMPLETED,
-        TelemetryEventName.LLM_COMPLETION,
-      ],
-    },
+    query_params: queryParams,
   });
 
   const developerUsages = z
@@ -194,12 +277,34 @@ export type ModelUsage = z.infer<typeof modelUsageSchema>;
 export const getModelUsage = async ({
   orgId,
   timePeriod = 90,
+  userId,
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
+  userId?: string | null;
 }): Promise<ModelUsage[]> => {
+  await validateAnalyticsAccess({
+    requestedOrgId: orgId,
+    requestedUserId: userId,
+    requireAdmin: true,
+  });
+
   if (!orgId) {
     return [];
+  }
+
+  const userFilter = userId ? 'AND userId = {userId: String}' : '';
+  const queryParams: Record<string, string | number | string[]> = {
+    orgId: orgId!,
+    timePeriod,
+    types: [
+      TelemetryEventName.TASK_CREATED,
+      TelemetryEventName.TASK_COMPLETED,
+      TelemetryEventName.LLM_COMPLETION,
+    ],
+  };
+  if (userId) {
+    queryParams.userId = userId;
   }
 
   const results = await analytics.query({
@@ -215,18 +320,11 @@ export const getModelUsage = async ({
         orgId = {orgId: String}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
+        ${userFilter}
       GROUP BY 1, 2
     `,
     format: 'JSONEachRow',
-    query_params: {
-      orgId,
-      timePeriod,
-      types: [
-        TelemetryEventName.TASK_CREATED,
-        TelemetryEventName.TASK_COMPLETED,
-        TelemetryEventName.LLM_COMPLETION,
-      ],
-    },
+    query_params: queryParams,
   });
 
   return z.array(modelUsageSchema).parse(await results.json());
@@ -246,11 +344,34 @@ export type TaskWithUser = TaskWithTitle & { user: User };
 
 export const getTasks = async ({
   orgId,
+  userId,
 }: {
   orgId?: string | null;
+  userId?: string | null;
 }): Promise<TaskWithUser[]> => {
+  const { effectiveUserId } = await validateAnalyticsAccess({
+    requestedOrgId: orgId,
+    requestedUserId: userId,
+  });
+
   if (!orgId) {
     return [];
+  }
+
+  const userFilter = effectiveUserId ? 'AND e.userId = {userId: String}' : '';
+  const messageUserFilter = effectiveUserId
+    ? 'AND userId = {userId: String}'
+    : '';
+  const queryParams: Record<string, string | string[]> = {
+    orgId: orgId!,
+    types: [
+      TelemetryEventName.TASK_CREATED,
+      TelemetryEventName.TASK_COMPLETED,
+      TelemetryEventName.LLM_COMPLETION,
+    ],
+  };
+  if (effectiveUserId) {
+    queryParams.userId = effectiveUserId;
   }
 
   const results = await analytics.query({
@@ -262,6 +383,7 @@ export const getTasks = async ({
           argMin(mode, ts) as mode
         FROM messages
         WHERE orgId = {orgId: String}
+        ${messageUserFilter}
         GROUP BY taskId
       )
       SELECT
@@ -280,18 +402,12 @@ export const getTasks = async ({
       WHERE
         e.orgId = {orgId: String}
         AND e.type IN ({types: Array(String)})
+        ${userFilter}
       GROUP BY 1, 2
       ORDER BY timestamp DESC
     `,
     format: 'JSONEachRow',
-    query_params: {
-      orgId,
-      types: [
-        TelemetryEventName.TASK_CREATED,
-        TelemetryEventName.TASK_COMPLETED,
-        TelemetryEventName.LLM_COMPLETION,
-      ],
-    },
+    query_params: queryParams,
   });
 
   const tasks = z.array(taskWithTitleSchema).parse(await results.json());
@@ -322,12 +438,33 @@ export type HourlyUsageByUser = z.infer<typeof hourlyUsageByUserSchema> & {
 export const getHourlyUsageByUser = async ({
   orgId,
   timePeriod = 90,
+  userId,
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
+  userId?: string | null;
 }): Promise<HourlyUsageByUser[]> => {
+  const { effectiveUserId } = await validateAnalyticsAccess({
+    requestedOrgId: orgId,
+    requestedUserId: userId,
+  });
+
   if (!orgId) {
     return [];
+  }
+
+  const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
+  const queryParams: Record<string, string | number | string[]> = {
+    orgId: orgId!,
+    timePeriod,
+    types: [
+      TelemetryEventName.TASK_CREATED,
+      TelemetryEventName.TASK_COMPLETED,
+      TelemetryEventName.LLM_COMPLETION,
+    ],
+  };
+  if (effectiveUserId) {
+    queryParams.userId = effectiveUserId;
   }
 
   const results = await analytics.query({
@@ -343,19 +480,12 @@ export const getHourlyUsageByUser = async ({
         orgId = {orgId: String}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
+        ${userFilter}
       GROUP BY 1, 2
       ORDER BY hour_utc DESC, userId
     `,
     format: 'JSONEachRow',
-    query_params: {
-      orgId,
-      timePeriod,
-      types: [
-        TelemetryEventName.TASK_CREATED,
-        TelemetryEventName.TASK_COMPLETED,
-        TelemetryEventName.LLM_COMPLETION,
-      ],
-    },
+    query_params: queryParams,
   });
 
   const hourlyUsages = z

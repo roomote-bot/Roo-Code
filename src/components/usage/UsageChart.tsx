@@ -283,6 +283,8 @@ const processDailyDataForChart = (
 interface UsageChartProps {
   timePeriodConfig: TimePeriodConfig;
   selectedMetric?: MetricType;
+  userRole?: 'admin' | 'member';
+  currentUserId?: string | null;
 }
 
 // Custom tick components for theme-aware labels
@@ -432,6 +434,8 @@ const CustomTooltip = ({
 export const UsageChart = ({
   timePeriodConfig,
   selectedMetric = 'tasks',
+  userRole = 'admin',
+  currentUserId,
 }: UsageChartProps) => {
   const { orgId } = useAuth();
   const [isClient, setIsClient] = useState(false);
@@ -447,9 +451,14 @@ export const UsageChart = ({
       orgId,
       timePeriodConfig.value,
       timePeriodConfig.granularity,
+      userRole === 'member' ? currentUserId : null,
     ],
     queryFn: () =>
-      getHourlyUsageByUser({ orgId, timePeriod: timePeriodConfig.value }),
+      getHourlyUsageByUser({
+        orgId,
+        timePeriod: timePeriodConfig.value,
+        userId: userRole === 'member' ? currentUserId : undefined,
+      }),
     enabled: !!orgId,
   });
 
