@@ -1,4 +1,4 @@
-import { aggregateHourlyToDaily } from '../timezoneUtils';
+import { aggregateHourlyToDaily } from '../timezone-utils';
 import { HourlyUsageByUser } from '@/actions/analytics/events';
 
 // Mock timezone to ensure consistent test results
@@ -95,7 +95,7 @@ describe('timezoneUtils', () => {
     });
 
     it('should handle empty data', () => {
-      const result = aggregateHourlyToDaily([]);
+      const result = aggregateHourlyToDaily([], mockTimezone);
       expect(result).toEqual([]);
     });
 

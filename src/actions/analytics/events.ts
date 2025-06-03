@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { auth } from '@clerk/nextjs/server';
 
 import {
-  TelemetryEventName,
   type RooCodeTelemetryEvent,
+  TelemetryEventName,
 } from '@roo-code/types';
 
 import type { AnyTimePeriod } from '@/types';

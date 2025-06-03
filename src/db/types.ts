@@ -1,4 +1,4 @@
-import type { users, orgs, orgSettings, auditLogs } from './schema';
+import type { users, orgs, orgSettings, auditLogs, taskShares } from './schema';
 
 type Generated = 'id' | 'createdAt' | 'updatedAt';
 
@@ -40,3 +40,11 @@ export type CreateAuditLog = Omit<typeof auditLogs.$inferInsert, Generated>;
 export type AuditLogWithUser = AuditLog & {
   user: User;
 };
+
+/**
+ * taskShares
+ */
+
+export type TaskShare = typeof taskShares.$inferSelect;
+
+export type CreateTaskShare = Omit<typeof taskShares.$inferInsert, Generated>;

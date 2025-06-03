@@ -16,7 +16,7 @@ import {
 import type { TimePeriodConfig } from '@/types';
 import { getHourlyUsageByUser } from '@/actions/analytics';
 import { formatNumber } from '@/lib/formatters';
-import { aggregateHourlyToDaily } from '@/lib/timezoneUtils';
+import { aggregateHourlyToDaily } from '@/lib/timezone-utils';
 type MetricType = 'tasks' | 'tokens' | 'cost';
 
 interface TickProps {

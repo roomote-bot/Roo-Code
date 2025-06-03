@@ -3,7 +3,7 @@ import {
   formatCurrency,
   formatTimestamp,
 } from '@/lib/formatters';
-import { generateFallbackTitle } from '@/lib/taskUtils';
+import { generateFallbackTitle } from '@/lib/task-utils';
 import {
   Card,
   CardContent,
