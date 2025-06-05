@@ -399,13 +399,18 @@ const CustomTooltip = ({
       });
     }
 
+    // Sort payload entries alphabetically by dataKey (user name)
+    const sortedPayload = [...payload].sort((a, b) =>
+      a.dataKey.localeCompare(b.dataKey),
+    );
+
     return (
       <div className="bg-popover border border-border rounded-lg shadow-lg p-3 min-w-[200px]">
         <p className="text-sm font-medium text-foreground mb-2">
           {formattedDate}
         </p>
         <div className="space-y-1">
-          {payload.map((entry, index) => (
+          {sortedPayload.map((entry, index) => (
             <div
               key={index}
               className={`flex items-center justify-between gap-3 rounded px-2 py-1 ${
@@ -496,8 +501,14 @@ export const UsageChart = ({
     hourlyUsage.forEach((item) => {
       users.add(item.user.name || item.user.email || 'Unknown');
     });
+    // Sort alphabetically
     return Array.from(users).sort();
   }, [hourlyUsage]);
+
+  // Reverse the order for chart rendering so alphabetically first user appears at top
+  const reversedUsers = useMemo(() => {
+    return [...uniqueUsers].reverse();
+  }, [uniqueUsers]);
 
   const formatValue = (value: number) => {
     switch (selectedMetric) {
@@ -642,19 +653,20 @@ export const UsageChart = ({
                 opacity: 0.1,
               }}
             />
-            {uniqueUsers.map((user, index) => (
-              <Bar
-                key={user}
-                dataKey={user}
-                stackId="usage"
-                fill={generateUserColor(index)}
-                radius={
-                  index === uniqueUsers.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
-                }
-                onMouseEnter={() => setHoveredUser(user)}
-                onMouseLeave={() => setHoveredUser(null)}
-              />
-            ))}
+            {reversedUsers.map((user) => {
+              // Find the original alphabetical position for consistent colors
+              const originalIndex = uniqueUsers.indexOf(user);
+              return (
+                <Bar
+                  key={user}
+                  dataKey={user}
+                  stackId="usage"
+                  fill={generateUserColor(originalIndex)}
+                  onMouseEnter={() => setHoveredUser(user)}
+                  onMouseLeave={() => setHoveredUser(null)}
+                />
+              );
+            })}
           </BarChart>
         </ResponsiveContainer>
       </div>
