@@ -40,6 +40,7 @@ interface TooltipProps {
   label?: string;
   selectedMetric?: MetricType;
   formatValue?: (value: number) => string;
+  hoveredUser?: string | null;
 }
 
 interface ChartDataPoint {
@@ -367,6 +368,7 @@ const CustomTooltip = ({
   label,
   formatValue,
   isHourly,
+  hoveredUser,
 }: TooltipProps & { isHourly?: boolean }) => {
   if (active && payload && payload.length && label) {
     let formattedDate: string;
@@ -406,7 +408,9 @@ const CustomTooltip = ({
           {payload.map((entry, index) => (
             <div
               key={index}
-              className="flex items-center justify-between gap-3"
+              className={`flex items-center justify-between gap-3 rounded px-2 py-1 ${
+                entry.dataKey === hoveredUser ? 'bg-muted' : ''
+              }`}
             >
               <div className="flex items-center gap-2">
                 <div
@@ -439,6 +443,7 @@ export const UsageChart = ({
 }: UsageChartProps) => {
   const { orgId } = useAuth();
   const [isClient, setIsClient] = useState(false);
+  const [hoveredUser, setHoveredUser] = useState<string | null>(null);
 
   // Ensure we only run timezone-dependent code on the client
   useEffect(() => {
@@ -629,6 +634,7 @@ export const UsageChart = ({
                   selectedMetric={selectedMetric}
                   formatValue={formatValue}
                   isHourly={timePeriodConfig.granularity === 'hourly'}
+                  hoveredUser={hoveredUser}
                 />
               }
               cursor={{
@@ -645,6 +651,8 @@ export const UsageChart = ({
                 radius={
                   index === uniqueUsers.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
                 }
+                onMouseEnter={() => setHoveredUser(user)}
+                onMouseLeave={() => setHoveredUser(null)}
               />
             ))}
           </BarChart>
