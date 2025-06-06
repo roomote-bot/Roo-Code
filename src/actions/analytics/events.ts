@@ -191,6 +191,7 @@ const developerUsageSchema = z.object({
   tasksCompleted: z.coerce.number(),
   tokens: z.coerce.number(),
   cost: z.coerce.number(),
+  lastEventTimestamp: z.coerce.number(),
 });
 
 export type DeveloperUsage = z.infer<typeof developerUsageSchema> & {
@@ -237,7 +238,8 @@ export const getDeveloperUsage = async ({
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasksStarted,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_COMPLETED}' THEN 1 ELSE 0 END) AS tasksCompleted,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
-        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost,
+        MAX(timestamp) AS lastEventTimestamp
       FROM events
       WHERE orgId = {orgId: String}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)

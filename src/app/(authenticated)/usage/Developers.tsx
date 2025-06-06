@@ -2,9 +2,14 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useAuth } from '@clerk/nextjs';
+import { formatDistance } from 'date-fns';
 
 import { type DeveloperUsage, getDeveloperUsage } from '@/actions/analytics';
-import { formatCurrency, formatNumber } from '@/lib/formatters';
+import {
+  formatCurrency,
+  formatNumber,
+  formatTimestamp,
+} from '@/lib/formatters';
 import { Button, Skeleton } from '@/components/ui';
 import { DataTable } from '@/components/layout';
 
@@ -62,6 +67,25 @@ export const Developers = ({
       {
         header: 'Cost (USD)',
         cell: ({ row }) => formatCurrency(row.original.cost),
+      },
+      {
+        header: 'Last Event',
+        cell: ({ row }) => {
+          const timestamp = row.original.lastEventTimestamp;
+          if (!timestamp) return 'No activity';
+
+          const date = new Date(timestamp * 1000);
+          const relativeTime = formatDistance(date, new Date(), {
+            addSuffix: true,
+          });
+          const absoluteTime = formatTimestamp(timestamp);
+
+          return (
+            <span title={absoluteTime} className="cursor-help">
+              {relativeTime}
+            </span>
+          );
+        },
       },
     ],
     [onFilter],
