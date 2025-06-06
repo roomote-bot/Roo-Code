@@ -41,7 +41,7 @@ export const UsageCard = ({
   const [selectedPeriod, setSelectedPeriod] = useState<TimePeriodConfig>(
     allTimePeriods.find((p) => p.value === 7 && p.granularity === 'daily')!,
   );
-  const [selectedMetric, setSelectedMetric] = useState<MetricType>('tasks');
+  const [selectedMetric, setSelectedMetric] = useState<MetricType>('tokens');
 
   const path = usePathname();
 
