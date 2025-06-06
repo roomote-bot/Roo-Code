@@ -46,7 +46,8 @@ CREATE TABLE IF NOT EXISTS default.messages
     `text` Nullable(String),
     `reasoning` Nullable(String),
     `partial` Nullable(Bool),
-    `timestamp` Int32
+    `timestamp` Int32,
+    `mode` Nullable(String)
 )
 ENGINE = MergeTree()
 ORDER BY (id, timestamp)
