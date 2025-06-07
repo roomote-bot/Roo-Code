@@ -19,7 +19,8 @@ export default async function SharedTaskPage({ params }: SharedTaskPageProps) {
   }
 
   try {
-    const result = await getTaskByShareToken(params.token);
+    const { token } = await params;
+    const result = await getTaskByShareToken(token);
 
     if (!result) {
       notFound();
@@ -66,7 +67,8 @@ export default async function SharedTaskPage({ params }: SharedTaskPageProps) {
 
 export async function generateMetadata({ params }: SharedTaskPageProps) {
   try {
-    const result = await getTaskByShareToken(params.token);
+    const { token } = await params;
+    const result = await getTaskByShareToken(token);
 
     if (!result) {
       return {
