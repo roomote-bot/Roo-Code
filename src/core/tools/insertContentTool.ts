@@ -116,11 +116,22 @@ export async function insertContentTool(
 			await delay(200)
 		}
 
-		const diff = formatResponse.createPrettyPatch(relPath, fileContent, updatedContent)
+		// For consistency with writeToFileTool, handle new files differently
+		let diff: string | undefined
+		let approvalContent: string | undefined
 
-		if (fileExists && !diff) {
-			pushToolResult(`No changes needed for '${relPath}'`)
-			return
+		if (fileExists) {
+			// For existing files, generate diff and check for changes
+			diff = formatResponse.createPrettyPatch(relPath, fileContent, updatedContent)
+			if (!diff) {
+				pushToolResult(`No changes needed for '${relPath}'`)
+				return
+			}
+			approvalContent = undefined
+		} else {
+			// For new files, skip diff generation and provide full content
+			diff = undefined
+			approvalContent = updatedContent
 		}
 
 		await cline.diffViewProvider.update(updatedContent, true)
@@ -128,6 +139,7 @@ export async function insertContentTool(
 		const completeMessage = JSON.stringify({
 			...sharedMessageProps,
 			diff,
+			content: approvalContent,
 			lineNumber: lineNumber,
 			isProtected: isWriteProtected,
 		} satisfies ClineSayTool)

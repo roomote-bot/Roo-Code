@@ -48,28 +48,6 @@ jest.mock("../../ignore/RooIgnoreController", () => ({
 	},
 }))
 
-// Mock insertGroups from diff/insert-groups
-jest.mock("../../diff/insert-groups", () => ({
-	insertGroups: jest.fn().mockImplementation((lines, groups) => {
-		let newLines = [...lines]
-		for (const group of groups) {
-			const { index, elements } = group
-			if (index === -1 || index >= newLines.length) {
-				// Append to end
-				newLines.push(...elements)
-			} else if (index < 0) {
-				// Insert at beginning (index -1 for line 0, but insertGroups expects 0 for beginning)
-				// This mock simplifies, assuming index -1 is always append.
-				// For line 1, index is 0.
-				newLines.splice(0, 0, ...elements)
-			} else {
-				newLines.splice(index, 0, ...elements)
-			}
-		}
-		return newLines
-	}),
-}))
-
 describe("insertContentTool", () => {
 	const testFilePath = "test/file.txt"
 	const absoluteFilePath = "/test/file.txt"
@@ -77,7 +55,6 @@ describe("insertContentTool", () => {
 	const mockedFileExistsAtPath = fileExistsAtPath as jest.MockedFunction<typeof fileExistsAtPath>
 	const mockedFsReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>
 	const mockedPathResolve = path.resolve as jest.MockedFunction<typeof path.resolve>
-	const mockedInsertGroups = require("../../diff/insert-groups").insertGroups as jest.MockedFunction<any>
 
 	let mockCline: any
 	let mockAskApproval: jest.Mock
