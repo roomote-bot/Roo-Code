@@ -41,6 +41,8 @@ interface TooltipProps {
   selectedMetric?: MetricType;
   formatValue?: (value: number) => string;
   hoveredUser?: string | null;
+  userRole?: 'admin' | 'member';
+  chartData?: ChartDataPoint[];
 }
 
 interface ChartDataPoint {
@@ -369,6 +371,8 @@ const CustomTooltip = ({
   formatValue,
   isHourly,
   hoveredUser,
+  userRole,
+  chartData,
 }: TooltipProps & { isHourly?: boolean }) => {
   if (active && payload && payload.length && label) {
     let formattedDate: string;
@@ -404,6 +408,10 @@ const CustomTooltip = ({
       a.dataKey.localeCompare(b.dataKey),
     );
 
+    // Get the correct total from the chart data for this specific data point
+    const currentDataPoint = chartData?.find((point) => point.date === label);
+    const total = currentDataPoint?.total || 0;
+
     return (
       <div className="bg-popover border border-border rounded-lg shadow-lg p-3 min-w-[200px]">
         <p className="text-sm font-medium text-foreground mb-2">
@@ -433,6 +441,16 @@ const CustomTooltip = ({
               </span>
             </div>
           ))}
+
+          {/* Total row at the bottom - only show for admin users */}
+          {userRole === 'admin' && (
+            <div className="flex items-center justify-between gap-3 border-t border-border pt-2 mt-2">
+              <span className="text-xs font-medium text-foreground">Total</span>
+              <span className="text-xs font-bold text-foreground">
+                {formatValue ? formatValue(total) : total}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -513,7 +531,8 @@ export const UsageChart = ({
   const formatValue = (value: number) => {
     switch (selectedMetric) {
       case 'cost':
-        return value < 1 ? `$${value.toFixed(2)}` : `$${value.toFixed(0)}`;
+        // Always show 2 decimal places for consistency
+        return `$${value.toFixed(2)}`;
       case 'tokens':
         return value >= 1000000
           ? `${(value / 1000000).toFixed(1)}M`
@@ -646,6 +665,8 @@ export const UsageChart = ({
                   formatValue={formatValue}
                   isHourly={timePeriodConfig.granularity === 'hourly'}
                   hoveredUser={hoveredUser}
+                  userRole={userRole}
+                  chartData={chartData}
                 />
               }
               cursor={{
