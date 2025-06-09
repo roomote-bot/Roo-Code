@@ -1,5 +1,6 @@
 import type { TaskWithUser } from '@/actions/analytics';
 import type { Message } from '@/types/analytics';
+import type { SharedByUser } from '@/types/task-sharing';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/task-utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
@@ -9,9 +10,16 @@ import { Messages } from '@/app/(authenticated)/usage/Messages';
 type SharedTaskViewProps = {
   task: TaskWithUser;
   messages: Message[];
+  sharedBy: SharedByUser;
+  sharedAt: Date;
 };
 
-export const SharedTaskView = ({ task, messages }: SharedTaskViewProps) => {
+export const SharedTaskView = ({
+  task,
+  messages,
+  sharedBy,
+  sharedAt,
+}: SharedTaskViewProps) => {
   const taskTitle = task.title || generateFallbackTitle(task);
 
   return (
@@ -23,8 +31,7 @@ export const SharedTaskView = ({ task, messages }: SharedTaskViewProps) => {
             <div>
               <CardTitle className="text-xl">{taskTitle}</CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Shared by {task.user.name} •{' '}
-                {new Date(task.timestamp * 1000).toLocaleDateString()}
+                Shared by {sharedBy.name} • {sharedAt.toLocaleDateString()}
               </p>
             </div>
             <div className="flex items-center gap-2">
@@ -36,7 +43,11 @@ export const SharedTaskView = ({ task, messages }: SharedTaskViewProps) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+            <div>
+              <p className="text-muted-foreground">Developer</p>
+              <p className="font-mono">{task.user.name}</p>
+            </div>
             <div>
               <p className="text-muted-foreground">Model</p>
               <p className="font-mono">{task.model}</p>

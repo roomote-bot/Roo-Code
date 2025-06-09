@@ -9,9 +9,10 @@ import {
   createTaskShareSchema,
   shareIdSchema,
 } from '@/types';
+import type { SharedByUser } from '@/types/task-sharing';
 import type { Message } from '@/types/analytics';
 import { type TaskShare, AuditLogTargetType } from '@/db';
-import { client as db, taskShares } from '@/db/server';
+import { client as db, taskShares, users } from '@/db/server';
 import { handleError, isAuthSuccess, generateShareToken } from '@/lib/server';
 import {
   isValidShareToken,
@@ -199,9 +200,12 @@ export async function createTaskShare(
 /**
  * Get task data by share token (for viewing shared tasks)
  */
-export async function getTaskByShareToken(
-  token: string,
-): Promise<{ task: TaskWithUser; messages: Message[] } | null> {
+export async function getTaskByShareToken(token: string): Promise<{
+  task: TaskWithUser;
+  messages: Message[];
+  sharedBy: SharedByUser;
+  sharedAt: Date;
+} | null> {
   try {
     const { userId, orgId } = await auth();
 
@@ -213,15 +217,25 @@ export async function getTaskByShareToken(
       return null;
     }
 
-    const [share] = await db
-      .select()
+    const [shareWithUser] = await db
+      .select({
+        share: taskShares,
+        sharedByUser: {
+          id: users.id,
+          name: users.name,
+          email: users.email,
+        },
+      })
       .from(taskShares)
+      .innerJoin(users, eq(taskShares.createdByUserId, users.id))
       .where(and(eq(taskShares.shareToken, token), eq(taskShares.orgId, orgId)))
       .limit(1);
 
-    if (!share) {
+    if (!shareWithUser) {
       return null;
     }
+
+    const { share, sharedByUser } = shareWithUser;
 
     if (isShareExpired(share.expiresAt)) {
       return null;
@@ -240,7 +254,12 @@ export async function getTaskByShareToken(
 
     const messages = await getMessages(share.taskId);
 
-    return { task, messages };
+    return {
+      task,
+      messages,
+      sharedBy: sharedByUser,
+      sharedAt: share.createdAt,
+    };
   } catch (error) {
     console.error(
       'Error getting task by share token:',

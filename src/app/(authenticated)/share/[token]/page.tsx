@@ -26,7 +26,7 @@ export default async function SharedTaskPage({ params }: SharedTaskPageProps) {
       notFound();
     }
 
-    const { task, messages } = result;
+    const { task, messages, sharedBy, sharedAt } = result;
 
     return (
       <div className="container mx-auto py-6">
@@ -35,7 +35,12 @@ export default async function SharedTaskPage({ params }: SharedTaskPageProps) {
             <span>Shared Task</span>
           </div>
         </div>
-        <SharedTaskView task={task} messages={messages} />
+        <SharedTaskView
+          task={task}
+          messages={messages}
+          sharedBy={sharedBy}
+          sharedAt={sharedAt}
+        />
       </div>
     );
   } catch (error) {

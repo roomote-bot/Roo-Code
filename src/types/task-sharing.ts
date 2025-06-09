@@ -10,3 +10,9 @@ export type CreateTaskShareRequest = z.infer<typeof createTaskShareSchema>;
 export const shareIdSchema = z.string().uuid('Invalid share ID format');
 
 export type ShareId = z.infer<typeof shareIdSchema>;
+
+export type SharedByUser = {
+  id: string;
+  name: string;
+  email: string;
+};
