@@ -34,18 +34,72 @@ type TaskShareResponse = ApiResponse & {
   };
 };
 
+/**
+ * Check if the current user can share a specific task (for UI components)
+ */
+export async function canShareTask(taskId: string): Promise<{
+  canShare: boolean;
+  task?: TaskWithUser;
+  error?: string;
+  userId?: string;
+  orgId?: string;
+  orgRole?: string;
+}> {
+  try {
+    // Get authentication info
+    const { userId, orgId, orgRole } = await auth();
+
+    if (!userId || !orgId) {
+      return { canShare: false, error: 'Authentication required' };
+    }
+
+    // Admins can share any task in the organization
+    if (orgRole === 'org:admin') {
+      const tasks = await getTasks({
+        taskId,
+        orgId,
+        allowCrossUserAccess: true,
+      });
+      const task = tasks[0];
+
+      if (!task) {
+        return { canShare: false, error: 'Task not found' };
+      }
+
+      return { canShare: true, task, userId, orgId, orgRole };
+    }
+
+    // Members can only share tasks they created
+    const tasks = await getTasks({ taskId, orgId });
+    const task = tasks[0];
+
+    // Additional check: ensure the task belongs to the requesting user
+    if (task && task.userId !== userId) {
+      return {
+        canShare: false,
+        error:
+          'Task not found or you do not have permission to share this task',
+      };
+    }
+
+    if (!task) {
+      return {
+        canShare: false,
+        error:
+          'Task not found or you do not have permission to share this task',
+      };
+    }
+
+    return { canShare: true, task, userId, orgId, orgRole };
+  } catch (_error) {
+    return { canShare: false, error: 'Failed to verify task access' };
+  }
+}
+
 export async function createTaskShare(
   data: CreateTaskShareRequest,
 ): Promise<TaskShareResponse> {
   try {
-    const authResult = await validateAuth();
-
-    if (!isAuthSuccess(authResult)) {
-      return authResult;
-    }
-
-    const { userId, orgId } = authResult;
-
     const result = createTaskShareSchema.safeParse(data);
 
     if (!result.success) {
@@ -63,11 +117,19 @@ export async function createTaskShare(
       };
     }
 
-    const tasks = await getTasks({ orgId, userId });
-    const task = tasks.find((t) => t.taskId === taskId);
+    // Check if user can share this specific task (includes auth)
+    const { canShare, task, error, userId, orgId, orgRole } =
+      await canShareTask(taskId);
 
-    if (!task) {
-      return { success: false, error: 'Task not found or access denied' };
+    if (!canShare) {
+      return { success: false, error: error || 'Access denied' };
+    }
+
+    if (!task || !userId || !orgId || !orgRole) {
+      return {
+        success: false,
+        error: 'Task not found or authentication failed',
+      };
     }
 
     const expirationDaysToUse =
@@ -103,8 +165,14 @@ export async function createTaskShare(
           action: 'created',
           shareId: insertedShare[0].id,
           expiresAt: expiresAt.toISOString(),
+          taskOwnerId: task.userId,
+          sharedByAdmin: orgRole === 'org:admin' && task.userId !== userId,
         },
-        description: `Created task share for task ${taskId}`,
+        description: `Created task share for task ${taskId}${
+          orgRole === 'org:admin' && task.userId !== userId
+            ? ` (admin sharing task created by ${task.user.name})`
+            : ''
+        }`,
       });
 
       return insertedShare;
@@ -159,8 +227,12 @@ export async function getTaskByShareToken(
       return null;
     }
 
-    const tasks = await getTasks({ orgId: share.orgId });
-    const task = tasks.find((t) => t.taskId === share.taskId);
+    const tasks = await getTasks({
+      taskId: share.taskId,
+      orgId: share.orgId,
+      allowCrossUserAccess: true,
+    });
+    const task = tasks[0];
 
     if (!task) {
       return null;
@@ -190,7 +262,7 @@ export async function deleteTaskShare(shareId: string): Promise<ApiResponse> {
       return authResult;
     }
 
-    const { userId, orgId } = authResult;
+    const { userId, orgId, orgRole } = authResult;
 
     const shareIdResult = shareIdSchema.safeParse(shareId);
 
@@ -198,20 +270,24 @@ export async function deleteTaskShare(shareId: string): Promise<ApiResponse> {
       return { success: false, error: 'Invalid share ID format' };
     }
 
+    // First, find the share to check permissions
     const [share] = await db
       .select()
       .from(taskShares)
-      .where(
-        and(
-          eq(taskShares.id, shareId),
-          eq(taskShares.orgId, orgId),
-          eq(taskShares.createdByUserId, userId),
-        ),
-      )
+      .where(and(eq(taskShares.id, shareId), eq(taskShares.orgId, orgId)))
       .limit(1);
 
     if (!share) {
-      return { success: false, error: 'Share not found or access denied' };
+      return { success: false, error: 'Share not found' };
+    }
+
+    // Check if user can delete this share
+    // Admins can delete any share, members can only delete shares they created
+    if (orgRole !== 'org:admin' && share.createdByUserId !== userId) {
+      return {
+        success: false,
+        error: 'Access denied: You can only delete shares you created',
+      };
     }
 
     await db.transaction(async (tx) => {
@@ -222,8 +298,17 @@ export async function deleteTaskShare(shareId: string): Promise<ApiResponse> {
         orgId,
         targetType: AuditLogTargetType.TASK_SHARE,
         targetId: share.taskId,
-        newValue: { action: 'deleted', shareId: share.id },
-        description: `Deleted task share for task ${share.taskId}`,
+        newValue: {
+          action: 'deleted',
+          shareId: share.id,
+          deletedByAdmin:
+            orgRole === 'org:admin' && share.createdByUserId !== userId,
+        },
+        description: `Deleted task share for task ${share.taskId}${
+          orgRole === 'org:admin' && share.createdByUserId !== userId
+            ? ' (admin deletion)'
+            : ''
+        }`,
       });
     });
 
@@ -238,29 +323,33 @@ export async function deleteTaskShare(shareId: string): Promise<ApiResponse> {
  */
 export async function getTaskShares(taskId: string): Promise<TaskShare[]> {
   try {
-    const { userId, orgId } = await auth();
+    // Check if user can access this task (includes auth)
+    const { canShare, error, userId, orgId, orgRole } =
+      await canShareTask(taskId);
 
-    if (!userId || !orgId) {
-      throw new Error('Authentication required');
+    if (!canShare) {
+      throw new Error(error || 'Task not found or access denied');
     }
 
-    const tasks = await getTasks({ orgId, userId });
-    const task = tasks.find((t) => t.taskId === taskId);
+    if (!userId || !orgId) {
+      throw new Error('Authentication failed');
+    }
 
-    if (!task) {
-      throw new Error('Task not found or access denied');
+    // For admins, show all shares for the task
+    // For members, only show shares they created
+    const whereConditions = [
+      eq(taskShares.taskId, taskId),
+      eq(taskShares.orgId, orgId),
+    ];
+
+    if (orgRole !== 'org:admin') {
+      whereConditions.push(eq(taskShares.createdByUserId, userId));
     }
 
     const shares = await db
       .select()
       .from(taskShares)
-      .where(
-        and(
-          eq(taskShares.taskId, taskId),
-          eq(taskShares.orgId, orgId),
-          eq(taskShares.createdByUserId, userId),
-        ),
-      )
+      .where(and(...whereConditions))
       .orderBy(desc(taskShares.createdAt));
 
     return shares.filter((share) => !isShareExpired(share.expiresAt));

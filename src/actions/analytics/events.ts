@@ -22,10 +22,12 @@ async function validateAnalyticsAccess({
   requestedOrgId,
   requestedUserId,
   requireAdmin = false,
+  allowCrossUserAccess = false,
 }: {
   requestedOrgId?: string | null;
   requestedUserId?: string | null;
   requireAdmin?: boolean;
+  allowCrossUserAccess?: boolean;
 }): Promise<{
   authOrgId: string;
   authUserId: string;
@@ -54,8 +56,11 @@ async function validateAnalyticsAccess({
   }
 
   // For non-admin users, force userId filter to their own ID
+  // Unless allowCrossUserAccess is true and we're checking task sharing permissions
   const effectiveUserId =
-    orgRole !== 'org:admin' ? authUserId : requestedUserId || null;
+    orgRole !== 'org:admin' && !allowCrossUserAccess
+      ? authUserId
+      : requestedUserId || null;
 
   return {
     authOrgId,
@@ -347,13 +352,18 @@ export type TaskWithUser = TaskWithTitle & { user: User };
 export const getTasks = async ({
   orgId,
   userId,
+  taskId,
+  allowCrossUserAccess = false,
 }: {
   orgId?: string | null;
   userId?: string | null;
+  taskId?: string | null;
+  allowCrossUserAccess?: boolean;
 }): Promise<TaskWithUser[]> => {
   const { effectiveUserId } = await validateAnalyticsAccess({
     requestedOrgId: orgId,
     requestedUserId: userId,
+    allowCrossUserAccess,
   });
 
   if (!orgId) {
@@ -361,9 +371,12 @@ export const getTasks = async ({
   }
 
   const userFilter = effectiveUserId ? 'AND e.userId = {userId: String}' : '';
+  const taskFilter = taskId ? 'AND e.taskId = {taskId: String}' : '';
   const messageUserFilter = effectiveUserId
     ? 'AND userId = {userId: String}'
     : '';
+  const messageTaskFilter = taskId ? 'AND taskId = {taskId: String}' : '';
+
   const queryParams: Record<string, string | string[]> = {
     orgId: orgId!,
     types: [
@@ -374,6 +387,9 @@ export const getTasks = async ({
   };
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
+  }
+  if (taskId) {
+    queryParams.taskId = taskId;
   }
 
   const results = await analytics.query({
@@ -386,6 +402,7 @@ export const getTasks = async ({
         FROM messages
         WHERE orgId = {orgId: String}
         ${messageUserFilter}
+        ${messageTaskFilter}
         GROUP BY taskId
       )
       SELECT
@@ -405,6 +422,7 @@ export const getTasks = async ({
         e.orgId = {orgId: String}
         AND e.type IN ({types: Array(String)})
         ${userFilter}
+        ${taskFilter}
       GROUP BY 1, 2
       ORDER BY timestamp DESC
     `,

@@ -6,9 +6,9 @@ import type { ApiResponse } from '@/types';
 import { Env, logger } from '@/lib/server';
 
 export async function validateAuth(): Promise<
-  { userId: string; orgId: string } | ApiResponse
+  { userId: string; orgId: string; orgRole: string } | ApiResponse
 > {
-  const { userId, orgId } = await auth();
+  const { userId, orgId, orgRole } = await auth();
 
   if (!userId) {
     return { success: false, error: 'Unauthorized: User required' };
@@ -18,7 +18,7 @@ export async function validateAuth(): Promise<
     return { success: false, error: 'Unauthorized: Organization required' };
   }
 
-  return { userId, orgId };
+  return { userId, orgId, orgRole: orgRole || 'unknown' };
 }
 
 // Default expiration is 30 days (2592000 seconds).

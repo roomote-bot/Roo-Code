@@ -3,9 +3,11 @@ import { X } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { getMessages } from '@/actions/analytics';
+import { canShareTask } from '@/actions/taskSharing';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/task-utils';
+import { QueryKey } from '@/types/react-query';
 import { Drawer, DrawerContent, Button } from '@/components/ui';
 import { ShareButton } from '@/components/task-sharing/ShareButton';
 
@@ -25,8 +27,16 @@ export const TaskDrawer = ({ task, onClose }: TaskDrawerProps) => {
 
   const { data: orgSettings } = useOrganizationSettings();
 
+  const { data: sharePermission } = useQuery({
+    queryKey: [QueryKey.CanShareTask, task.taskId],
+    queryFn: () => canShareTask(task.taskId),
+    enabled: !!task.taskId,
+  });
+
   const isTaskSharingEnabled =
     orgSettings?.cloudSettings?.enableTaskSharing ?? false;
+
+  const canUserShareThisTask = sharePermission?.canShare ?? false;
 
   return (
     <Drawer open={true} onOpenChange={onClose} direction="right">
@@ -34,7 +44,9 @@ export const TaskDrawer = ({ task, onClose }: TaskDrawerProps) => {
         <div className="flex-1 overflow-y-auto">
           <div className="p-4">
             <div className="flex justify-end gap-2 mb-4">
-              {isTaskSharingEnabled && <ShareButton task={task} />}
+              {isTaskSharingEnabled && canUserShareThisTask && (
+                <ShareButton task={task} />
+              )}
               <Button variant="ghost" size="sm" onClick={onClose}>
                 <X className="size-4" />
               </Button>
