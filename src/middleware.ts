@@ -4,6 +4,7 @@ const isUnprotectedRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/extension/sign-in(.*)',
+  '/api/marketplace(.*)',
   '/',
 ]);
 

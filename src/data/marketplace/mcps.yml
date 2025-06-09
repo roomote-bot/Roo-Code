@@ -1,0 +1,41 @@
+items:
+  - id: "filesystem"
+    name: "File System"
+    description: "Provides comprehensive filesystem operations including reading, writing, moving files, directory management, and advanced file editing with pattern matching and formatting capabilities."
+    author: "modelcontextprotocol"
+    url: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
+    tags: ["filesystem", "file-management", "directory-operations", "file-search", "file-editing"]
+    content:
+      - name: "NPX (Node.js)"
+        content: |
+          {
+            "filesystem": {
+              "command": "npx",
+              "args": ["-y", "@modelcontextprotocol/server-filesystem", "{{ALLOWED_DIRECTORY}}"]
+            }
+          }
+      - name: "Docker"
+        content: |
+          {
+            "filesystem": {
+              "command": "docker",
+              "args": ["run", "-v", "{{ALLOWED_DIRECTORY}}:/workspace", "mcp/filesystem:latest"]
+            }
+          }
+    parameters:
+      - name: "Allowed Directory"
+        key: "ALLOWED_DIRECTORY"
+        placeholder: "/Users/username/Documents"
+  - id: "sequentialthinking"
+    name: "Sequential Thinking"
+    description: "A structured problem-solving tool that enables step-by-step analysis, thought revision, and branching logic for complex reasoning tasks."
+    author: "modelcontextprotocol"
+    url: "https://github.com/modelcontextprotocol/servers/tree/main/src/sequentialthinking"
+    tags: ["problem-solving", "reasoning", "analysis", "structured-thinking", "decision-making"]
+    content: |
+      {
+        "sequentialthinking": {
+          "command": "npx",
+          "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
+        }
+      }
