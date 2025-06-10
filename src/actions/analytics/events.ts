@@ -301,6 +301,7 @@ export const getModelUsage = async ({
   }
 
   const userFilter = userId ? 'AND userId = {userId: String}' : '';
+
   const queryParams: Record<string, string | number | string[]> = {
     orgId: orgId!,
     timePeriod,
@@ -310,6 +311,7 @@ export const getModelUsage = async ({
       TelemetryEventName.LLM_COMPLETION,
     ],
   };
+
   if (userId) {
     queryParams.userId = userId;
   }
@@ -327,6 +329,7 @@ export const getModelUsage = async ({
         orgId = {orgId: String}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
+        AND modelId IS NOT NULL
         ${userFilter}
       GROUP BY 1, 2
     `,
