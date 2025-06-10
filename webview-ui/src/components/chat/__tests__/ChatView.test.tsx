@@ -1,7 +1,7 @@
 // npx jest src/components/chat/__tests__/ChatView.test.tsx
 
 import React from "react"
-import { render, waitFor, act } from "@testing-library/react"
+import { render, waitFor, act, screen } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 import { ExtensionStateContextProvider } from "@src/context/ExtensionStateContext"
@@ -30,11 +30,27 @@ interface ExtensionState {
 }
 
 // Mock vscode API
+const mockVscodePostMessage = jest.fn()
 jest.mock("@src/utils/vscode", () => ({
 	vscode: {
-		postMessage: jest.fn(),
+		postMessage: mockVscodePostMessage,
 	},
 }))
+// Mock i18n for IndexingStatusBadge
+jest.mock('react-i18next', () => ({
+  ...jest.requireActual('react-i18next'),
+  Trans: ({ i18nKey, children }: { i18nKey: string, children: React.ReactNode[] | React.ReactNode }) => {
+    if (i18nKey === "indexingBadge.indexingInProgress") {
+      // Simulate interpolation for {{progress}}
+      const progress = React.Children.toArray(children).find(child => typeof child === 'object' && child && 'progress' in child) as any;
+      return <>Indexing {progress?.props?.progress}%</>;
+    }
+    if (i18nKey === "indexingBadge.indexingError") {
+      return <>Indexing Error</>;
+    }
+    return <>{children}</>;
+  },
+}));
 
 // Mock use-sound hook
 const mockPlayFunction = jest.fn()
@@ -1072,3 +1088,140 @@ describe("ChatView - Focus Grabbing Tests", () => {
 		expect(mockFocus).toHaveBeenCalledTimes(FOCUS_CALLS_ON_INIT)
 	})
 })
+
+describe("ChatView - IndexingStatusBadge Integration", () => {
+	let mockAddEventListener = jest.fn();
+	let mockRemoveEventListener = jest.fn();
+
+	beforeEach(() => {
+		jest.clearAllMocks()
+		mockVscodePostMessage.mockClear(); // Use the specific mock for vscode
+
+		// Store original event listener methods
+		const originalAddEventListener = window.addEventListener;
+		const originalRemoveEventListener = window.removeEventListener;
+
+		// Mock event listener methods
+		mockAddEventListener = jest.fn();
+		mockRemoveEventListener = jest.fn();
+		window.addEventListener = mockAddEventListener;
+		window.removeEventListener = mockRemoveEventListener;
+
+		// Restore original event listener methods after each test
+		return () => {
+			window.addEventListener = originalAddEventListener;
+			window.removeEventListener = originalRemoveEventListener;
+		};
+	});
+
+	it("calls requestIndexingStatus on mount", () => {
+		renderChatView();
+		expect(mockVscodePostMessage).toHaveBeenCalledWith({ type: "requestIndexingStatus" });
+	});
+
+	it("shows IndexingStatusBadge when status is Indexing", async () => {
+		renderChatView();
+
+		// Simulate receiving indexingStatusUpdate message
+		act(() => {
+			const eventCallback = mockAddEventListener.mock.calls.find(call => call[0] === 'message')[1];
+			eventCallback({
+				data: {
+					type: "indexingStatusUpdate",
+					values: {
+						systemStatus: "Indexing",
+						message: "Processing files...",
+						processedItems: 10,
+						totalItems: 100,
+					},
+				},
+			});
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText("Indexing 10%")).toBeInTheDocument();
+			const dot = screen.getByText('Indexing 10%').previousSibling as HTMLElement;
+		expect(dot).toHaveClass('bg-yellow-500');
+		});
+	});
+
+	it("shows IndexingStatusBadge with error message when status is Error", async () => {
+		renderChatView();
+
+		act(() => {
+			const eventCallback = mockAddEventListener.mock.calls.find(call => call[0] === 'message')[1];
+			eventCallback({
+				data: {
+					type: "indexingStatusUpdate",
+					values: {
+						systemStatus: "Error",
+						message: "Failed to index",
+						processedItems: 0,
+						totalItems: 0,
+					},
+				},
+			});
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText("Indexing Error")).toBeInTheDocument();
+			expect(screen.getByText("- Failed to index")).toBeInTheDocument();
+			const dot = screen.getByText('Indexing Error').previousSibling as HTMLElement;
+		expect(dot).toHaveClass('bg-red-500');
+		});
+	});
+
+	it("does not show IndexingStatusBadge for Standby status", async () => {
+		const { container } = renderChatView();
+		act(() => {
+			const eventCallback = mockAddEventListener.mock.calls.find(call => call[0] === 'message')[1];
+			eventCallback({
+				data: {
+					type: "indexingStatusUpdate",
+					values: {
+						systemStatus: "Standby",
+						message: "",
+						processedItems: 0,
+						totalItems: 0,
+					},
+				},
+			});
+		});
+
+		await waitFor(() => {
+			// The badge itself returns null, so we check its absence.
+			// We look for a known child of the badge if it were visible.
+			expect(screen.queryByText(/Indexing/)).toBeNull();
+			expect(screen.queryByText(/Error/)).toBeNull();
+		});
+	});
+
+	it("does not show IndexingStatusBadge for Indexed status", async () => {
+		renderChatView();
+		act(() => {
+			const eventCallback = mockAddEventListener.mock.calls.find(call => call[0] === 'message')[1];
+			eventCallback({
+				data: {
+					type: "indexingStatusUpdate",
+					values: {
+						systemStatus: "Indexed",
+						message: "",
+						processedItems: 100,
+						totalItems: 100,
+					},
+				},
+			});
+		});
+
+		await waitFor(() => {
+			expect(screen.queryByText(/Indexing/)).toBeNull();
+			expect(screen.queryByText(/Error/)).toBeNull();
+		});
+	});
+
+	it("cleans up event listener on unmount", () => {
+		const { unmount } = renderChatView();
+		unmount();
+		expect(mockRemoveEventListener).toHaveBeenCalledWith("message", expect.any(Function));
+	});
+});

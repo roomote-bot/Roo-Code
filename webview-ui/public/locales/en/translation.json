@@ -1,0 +1,6 @@
+{
+  "indexingBadge": {
+    "indexingInProgress": "Indexing {{progress}}%",
+    "indexingError": "Indexing Error"
+  }
+}

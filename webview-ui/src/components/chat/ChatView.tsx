@@ -1,4 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react"
+// import useEffect and useState from react if not already imported - already imported
 import { useDeepCompareEffect, useEvent, useMount } from "react-use"
 import debounce from "debounce"
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso"
@@ -41,6 +42,7 @@ import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 import ProfileViolationWarning from "./ProfileViolationWarning"
 import { CheckpointWarning } from "./CheckpointWarning"
+import IndexingStatusBadge from "./IndexingStatusBadge"; // Added import
 
 export interface ChatViewProps {
 	isHidden: boolean
@@ -154,10 +156,41 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		}),
 	)
 
+	const [indexingStatus, setIndexingStatus] = useState({
+		status: "Standby", // or "Idle" / "Initial"
+		message: "",
+		progress: 0,
+		isVisible: false,
+	});
+
 	const clineAskRef = useRef(clineAsk)
 	useEffect(() => {
 		clineAskRef.current = clineAsk
 	}, [clineAsk])
+
+	useEffect(() => {
+		vscode.postMessage({ type: "requestIndexingStatus" });
+
+		const handleMessage = (event: MessageEvent) => {
+			if (event.data.type === "indexingStatusUpdate") {
+				const { systemStatus, message, processedItems, totalItems } = event.data.values;
+				const progress = totalItems > 0 ? Math.round((processedItems / totalItems) * 100) : 0;
+				const isVisible = systemStatus === "Indexing" || systemStatus === "Error";
+
+				setIndexingStatus({
+					status: systemStatus,
+					message: message || "",
+					progress: progress,
+					isVisible: isVisible,
+				});
+			}
+		};
+
+		window.addEventListener("message", handleMessage);
+		return () => {
+			window.removeEventListener("message", handleMessage);
+		};
+	}, []);
 
 	useEffect(() => {
 		isMountedRef.current = true
@@ -1555,6 +1588,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			)}
 
 			<div id="roo-portal" />
+			<IndexingStatusBadge
+				status={indexingStatus.status}
+				message={indexingStatus.message}
+				progress={indexingStatus.progress}
+				isVisible={indexingStatus.isVisible}
+			/>
 		</div>
 	)
 }
