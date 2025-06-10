@@ -1,7 +1,6 @@
 'use server';
 
 import { z } from 'zod';
-import { auth } from '@clerk/nextjs/server';
 
 import {
   type RooCodeTelemetryEvent,
@@ -9,66 +8,11 @@ import {
 } from '@roo-code/types';
 
 import type { AnyTimePeriod } from '@/types';
-import { taskSchema } from '@/types/analytics';
 import { analytics } from '@/lib/server';
 import { type User, getUsersById } from '@/db/server';
+import { validateAnalyticsAccess } from '@/actions/auth';
 
 type Table = 'events' | 'messages';
-
-/**
- * Validates authentication and authorization for analytics functions
- */
-async function validateAnalyticsAccess({
-  requestedOrgId,
-  requestedUserId,
-  requireAdmin = false,
-  allowCrossUserAccess = false,
-}: {
-  requestedOrgId?: string | null;
-  requestedUserId?: string | null;
-  requireAdmin?: boolean;
-  allowCrossUserAccess?: boolean;
-}): Promise<{
-  authOrgId: string;
-  authUserId: string;
-  orgRole: string;
-  effectiveUserId: string | null;
-}> {
-  const { orgId: authOrgId, orgRole, userId: authUserId } = await auth();
-
-  // Ensure user is authenticated and belongs to the organization
-  if (!authOrgId || !authUserId || authOrgId !== requestedOrgId) {
-    throw new Error('Unauthorized: Invalid organization access');
-  }
-
-  // Check if admin access is required
-  if (requireAdmin && orgRole !== 'org:admin') {
-    throw new Error('Unauthorized: Administrator access required');
-  }
-
-  // If user is not an admin and trying to access data other than their own
-  if (
-    orgRole !== 'org:admin' &&
-    requestedUserId &&
-    requestedUserId !== authUserId
-  ) {
-    throw new Error('Unauthorized: Members can only access their own data');
-  }
-
-  // For non-admin users, force userId filter to their own ID
-  // Unless allowCrossUserAccess is true and we're checking task sharing permissions
-  const effectiveUserId =
-    orgRole !== 'org:admin' && !allowCrossUserAccess
-      ? authUserId
-      : requestedUserId || null;
-
-  return {
-    authOrgId,
-    authUserId,
-    orgRole: orgRole || 'unknown',
-    effectiveUserId,
-  };
-}
 
 /**
  * captureEvent
@@ -344,13 +288,20 @@ export const getModelUsage = async ({
  * getTasks
  */
 
-const taskWithTitleSchema = taskSchema.extend({
+const taskSchema = z.object({
+  taskId: z.string(),
+  userId: z.string(),
+  provider: z.string(),
   title: z.string().nullable(),
+  mode: z.string().nullable(),
+  model: z.string(),
+  completed: z.coerce.boolean(),
+  tokens: z.coerce.number(),
+  cost: z.coerce.number(),
+  timestamp: z.coerce.number(),
 });
 
-export type TaskWithTitle = z.infer<typeof taskWithTitleSchema>;
-
-export type TaskWithUser = TaskWithTitle & { user: User };
+export type TaskWithUser = z.infer<typeof taskSchema> & { user: User };
 
 export const getTasks = async ({
   orgId,
@@ -375,9 +326,11 @@ export const getTasks = async ({
 
   const userFilter = effectiveUserId ? 'AND e.userId = {userId: String}' : '';
   const taskFilter = taskId ? 'AND e.taskId = {taskId: String}' : '';
+
   const messageUserFilter = effectiveUserId
     ? 'AND userId = {userId: String}'
     : '';
+
   const messageTaskFilter = taskId ? 'AND taskId = {taskId: String}' : '';
 
   const queryParams: Record<string, string | string[]> = {
@@ -388,9 +341,11 @@ export const getTasks = async ({
       TelemetryEventName.LLM_COMPLETION,
     ],
   };
+
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
   }
+
   if (taskId) {
     queryParams.taskId = taskId;
   }
@@ -424,6 +379,7 @@ export const getTasks = async ({
       WHERE
         e.orgId = {orgId: String}
         AND e.type IN ({types: Array(String)})
+        AND e.modelId IS NOT NULL
         ${userFilter}
         ${taskFilter}
       GROUP BY 1, 2
@@ -433,7 +389,7 @@ export const getTasks = async ({
     query_params: queryParams,
   });
 
-  const tasks = z.array(taskWithTitleSchema).parse(await results.json());
+  const tasks = z.array(taskSchema).parse(await results.json());
 
   const users = await getUsersById(tasks.map(({ userId }) => userId));
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 
-import type { Message } from '@/types/analytics';
+import type { Message } from '@/actions/analytics';
 import { cn } from '@/lib/utils';
 import { formatTimestamp } from '@/lib/formatters';
 

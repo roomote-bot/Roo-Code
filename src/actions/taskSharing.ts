@@ -10,7 +10,6 @@ import {
   shareIdSchema,
 } from '@/types';
 import type { SharedByUser } from '@/types/task-sharing';
-import type { Message } from '@/types/analytics';
 import { type TaskShare, AuditLogTargetType } from '@/db';
 import { client as db, taskShares, users } from '@/db/server';
 import { handleError, isAuthSuccess, generateShareToken } from '@/lib/server';
@@ -21,7 +20,12 @@ import {
   createShareUrl,
   DEFAULT_SHARE_EXPIRATION_DAYS,
 } from '@/lib/task-sharing';
-import { type TaskWithUser, getTasks, getMessages } from '@/actions/analytics';
+import {
+  type TaskWithUser,
+  getTasks,
+  type Message,
+  getMessages,
+} from '@/actions/analytics';
 
 import { validateAuth } from './auth';
 import { insertAuditLog } from './auditLogs';

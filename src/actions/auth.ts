@@ -21,6 +21,61 @@ export async function validateAuth(): Promise<
   return { userId, orgId, orgRole: orgRole || 'unknown' };
 }
 
+/**
+ * Validates authentication and authorization for analytics functions.
+ */
+export async function validateAnalyticsAccess({
+  requestedOrgId,
+  requestedUserId,
+  requireAdmin = false,
+  allowCrossUserAccess = false,
+}: {
+  requestedOrgId?: string | null;
+  requestedUserId?: string | null;
+  requireAdmin?: boolean;
+  allowCrossUserAccess?: boolean;
+}): Promise<{
+  authOrgId: string;
+  authUserId: string;
+  orgRole: string;
+  effectiveUserId: string | null;
+}> {
+  const { orgId: authOrgId, orgRole, userId: authUserId } = await auth();
+
+  // Ensure user is authenticated and belongs to the organization
+  if (!authOrgId || !authUserId || authOrgId !== requestedOrgId) {
+    throw new Error('Unauthorized: Invalid organization access');
+  }
+
+  // Check if admin access is required
+  if (requireAdmin && orgRole !== 'org:admin') {
+    throw new Error('Unauthorized: Administrator access required');
+  }
+
+  // If user is not an admin and trying to access data other than their own
+  if (
+    orgRole !== 'org:admin' &&
+    requestedUserId &&
+    requestedUserId !== authUserId
+  ) {
+    throw new Error('Unauthorized: Members can only access their own data');
+  }
+
+  // For non-admin users, force userId filter to their own ID
+  // Unless allowCrossUserAccess is true and we're checking task sharing permissions
+  const effectiveUserId =
+    orgRole !== 'org:admin' && !allowCrossUserAccess
+      ? authUserId
+      : requestedUserId || null;
+
+  return {
+    authOrgId,
+    authUserId,
+    orgRole: orgRole || 'unknown',
+    effectiveUserId,
+  };
+}
+
 // Default expiration is 30 days (2592000 seconds).
 export async function getSignInToken(
   userId: string,

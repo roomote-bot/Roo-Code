@@ -1,5 +1,4 @@
-import type { TaskWithUser } from '@/actions/analytics';
-import type { Message } from '@/types/analytics';
+import type { TaskWithUser, Message } from '@/actions/analytics';
 import type { SharedByUser } from '@/types/task-sharing';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/task-utils';
