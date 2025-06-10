@@ -22,6 +22,7 @@ export async function register() {
 
   if (process.env.NEXT_RUNTIME === 'edge') {
     // Edge Sentry configuration
+    // Note: User context (userId, orgId, orgRole) is set in layouts via setSentryUserContext()
     Sentry.init({
       // Sentry DSN
       dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

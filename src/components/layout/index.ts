@@ -11,3 +11,4 @@ export { DataTable } from './DataTable';
 export { ThemeProvider } from './ThemeProvider';
 export { AuthProvider } from './AuthProvider';
 export { ReactQueryProvider } from './ReactQueryProvider';
+export { SentryUserContext } from './SentryUserContext';

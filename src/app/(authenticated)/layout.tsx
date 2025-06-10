@@ -1,6 +1,10 @@
 import { redirect } from 'next/navigation';
 import { auth } from '@clerk/nextjs/server';
 
+import {
+  setSentryUserContext,
+  setSentryOrganizationContext,
+} from '@/lib/server/sentry-context';
 import { NavbarHeader, NavbarMenu, Section } from '@/components/layout';
 import { Usage } from './usage/Usage';
 
@@ -13,6 +17,19 @@ export default async function AuthenticatedLayout({
 
   if (!orgId) {
     redirect('/select-org');
+  }
+
+  // Set enhanced Sentry context for authenticated users
+  if (userId) {
+    setSentryUserContext({
+      id: userId,
+      orgId,
+      orgRole,
+    });
+
+    if (orgId) {
+      setSentryOrganizationContext(orgId, orgRole);
+    }
   }
 
   // Members get access to usage page only, filtered to their own data

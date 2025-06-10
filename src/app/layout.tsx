@@ -6,6 +6,7 @@ import { auth } from '@clerk/nextjs/server';
 
 import { getClerkLocale } from '@/i18n/locale';
 import { syncAuth } from '@/actions/sync';
+import { setSentryUserContext } from '@/lib/server/sentry-context';
 import { Toaster } from '@/components/ui';
 import {
   ThemeProvider,
@@ -52,7 +53,17 @@ export default async function RootLayout({
   const locale = await getLocale();
   setRequestLocale(locale);
 
-  await syncAuth(await auth());
+  const authData = await auth();
+  await syncAuth(authData);
+
+  // Set Sentry user context for server-side error tracking
+  if (authData.userId) {
+    setSentryUserContext({
+      id: authData.userId,
+      orgId: authData.orgId,
+      orgRole: authData.orgRole,
+    });
+  }
 
   return (
     <html lang={locale} suppressHydrationWarning>
