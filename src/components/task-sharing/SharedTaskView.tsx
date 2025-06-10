@@ -29,7 +29,9 @@ export const SharedTaskView = ({
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">{taskTitle}</CardTitle>
+              <CardTitle className="text-xl line-clamp-2 leading-tight">
+                {taskTitle}
+              </CardTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 Shared by {sharedBy.name} • {sharedAt.toLocaleDateString()}
               </p>
