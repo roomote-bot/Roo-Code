@@ -11,7 +11,7 @@ items:
       - 'file-search'
       - 'file-editing'
     content:
-      - name: "NPX (Node.js)"
+      - name: "NPX"
         content: |
           {
             "command": "npx",
@@ -39,7 +39,7 @@ items:
       - 'structured-thinking'
       - 'decision-making'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -63,7 +63,7 @@ items:
       - 'source-control'
       - 'development'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -103,7 +103,7 @@ items:
       - 'javascript'
       - 'testing'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -127,7 +127,7 @@ items:
       - 'brave-api'
       - 'content-discovery'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -161,7 +161,7 @@ items:
       - 'scheduling'
       - 'automation'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -211,7 +211,7 @@ items:
       - 'graph-database'
       - 'memory-storage'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -248,7 +248,7 @@ items:
       - 'database-management'
       - 'sqlite'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -276,32 +276,23 @@ items:
       - 'issue-monitoring'
       - 'application-monitoring'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
-            "args": ["mcp-server-sentry"],
-            "env": {
-              "SENTRY_AUTH_TOKEN": "{{SENTRY_AUTH_TOKEN}}"
-            }
+            "args": ["mcp-server-sentry", "--auth-token", "{{SENTRY_AUTH_TOKEN}}"]
           }
       - name: 'Docker'
         content: |
           {
             "command": "docker",
-            "args": ["run", "-i", "--rm", "mcp/sentry"],
-            "env": {
-              "SENTRY_AUTH_TOKEN": "{{SENTRY_AUTH_TOKEN}}"
-            }
+            "args": ["run", "-i", "--rm", "mcp/sentry", "--auth-token", "{{SENTRY_AUTH_TOKEN}}"]
           }
       - name: 'Python/Pip'
         content: |
           {
             "command": "python",
-            "args": ["-m", "mcp_server_sentry"],
-            "env": {
-              "SENTRY_AUTH_TOKEN": "{{SENTRY_AUTH_TOKEN}}"
-            }
+            "args": ["-m", "mcp_server_sentry", "--auth-token", "{{SENTRY_AUTH_TOKEN}}"]
           }
     parameters:
       - name: 'Sentry Auth Token'
@@ -319,7 +310,7 @@ items:
       - 'read-only'
       - 'sql'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -347,7 +338,7 @@ items:
       - 'content-filtering'
       - 'news-search'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -381,7 +372,7 @@ items:
       - 'workspace'
       - 'file-search'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -412,7 +403,7 @@ items:
       - 'collaboration'
       - 'ci-cd'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -461,7 +452,7 @@ items:
       - 'places-api'
       - 'location-data'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -504,7 +495,7 @@ items:
       - 'data-storage'
       - 'database-operations'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -564,7 +555,7 @@ items:
       - 'knowledge-retrieval'
       - 'search'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -608,7 +599,7 @@ items:
       - 'data-extraction'
       - 'javascript-execution'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -671,7 +662,7 @@ items:
       - 'chat'
       - 'workspace-management'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -716,13 +707,13 @@ items:
       - 'content-summarization'
       - 'yt-dlp'
     content:
-      - name: 'MCP Installer (Recommended)'
+      - name: 'MCP Installer'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@anaisbetts/mcp-installer", "@anaisbetts/mcp-youtube"]
           }
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -744,7 +735,7 @@ items:
       - 'sdk-integration'
       - 'llm-tools'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -828,7 +819,7 @@ items:
       - 'stripe-api'
       - 'financial-services'
     content:
-      - name: 'NPX (Node.js)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -859,7 +850,7 @@ items:
       - 'content-discovery'
       - 'information-retrieval'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -905,7 +896,7 @@ items:
       - 'proxy'
       - 'automation'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -960,7 +951,7 @@ items:
       - 'actor-management'
       - 'apify-platform'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -1035,7 +1026,7 @@ items:
       - 'real-time-data'
       - 'search-engine'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -1086,7 +1077,7 @@ items:
       - 'linear-api'
       - 'workflow'
     content:
-      - name: 'Node.js (Recommended)'
+      - name: 'Node.js'
         content: |
           {
             "command": "node",
@@ -1125,7 +1116,7 @@ items:
       - 'sql'
       - 'neon-api'
     content:
-      - name: 'Remote MCP (Recommended)'
+      - name: 'Remote MCP'
         content: |
           {
             "command": "npx",
@@ -1172,7 +1163,7 @@ items:
       - 'storage'
       - 'retrieval'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -1258,7 +1249,7 @@ items:
       - 'python'
       - 'claude-integration'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -1303,7 +1294,7 @@ items:
       - 'database-management'
       - 'query-execution'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -1353,7 +1344,7 @@ items:
       - 'html-parsing'
       - 'data-collection'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -1403,7 +1394,7 @@ items:
       - 'tool-management'
       - 'security'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -1428,7 +1419,7 @@ items:
       - 'needle-api'
       - 'content-organization'
     content:
-      - name: 'Smithery Installation (Recommended)'
+      - name: 'Smithery Installation'
         content: |
           {
             "command": "npx",
@@ -1464,7 +1455,7 @@ items:
       - 'database'
       - 'storage'
     content:
-      - name: 'Node.js (Recommended)'
+      - name: 'Node.js'
         content: |
           {
             "command": "node",
@@ -1494,7 +1485,7 @@ items:
       - 'telemetry'
       - 'microservices'
     content:
-      - name: 'Go Binary (Recommended)'
+      - name: 'Go Binary'
         content: |
           {
             "command": "{{METORO_BINARY_PATH}}/metoro-mcp-server",
@@ -1536,7 +1527,7 @@ items:
       - 'datasets'
       - 'analytics'
     content:
-      - name: 'Go Binary (Recommended)'
+      - name: 'Go Binary'
         content: |
           {
             "command": "{{AXIOM_BINARY_PATH}}/axiom-mcp",
@@ -1595,7 +1586,7 @@ items:
       - 'templates'
       - 'collaboration'
     content:
-      - name: 'UVX (Recommended)'
+      - name: 'UVX'
         content: |
           {
             "command": "uvx",
@@ -1639,7 +1630,7 @@ items:
       - 'search-tools'
       - 'ibm-cloud'
     content:
-      - name: 'Node.js (Recommended)'
+      - name: 'Node.js'
         content: |
           {
             "command": "node",
@@ -1683,7 +1674,7 @@ items:
       - 'debugging'
       - 'application-monitoring'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
@@ -1725,7 +1716,7 @@ items:
       - 'data-validation'
       - 'ai-integration'
     content:
-      - name: 'Smithery Installation (Recommended)'
+      - name: 'Smithery Installation'
         content: |
           {
             "command": "npx",
@@ -1784,7 +1775,7 @@ items:
       - 'sql'
       - 'supabase'
     content:
-      - name: 'NPX (Recommended)'
+      - name: 'NPX'
         content: |
           {
             "command": "npx",
