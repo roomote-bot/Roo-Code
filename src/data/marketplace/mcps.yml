@@ -13,18 +13,19 @@ items:
       - 'code-scanning'
       - 'collaboration'
       - 'api-integration'
-    content:
-      - name: 'Docker'
-        content: |
-          {
-            "command": "docker",
-            "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "-e", "GITHUB_TOOLSETS", "-e", "GITHUB_READ_ONLY", "ghcr.io/github/github-mcp-server"],
-            "env": {
-              "GITHUB_PERSONAL_ACCESS_TOKEN": "{{GITHUB_PERSONAL_ACCESS_TOKEN}}",
-              "GITHUB_TOOLSETS": "{{GITHUB_TOOLSETS}}",
-              "GITHUB_READ_ONLY": "{{GITHUB_READ_ONLY}}"
-            }
-          }
+    prerequisites:
+      - 'GitHub account'
+      - 'Docker'
+    content: |
+      {
+        "command": "docker",
+        "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "-e", "GITHUB_TOOLSETS", "-e", "GITHUB_READ_ONLY", "ghcr.io/github/github-mcp-server"],
+        "env": {
+          "GITHUB_PERSONAL_ACCESS_TOKEN": "{{GITHUB_PERSONAL_ACCESS_TOKEN}}",
+          "GITHUB_TOOLSETS": "{{GITHUB_TOOLSETS}}",
+          "GITHUB_READ_ONLY": "{{GITHUB_READ_ONLY}}"
+        }
+      }
     parameters:
       - name: 'GitHub Personal Access Token'
         key: 'GITHUB_PERSONAL_ACCESS_TOKEN'
@@ -64,6 +65,8 @@ items:
             key: 'DEFAULT_MINIMUM_TOKENS'
             placeholder: '6000'
             optional: true
+        prerequisites:
+          - 'Node.js'
       - name: 'Remote Server'
         content: |
           {
@@ -83,12 +86,16 @@ items:
       - 'file-editing'
     content:
       - name: "NPX"
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/server-filesystem", "{{ALLOWED_DIRECTORY}}"]
           }
       - name: "Docker"
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -111,12 +118,16 @@ items:
       - 'decision-making'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/server-sequential-thinking"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -135,24 +146,32 @@ items:
       - 'development'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-git", "--repository", "{{REPOSITORY_PATH}}"]
           }
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/inspector", "uvx", "mcp-server-git", "--repository", "{{REPOSITORY_PATH}}"]
           }
       - name: 'Python/Pip'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
             "args": ["-m", "mcp_server_git", "--repository", "{{REPOSITORY_PATH}}"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -175,12 +194,16 @@ items:
       - 'testing'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/server-puppeteer"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -197,8 +220,12 @@ items:
       - 'web-search'
       - 'brave-api'
       - 'content-discovery'
+    prerequisites:
+      - 'Brave Search account'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -208,6 +235,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -233,24 +262,32 @@ items:
       - 'automation'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-time"]
           }
       - name: 'Python/Pip'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
             "args": ["-m", "mcp_server_time"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
             "args": ["run", "-i", "--rm", "mcp/time"]
           }
       - name: 'UVX with Custom Timezone'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
@@ -261,6 +298,8 @@ items:
             key: 'LOCAL_TIMEZONE'
             placeholder: 'America/New_York'
       - name: 'Python/Pip with Custom Timezone'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
@@ -283,18 +322,24 @@ items:
       - 'memory-storage'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/server-memory"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
             "args": ["run", "-i", "-v", "claude-memory:/app/dist", "--rm", "mcp/memory"]
           }
       - name: 'NPX with Custom Memory File'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -320,12 +365,16 @@ items:
       - 'sqlite'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-sqlite", "--db-path", "{{DB_PATH}}"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -348,18 +397,24 @@ items:
       - 'application-monitoring'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-sentry", "--auth-token", "{{SENTRY_AUTH_TOKEN}}"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
             "args": ["run", "-i", "--rm", "mcp/sentry", "--auth-token", "{{SENTRY_AUTH_TOKEN}}"]
           }
       - name: 'Python/Pip'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
@@ -382,12 +437,16 @@ items:
       - 'sql'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@modelcontextprotocol/server-postgres", "{{POSTGRESQL_URL}}"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -408,8 +467,12 @@ items:
       - 'real-time-information'
       - 'content-filtering'
       - 'news-search'
+    prerequisites:
+      - 'Tavily account'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -419,6 +482,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -442,8 +507,12 @@ items:
       - 'document-storage'
       - 'workspace'
       - 'file-search'
+    prerequisites:
+      - 'Google account with Drive API access'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -453,6 +522,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -473,8 +544,12 @@ items:
       - 'repository-management'
       - 'collaboration'
       - 'ci-cd'
+    prerequisites:
+      - 'GitLab account'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
@@ -485,6 +560,8 @@ items:
             }
           }
       - name: 'Python/Pip'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
@@ -495,6 +572,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -522,8 +601,12 @@ items:
       - 'navigation'
       - 'places-api'
       - 'location-data'
+    prerequisites:
+      - 'Google Cloud account with Maps API enabled'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
@@ -533,6 +616,8 @@ items:
             }
           }
       - name: 'Python/Pip'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
@@ -542,6 +627,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -567,24 +654,33 @@ items:
       - 'database-operations'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-redis", "--url", "{{REDIS_URL}}"]
           }
       - name: 'Python/Pip'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
             "args": ["-m", "mcp_server_redis", "--url", "{{REDIS_URL}}"]
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
             "args": ["run", "-i", "--rm", "mcp/redis", "--url", "{{REDIS_URL}}"]
           }
       - name: 'UVX with Authentication'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -598,6 +694,8 @@ items:
             key: 'REDIS_PASSWORD'
             placeholder: 'your_redis_password'
       - name: 'Python/Pip with Authentication'
+        prerequisites:
+          - 'Python'
         content: |
           {
             "command": "python",
@@ -627,6 +725,8 @@ items:
       - 'search'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -638,6 +738,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -671,6 +773,8 @@ items:
       - 'javascript-execution'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -681,6 +785,8 @@ items:
             }
           }
       - name: 'NPX with Proxies'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -691,6 +797,8 @@ items:
             }
           }
       - name: 'NPX with Advanced Stealth'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -701,6 +809,8 @@ items:
             }
           }
       - name: 'NPX with Custom Context'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -732,8 +842,12 @@ items:
       - 'team-collaboration'
       - 'chat'
       - 'workspace-management'
+    prerequisites:
+      - 'Slack workspace with bot permissions'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -745,6 +859,8 @@ items:
             }
           }
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -777,14 +893,20 @@ items:
       - 'video-analysis'
       - 'content-summarization'
       - 'yt-dlp'
+    prerequisites:
+      - 'yt-dlp (install via Homebrew or WinGet)'
     content:
       - name: 'MCP Installer'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@anaisbetts/mcp-installer", "@anaisbetts/mcp-youtube"]
           }
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -805,8 +927,13 @@ items:
       - 'code-parsing'
       - 'sdk-integration'
       - 'llm-tools'
+    prerequisites:
+      - 'uv'
+      - 'Python 3.12+'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
@@ -817,6 +944,9 @@ items:
             ]
           }
       - name: 'Direct Execution'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -839,36 +969,48 @@ items:
       - 'database-management'
     content:
       - name: 'Remote MCP - Observability'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["mcp-remote", "https://observability.mcp.cloudflare.com/sse"]
           }
       - name: 'Remote MCP - Workers Bindings'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["mcp-remote", "https://bindings.mcp.cloudflare.com/sse"]
           }
       - name: 'Remote MCP - Documentation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["mcp-remote", "https://docs.mcp.cloudflare.com/sse"]
           }
       - name: 'Remote MCP - Workers Builds'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["mcp-remote", "https://builds.mcp.cloudflare.com/sse"]
           }
       - name: 'Remote MCP - Radar'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["mcp-remote", "https://radar.mcp.cloudflare.com/sse"]
           }
       - name: 'Remote MCP - Browser Rendering'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -889,14 +1031,20 @@ items:
       - 'invoicing'
       - 'stripe-api'
       - 'financial-services'
+    prerequisites:
+      - 'Stripe account'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@stripe/mcp", "--tools=all", "--api-key={{STRIPE_SECRET_KEY}}"]
           }
       - name: 'NPX with Environment Variable'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -920,8 +1068,12 @@ items:
       - 'real-time-data'
       - 'content-discovery'
       - 'information-retrieval'
+    prerequisites:
+      - 'Exa account'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -931,6 +1083,8 @@ items:
             }
           }
       - name: 'NPX with Specific Tools'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -940,12 +1094,16 @@ items:
             }
           }
       - name: 'Remote MCP'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "mcp-remote", "https://mcp.exa.ai/mcp?exaApiKey={{EXA_API_KEY}}"]
           }
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -968,12 +1126,16 @@ items:
       - 'automation'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@jetbrains/mcp-proxy"]
           }
       - name: 'NPX with Custom IDE Port'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -983,6 +1145,8 @@ items:
             }
           }
       - name: 'NPX with Custom Host'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -993,6 +1157,8 @@ items:
             }
           }
       - name: 'NPX with Logging'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1023,6 +1189,8 @@ items:
       - 'apify-platform'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1032,6 +1200,8 @@ items:
             }
           }
       - name: 'NPX with Specific Actors'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1068,8 +1238,13 @@ items:
       - 'tools-prompts'
       - 'plugin'
       - 'genkit'
+    prerequisites:
+      - 'Node.js 18+'
+      - 'Genkit SDK'
     content:
       - name: 'NPM Installation'
+        prerequisites:
+          - 'Node.js 18+'
         content: |
           {
             "command": "npm",
@@ -1096,8 +1271,13 @@ items:
       - 'kagi-api'
       - 'real-time-data'
       - 'search-engine'
+    prerequisites:
+      - 'Kagi account'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -1108,6 +1288,8 @@ items:
             }
           }
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1149,6 +1331,8 @@ items:
       - 'workflow'
     content:
       - name: 'Node.js'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "node",
@@ -1158,6 +1342,8 @@ items:
             }
           }
       - name: 'NPM Development'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npm",
@@ -1188,30 +1374,40 @@ items:
       - 'neon-api'
     content:
       - name: 'Remote MCP'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "mcp-remote", "https://mcp.neon.tech/sse"]
           }
       - name: 'NPX with API Key'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@neondatabase/mcp-server-neon", "start", "{{NEON_API_KEY}}"]
           }
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
             "args": ["-y", "@smithery/cli", "install", "neon", "--client", "claude"]
           }
       - name: 'Windows CMD'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "cmd",
             "args": ["/c", "npx", "-y", "@neondatabase/mcp-server-neon", "start", "{{NEON_API_KEY}}"]
           }
       - name: 'Windows WSL'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "wsl",
@@ -1235,6 +1431,8 @@ items:
       - 'retrieval'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
@@ -1247,6 +1445,9 @@ items:
             }
           }
       - name: 'UVX with Local Database'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -1262,6 +1463,9 @@ items:
             key: 'QDRANT_LOCAL_PATH'
             placeholder: '/path/to/qdrant/database'
       - name: 'UVX with SSE Transport'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -1278,6 +1482,8 @@ items:
             key: 'FASTMCP_PORT'
             placeholder: '8000'
       - name: 'Docker'
+        prerequisites:
+          - 'Docker'
         content: |
           {
             "command": "docker",
@@ -1289,6 +1495,8 @@ items:
             }
           }
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1321,6 +1529,8 @@ items:
       - 'claude-integration'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1330,6 +1540,8 @@ items:
             }
           }
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1366,12 +1578,16 @@ items:
       - 'query-execution'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-motherduck", "--db-path", "md:", "--motherduck-token", "{{MOTHERDUCK_TOKEN}}"]
           }
       - name: 'UVX with Local DuckDB'
+        prerequisites:
+          - 'Python and uv'
         content: |
           {
             "command": "uvx",
@@ -1382,18 +1598,27 @@ items:
             key: 'DB_PATH'
             placeholder: '/path/to/your/local.db'
       - name: 'UVX with In-Memory Database'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-motherduck", "--db-path", ":memory:"]
           }
       - name: 'UVX with Read-Only Mode'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
             "args": ["mcp-server-motherduck", "--db-path", "{{DB_PATH}}", "--read-only"]
           }
       - name: 'UVX with SaaS Mode'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -1416,6 +1641,9 @@ items:
       - 'data-collection'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -1426,6 +1654,8 @@ items:
             }
           }
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1466,6 +1696,8 @@ items:
       - 'security'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1491,6 +1723,8 @@ items:
       - 'content-organization'
     content:
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1658,6 +1892,9 @@ items:
       - 'collaboration'
     content:
       - name: 'UVX'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uvx",
@@ -1667,6 +1904,9 @@ items:
             }
           }
       - name: 'UV Development'
+        prerequisites:
+          - 'Python'
+          - 'uv'
         content: |
           {
             "command": "uv",
@@ -1746,6 +1986,8 @@ items:
       - 'application-monitoring'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1788,6 +2030,8 @@ items:
       - 'ai-integration'
     content:
       - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1847,6 +2091,8 @@ items:
       - 'supabase'
     content:
       - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",
@@ -1862,6 +2108,8 @@ items:
             ]
           }
       - name: 'NPX with Supabase'
+        prerequisites:
+          - 'Node.js'
         content: |
           {
             "command": "npx",

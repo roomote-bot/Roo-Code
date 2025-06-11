@@ -1,3 +1,5 @@
+# Prerequisites for modes would typically reference MCP dependencies
+# Example: prerequisites: ['GitHub MCP', 'PostgreSQL MCP']
 items:
   - id: python-expert
     name: Python Expert
