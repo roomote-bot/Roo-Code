@@ -108,7 +108,7 @@ items:
       source: global
 
   - id: security-review
-    name: 🛡️ Security Reviewer
+    name: Security Reviewer
     description: Static and dynamic security auditor for secure code practices and vulnerability detection
     author: "@rUv-dev"
     tags: [security, audit, vulnerability, code-review]
@@ -125,7 +125,7 @@ items:
       source: project
 
   - id: devops
-    name: 🚀 DevOps
+    name: DevOps
     description: DevOps automation and infrastructure specialist for deployment, management, and orchestration
     author: "@rUv-dev"
     tags: [devops, infrastructure, deployment, automation, ci-cd]
