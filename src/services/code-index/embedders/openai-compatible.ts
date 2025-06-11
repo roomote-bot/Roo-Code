@@ -81,15 +81,10 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 			}
 
 			if (currentBatch.length > 0) {
-				try {
-					const batchResult = await this._embedBatchWithRetries(currentBatch, modelToUse)
-					allEmbeddings.push(...batchResult.embeddings)
-					usage.promptTokens += batchResult.usage.promptTokens
-					usage.totalTokens += batchResult.usage.totalTokens
-				} catch (error) {
-					console.error("Failed to process batch:", error)
-					throw new Error("Failed to create embeddings: batch processing error")
-				}
+				const batchResult = await this._embedBatchWithRetries(currentBatch, modelToUse)
+				allEmbeddings.push(...batchResult.embeddings)
+				usage.promptTokens += batchResult.usage.promptTokens
+				usage.totalTokens += batchResult.usage.totalTokens
 			}
 		}
 
@@ -124,23 +119,23 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 				const isRateLimitError = error?.status === 429
 				const hasMoreAttempts = attempts < MAX_RETRIES - 1
 
-				if (isRateLimitError && hasMoreAttempts) {
-					const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempts)
-					console.warn(`Rate limit hit, retrying in ${delayMs}ms (attempt ${attempts + 1}/${MAX_RETRIES})`)
-					await new Promise((resolve) => setTimeout(resolve, delayMs))
-					continue
-				}
-
 				// Log the error for debugging
 				console.error(`OpenAI Compatible embedder error (attempt ${attempts + 1}/${MAX_RETRIES}):`, error)
 
-				if (!hasMoreAttempts) {
-					throw new Error(
-						`Failed to create embeddings after ${MAX_RETRIES} attempts: ${error.message || error}`,
-					)
+				if (hasMoreAttempts) {
+					if (isRateLimitError) {
+						const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempts)
+						console.warn(
+							`Rate limit hit, retrying in ${delayMs}ms (attempt ${attempts + 1}/${MAX_RETRIES})`,
+						)
+						await new Promise((resolve) => setTimeout(resolve, delayMs))
+					}
+					continue
 				}
 
-				throw error
+				// Provide more context in the error message using robust error extraction
+				const errorMessage = error?.message || (typeof error === "string" ? error : "Unknown error")
+				throw new Error(`Failed to create embeddings after ${MAX_RETRIES} attempts: ${errorMessage}`)
 			}
 		}
 
