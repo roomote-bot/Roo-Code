@@ -1,4 +1,75 @@
 items:
+  - id: 'github'
+    name: 'GitHub'
+    description: "GitHub's official MCP Server that provides seamless integration with GitHub APIs, enabling advanced automation and interaction capabilities for developers and tools."
+    author: 'github'
+    url: 'https://github.com/github/github-mcp-server'
+    tags:
+      - 'github'
+      - 'git'
+      - 'repository-management'
+      - 'issue-tracking'
+      - 'pull-requests'
+      - 'code-scanning'
+      - 'collaboration'
+      - 'api-integration'
+    content:
+      - name: 'Docker'
+        content: |
+          {
+            "command": "docker",
+            "args": ["run", "-i", "--rm", "-e", "GITHUB_PERSONAL_ACCESS_TOKEN", "-e", "GITHUB_TOOLSETS", "-e", "GITHUB_READ_ONLY", "ghcr.io/github/github-mcp-server"],
+            "env": {
+              "GITHUB_PERSONAL_ACCESS_TOKEN": "{{GITHUB_PERSONAL_ACCESS_TOKEN}}",
+              "GITHUB_TOOLSETS": "{{GITHUB_TOOLSETS}}",
+              "GITHUB_READ_ONLY": "{{GITHUB_READ_ONLY}}"
+            }
+          }
+    parameters:
+      - name: 'GitHub Personal Access Token'
+        key: 'GITHUB_PERSONAL_ACCESS_TOKEN'
+        placeholder: 'ghp_your_github_personal_access_token'
+      - name: 'GitHub Toolsets'
+        key: 'GITHUB_TOOLSETS'
+        placeholder: 'repos,issues,pull_requests,code_security'
+        optional: true
+      - name: 'GitHub Read Only (1 for true, 0 for false)'
+        key: 'GITHUB_READ_ONLY'
+        placeholder: '0'
+        optional: true
+  - id: 'context7'
+    name: 'Context7'
+    description: 'Up-to-date code documentation for LLMs and AI code editors. Provides version-specific documentation and code examples straight from the source, eliminating outdated or hallucinated API information.'
+    author: 'upstash'
+    url: 'https://github.com/upstash/context7'
+    tags:
+      - 'documentation'
+      - 'code-examples'
+      - 'library-docs'
+      - 'up-to-date'
+      - 'api-reference'
+      - 'development'
+    content:
+      - name: 'NPX'
+        content: |
+          {
+            "command": "npx",
+            "args": ["-y", "@upstash/context7-mcp"],
+            "env": {
+              "DEFAULT_MINIMUM_TOKENS": "{{DEFAULT_MINIMUM_TOKENS}}"
+            }
+          }
+        parameters:
+          - name: 'Default Minimum Tokens'
+            key: 'DEFAULT_MINIMUM_TOKENS'
+            placeholder: '6000'
+            optional: true
+      - name: 'Remote Server'
+        content: |
+          {
+            "type": "streamable-http",
+            "url": "https://mcp.context7.com/mcp"
+          }
   - id: 'filesystem'
     name: 'File System'
     description: 'Provides comprehensive filesystem operations including reading, writing, moving files, directory management, and advanced file editing with pattern matching and formatting capabilities.'
@@ -21,7 +92,7 @@ items:
         content: |
           {
             "command": "docker",
-            "args": ["run", "-v", "{{ALLOWED_DIRECTORY}}:/workspace", "mcp/filesystem:latest"]
+            "args": ["run", "-i", "--rm", "--mount", "type=bind,src={{ALLOWED_DIRECTORY}},dst=/projects", "mcp/filesystem", "/projects"]
           }
     parameters:
       - name: 'Allowed Directory'
