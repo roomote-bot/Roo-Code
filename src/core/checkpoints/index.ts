@@ -11,46 +11,7 @@ import { ClineApiReqInfo } from "../../shared/ExtensionMessage"
 import { getApiMetrics } from "../../shared/getApiMetrics"
 
 import { DIFF_VIEW_URI_SCHEME } from "../../integrations/editor/DiffViewProvider"
-
-// Maximum safe URI length to avoid crashes in language servers
-// Most systems have limits between 2KB-32KB, using conservative 8KB limit
-const MAX_SAFE_URI_LENGTH = 8192
-
-/**
- * Safely creates a diff URI by validating the total URI length.
- * If the URI would be too long, truncates the content to avoid LSP crashes.
- */
-function createSafeDiffUri(fileName: string, content: string): vscode.Uri {
-	try {
-		const base64Content = Buffer.from(content).toString("base64")
-		const baseUri = `${DIFF_VIEW_URI_SCHEME}:${fileName}`
-		const testUri = vscode.Uri.parse(baseUri).with({ query: base64Content }).toString()
-
-		if (testUri.length <= MAX_SAFE_URI_LENGTH) {
-			return vscode.Uri.parse(baseUri).with({ query: base64Content })
-		}
-
-		// Calculate available space for content after accounting for URI overhead
-		const overhead = baseUri.length + 50 // Extra buffer for URI encoding
-		const maxBase64Length = Math.max(0, MAX_SAFE_URI_LENGTH - overhead)
-
-		// Truncate content to fit within safe URI length
-		const maxContentLength = Math.floor((maxBase64Length * 3) / 4) // Base64 is ~4/3 the size
-		const truncatedContent =
-			content.length > maxContentLength
-				? content.substring(0, maxContentLength) + "\n... [Content truncated to prevent LSP crashes]"
-				: content
-
-		const truncatedBase64 = Buffer.from(truncatedContent).toString("base64")
-		return vscode.Uri.parse(baseUri).with({ query: truncatedBase64 })
-	} catch (error) {
-		console.error(`Failed to create diff URI for ${fileName}:`, error)
-		// Fallback to empty content if all else fails
-		return vscode.Uri.parse(`${DIFF_VIEW_URI_SCHEME}:${fileName}`).with({
-			query: Buffer.from("").toString("base64"),
-		})
-	}
-}
+import { createSafeContentUri } from "../../utils/uri"
 
 import { CheckpointServiceOptions, RepoPerTaskCheckpointService } from "../../services/checkpoints"
 
@@ -317,8 +278,8 @@ export async function checkpointDiff(cline: Task, { ts, previousCommitHash, comm
 			mode === "full" ? "Changes since task started" : "Changes since previous checkpoint",
 			changes.map((change) => [
 				vscode.Uri.file(change.paths.absolute),
-				createSafeDiffUri(change.paths.relative, change.content.before ?? ""),
-				createSafeDiffUri(change.paths.relative, change.content.after ?? ""),
+				createSafeContentUri(DIFF_VIEW_URI_SCHEME, change.paths.relative, change.content.before ?? ""),
+				createSafeContentUri(DIFF_VIEW_URI_SCHEME, change.paths.relative, change.content.after ?? ""),
 			]),
 		)
 	} catch (err) {
