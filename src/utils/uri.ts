@@ -17,10 +17,10 @@ export function createSafeContentUri(scheme: string, path: string, content: stri
 	try {
 		const base64Content = Buffer.from(content).toString("base64")
 		const baseUri = `${scheme}:${path}`
-		const testUri = vscode.Uri.parse(baseUri).with({ query: base64Content }).toString()
+		const uri = vscode.Uri.parse(baseUri).with({ query: base64Content })
 
-		if (testUri.length <= MAX_SAFE_URI_LENGTH) {
-			return vscode.Uri.parse(baseUri).with({ query: base64Content })
+		if (uri.toString().length <= MAX_SAFE_URI_LENGTH) {
+			return uri
 		}
 
 		// Calculate available space for content after accounting for URI overhead
