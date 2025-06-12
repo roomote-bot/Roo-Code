@@ -24,7 +24,7 @@ export function createSafeContentUri(scheme: string, path: string, content: stri
 		}
 
 		// Calculate available space for content after accounting for URI overhead
-		const overhead = baseUri.length + 50 // Extra buffer for URI encoding
+		const overhead = baseUri.length + 100 // Extra buffer for URI encoding and VS Code overhead
 		const maxBase64Length = Math.max(0, MAX_SAFE_URI_LENGTH - overhead)
 
 		// Truncate content to fit within safe URI length
