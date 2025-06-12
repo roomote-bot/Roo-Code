@@ -10,7 +10,7 @@ import { getCommitInfo, getWorkingState } from "../../utils/git"
 import { getWorkspacePath } from "../../utils/path"
 
 import { openFile } from "../../integrations/misc/open-file"
-import { ClineProvider } from "../webview/ClineProvider"
+import { isInAutomatedWorkflowFromVisibleProvider } from "../../utils/workflow-detection"
 import { extractTextFromFile } from "../../integrations/misc/extract-text"
 import { diagnosticsToProblemsString } from "../../integrations/diagnostics"
 
@@ -37,21 +37,10 @@ export async function openMention(mention?: string): Promise<void> {
 		if (mention.endsWith("/")) {
 			vscode.commands.executeCommand("revealInExplorer", vscode.Uri.file(absPath))
 		} else {
-			// Check if we're in an automated workflow when opening file mentions
-			const visibleProvider = ClineProvider.getVisibleInstance()
-			const currentCline = visibleProvider?.getCurrentCline()
-			const autoApprovalEnabled = visibleProvider?.contextProxy.getValue("autoApprovalEnabled")
+			// Check if we're in an automated workflow to preserve chat focus during AI processing
+			const shouldPreserveFocus = isInAutomatedWorkflowFromVisibleProvider()
 
-			// Detect automated workflow: AI is actively processing, streaming, or auto-approval is enabled
-			// and there's an active task that hasn't completed reading/processing
-			const isInAutomatedWorkflow =
-				currentCline &&
-				(currentCline.isStreaming ||
-					currentCline.isWaitingForFirstChunk ||
-					(autoApprovalEnabled && !currentCline.didCompleteReadingStream) ||
-					(autoApprovalEnabled && currentCline.presentAssistantMessageLocked))
-
-			openFile(absPath, { preserveFocus: !!isInAutomatedWorkflow })
+			openFile(absPath, { preserveFocus: shouldPreserveFocus })
 		}
 	} else if (mention === "problems") {
 		vscode.commands.executeCommand("workbench.actions.view.problems")

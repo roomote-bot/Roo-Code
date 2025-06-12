@@ -39,6 +39,7 @@ import { getModels, flushModels } from "../../api/providers/fetchers/modelCache"
 import { GetModelsOptions } from "../../shared/api"
 import { generateSystemPrompt } from "./generateSystemPrompt"
 import { getCommand } from "../../utils/commands"
+import { isInAutomatedWorkflowFromProvider } from "../../utils/workflow-detection"
 
 const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
@@ -426,22 +427,12 @@ export const webviewMessageHandler = async (
 			openImage(message.text!)
 			break
 		case "openFile":
-			// Check if we're in an automated workflow (AI is streaming/processing)
-			const currentCline = provider.getCurrentCline()
-			const autoApprovalEnabled = getGlobalState("autoApprovalEnabled")
-
-			// Detect automated workflow: AI is actively processing, streaming, or auto-approval is enabled
-			// and there's an active task that hasn't completed reading/processing
-			const isInAutomatedWorkflow =
-				currentCline &&
-				(currentCline.isStreaming ||
-					currentCline.isWaitingForFirstChunk ||
-					(autoApprovalEnabled && !currentCline.didCompleteReadingStream) ||
-					(autoApprovalEnabled && currentCline.presentAssistantMessageLocked))
+			// Check if we're in an automated workflow to preserve chat focus during AI processing
+			const shouldPreserveFocus = isInAutomatedWorkflowFromProvider(provider)
 
 			openFile(message.text!, {
 				...(message.values as { create?: boolean; content?: string; line?: number }),
-				preserveFocus: !!isInAutomatedWorkflow,
+				preserveFocus: shouldPreserveFocus,
 			})
 			break
 		case "openMention":
