@@ -41,7 +41,6 @@ export function useEventSource({ url, withCredentials, onMessage }: UseEventSour
 		setStatus("waiting")
 
 		sourceRef.current = new EventSource(url, { withCredentials })
-		console.log("YO YO YO - Creating new EventSource connection for URL:", url);
 
 		sourceRef.current.onopen = () => {
 			if (isUnmountedRef.current) {
@@ -68,19 +67,6 @@ export function useEventSource({ url, withCredentials, onMessage }: UseEventSour
 			statusRef.current = "error"
 			setStatus("error")
 
-			console.log("YO YO YO - Error in EventSource:", event);
-			if (event instanceof ErrorEvent) {
-				console.log("YO YO YO - Error details:", {
-					message: event.message,
-					filename: event.filename,
-					lineno: event.lineno,
-					colno: event.colno,
-					error: event.error
-				});
-			} else {
-				console.log("YO YO YO - Unknown error event type:", event);
-			}
-
 			// Clean up current connection.
 			cleanup()
 
@@ -91,10 +77,8 @@ export function useEventSource({ url, withCredentials, onMessage }: UseEventSour
 			const retryCount = (sourceRef.current.retryCount || 0) + 1;
 			sourceRef.current.retryCount = retryCount;
 			if (retryCount > 5) {
-				console.log("YO YO YO - Maximum retry limit reached for EventSource. Stopping reconnection attempts.");
 				return;
 			}
-			console.log("YO YO YO - This is where reconnection happens for EventSource. Retry attempt:", retryCount);
 			reconnectTimeoutRef.current = setTimeout(() => {
 				if (!isUnmountedRef.current) {
 					createEventSource()
