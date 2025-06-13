@@ -70,20 +70,12 @@ export function useEventSource({ url, withCredentials, onMessage }: UseEventSour
 			// Clean up current connection.
 			cleanup()
 
-			// Attempt to reconnect after a delay with a simple backoff, with a maximum retry limit.
-			if (!sourceRef.current) {
-				return;
-			}
-			const retryCount = (sourceRef.current.retryCount || 0) + 1;
-			sourceRef.current.retryCount = retryCount;
-			if (retryCount > 5) {
-				return;
-			}
+			// Attempt to reconnect after a delay.
 			reconnectTimeoutRef.current = setTimeout(() => {
 				if (!isUnmountedRef.current) {
 					createEventSource()
 				}
-			}, 1000 * retryCount) // Exponential backoff: 1s, 2s, 3s, etc.
+			}, 1000)
 		}
 	}, [url, withCredentials, handleMessage, cleanup])
 
