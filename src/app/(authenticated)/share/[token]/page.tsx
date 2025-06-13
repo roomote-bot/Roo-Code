@@ -44,8 +44,6 @@ export default async function SharedTaskPage({ params }: SharedTaskPageProps) {
       </div>
     );
   } catch (error) {
-    console.error('Error loading shared task:', error);
-
     // Check if it's an access denied error
     if (error instanceof Error && error.message.includes('Access denied')) {
       return (

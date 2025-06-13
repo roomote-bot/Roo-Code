@@ -2,7 +2,12 @@ import { auth } from '@clerk/nextjs/server';
 import { Usage } from './Usage';
 
 export default async function Page() {
-  const { userId } = await auth();
+  const { userId, orgRole } = await auth();
 
-  return <Usage userRole="admin" currentUserId={userId} />;
+  return (
+    <Usage
+      userRole={orgRole === 'org:admin' ? 'admin' : 'member'}
+      currentUserId={userId}
+    />
+  );
 }

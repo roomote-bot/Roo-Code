@@ -1,6 +1,15 @@
+import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 import { SettingsPage } from './SettingsPage';
 
-export default function Settings() {
+export default async function Settings() {
+  const { orgRole } = await auth();
+
+  // Only admins can access settings
+  if (orgRole !== 'org:admin') {
+    redirect('/usage');
+  }
+
   return <SettingsPage />;
 }
 
