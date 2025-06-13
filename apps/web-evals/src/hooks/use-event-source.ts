@@ -59,7 +59,7 @@ export function useEventSource({ url, withCredentials, onMessage }: UseEventSour
 			handleMessage(event)
 		}
 
-		sourceRef.current.onerror = (event) => {
+		sourceRef.current.onerror = () => {
 			if (isUnmountedRef.current) {
 				return
 			}
@@ -83,7 +83,7 @@ export function useEventSource({ url, withCredentials, onMessage }: UseEventSour
 				if (!isUnmountedRef.current) {
 					createEventSource()
 				}
-			}, 5000 * retryCount) // Exponential backoff: 5s, 10s, 15s, etc.
+			}, 1000 * retryCount) // Exponential backoff: 1s, 2s, 3s, etc.
 		}
 	}, [url, withCredentials, handleMessage, cleanup])
 
