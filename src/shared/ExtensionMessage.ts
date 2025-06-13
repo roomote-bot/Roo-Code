@@ -5,7 +5,7 @@ import type {
 	HistoryItem,
 	ModeConfig,
 	TelemetrySetting,
-	ExperimentId,
+	Experiments,
 	ClineMessage,
 	OrganizationAllowList,
 	CloudUserInfo,
@@ -17,6 +17,20 @@ import { McpServer } from "./mcp"
 import { Mode } from "./modes"
 import { RouterModels } from "./api"
 import { MarketplaceItem } from "../services/marketplace/types"
+
+// Indexing status types
+export interface IndexingStatus {
+	systemStatus: string
+	message?: string
+	processedItems: number
+	totalItems: number
+	currentItemUnit?: string
+}
+
+export interface IndexingStatusUpdateMessage {
+	type: "indexingStatusUpdate"
+	values: IndexingStatus
+}
 
 export interface LanguageModelChatSelector {
 	vendor?: string
@@ -208,7 +222,7 @@ export type ExtensionState = Pick<
 	showRooIgnoredFiles: boolean // Whether to show .rooignore'd files in listings
 	maxReadFileLine: number // Maximum number of lines to read from a file before truncating
 
-	experiments: Record<ExperimentId, boolean> // Map of experiment IDs to their enabled state
+	experiments: Experiments // Map of experiment IDs to their enabled state
 
 	mcpEnabled: boolean
 	enableMcpServerCreation: boolean
@@ -276,6 +290,17 @@ export interface ClineSayTool {
 		lineSnippet: string
 		isOutsideWorkspace?: boolean
 		key: string
+		content?: string
+	}>
+	batchDiffs?: Array<{
+		path: string
+		changeCount: number
+		key: string
+		content: string
+		diffs?: Array<{
+			content: string
+			startLine?: number
+		}>
 	}>
 	question?: string
 }
