@@ -74,8 +74,6 @@ services:
             dockerfile: packages/evals/Dockerfile.runner
         environment:
             - HOST_EXECUTION_METHOD=docker
-            - DONT_PROMPT_WSL_INSTALL=1
-            - LOG_LEVEL=debug
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
             - /tmp/evals:/var/log/evals
