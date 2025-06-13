@@ -25,7 +25,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 		try {
 			const taskEvent = taskEventSchema.parse(JSON.parse(data))
-			console.log(`[stream#${requestId}] task event -> ${taskEvent.eventName}`)
+			// console.log(`[stream#${requestId}] task event -> ${taskEvent.eventName}`)
 			const writeSuccess = await stream.write(JSON.stringify(taskEvent))
 
 			if (!writeSuccess) {
@@ -59,18 +59,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
 	await redis.subscribe(channelName, onMessage)
 
-	// Add a timeout to close the stream after a period of inactivity or errors
-	const timeoutDuration = 300000; // 5 minutes
-	const timeoutId = setTimeout(() => {
-		console.log(`[stream#${requestId}] timeout after ${timeoutDuration}ms`);
-		disconnect().catch((error) => {
-			console.error(`[stream#${requestId}] timeout cleanup error:`, error)
-		});
-	}, timeoutDuration);
-
 	request.signal.addEventListener("abort", () => {
-		console.log(`[stream#${requestId}] abort`);
-		clearTimeout(timeoutId);
+		console.log(`[stream#${requestId}] abort`)
+
 		disconnect().catch((error) => {
 			console.error(`[stream#${requestId}] cleanup error:`, error)
 		})
