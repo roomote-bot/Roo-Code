@@ -1,9 +1,9 @@
-import { Directive, ParsingState } from "./types"
-import { TextContentHandler } from "./TextContentHandler"
-import { ToolUseHandler } from "./ToolUseHandler"
-import { ParameterHandler } from "./ParameterHandler"
+import { Directive, ParsingState } from "./parsers/types"
+import { TextContentParser } from "./parsers/TextContentParser"
+import { ToolUseParser } from "./parsers/ToolUseParser"
+import { ParameterParser } from "./parsers/ParameterParser"
 
-export class StreamingParser {
+export class DirectiveStreamingParser {
 	static parse(assistantMessage: string): Directive[] {
 		const state: ParsingState = {
 			contentBlocks: [],
@@ -21,18 +21,18 @@ export class StreamingParser {
 			state.accumulator += char
 
 			// There should not be a param without a tool use.
-			if (ParameterHandler.handleParameter(state)) {
+			if (ParameterParser.parse(state)) {
 				continue
 			}
 
 			// No currentParamName.
-			if (ToolUseHandler.handleToolUse(state)) {
+			if (ToolUseParser.parse(state)) {
 				continue
 			}
 
 			// No currentToolUse.
-			const didStartToolUse = ToolUseHandler.checkForToolStart(state)
-			TextContentHandler.handleTextContent(state, i, didStartToolUse)
+			const didStartToolUse = ToolUseParser.checkForToolStart(state)
+			TextContentParser.parse(state, i, didStartToolUse)
 		}
 
 		// Handle remaining partial content

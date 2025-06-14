@@ -1,12 +1,12 @@
-import { StreamingParser } from "./directives/StreamingParser"
-import type { Directive } from "./directives"
+import { DirectiveStreamingParser } from "./DirectiveStreamingParser"
+import type { Directive } from "./parsers/types"
 
 // Re-export types for backward compatibility
-export type { TextDirective, ToolDirective, Directive } from "./directives"
+export type { TextDirective, ToolDirective, Directive } from "./parsers/types"
 
 // Backward compatibility alias
 export type AssistantMessageContent = Directive
 
 export function parseAssistantMessage(assistantMessage: string): Directive[] {
-	return StreamingParser.parse(assistantMessage)
+	return DirectiveStreamingParser.parse(assistantMessage)
 }

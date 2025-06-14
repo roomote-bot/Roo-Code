@@ -1,7 +1,7 @@
 import { ParsingState } from "./types"
 
-export class ParameterHandler {
-	static handleParameter(state: ParsingState): boolean {
+export class ParameterParser {
+	static parse(state: ParsingState): boolean {
 		if (!state.currentToolUse || !state.currentParamName) return false
 
 		const currentParamValue = state.accumulator.slice(state.currentParamValueStartIndex)

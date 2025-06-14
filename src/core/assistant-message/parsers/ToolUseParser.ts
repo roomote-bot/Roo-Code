@@ -1,9 +1,9 @@
 import { type ToolName, toolNames } from "@roo-code/types"
 import { ToolParamName, toolParamNames } from "../../../shared/tools"
 import { ParsingState } from "./types"
-import { TextContentHandler } from "./TextContentHandler"
+import { TextContentParser } from "./TextContentParser"
 
-export class ToolUseHandler {
+export class ToolUseParser {
 	static checkForToolStart(state: ParsingState): boolean {
 		let didStartToolUse = false
 		const possibleToolUseOpeningTags = toolNames.map((name) => `<${name}>`)
@@ -21,7 +21,7 @@ export class ToolUseHandler {
 				state.currentToolUseStartIndex = state.accumulator.length
 
 				// This also indicates the end of the current text content.
-				TextContentHandler.finalizeTextContent(state, toolUseOpeningTag)
+				TextContentParser.finalize(state, toolUseOpeningTag)
 
 				didStartToolUse = true
 				break
@@ -31,7 +31,7 @@ export class ToolUseHandler {
 		return didStartToolUse
 	}
 
-	static handleToolUse(state: ParsingState): boolean {
+	static parse(state: ParsingState): boolean {
 		if (!state.currentToolUse) return false
 
 		const currentToolValue = state.accumulator.slice(state.currentToolUseStartIndex)
@@ -44,13 +44,13 @@ export class ToolUseHandler {
 			state.currentToolUse = undefined
 			return true
 		} else {
-			this.handleParameterParsing(state)
-			this.handleSpecialCases(state)
+			this.parseParameter(state)
+			this.parseSpecialCases(state)
 			return true // Continue processing
 		}
 	}
 
-	private static handleParameterParsing(state: ParsingState): void {
+	private static parseParameter(state: ParsingState): void {
 		const possibleParamOpeningTags = toolParamNames.map((name) => `<${name}>`)
 		for (const paramOpeningTag of possibleParamOpeningTags) {
 			if (state.accumulator.endsWith(paramOpeningTag)) {
@@ -62,7 +62,7 @@ export class ToolUseHandler {
 		}
 	}
 
-	private static handleSpecialCases(state: ParsingState): void {
+	private static parseSpecialCases(state: ParsingState): void {
 		if (!state.currentToolUse) return
 
 		// Special case for write_to_file where file contents could

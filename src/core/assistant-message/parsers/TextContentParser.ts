@@ -1,7 +1,7 @@
 import { ParsingState } from "./types"
 
-export class TextContentHandler {
-	static handleTextContent(state: ParsingState, currentIndex: number, didStartToolUse: boolean): void {
+export class TextContentParser {
+	static parse(state: ParsingState, currentIndex: number, didStartToolUse: boolean): void {
 		if (!didStartToolUse) {
 			// No tool use, so it must be text either at the beginning or between tools.
 			if (state.currentTextContent === undefined) {
@@ -16,7 +16,7 @@ export class TextContentHandler {
 		}
 	}
 
-	static finalizeTextContent(state: ParsingState, toolUseOpeningTag: string): void {
+	static finalize(state: ParsingState, toolUseOpeningTag: string): void {
 		if (state.currentTextContent) {
 			state.currentTextContent.partial = false
 
