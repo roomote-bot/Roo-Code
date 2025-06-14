@@ -2,13 +2,19 @@ import { type ToolName, toolNames } from "@roo-code/types"
 
 import { TextContent, ToolUse, ToolParamName, toolParamNames } from "../../shared/tools"
 
-export type AssistantMessageContent = TextContent | ToolUse
+// Type aliases for this file
+export type TextDirective = TextContent
+export type ToolDirective = ToolUse
+export type Directive = TextDirective | ToolDirective
 
-export function parseAssistantMessage(assistantMessage: string): AssistantMessageContent[] {
-	let contentBlocks: AssistantMessageContent[] = []
-	let currentTextContent: TextContent | undefined = undefined
+// Backward compatibility alias
+export type AssistantMessageContent = Directive
+
+export function parseAssistantMessage(assistantMessage: string): Directive[] {
+	let contentBlocks: Directive[] = []
+	let currentTextContent: TextDirective | undefined = undefined
 	let currentTextContentStartIndex = 0
-	let currentToolUse: ToolUse | undefined = undefined
+	let currentToolUse: ToolDirective | undefined = undefined
 	let currentToolUseStartIndex = 0
 	let currentParamName: ToolParamName | undefined = undefined
 	let currentParamValueStartIndex = 0
