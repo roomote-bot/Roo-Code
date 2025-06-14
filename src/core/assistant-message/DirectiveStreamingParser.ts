@@ -1,7 +1,4 @@
-import { Directive, ParsingState } from "./parsers/types"
-import { TextContentParser } from "./parsers/TextContentParser"
-import { ToolUseParser } from "./parsers/ToolUseParser"
-import { ParameterParser } from "./parsers/ParameterParser"
+import { Directive, ParsingState, TextContentParser, ToolUseParser, ParameterParser } from "./parsers"
 
 export class DirectiveStreamingParser {
 	static parse(assistantMessage: string): Directive[] {
