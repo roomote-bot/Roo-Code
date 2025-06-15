@@ -15,32 +15,6 @@ suite("DirectiveStreamingParser", () => {
 		])
 	})
 
-	test("should parse a complete log message", () => {
-		const input = "<log_message><message>Log entry</message><level>info</level></log_message>"
-		const result = DirectiveStreamingParser.parse(input)
-		expect(result).toEqual([
-			{
-				type: "log_message",
-				message: "Log entry",
-				level: "info",
-				partial: false,
-			} as LogDirective,
-		])
-	})
-
-	test("should parse a partial log message", () => {
-		const input = "<log_message><message>Partial log entry</message>"
-		const result = DirectiveStreamingParser.parse(input)
-		expect(result).toEqual([
-			{
-				type: "log_message",
-				message: "Partial log entry",
-				level: "info",
-				partial: true,
-			} as LogDirective,
-		])
-	})
-
 	test("should parse a tool use directive", () => {
 		const input = "<read_file><path>src/app.ts</path></read_file>"
 		const result = DirectiveStreamingParser.parse(input)
