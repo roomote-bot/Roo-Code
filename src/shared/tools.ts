@@ -18,7 +18,7 @@ export type AskFinishSubTaskApproval = () => Promise<boolean>
 
 export type ToolDescription = () => string
 
-import { toolParamNames, ToolParamName } from "../core/message-parsing/directives/tool-directives"
+import { ToolParamName } from "../core/message-parsing/directives/tool-directives"
 
 // Define tool group configuration
 export type ToolGroupConfig = {
