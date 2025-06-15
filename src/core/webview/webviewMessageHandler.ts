@@ -1004,7 +1004,7 @@ export const webviewMessageHandler = async (
 			await provider.postStateToWebview()
 			break
 		case "diagnosticsFilter":
-			await updateGlobalState("diagnosticsFilter", message.values ?? ["error", "warning"])
+			await updateGlobalState("diagnosticsFilter", (message.values as string[]) ?? ["error", "warning"])
 			await provider.postStateToWebview()
 			break
 		case "setHistoryPreviewCollapsed": // Add the new case handler
