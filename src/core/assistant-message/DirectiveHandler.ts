@@ -1,5 +1,5 @@
 import * as sax from "sax"
-import { ParseContext } from "../interfaces/ParseContext"
+import { ParseContext } from "./ParseContext"
 
 export interface DirectiveHandler {
 	readonly tagName: string

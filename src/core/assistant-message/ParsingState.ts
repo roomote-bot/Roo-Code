@@ -1,10 +1,5 @@
-import { TextDirective, LogDirective } from "../directives"
-import { ToolUse, ToolParamName } from "../../../shared/tools"
-
-// Type aliases for directive parsing
-
-export type ToolDirective = ToolUse
-export type Directive = TextDirective | ToolDirective | LogDirective
+import { TextDirective, Directive, LogDirective, ToolDirective } from "./directives"
+import { ToolParamName } from "../../shared/tools"
 
 export interface ParsingState {
 	contentBlocks: Directive[]

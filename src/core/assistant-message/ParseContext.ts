@@ -1,4 +1,4 @@
-import { Directive } from "../parsers"
+import { Directive } from "./directives"
 
 export interface ParseContext {
 	currentText: string

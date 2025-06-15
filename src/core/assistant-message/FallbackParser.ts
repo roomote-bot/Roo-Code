@@ -1,7 +1,7 @@
-import { Directive } from "./types"
-import { TextDirective, LogDirective } from "../directives"
+import { Directive } from "./directives"
+import { TextDirective, LogDirective } from "./directives"
 import { toolNames } from "@roo-code/types"
-import { ToolUse } from "../../../shared/tools"
+import { ToolUse } from "../../shared/tools"
 
 export class FallbackParser {
 	static parse(assistantMessage: string): Directive[] {

@@ -1,6 +1,6 @@
 import * as sax from "sax"
 import { BaseDirectiveHandler } from "./BaseDirectiveHandler"
-import { ParseContext } from "../interfaces/ParseContext"
+import { ParseContext } from "../ParseContext"
 import { LogDirective } from "../directives"
 
 export class LogDirectiveHandler extends BaseDirectiveHandler {

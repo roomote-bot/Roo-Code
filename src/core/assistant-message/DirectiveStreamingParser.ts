@@ -1,8 +1,8 @@
 import * as sax from "sax"
-import { Directive } from "./parsers"
-import { ParseContext } from "./interfaces/ParseContext"
+import { Directive } from "./directives"
+import { ParseContext } from "./ParseContext"
 import { DirectiveRegistryFactory } from "./DirectiveRegistryFactory"
-import { FallbackParser } from "./parsers/FallbackParser"
+import { FallbackParser } from "./FallbackParser"
 import { XmlUtils } from "./XmlUtils"
 
 export class DirectiveStreamingParser {

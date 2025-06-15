@@ -6,8 +6,8 @@ export { type LogDirective } from "./directives/LogDirective"
 export { DirectiveStreamingParser } from "./DirectiveStreamingParser"
 
 // Core interfaces and types
-export type { DirectiveHandler } from "./interfaces/DirectiveHandler"
-export type { ParseContext } from "./interfaces/ParseContext"
+export type { DirectiveHandler } from "./DirectiveHandler"
+export type { ParseContext } from "./ParseContext"
 
 // Base classes for extension
 export { BaseDirectiveHandler } from "./handlers/BaseDirectiveHandler"
@@ -23,4 +23,4 @@ export { TextDirectiveHandler } from "./handlers/TextDirectiveHandler"
 
 // Utilities
 export { XmlUtils } from "./XmlUtils"
-export { FallbackParser } from "./parsers/FallbackParser"
+export { FallbackParser } from "./FallbackParser"

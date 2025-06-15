@@ -1,4 +1,4 @@
-import { DirectiveHandler } from "./interfaces/DirectiveHandler"
+import { DirectiveHandler } from "./DirectiveHandler"
 import { TextDirectiveHandler } from "./handlers/TextDirectiveHandler"
 import { ToolDirectiveHandler } from "./handlers/ToolDirectiveHandler"
 

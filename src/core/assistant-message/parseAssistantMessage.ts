@@ -1,9 +1,8 @@
 import { DirectiveStreamingParser } from "./DirectiveStreamingParser"
-import type { Directive } from "./parsers"
+import type { Directive } from "./directives"
 
-export type { TextDirective } from "./directives"
 // Re-export types for backward compatibility
-export type { ToolDirective, Directive } from "./parsers"
+export type { TextDirective, ToolDirective, Directive } from "./directives"
 
 // Backward compatibility alias
 export type AssistantMessageContent = Directive

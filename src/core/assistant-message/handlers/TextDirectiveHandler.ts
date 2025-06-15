@@ -1,5 +1,5 @@
 import { BaseDirectiveHandler } from "./BaseDirectiveHandler"
-import { ParseContext } from "../interfaces/ParseContext"
+import { ParseContext } from "../ParseContext"
 import { TextDirective } from "../directives"
 
 export class TextDirectiveHandler extends BaseDirectiveHandler {
