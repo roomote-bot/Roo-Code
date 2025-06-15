@@ -1,8 +1,8 @@
 import { type ToolName, toolNames } from "@roo-code/types"
+import { TextDirective } from "./directives"
+import { ToolUse, ToolParamName, toolParamNames } from "../../shared/tools"
 
-import { TextContent, ToolUse, ToolParamName, toolParamNames } from "../../shared/tools"
-
-export type AssistantMessageContent = TextContent | ToolUse
+export type AssistantMessageContent = TextDirective | ToolUse
 
 /**
  * Parses an assistant message string potentially containing mixed text and tool
@@ -41,7 +41,7 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 	const contentBlocks: AssistantMessageContent[] = []
 
 	let currentTextContentStart = 0 // Index where the current text block started.
-	let currentTextContent: TextContent | undefined = undefined
+	let currentTextContent: TextDirective | undefined = undefined
 	let currentToolUseStart = 0 // Index *after* the opening tag of the current tool use.
 	let currentToolUse: ToolUse | undefined = undefined
 	let currentParamValueStart = 0 // Index *after* the opening tag of the current param.

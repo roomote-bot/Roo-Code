@@ -1,12 +1,13 @@
 // npx jest src/core/assistant-message/__tests__/parseAssistantMessage.test.ts
 
-import { TextContent, ToolUse } from "../../../shared/tools"
+import { TextDirective } from "../directives"
+import { ToolUse } from "../../../shared/tools"
 
 import { AssistantMessageContent, parseAssistantMessage as parseAssistantMessageV1 } from "../parseAssistantMessage"
 import { parseAssistantMessageV2 } from "../parseAssistantMessageV2"
 
 const isEmptyTextContent = (block: AssistantMessageContent) =>
-	block.type === "text" && (block as TextContent).content === ""
+	block.type === "text" && (block as TextDirective).content === ""
 
 ;[parseAssistantMessageV1, parseAssistantMessageV2].forEach((parser, index) => {
 	describe(`parseAssistantMessageV${index + 1}`, () => {
@@ -108,7 +109,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				expect(result).toHaveLength(2)
 
-				const textContent = result[0] as TextContent
+				const textContent = result[0] as TextDirective
 				expect(textContent.type).toBe("text")
 				expect(textContent.content).toBe("Here's the file content:")
 				expect(textContent.partial).toBe(false)
@@ -132,7 +133,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				expect(toolUse.params.path).toBe("src/file.ts")
 				expect(toolUse.partial).toBe(false)
 
-				const textContent = result[1] as TextContent
+				const textContent = result[1] as TextDirective
 				expect(textContent.type).toBe("text")
 				expect(textContent.content).toBe("Here's what I found in the file.")
 				expect(textContent.partial).toBe(true)
@@ -146,14 +147,14 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				expect(result).toHaveLength(4)
 
 				expect(result[0].type).toBe("text")
-				expect((result[0] as TextContent).content).toBe("First file:")
+				expect((result[0] as TextDirective).content).toBe("First file:")
 
 				expect(result[1].type).toBe("tool_use")
 				expect((result[1] as ToolUse).name).toBe("read_file")
 				expect((result[1] as ToolUse).params.path).toBe("src/file1.ts")
 
 				expect(result[2].type).toBe("text")
-				expect((result[2] as TextContent).content).toBe("Second file:")
+				expect((result[2] as TextDirective).content).toBe("Second file:")
 
 				expect(result[3].type).toBe("tool_use")
 				expect((result[3] as ToolUse).name).toBe("read_file")
@@ -197,7 +198,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				expect(result).toHaveLength(1)
 				expect(result[0].type).toBe("text")
-				expect((result[0] as TextContent).content).toBe(message)
+				expect((result[0] as TextDirective).content).toBe(message)
 			})
 
 			it("should handle tool use with no parameters", () => {
@@ -313,7 +314,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				// First text block
 				expect(result[0].type).toBe("text")
-				expect((result[0] as TextContent).content).toBe("I'll help you with that task.")
+				expect((result[0] as TextDirective).content).toBe("I'll help you with that task.")
 
 				// First tool use (read_file)
 				expect(result[1].type).toBe("tool_use")
@@ -321,7 +322,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				// Second text block
 				expect(result[2].type).toBe("text")
-				expect((result[2] as TextContent).content).toContain("Now let's modify the file:")
+				expect((result[2] as TextDirective).content).toContain("Now let's modify the file:")
 
 				// Second tool use (write_to_file)
 				expect(result[3].type).toBe("tool_use")
@@ -329,7 +330,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				// Third text block
 				expect(result[4].type).toBe("text")
-				expect((result[4] as TextContent).content).toContain("Let's run the code:")
+				expect((result[4] as TextDirective).content).toContain("Let's run the code:")
 
 				// Third tool use (execute_command)
 				expect(result[5].type).toBe("tool_use")

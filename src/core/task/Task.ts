@@ -84,6 +84,7 @@ import { processUserContentMentions } from "../mentions/processUserContentMentio
 import { ApiMessage } from "../task-persistence/apiMessages"
 import { getMessagesSinceLastSummary, summarizeConversation } from "../condense"
 import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
+import { LogManager } from "../logging"
 
 export type ClineEvents = {
 	message: [{ action: "created" | "updated"; message: ClineMessage }]
@@ -192,6 +193,9 @@ export class Task extends EventEmitter<ClineEvents> {
 	didAlreadyUseTool = false
 	didCompleteReadingStream = false
 
+	// Logging
+	private logManager: LogManager
+
 	constructor({
 		provider,
 		apiConfiguration,
@@ -224,6 +228,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		this.rooIgnoreController = new RooIgnoreController(this.cwd)
 		this.fileContextTracker = new FileContextTracker(provider, this.taskId)
+		this.logManager = new LogManager(provider)
 
 		this.rooIgnoreController.initialize().catch((error) => {
 			console.error("Failed to initialize RooIgnoreController:", error)

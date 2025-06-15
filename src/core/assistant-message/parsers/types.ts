@@ -1,9 +1,10 @@
-import { TextContent, ToolUse, ToolParamName } from "../../../shared/tools"
+import { TextDirective, LogDirective } from "../directives"
+import { ToolUse, ToolParamName } from "../../../shared/tools"
 
 // Type aliases for directive parsing
-export type TextDirective = TextContent
+
 export type ToolDirective = ToolUse
-export type Directive = TextDirective | ToolDirective
+export type Directive = TextDirective | ToolDirective | LogDirective
 
 export interface ParsingState {
 	contentBlocks: Directive[]
@@ -11,6 +12,8 @@ export interface ParsingState {
 	currentTextContentStartIndex: number
 	currentToolUse?: ToolDirective
 	currentToolUseStartIndex: number
+	currentLogMessage?: LogDirective
+	currentLogMessageStartIndex: number
 	currentParamName?: ToolParamName
 	currentParamValueStartIndex: number
 	accumulator: string

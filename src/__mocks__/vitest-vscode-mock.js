@@ -66,6 +66,10 @@ export const window = {
 		show: () => {},
 		dispose: () => {},
 	}),
+	createTextEditorDecorationType: (options) => ({
+		key: "mockDecorationType",
+		dispose: () => {},
+	}),
 }
 
 export const commands = {

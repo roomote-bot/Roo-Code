@@ -20,12 +20,6 @@ export type AskFinishSubTaskApproval = () => Promise<boolean>
 
 export type ToolDescription = () => string
 
-export interface TextContent {
-	type: "text"
-	content: string
-	partial: boolean
-}
-
 export const toolParamNames = [
 	"command",
 	"path",
