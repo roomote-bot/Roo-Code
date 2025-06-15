@@ -37,20 +37,19 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 	}
 
 	// Sanitize image URL to prevent XSS and malicious redirects
+	// Only allow data:image/ URLs since the backend openImage function only supports base64 data URIs
 	const sanitizeImageUrl = (url: string): string => {
 		try {
-			// Only allow data URLs (base64 images) and https URLs
+			// Only allow data URLs (base64 images) - backend only supports these
 			if (url.startsWith("data:image/")) {
-				return url
+				// Additional validation: ensure it's a proper data URI format
+				const dataUriRegex = /^data:image\/[a-zA-Z]+;base64,/
+				if (dataUriRegex.test(url)) {
+					return url
+				}
 			}
 
-			// For other URLs, validate they are safe
-			const parsedUrl = new URL(url)
-			if (parsedUrl.protocol === "https:" || parsedUrl.protocol === "http:") {
-				return url
-			}
-
-			// Reject any other protocols (javascript:, file:, etc.)
+			// Reject all other URLs (http, https, javascript, file, etc.)
 			return ""
 		} catch {
 			// Invalid URL, return empty string
