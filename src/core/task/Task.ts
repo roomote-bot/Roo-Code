@@ -65,7 +65,7 @@ import { SYSTEM_PROMPT } from "../prompts/system"
 import { ToolRepetitionDetector } from "../tools/ToolRepetitionDetector"
 import { FileContextTracker } from "../context-tracking/FileContextTracker"
 import { RooIgnoreController } from "../ignore/RooIgnoreController"
-import { type AssistantMessageContent, parseAssistantMessage, presentAssistantMessage } from "../assistant-message"
+import { presentAssistantMessage } from "../assistant-message"
 import { truncateConversationIfNeeded } from "../sliding-window"
 import { ClineProvider } from "../webview/ClineProvider"
 import { MultiSearchReplaceDiffStrategy } from "../diff/strategies/multi-search-replace"
@@ -85,6 +85,8 @@ import { ApiMessage } from "../task-persistence/apiMessages"
 import { getMessagesSinceLastSummary, summarizeConversation } from "../condense"
 import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
 import { LogManager } from "../logging"
+import { Directive } from "../assistant-message"
+import { DirectiveStreamingParser } from "../assistant-message"
 
 export type ClineEvents = {
 	message: [{ action: "created" | "updated"; message: ClineMessage }]
@@ -184,7 +186,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	isWaitingForFirstChunk = false
 	isStreaming = false
 	currentStreamingContentIndex = 0
-	assistantMessageContent: AssistantMessageContent[] = []
+	assistantMessageContent: Directive[] = []
 	presentAssistantMessageLocked = false
 	presentAssistantMessageHasPendingUpdates = false
 	userMessageContent: (Anthropic.TextBlockParam | Anthropic.ImageBlockParam)[] = []
@@ -1334,7 +1336,7 @@ export class Task extends EventEmitter<ClineEvents> {
 			try {
 				for await (const chunk of stream) {
 					if (!chunk) {
-						// Sometimes chunk is undefined, no idea that can cause
+						// Sometimes chunk is undefined, no idea what can cause
 						// it, but this workaround seems to fix it.
 						continue
 					}
@@ -1356,7 +1358,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 							// Parse raw assistant message into content blocks.
 							const prevLength = this.assistantMessageContent.length
-							this.assistantMessageContent = parseAssistantMessage(assistantMessage)
+							this.assistantMessageContent = DirectiveStreamingParser.parse(assistantMessage)
 
 							if (this.assistantMessageContent.length > prevLength) {
 								// New content we need to present, reset to

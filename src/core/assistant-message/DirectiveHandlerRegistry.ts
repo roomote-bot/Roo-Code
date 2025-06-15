@@ -1,6 +1,5 @@
 import { DirectiveHandler } from "./DirectiveHandler"
-import { TextDirectiveHandler } from "./handlers/TextDirectiveHandler"
-import { ToolDirectiveHandler } from "./handlers/ToolDirectiveHandler"
+import { TextDirectiveHandler, ToolDirectiveHandler } from "./handlers"
 
 export class DirectiveHandlerRegistry {
 	private handlers: Map<string, DirectiveHandler> = new Map()

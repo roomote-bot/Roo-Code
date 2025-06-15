@@ -1,5 +1,5 @@
 import { suite, test, expect } from "vitest"
-import { parseAssistantMessage } from ".."
+import { DirectiveStreamingParser } from ".."
 
 suite("Log Entry Parsing", () => {
 	test("should parse complete log entries correctly", () => {
@@ -8,7 +8,7 @@ suite("Log Entry Parsing", () => {
 <level>debug</level>
 </log_message>`
 
-		const result = parseAssistantMessage(message)
+		const result = DirectiveStreamingParser.parse(message)
 
 		// Filter out empty text blocks
 		const filteredResult = result.filter((block) => !(block.type === "text" && block.content === ""))
@@ -26,7 +26,7 @@ suite("Log Entry Parsing", () => {
 		const message = `<log_message>
 <message>This is a test log message</message>`
 
-		const result = parseAssistantMessage(message)
+		const result = DirectiveStreamingParser.parse(message)
 
 		// Filter out empty text blocks
 		const filteredResult = result.filter((block) => !(block.type === "text" && block.content === ""))
@@ -45,7 +45,7 @@ suite("Log Entry Parsing", () => {
 <message>This is a test log message</message>
 </log_message>`
 
-		const result = parseAssistantMessage(message)
+		const result = DirectiveStreamingParser.parse(message)
 
 		// Filter out empty text blocks
 		const filteredResult = result.filter((block) => !(block.type === "text" && block.content === ""))
@@ -74,7 +74,7 @@ suite("Log Entry Parsing", () => {
 		// Process each chunk as it would happen during streaming
 		for (const chunk of chunks) {
 			accumulatedMessage += chunk
-			const result = parseAssistantMessage(accumulatedMessage)
+			const result = DirectiveStreamingParser.parse(accumulatedMessage)
 			results.push(result)
 		}
 
@@ -135,7 +135,7 @@ suite("Log Entry Parsing", () => {
 <level>error</level>
 </log_message>`
 
-		const result = parseAssistantMessage(message)
+		const result = DirectiveStreamingParser.parse(message)
 
 		// Filter out empty text blocks
 		const filteredResult = result.filter((block) => !(block.type === "text" && block.content === ""))

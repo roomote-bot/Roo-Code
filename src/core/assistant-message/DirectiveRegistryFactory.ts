@@ -1,5 +1,5 @@
 import { DirectiveHandlerRegistry } from "./DirectiveHandlerRegistry"
-import { LogDirectiveHandler } from "./handlers/LogDirectiveHandler"
+import { LogDirectiveHandler } from "./handlers"
 import { toolNames } from "@roo-code/types"
 
 export class DirectiveRegistryFactory {
