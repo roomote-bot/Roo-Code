@@ -1,4 +1,3 @@
-export * from "./BaseDirectiveHandler"
-export * from "./LogDirectiveHandler"
-export * from "./TextDirectiveHandler"
-export * from "./ToolDirectiveHandler"
+export { LogDirectiveHandler } from "./LogDirectiveHandler"
+export { TextDirectiveHandler } from "./TextDirectiveHandler"
+export { ToolDirectiveHandler } from "./ToolDirectiveHandler"
