@@ -1,7 +1,6 @@
-import { Directive } from "./directives"
+import { Directive, ToolDirective } from "./directives"
 import { TextDirective, LogDirective } from "./directives"
 import { toolNames } from "@roo-code/types"
-import { ToolUse } from "../../shared/tools"
 
 export class FallbackParser {
 	static parse(assistantMessage: string): Directive[] {
@@ -76,14 +75,14 @@ export class FallbackParser {
 						}
 					}
 
-					const toolUse: ToolUse = {
+					const ToolDirective: ToolDirective = {
 						type: "tool_use",
 						name: toolName as any,
 						params,
 						partial: !assistantMessage.includes(`</${toolName}>`),
 					}
 
-					contentBlocks.push(toolUse)
+					contentBlocks.push(ToolDirective)
 					return contentBlocks
 				}
 			}

@@ -1,13 +1,14 @@
 import delay from "delay"
 
-import { ToolUse, AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../shared/tools"
+import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../shared/tools"
 import { Task } from "../task/Task"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { formatResponse } from "../prompts/responses"
+import { ToolDirective } from "../message-parsing/directives"
 
 export async function newTaskTool(
 	cline: Task,
-	block: ToolUse,
+	block: ToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,
@@ -43,7 +44,7 @@ export async function newTaskTool(
 
 			cline.consecutiveMistakeCount = 0
 			// Un-escape one level of backslashes before '@' for hierarchical subtasks
-// Un-escape one level: \\@ -> \@ (removes one backslash for hierarchical subtasks)
+			// Un-escape one level: \\@ -> \@ (removes one backslash for hierarchical subtasks)
 			const unescapedMessage = message.replace(/\\\\@/g, "\\@")
 
 			// Verify the mode exists

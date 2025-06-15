@@ -1,8 +1,8 @@
 import { type ToolName, toolNames } from "@roo-code/types"
-import { TextDirective } from "./directives"
-import { ToolUse, ToolParamName, toolParamNames } from "../../shared/tools"
+import { TextDirective, ToolDirective } from "./directives"
+import { ToolParamName, toolParamNames } from "../../shared/tools"
 
-export type AssistantMessageContent = TextDirective | ToolUse
+export type AssistantMessageContent = TextDirective | ToolDirective
 
 /**
  * Parses an assistant message string potentially containing mixed text and tool
@@ -14,10 +14,10 @@ export type AssistantMessageContent = TextDirective | ToolUse
  * position, it checks if the substring *ending* at `i` matches any known
  * opening or closing tags for tools or parameters using `startsWith` with an
  * offset.
- * It uses pre-computed Maps (`toolUseOpenTags`, `toolParamOpenTags`) for quick
+ * It uses pre-computed Maps (`ToolDirectiveOpenTags`, `toolParamOpenTags`) for quick
  * tag lookups.
  * State is managed using indices (`currentTextContentStart`,
- * `currentToolUseStart`, `currentParamValueStart`) pointing to the start of the
+ * `currentToolDirectiveStart`, `currentParamValueStart`) pointing to the start of the
  * current block within the original `assistantMessage` string.
  *
  * Slicing is used to extract content only when a block (text, parameter, or
@@ -32,7 +32,7 @@ export type AssistantMessageContent = TextDirective | ToolUse
  *
  * @param assistantMessage The raw string output from the assistant.
  * @returns An array of `AssistantMessageContent` objects, which can be
- *          `TextContent` or `ToolUse`. Blocks that were not fully closed by the
+ *          `TextContent` or `ToolDirective`. Blocks that were not fully closed by the
  *          end of the input string will have their `partial` flag set to
  *          `true`.
  */
@@ -42,17 +42,17 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 
 	let currentTextContentStart = 0 // Index where the current text block started.
 	let currentTextContent: TextDirective | undefined = undefined
-	let currentToolUseStart = 0 // Index *after* the opening tag of the current tool use.
-	let currentToolUse: ToolUse | undefined = undefined
+	let currentToolDirectiveStart = 0 // Index *after* the opening tag of the current tool use.
+	let currentToolDirective: ToolDirective | undefined = undefined
 	let currentParamValueStart = 0 // Index *after* the opening tag of the current param.
 	let currentParamName: ToolParamName | undefined = undefined
 
 	// Precompute tags for faster lookups.
-	const toolUseOpenTags = new Map<string, ToolName>()
+	const ToolDirectiveOpenTags = new Map<string, ToolName>()
 	const toolParamOpenTags = new Map<string, ToolParamName>()
 
 	for (const name of toolNames) {
-		toolUseOpenTags.set(`<${name}>`, name)
+		ToolDirectiveOpenTags.set(`<${name}>`, name)
 	}
 
 	for (const name of toolParamNames) {
@@ -65,7 +65,7 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 		const currentCharIndex = i
 
 		// Parsing a tool parameter
-		if (currentToolUse && currentParamName) {
+		if (currentToolDirective && currentParamName) {
 			const closeTag = `</${currentParamName}>`
 			// Check if the string *ending* at index `i` matches the closing tag
 			if (
@@ -82,7 +82,7 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 						currentCharIndex - closeTag.length + 1, // End before the closing tag.
 					)
 					.trim()
-				currentToolUse.params[currentParamName] = value
+				currentToolDirective.params[currentParamName] = value
 				currentParamName = undefined // Go back to parsing tool content.
 				// We don't continue loop here, need to check for tool close or other params at index i.
 			} else {
@@ -91,7 +91,7 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 		}
 
 		// Parsing a tool use (but not a specific parameter).
-		if (currentToolUse && !currentParamName) {
+		if (currentToolDirective && !currentParamName) {
 			// Ensure we are not inside a parameter already.
 			// Check if starting a new parameter.
 			let startedNewParam = false
@@ -113,7 +113,7 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 			}
 
 			// Check if closing the current tool use.
-			const toolCloseTag = `</${currentToolUse.name}>`
+			const toolCloseTag = `</${currentToolDirective.name}>`
 
 			if (
 				currentCharIndex >= toolCloseTag.length - 1 &&
@@ -123,7 +123,7 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 				// Special handling for content params *before* finalizing the
 				// tool.
 				const toolContentSlice = assistantMessage.slice(
-					currentToolUseStart, // From after the tool opening tag.
+					currentToolDirectiveStart, // From after the tool opening tag.
 					currentCharIndex - toolCloseTag.length + 1, // To before the tool closing tag.
 				)
 
@@ -134,8 +134,8 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 				// empty or parsing logic prioritizes tool close).
 				const contentParamName: ToolParamName = "content"
 				if (
-					currentToolUse.name === "write_to_file" /* || currentToolUse.name === "new_rule" */ &&
-					// !(contentParamName in currentToolUse.params) && // Only if not already parsed.
+					currentToolDirective.name === "write_to_file" /* || currentToolDirective.name === "new_rule" */ &&
+					// !(contentParamName in currentToolDirective.params) && // Only if not already parsed.
 					toolContentSlice.includes(`<${contentParamName}>`) // Check if tag exists.
 				) {
 					const contentStartTag = `<${contentParamName}>`
@@ -150,13 +150,13 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 							.slice(contentStart + contentStartTag.length, contentEnd)
 							.trim()
 
-						currentToolUse.params[contentParamName] = contentValue
+						currentToolDirective.params[contentParamName] = contentValue
 					}
 				}
 
-				currentToolUse.partial = false // Mark as complete.
-				contentBlocks.push(currentToolUse)
-				currentToolUse = undefined // Reset state.
+				currentToolDirective.partial = false // Mark as complete.
+				contentBlocks.push(currentToolDirective)
+				currentToolDirective = undefined // Reset state.
 				currentTextContentStart = currentCharIndex + 1 // Potential text starts after this tag.
 				continue // Move to next char.
 			}
@@ -167,11 +167,11 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 		}
 
 		// Parsing text / looking for tool start.
-		if (!currentToolUse) {
+		if (!currentToolDirective) {
 			// Check if starting a new tool use.
 			let startedNewTool = false
 
-			for (const [tag, toolName] of toolUseOpenTags.entries()) {
+			for (const [tag, toolName] of ToolDirectiveOpenTags.entries()) {
 				if (
 					currentCharIndex >= tag.length - 1 &&
 					assistantMessage.startsWith(tag, currentCharIndex - tag.length + 1)
@@ -211,14 +211,14 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 					}
 
 					// Start the new tool use.
-					currentToolUse = {
+					currentToolDirective = {
 						type: "tool_use",
 						name: toolName,
 						params: {},
 						partial: true, // Assume partial until closing tag is found.
 					}
 
-					currentToolUseStart = currentCharIndex + 1 // Tool content starts after the opening tag.
+					currentToolDirectiveStart = currentCharIndex + 1 // Tool content starts after the opening tag.
 					startedNewTool = true
 
 					break
@@ -250,17 +250,17 @@ export function parseAssistantMessageV2(assistantMessage: string): AssistantMess
 	}
 
 	// Finalize any open parameter within an open tool use.
-	if (currentToolUse && currentParamName) {
-		currentToolUse.params[currentParamName] = assistantMessage
+	if (currentToolDirective && currentParamName) {
+		currentToolDirective.params[currentParamName] = assistantMessage
 			.slice(currentParamValueStart) // From param start to end of string.
 			.trim()
 		// Tool use remains partial.
 	}
 
 	// Finalize any open tool use (which might contain the finalized partial param).
-	if (currentToolUse) {
+	if (currentToolDirective) {
 		// Tool use is partial because the loop finished before its closing tag.
-		contentBlocks.push(currentToolUse)
+		contentBlocks.push(currentToolDirective)
 	}
 	// Finalize any trailing text content.
 	// Only possible if a tool use wasn't open at the very end.

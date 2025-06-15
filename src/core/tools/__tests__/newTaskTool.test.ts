@@ -52,7 +52,7 @@ jest.mock("../../prompts/responses", () => ({
 
 // Import the function to test AFTER mocks are set up
 import { newTaskTool } from "../newTaskTool"
-import type { ToolUse } from "../../../shared/tools"
+import { ToolDirective } from "../../message-parsing/directives"
 
 describe("newTaskTool", () => {
 	beforeEach(() => {
@@ -65,7 +65,7 @@ describe("newTaskTool", () => {
 	})
 
 	it("should correctly un-escape \\\\@ to \\@ in the message passed to the new task", async () => {
-		const block: ToolUse = {
+		const block: ToolDirective = {
 			type: "tool_use", // Add required 'type' property
 			name: "new_task", // Correct property name
 			params: {
@@ -102,7 +102,7 @@ describe("newTaskTool", () => {
 	})
 
 	it("should not un-escape single escaped \@", async () => {
-		const block: ToolUse = {
+		const block: ToolDirective = {
 			type: "tool_use", // Add required 'type' property
 			name: "new_task", // Correct property name
 			params: {
@@ -129,7 +129,7 @@ describe("newTaskTool", () => {
 	})
 
 	it("should not un-escape non-escaped @", async () => {
-		const block: ToolUse = {
+		const block: ToolDirective = {
 			type: "tool_use", // Add required 'type' property
 			name: "new_task", // Correct property name
 			params: {
@@ -156,7 +156,7 @@ describe("newTaskTool", () => {
 	})
 
 	it("should handle mixed escaping scenarios", async () => {
-		const block: ToolUse = {
+		const block: ToolDirective = {
 			type: "tool_use", // Add required 'type' property
 			name: "new_task", // Correct property name
 			params: {

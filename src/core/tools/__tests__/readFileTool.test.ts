@@ -7,7 +7,7 @@ import { readLines } from "../../../integrations/misc/read-lines"
 import { extractTextFromFile } from "../../../integrations/misc/extract-text"
 import { parseSourceCodeDefinitionsForFile } from "../../../services/tree-sitter"
 import { isBinaryFile } from "isbinaryfile"
-import { ReadFileToolUse, ToolParamName, ToolResponse } from "../../../shared/tools"
+import { ReadFileToolDirective, ToolParamName, ToolResponse } from "../../../shared/tools"
 import { readFileTool } from "../readFileTool"
 import { formatResponse } from "../../prompts/responses"
 
@@ -144,7 +144,7 @@ describe("read_file tool with maxReadFileLine setting", () => {
 	 * Helper function to execute the read file tool with different maxReadFileLine settings
 	 */
 	async function executeReadFileTool(
-		params: Partial<ReadFileToolUse["params"]> = {},
+		params: Partial<ReadFileToolDirective["params"]> = {},
 		options: {
 			maxReadFileLine?: number
 			totalLines?: number
@@ -172,7 +172,7 @@ describe("read_file tool with maxReadFileLine setting", () => {
 		argsContent += `</file>`
 
 		// Create a tool use object
-		const toolUse: ReadFileToolUse = {
+		const toolUse: ReadFileToolDirective = {
 			type: "tool_use",
 			name: "read_file",
 			params: { args: argsContent, ...params },
@@ -484,7 +484,7 @@ describe("read_file tool XML output structure", () => {
 		argsContent += `</file>`
 
 		// Create a tool use object
-		const toolUse: ReadFileToolUse = {
+		const toolUse: ReadFileToolDirective = {
 			type: "tool_use",
 			name: "read_file",
 			params: { args: argsContent, ...params },
@@ -898,7 +898,7 @@ describe("read_file tool XML output structure", () => {
 
 		it("should include error tag for invalid path", async () => {
 			// Setup - missing path parameter
-			const toolUse: ReadFileToolUse = {
+			const toolUse: ReadFileToolDirective = {
 				type: "tool_use",
 				name: "read_file",
 				params: {},
@@ -1167,7 +1167,7 @@ describe("read_file tool XML output structure", () => {
 			const mockRemoveClosingTag = jest.fn((tag, content) => content)
 
 			// Create a tool use object directly
-			const toolUse: ReadFileToolUse = {
+			const toolUse: ReadFileToolDirective = {
 				type: "tool_use",
 				name: "read_file",
 				params: {
@@ -1207,7 +1207,7 @@ describe("read_file tool XML output structure", () => {
 			const mockRemoveClosingTag = jest.fn((tag, content) => content)
 
 			// Create a tool use object directly
-			const toolUse: ReadFileToolUse = {
+			const toolUse: ReadFileToolDirective = {
 				type: "tool_use",
 				name: "read_file",
 				params: {

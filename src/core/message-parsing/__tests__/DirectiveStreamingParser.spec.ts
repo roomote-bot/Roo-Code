@@ -1,7 +1,6 @@
 import { suite, test, expect } from "vitest"
 import { DirectiveStreamingParser } from "../DirectiveStreamingParser"
-import { TextDirective, LogDirective } from "../directives"
-import { ToolUse } from "../../../shared/tools"
+import { ToolDirective, TextDirective, LogDirective } from "../directives"
 
 suite("DirectiveStreamingParser", () => {
 	test("should parse plain text content", () => {
@@ -51,7 +50,7 @@ suite("DirectiveStreamingParser", () => {
 				name: "read_file",
 				params: { path: "src/app.ts" },
 				partial: false,
-			} as ToolUse,
+			} as ToolDirective,
 		])
 	})
 
@@ -70,7 +69,7 @@ suite("DirectiveStreamingParser", () => {
 				name: "apply_diff",
 				params: { path: "src/file.ts", diff: "diff content" },
 				partial: false,
-			} as ToolUse,
+			} as ToolDirective,
 			{
 				type: "text",
 				content: "More text",
@@ -88,7 +87,7 @@ suite("DirectiveStreamingParser", () => {
 				name: "write_to_file",
 				params: { path: "src/newfile.ts", content: "Some content" },
 				partial: true,
-			} as ToolUse,
+			} as ToolDirective,
 		])
 	})
 })

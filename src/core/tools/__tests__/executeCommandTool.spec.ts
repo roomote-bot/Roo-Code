@@ -6,7 +6,7 @@ import type { ToolUsage } from "@roo-code/types"
 
 import { Task } from "../../task/Task"
 import { formatResponse } from "../../prompts/responses"
-import { ToolUse, AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../../shared/tools"
+import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../../shared/tools"
 import { unescapeHtmlEntities } from "../../../utils/text-normalization"
 
 // Mock dependencies
@@ -27,6 +27,7 @@ vitest.mock("../executeCommandTool")
 
 // Import after mocking
 import { executeCommandTool } from "../executeCommandTool"
+import { ToolDirective } from "../../message-parsing/directives"
 
 // Now manually restore and mock the functions
 beforeEach(() => {
@@ -79,7 +80,7 @@ describe("executeCommandTool", () => {
 	let mockHandleError: any
 	let mockPushToolResult: any
 	let mockRemoveClosingTag: any
-	let mockToolUse: ToolUse
+	let mockToolDirective: ToolDirective
 
 	beforeEach(() => {
 		// Reset mocks
@@ -106,7 +107,7 @@ describe("executeCommandTool", () => {
 		mockRemoveClosingTag = vitest.fn().mockReturnValue("command")
 
 		// Create a mock tool use object
-		mockToolUse = {
+		mockToolDirective = {
 			type: "tool_use",
 			name: "execute_command",
 			params: {
@@ -150,12 +151,12 @@ describe("executeCommandTool", () => {
 	describe("Basic functionality", () => {
 		it("should execute a command normally", async () => {
 			// Setup
-			mockToolUse.params.command = "echo test"
+			mockToolDirective.params.command = "echo test"
 
 			// Execute
 			await executeCommandTool(
 				mockCline as unknown as Task,
-				mockToolUse,
+				mockToolDirective,
 				mockAskApproval as unknown as AskApproval,
 				mockHandleError as unknown as HandleError,
 				mockPushToolResult as unknown as PushToolResult,
@@ -170,13 +171,13 @@ describe("executeCommandTool", () => {
 
 		it("should pass along custom working directory if provided", async () => {
 			// Setup
-			mockToolUse.params.command = "echo test"
-			mockToolUse.params.cwd = "/custom/path"
+			mockToolDirective.params.command = "echo test"
+			mockToolDirective.params.cwd = "/custom/path"
 
 			// Execute
 			await executeCommandTool(
 				mockCline as unknown as Task,
-				mockToolUse,
+				mockToolDirective,
 				mockAskApproval as unknown as AskApproval,
 				mockHandleError as unknown as HandleError,
 				mockPushToolResult as unknown as PushToolResult,
@@ -194,12 +195,12 @@ describe("executeCommandTool", () => {
 	describe("Error handling", () => {
 		it("should handle missing command parameter", async () => {
 			// Setup
-			mockToolUse.params.command = undefined
+			mockToolDirective.params.command = undefined
 
 			// Execute
 			await executeCommandTool(
 				mockCline as unknown as Task,
-				mockToolUse,
+				mockToolDirective,
 				mockAskApproval as unknown as AskApproval,
 				mockHandleError as unknown as HandleError,
 				mockPushToolResult as unknown as PushToolResult,
@@ -216,13 +217,13 @@ describe("executeCommandTool", () => {
 
 		it("should handle command rejection", async () => {
 			// Setup
-			mockToolUse.params.command = "echo test"
+			mockToolDirective.params.command = "echo test"
 			mockAskApproval.mockResolvedValue(false)
 
 			// Execute
 			await executeCommandTool(
 				mockCline as unknown as Task,
-				mockToolUse,
+				mockToolDirective,
 				mockAskApproval as unknown as AskApproval,
 				mockHandleError as unknown as HandleError,
 				mockPushToolResult as unknown as PushToolResult,
@@ -237,7 +238,7 @@ describe("executeCommandTool", () => {
 
 		it("should handle rooignore validation failures", async () => {
 			// Setup
-			mockToolUse.params.command = "cat .env"
+			mockToolDirective.params.command = "cat .env"
 			// Override the validateCommand mock to return a filename
 			const validateCommandMock = vitest.fn().mockReturnValue(".env")
 			mockCline.rooIgnoreController = {
@@ -251,7 +252,7 @@ describe("executeCommandTool", () => {
 			// Execute
 			await executeCommandTool(
 				mockCline as unknown as Task,
-				mockToolUse,
+				mockToolDirective,
 				mockAskApproval as unknown as AskApproval,
 				mockHandleError as unknown as HandleError,
 				mockPushToolResult as unknown as PushToolResult,

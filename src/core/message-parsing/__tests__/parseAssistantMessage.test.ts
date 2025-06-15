@@ -1,8 +1,6 @@
 // npx jest src/core/assistant-message/__tests__/parseAssistantMessage.test.ts
 
-import { TextDirective } from "../directives"
-import { ToolUse } from "../../../shared/tools"
-
+import { TextDirective, ToolDirective } from "../directives"
 import { AssistantMessageContent, parseAssistantMessage as parseAssistantMessageV1 } from "../parseAssistantMessage"
 import { parseAssistantMessageV2 } from "../parseAssistantMessageV2"
 
@@ -55,11 +53,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should parse a tool use with multiple parameters", () => {
@@ -68,13 +66,13 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.params.start_line).toBe("10")
-				expect(toolUse.params.end_line).toBe("20")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.params.start_line).toBe("10")
+				expect(ToolDirective.params.end_line).toBe("20")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should mark tool use as partial when it's not closed", () => {
@@ -82,11 +80,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.partial).toBe(true)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.partial).toBe(true)
 			})
 
 			it("should handle a partial parameter in a tool use", () => {
@@ -94,11 +92,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.partial).toBe(true)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.partial).toBe(true)
 			})
 		})
 
@@ -114,11 +112,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				expect(textContent.content).toBe("Here's the file content:")
 				expect(textContent.partial).toBe(false)
 
-				const toolUse = result[1] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[1] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should parse a tool use followed by text", () => {
@@ -127,11 +125,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				expect(result).toHaveLength(2)
 
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.partial).toBe(false)
 
 				const textContent = result[1] as TextDirective
 				expect(textContent.type).toBe("text")
@@ -150,15 +148,15 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				expect((result[0] as TextDirective).content).toBe("First file:")
 
 				expect(result[1].type).toBe("tool_use")
-				expect((result[1] as ToolUse).name).toBe("read_file")
-				expect((result[1] as ToolUse).params.path).toBe("src/file1.ts")
+				expect((result[1] as ToolDirective).name).toBe("read_file")
+				expect((result[1] as ToolDirective).params.path).toBe("src/file1.ts")
 
 				expect(result[2].type).toBe("text")
 				expect((result[2] as TextDirective).content).toBe("Second file:")
 
 				expect(result[3].type).toBe("tool_use")
-				expect((result[3] as ToolUse).name).toBe("read_file")
-				expect((result[3] as ToolUse).params.path).toBe("src/file2.ts")
+				expect((result[3] as ToolDirective).name).toBe("read_file")
+				expect((result[3] as ToolDirective).params.path).toBe("src/file2.ts")
 			})
 		})
 
@@ -174,15 +172,15 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("write_to_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.params.line_count).toBe("5")
-				expect(toolUse.params.content).toContain("function example()")
-				expect(toolUse.params.content).toContain("// This has XML-like content: </content>")
-				expect(toolUse.params.content).toContain("return true;")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("write_to_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.params.line_count).toBe("5")
+				expect(ToolDirective.params.content).toContain("function example()")
+				expect(ToolDirective.params.content).toContain("// This has XML-like content: </content>")
+				expect(ToolDirective.params.content).toContain("return true;")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should handle empty messages", () => {
@@ -206,11 +204,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("browser_action")
-				expect(Object.keys(toolUse.params).length).toBe(0)
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("browser_action")
+				expect(Object.keys(ToolDirective.params).length).toBe(0)
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should handle nested tool tags that aren't actually nested", () => {
@@ -220,11 +218,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("execute_command")
-				expect(toolUse.params.command).toBe("echo '<read_file><path>test.txt</path></read_file>'")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("execute_command")
+				expect(ToolDirective.params.command).toBe("echo '<read_file><path>test.txt</path></read_file>'")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should handle a tool use with a parameter containing XML-like content", () => {
@@ -232,12 +230,12 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("search_files")
-				expect(toolUse.params.regex).toBe("<div>.*</div>")
-				expect(toolUse.params.path).toBe("src")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("search_files")
+				expect(ToolDirective.params.regex).toBe("<div>.*</div>")
+				expect(ToolDirective.params.path).toBe("src")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should handle consecutive tool uses without text in between", () => {
@@ -247,17 +245,17 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				expect(result).toHaveLength(2)
 
-				const toolUse1 = result[0] as ToolUse
-				expect(toolUse1.type).toBe("tool_use")
-				expect(toolUse1.name).toBe("read_file")
-				expect(toolUse1.params.path).toBe("file1.ts")
-				expect(toolUse1.partial).toBe(false)
+				const ToolDirective1 = result[0] as ToolDirective
+				expect(ToolDirective1.type).toBe("tool_use")
+				expect(ToolDirective1.name).toBe("read_file")
+				expect(ToolDirective1.params.path).toBe("file1.ts")
+				expect(ToolDirective1.partial).toBe(false)
 
-				const toolUse2 = result[1] as ToolUse
-				expect(toolUse2.type).toBe("tool_use")
-				expect(toolUse2.name).toBe("read_file")
-				expect(toolUse2.params.path).toBe("file2.ts")
-				expect(toolUse2.partial).toBe(false)
+				const ToolDirective2 = result[1] as ToolDirective
+				expect(ToolDirective2.type).toBe("tool_use")
+				expect(ToolDirective2.name).toBe("read_file")
+				expect(ToolDirective2.params.path).toBe("file2.ts")
+				expect(ToolDirective2.partial).toBe(false)
 			})
 
 			it("should handle whitespace in parameters", () => {
@@ -265,11 +263,11 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("read_file")
-				expect(toolUse.params.path).toBe("src/file.ts")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("read_file")
+				expect(ToolDirective.params.path).toBe("src/file.ts")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should handle multi-line parameters", () => {
@@ -281,15 +279,15 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 				const result = parser(message).filter((block) => !isEmptyTextContent(block))
 
 				expect(result).toHaveLength(1)
-				const toolUse = result[0] as ToolUse
-				expect(toolUse.type).toBe("tool_use")
-				expect(toolUse.name).toBe("write_to_file")
-				expect(toolUse.params.path).toBe("file.ts")
-				expect(toolUse.params.content).toContain("line 1")
-				expect(toolUse.params.content).toContain("line 2")
-				expect(toolUse.params.content).toContain("line 3")
-				expect(toolUse.params.line_count).toBe("3")
-				expect(toolUse.partial).toBe(false)
+				const ToolDirective = result[0] as ToolDirective
+				expect(ToolDirective.type).toBe("tool_use")
+				expect(ToolDirective.name).toBe("write_to_file")
+				expect(ToolDirective.params.path).toBe("file.ts")
+				expect(ToolDirective.params.content).toContain("line 1")
+				expect(ToolDirective.params.content).toContain("line 2")
+				expect(ToolDirective.params.content).toContain("line 3")
+				expect(ToolDirective.params.line_count).toBe("3")
+				expect(ToolDirective.partial).toBe(false)
 			})
 
 			it("should handle a complex message with multiple content types", () => {
@@ -318,7 +316,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				// First tool use (read_file)
 				expect(result[1].type).toBe("tool_use")
-				expect((result[1] as ToolUse).name).toBe("read_file")
+				expect((result[1] as ToolDirective).name).toBe("read_file")
 
 				// Second text block
 				expect(result[2].type).toBe("text")
@@ -326,7 +324,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				// Second tool use (write_to_file)
 				expect(result[3].type).toBe("tool_use")
-				expect((result[3] as ToolUse).name).toBe("write_to_file")
+				expect((result[3] as ToolDirective).name).toBe("write_to_file")
 
 				// Third text block
 				expect(result[4].type).toBe("text")
@@ -334,7 +332,7 @@ const isEmptyTextContent = (block: AssistantMessageContent) =>
 
 				// Third tool use (execute_command)
 				expect(result[5].type).toBe("tool_use")
-				expect((result[5] as ToolUse).name).toBe("execute_command")
+				expect((result[5] as ToolDirective).name).toBe("execute_command")
 			})
 		})
 	})
