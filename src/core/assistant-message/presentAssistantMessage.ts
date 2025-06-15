@@ -4,6 +4,8 @@ import { serializeError } from "serialize-error"
 import type { ToolName, ClineAsk, ToolProgressStatus } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
+import type { LogDirective } from "./directives/logDirective"
+
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import type { ToolParamName, ToolResponse } from "../../shared/tools"
 
@@ -149,7 +151,15 @@ export async function presentAssistantMessage(cline: Task) {
 			await cline.say("text", content, undefined, block.partial)
 			break
 		}
-		case "tool_use":
+		case "log_message": {
+			// Process log message using LogManager
+			const logBlock = block as LogDirective
+			if (logBlock.message && logBlock.level) {
+				cline.logManager.processLogEntry(logBlock.message, logBlock.level, logBlock.partial)
+			}
+			break
+		}
+		case "tool_use": {
 			const toolDescription = (): string => {
 				switch (block.name) {
 					case "execute_command":
@@ -512,6 +522,7 @@ export async function presentAssistantMessage(cline: Task) {
 			}
 
 			break
+		}
 	}
 
 	const recentlyModifiedFiles = cline.fileContextTracker.getAndClearCheckpointPossibleFile()

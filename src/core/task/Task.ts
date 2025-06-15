@@ -194,7 +194,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	didCompleteReadingStream = false
 
 	// Logging
-	private logManager: LogManager
+	public logManager: LogManager
 
 	constructor({
 		provider,
