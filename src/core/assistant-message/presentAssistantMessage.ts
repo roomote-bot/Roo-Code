@@ -4,7 +4,7 @@ import { serializeError } from "serialize-error"
 import type { ToolName, ClineAsk, ToolProgressStatus } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
-import type { LogDirective } from "./directives/logDirective"
+import type { LogDirective } from "./directives/LogDirective"
 
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import type { ToolParamName, ToolResponse } from "../../shared/tools"

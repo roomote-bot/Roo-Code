@@ -1,4 +1,4 @@
-import { LogDirective } from "../directives/logDirective"
+import { LogDirective } from "../directives/LogDirective"
 import { ParsingState } from "./types"
 
 export class LogParser {

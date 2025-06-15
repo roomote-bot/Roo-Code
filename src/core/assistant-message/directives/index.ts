@@ -1,2 +1,2 @@
-export * from "./logDirective"
-export * from "./textDirective"
+export * from "./LogDirective"
+export * from "./TextDirective"
