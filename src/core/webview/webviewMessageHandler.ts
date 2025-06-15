@@ -1132,15 +1132,8 @@ export const webviewMessageHandler = async (
 						// Force a state update to ensure the webview reflects the changes
 						await provider.postStateToWebview()
 
-						// Auto-resume the task after editing
-						// Use setTimeout to ensure the task is fully initialized and the ask dialog is ready
-						setTimeout(async () => {
-							const currentCline = provider.getCurrentCline()
-							if (currentCline && currentCline.isInitialized) {
-								// Simulate clicking "Resume Task" by sending the response directly
-								currentCline.handleWebviewAskResponse("messageResponse", message.text, message.images)
-							}
-						}, 100) // Small delay to ensure proper initialization
+						// Note: Removed auto-resume logic to prevent duplicate messages.
+						// The user will manually send the edited message when ready.
 					}
 				}
 			}
