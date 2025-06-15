@@ -1,6 +1,6 @@
 import { type ToolName, toolNames } from "@roo-code/types"
 import { TextDirective, ToolDirective } from "./directives"
-import { ToolParamName, toolParamNames } from "../../shared/tools"
+import { ToolParamName, toolParamNames } from "./directives"
 
 export type AssistantMessageContent = TextDirective | ToolDirective
 

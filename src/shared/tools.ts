@@ -1,9 +1,6 @@
-import { Anthropic } from "@anthropic-ai/sdk"
-
 import type { ClineAsk, ToolProgressStatus, ToolGroup, ToolName } from "@roo-code/types"
 import { ToolDirective } from "../core/message-parsing/directives/"
-
-export type ToolResponse = string | Array<Anthropic.TextBlockParam | Anthropic.ImageBlockParam>
+import { ToolResponse } from "../core/message-parsing/directives/tool-directives"
 
 export type AskApproval = (
 	type: ClineAsk,
@@ -21,133 +18,7 @@ export type AskFinishSubTaskApproval = () => Promise<boolean>
 
 export type ToolDescription = () => string
 
-export const toolParamNames = [
-	"command",
-	"path",
-	"content",
-	"line_count",
-	"regex",
-	"file_pattern",
-	"recursive",
-	"action",
-	"url",
-	"coordinate",
-	"text",
-	"server_name",
-	"tool_name",
-	"arguments",
-	"uri",
-	"question",
-	"result",
-	"diff",
-	"mode_slug",
-	"reason",
-	"line",
-	"mode",
-	"message",
-	"cwd",
-	"follow_up",
-	"task",
-	"size",
-	"search",
-	"replace",
-	"use_regex",
-	"ignore_case",
-	"args",
-	"start_line",
-	"end_line",
-	"query",
-	"args",
-] as const
-
-export type ToolParamName = (typeof toolParamNames)[number]
-
-export interface ExecuteCommandToolDirective extends ToolDirective {
-	name: "execute_command"
-	// Pick<Record<ToolParamName, string>, "command"> makes "command" required, but Partial<> makes it optional
-	params: Partial<Pick<Record<ToolParamName, string>, "command" | "cwd">>
-}
-
-export interface ReadFileToolDirective extends ToolDirective {
-	name: "read_file"
-	params: Partial<Pick<Record<ToolParamName, string>, "args" | "path" | "start_line" | "end_line">>
-}
-
-export interface FetchInstructionsToolDirective extends ToolDirective {
-	name: "fetch_instructions"
-	params: Partial<Pick<Record<ToolParamName, string>, "task">>
-}
-
-export interface WriteToFileToolDirective extends ToolDirective {
-	name: "write_to_file"
-	params: Partial<Pick<Record<ToolParamName, string>, "path" | "content" | "line_count">>
-}
-
-export interface InsertCodeBlockToolDirective extends ToolDirective {
-	name: "insert_content"
-	params: Partial<Pick<Record<ToolParamName, string>, "path" | "line" | "content">>
-}
-
-export interface CodebaseSearchToolDirective extends ToolDirective {
-	name: "codebase_search"
-	params: Partial<Pick<Record<ToolParamName, string>, "query" | "path">>
-}
-
-export interface SearchFilesToolDirective extends ToolDirective {
-	name: "search_files"
-	params: Partial<Pick<Record<ToolParamName, string>, "path" | "regex" | "file_pattern">>
-}
-
-export interface ListFilesToolDirective extends ToolDirective {
-	name: "list_files"
-	params: Partial<Pick<Record<ToolParamName, string>, "path" | "recursive">>
-}
-
-export interface ListCodeDefinitionNamesToolDirective extends ToolDirective {
-	name: "list_code_definition_names"
-	params: Partial<Pick<Record<ToolParamName, string>, "path">>
-}
-
-export interface BrowserActionToolDirective extends ToolDirective {
-	name: "browser_action"
-	params: Partial<Pick<Record<ToolParamName, string>, "action" | "url" | "coordinate" | "text" | "size">>
-}
-
-export interface UseMcpToolToolDirective extends ToolDirective {
-	name: "use_mcp_tool"
-	params: Partial<Pick<Record<ToolParamName, string>, "server_name" | "tool_name" | "arguments">>
-}
-
-export interface AccessMcpResourceToolDirective extends ToolDirective {
-	name: "access_mcp_resource"
-	params: Partial<Pick<Record<ToolParamName, string>, "server_name" | "uri">>
-}
-
-export interface AskFollowupQuestionToolDirective extends ToolDirective {
-	name: "ask_followup_question"
-	params: Partial<Pick<Record<ToolParamName, string>, "question" | "follow_up">>
-}
-
-export interface AttemptCompletionToolDirective extends ToolDirective {
-	name: "attempt_completion"
-	params: Partial<Pick<Record<ToolParamName, string>, "result" | "command">>
-}
-
-export interface SwitchModeToolDirective extends ToolDirective {
-	name: "switch_mode"
-	params: Partial<Pick<Record<ToolParamName, string>, "mode_slug" | "reason">>
-}
-
-export interface NewTaskToolDirective extends ToolDirective {
-	name: "new_task"
-	params: Partial<Pick<Record<ToolParamName, string>, "mode" | "message">>
-}
-
-export interface SearchAndReplaceToolDirective extends ToolDirective {
-	name: "search_and_replace"
-	params: Required<Pick<Record<ToolParamName, string>, "path" | "search" | "replace">> &
-		Partial<Pick<Record<ToolParamName, string>, "use_regex" | "ignore_case" | "start_line" | "end_line">>
-}
+import { toolParamNames, ToolParamName } from "../core/message-parsing/directives/tool-directives"
 
 // Define tool group configuration
 export type ToolGroupConfig = {

@@ -1,5 +1,4 @@
-import { TextDirective, Directive, LogDirective, ToolDirective } from "./directives"
-import { ToolParamName } from "../../shared/tools"
+import { TextDirective, Directive, LogDirective, ToolDirective, ToolParamName } from "./directives"
 
 export interface ParsingState {
 	contentBlocks: Directive[]

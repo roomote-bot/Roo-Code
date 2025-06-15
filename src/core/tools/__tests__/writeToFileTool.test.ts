@@ -6,9 +6,8 @@ import { isPathOutsideWorkspace } from "../../../utils/pathUtils"
 import { getReadablePath } from "../../../utils/path"
 import { unescapeHtmlEntities } from "../../../utils/text-normalization"
 import { everyLineHasLineNumbers, stripLineNumbers } from "../../../integrations/misc/extract-text"
-import { ToolResponse } from "../../../shared/tools"
 import { writeToFileTool } from "../writeToFileTool"
-import { ToolDirective } from "../../message-parsing/directives"
+import { ToolDirective, ToolResponse } from "../../message-parsing/directives"
 
 jest.mock("path", () => {
 	const originalPath = jest.requireActual("path")

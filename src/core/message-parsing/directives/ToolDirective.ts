@@ -1,5 +1,5 @@
 import { ToolName } from "@roo-code/types"
-import { ToolParamName } from "../../../shared/tools"
+import { ToolParamName } from "./tool-directives"
 
 export interface ToolDirective {
 	type: "tool_use"

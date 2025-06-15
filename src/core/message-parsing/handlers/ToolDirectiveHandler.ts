@@ -1,8 +1,7 @@
 import * as sax from "sax"
 import { BaseDirectiveHandler } from "./BaseDirectiveHandler"
 import { ParseContext } from "../ParseContext"
-import { ToolParamName } from "../../../shared/tools"
-import { ToolDirective } from "../directives"
+import { ToolDirective, ToolParamName } from "../directives"
 
 export class ToolDirectiveHandler extends BaseDirectiveHandler {
 	readonly tagName: string

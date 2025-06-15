@@ -7,7 +7,11 @@ import { readLines } from "../../../integrations/misc/read-lines"
 import { extractTextFromFile } from "../../../integrations/misc/extract-text"
 import { parseSourceCodeDefinitionsForFile } from "../../../services/tree-sitter"
 import { isBinaryFile } from "isbinaryfile"
-import { ReadFileToolDirective, ToolParamName, ToolResponse } from "../../../shared/tools"
+import {
+	ToolParamName,
+	ToolResponse,
+	ReadFileToolDirective,
+} from "../../../core/message-parsing/directives/tool-directives"
 import { readFileTool } from "../readFileTool"
 import { formatResponse } from "../../prompts/responses"
 
