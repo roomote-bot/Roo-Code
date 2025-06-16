@@ -11,6 +11,7 @@ import { formatResponse } from "../../core/prompts/responses"
 import { diagnosticsToProblemsString, getNewDiagnostics } from "../diagnostics"
 import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { Task } from "../../core/task/Task"
+import { isInAutomatedWorkflowFromVisibleProvider } from "../../utils/workflow-detection"
 
 import { DecorationController } from "./DecorationController"
 
@@ -464,10 +465,17 @@ export class DiffViewProvider {
 		if (this.activeDiffEditor) {
 			const scrollLine = line + 4
 
-			this.activeDiffEditor.revealRange(
-				new vscode.Range(scrollLine, 0, scrollLine, 0),
-				vscode.TextEditorRevealType.InCenter,
-			)
+			// Check if we're in an automated workflow to preserve chat focus.
+			// When the AI is actively processing, we skip scrolling to prevent
+			// the diff view from stealing focus from the chat input.
+			const shouldPreserveFocus = isInAutomatedWorkflowFromVisibleProvider()
+
+			if (!shouldPreserveFocus) {
+				this.activeDiffEditor.revealRange(
+					new vscode.Range(scrollLine, 0, scrollLine, 0),
+					vscode.TextEditorRevealType.InCenter,
+				)
+			}
 		}
 	}
 
@@ -481,13 +489,20 @@ export class DiffViewProvider {
 
 		let lineCount = 0
 
+		// Check if we're in an automated workflow to preserve chat focus.
+		// When the AI is actively processing, we skip scrolling to prevent
+		// the diff view from stealing focus from the chat input.
+		const shouldPreserveFocus = isInAutomatedWorkflowFromVisibleProvider()
+
 		for (const part of diffs) {
 			if (part.added || part.removed) {
-				// Found the first diff, scroll to it.
-				this.activeDiffEditor.revealRange(
-					new vscode.Range(lineCount, 0, lineCount, 0),
-					vscode.TextEditorRevealType.InCenter,
-				)
+				// Found the first diff, scroll to it only if not in automated workflow
+				if (!shouldPreserveFocus) {
+					this.activeDiffEditor.revealRange(
+						new vscode.Range(lineCount, 0, lineCount, 0),
+						vscode.TextEditorRevealType.InCenter,
+					)
+				}
 
 				return
 			}
