@@ -629,5 +629,7 @@
 			"label": "Diagnostics filter",
 			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
 		}
-	}
+	},
+	"includeMaxOutputTokens": "Maximale Ausgabe-Tokens einbeziehen",
+	"includeMaxOutputTokensDescription": "Sende den Parameter für maximale Ausgabe-Tokens in API-Anfragen. Einige Anbieter unterstützen dies möglicherweise nicht."
 }

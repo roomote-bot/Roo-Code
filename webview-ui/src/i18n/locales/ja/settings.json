@@ -629,5 +629,7 @@
 			"label": "Diagnostics filter",
 			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
 		}
-	}
+	},
+	"includeMaxOutputTokens": "最大出力トークンを含める",
+	"includeMaxOutputTokensDescription": "APIリクエストで最大出力トークンパラメータを送信します。一部のプロバイダーはこれをサポートしていない場合があります。"
 }
