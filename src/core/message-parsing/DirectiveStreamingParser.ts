@@ -124,9 +124,9 @@ export class DirectiveStreamingParser {
 	private static isInsideCodeBlock(context: ParseContext, activeHandler: DirectiveHandler | null): boolean {
 		return (
 			context.codeBlockState === CodeBlockState.INSIDE ||
-			(activeHandler &&
+			(!!activeHandler &&
 				activeHandler instanceof ToolDirectiveHandler &&
-				(activeHandler as ParameterCodeBlockHandler).isInsideParameterCodeBlock())
+				!!(activeHandler as ParameterCodeBlockHandler).isInsideParameterCodeBlock())
 		)
 	}
 
