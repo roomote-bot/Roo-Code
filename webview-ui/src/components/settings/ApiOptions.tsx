@@ -73,7 +73,7 @@ const ApiOptions = ({
 	setErrorMessage,
 }: ApiOptionsProps) => {
 	const { t } = useAppTranslation()
-	const { organizationAllowList } = useExtensionState()
+	const { organizationAllowList, disableDiffVisualization, setDisableDiffVisualization } = useExtensionState()
 
 	const [customHeaders, setCustomHeaders] = useState<[string, string][]>(() => {
 		const headers = apiConfiguration?.openAiHeaders || {}
@@ -476,8 +476,19 @@ const ApiOptions = ({
 				<>
 					<DiffSettingsControl
 						diffEnabled={apiConfiguration.diffEnabled}
+						disableDiffVisualization={disableDiffVisualization}
 						fuzzyMatchThreshold={apiConfiguration.fuzzyMatchThreshold}
-						onChange={(field, value) => setApiConfigurationField(field, value)}
+						onChange={(field, value) => {
+							if (field === "disableDiffVisualization") {
+								setDisableDiffVisualization(value)
+								vscode.postMessage({
+									type: "disableDiffVisualization",
+									bool: value,
+								})
+							} else {
+								setApiConfigurationField(field, value)
+							}
+						}}
 					/>
 					<TemperatureControl
 						value={apiConfiguration.modelTemperature}
