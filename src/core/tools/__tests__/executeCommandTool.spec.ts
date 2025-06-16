@@ -27,7 +27,7 @@ vitest.mock("../executeCommandTool")
 
 // Import after mocking
 import { executeCommandTool } from "../executeCommandTool"
-import { ToolDirective } from "../../message-parsing/directives"
+import { ExecuteCommandToolDirective, ToolDirective } from "../../message-parsing/directives"
 
 // Now manually restore and mock the functions
 beforeEach(() => {
@@ -80,7 +80,7 @@ describe("executeCommandTool", () => {
 	let mockHandleError: any
 	let mockPushToolResult: any
 	let mockRemoveClosingTag: any
-	let mockToolDirective: ToolDirective
+	let mockToolDirective: ExecuteCommandToolDirective
 
 	beforeEach(() => {
 		// Reset mocks

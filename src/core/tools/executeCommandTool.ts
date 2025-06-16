@@ -14,13 +14,14 @@ import { unescapeHtmlEntities } from "../../utils/text-normalization"
 import { ExitCodeDetails, RooTerminalCallbacks, RooTerminalProcess } from "../../integrations/terminal/types"
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
-import { ToolDirective, ToolResponse } from "../message-parsing/directives"
+import { ExecuteCommandToolDirective } from "../message-parsing/directives/tool-directives/ExecuteCommandToolDirective"
+import { ToolResponse } from "../message-parsing/directives"
 
 class ShellIntegrationError extends Error {}
 
 export async function executeCommandTool(
 	cline: Task,
-	block: ToolDirective,
+	block: ExecuteCommandToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

@@ -52,7 +52,7 @@ jest.mock("../../prompts/responses", () => ({
 
 // Import the function to test AFTER mocks are set up
 import { newTaskTool } from "../newTaskTool"
-import { ToolDirective } from "../../message-parsing/directives"
+import { ToolDirective, NewTaskToolDirective } from "../../message-parsing/directives"
 
 describe("newTaskTool", () => {
 	beforeEach(() => {
@@ -77,7 +77,7 @@ describe("newTaskTool", () => {
 
 		await newTaskTool(
 			mockCline as any, // Use 'as any' for simplicity in mocking complex type
-			block,
+			block as NewTaskToolDirective,
 			mockAskApproval, // Now correctly typed
 			mockHandleError,
 			mockPushToolResult,
@@ -114,7 +114,7 @@ describe("newTaskTool", () => {
 
 		await newTaskTool(
 			mockCline as any,
-			block,
+			block as NewTaskToolDirective,
 			mockAskApproval, // Now correctly typed
 			mockHandleError,
 			mockPushToolResult,
@@ -141,7 +141,7 @@ describe("newTaskTool", () => {
 
 		await newTaskTool(
 			mockCline as any,
-			block,
+			block as NewTaskToolDirective,
 			mockAskApproval, // Now correctly typed
 			mockHandleError,
 			mockPushToolResult,
@@ -168,7 +168,7 @@ describe("newTaskTool", () => {
 
 		await newTaskTool(
 			mockCline as any,
-			block,
+			block as NewTaskToolDirective,
 			mockAskApproval, // Now correctly typed
 			mockHandleError,
 			mockPushToolResult,

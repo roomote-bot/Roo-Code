@@ -14,11 +14,11 @@ import {
 import { formatResponse } from "../prompts/responses"
 import { type ExecuteCommandOptions, executeCommand } from "./executeCommandTool"
 import { EXPERIMENT_IDS, experiments, experimentDefault } from "../../shared/experiments"
-import { ToolDirective, ToolResponse } from "../message-parsing/directives"
+import { ToolDirective, ToolResponse, AttemptCompletionToolDirective } from "../message-parsing/directives"
 
 export async function attemptCompletionTool(
 	cline: Task,
-	block: ToolDirective,
+	block: AttemptCompletionToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

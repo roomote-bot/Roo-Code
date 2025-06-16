@@ -11,7 +11,7 @@ import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { getReadablePath } from "../../utils/path"
 import { fileExistsAtPath } from "../../utils/fs"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
-import { ToolDirective } from "../message-parsing/directives"
+import { SearchAndReplaceToolDirective } from "../message-parsing/directives"
 
 /**
  * Tool for performing search and replace operations on files
@@ -63,7 +63,7 @@ async function validateParams(
  */
 export async function searchAndReplaceTool(
 	cline: Task,
-	block: ToolDirective,
+	block: SearchAndReplaceToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

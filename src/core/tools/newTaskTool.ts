@@ -4,11 +4,11 @@ import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../.
 import { Task } from "../task/Task"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { formatResponse } from "../prompts/responses"
-import { ToolDirective } from "../message-parsing/directives"
+import { NewTaskToolDirective } from "../message-parsing/directives"
 
 export async function newTaskTool(
 	cline: Task,
-	block: ToolDirective,
+	block: NewTaskToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

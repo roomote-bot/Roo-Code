@@ -7,11 +7,11 @@ import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { getReadablePath } from "../../utils/path"
 import { parseSourceCodeForDefinitionsTopLevel, parseSourceCodeDefinitionsForFile } from "../../services/tree-sitter"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
-import { ToolDirective } from "../message-parsing/directives"
+import { ListCodeDefinitionNamesToolDirective } from "../message-parsing/directives"
 
 export async function listCodeDefinitionNamesTool(
 	cline: Task,
-	block: ToolDirective,
+	block: ListCodeDefinitionNamesToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

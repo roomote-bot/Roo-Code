@@ -10,11 +10,11 @@ import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { RecordSource } from "../context-tracking/FileContextTrackerTypes"
 import { fileExistsAtPath } from "../../utils/fs"
 import { insertGroups } from "../diff/insert-groups"
-import { ToolDirective } from "../message-parsing/directives"
+import { InsertCodeBlockToolDirective } from "../message-parsing/directives"
 
 export async function insertContentTool(
 	cline: Task,
-	block: ToolDirective,
+	block: InsertCodeBlockToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

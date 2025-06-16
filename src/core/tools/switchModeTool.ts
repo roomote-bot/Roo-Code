@@ -4,11 +4,11 @@ import { Task } from "../task/Task"
 import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../shared/tools"
 import { formatResponse } from "../prompts/responses"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
-import { ToolDirective } from "../message-parsing/directives"
+import { SwitchModeToolDirective } from "../message-parsing/directives"
 
 export async function switchModeTool(
 	cline: Task,
-	block: ToolDirective,
+	block: SwitchModeToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

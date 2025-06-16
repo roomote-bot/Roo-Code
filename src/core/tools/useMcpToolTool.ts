@@ -4,7 +4,7 @@ import { formatResponse } from "../prompts/responses"
 import { ClineAskUseMcpServer } from "../../shared/ExtensionMessage"
 import { McpExecutionStatus } from "@roo-code/types"
 import { t } from "../../i18n"
-import { ToolDirective } from "../message-parsing/directives"
+import { UseMcpToolToolDirective } from "../message-parsing/directives"
 
 interface McpToolParams {
 	server_name?: string
@@ -167,7 +167,7 @@ async function executeToolAndProcessResult(
 
 export async function useMcpToolTool(
 	cline: Task,
-	block: ToolDirective,
+	block: UseMcpToolToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

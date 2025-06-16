@@ -13,11 +13,11 @@ import { getReadablePath } from "../../utils/path"
 import { isPathOutsideWorkspace } from "../../utils/pathUtils"
 import { detectCodeOmission } from "../../integrations/editor/detect-omission"
 import { unescapeHtmlEntities } from "../../utils/text-normalization"
-import { ToolDirective } from "../message-parsing/directives"
+import { WriteToFileToolDirective } from "../message-parsing/directives"
 
 export async function writeToFileTool(
 	cline: Task,
-	block: ToolDirective,
+	block: WriteToFileToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

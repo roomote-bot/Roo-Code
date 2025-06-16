@@ -5,11 +5,11 @@ import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../.
 import { ClineSayTool } from "../../shared/ExtensionMessage"
 import { getReadablePath } from "../../utils/path"
 import { regexSearchFiles } from "../../services/ripgrep"
-import { ToolDirective } from "../message-parsing/directives"
+import { SearchFilesToolDirective } from "../message-parsing/directives"
 
 export async function searchFilesTool(
 	cline: Task,
-	block: ToolDirective,
+	block: SearchFilesToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

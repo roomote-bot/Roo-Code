@@ -7,11 +7,11 @@ import {
 	ClineSayBrowserAction,
 } from "../../shared/ExtensionMessage"
 import { formatResponse } from "../prompts/responses"
-import { ToolDirective } from "../message-parsing/directives"
+import { ToolDirective, BrowserActionToolDirective } from "../message-parsing/directives"
 
 export async function browserActionTool(
 	cline: Task,
-	block: ToolDirective,
+	block: BrowserActionToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

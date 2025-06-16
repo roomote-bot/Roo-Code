@@ -87,7 +87,7 @@ import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
 import { LogManager } from "../logging"
 import { Directive, DirectiveStreamingParser } from "../message-parsing"
 
-export type ClineEvents = {
+type ClineEvents = {
 	message: [{ action: "created" | "updated"; message: ClineMessage }]
 	taskStarted: []
 	taskModeSwitched: [taskId: string, mode: string]

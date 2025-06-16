@@ -14,7 +14,7 @@ import { readLines } from "../../integrations/misc/read-lines"
 import { extractTextFromFile, addLineNumbers, getSupportedBinaryFormats } from "../../integrations/misc/extract-text"
 import { parseSourceCodeDefinitionsForFile } from "../../services/tree-sitter"
 import { parseXml } from "../../utils/xml"
-import { ToolDirective } from "../message-parsing/directives"
+import { ReadFileToolDirective } from "../message-parsing/directives"
 
 export function getReadFileToolDescription(blockName: string, blockParams: any): string {
 	// Handle both single path and multiple files via args
@@ -73,7 +73,7 @@ interface FileResult {
 
 export async function readFileTool(
 	cline: Task,
-	block: ToolDirective,
+	block: ReadFileToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

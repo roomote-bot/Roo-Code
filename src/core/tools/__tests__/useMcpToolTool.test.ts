@@ -1,7 +1,7 @@
 import { useMcpToolTool } from "../useMcpToolTool"
 import { Task } from "../../task/Task"
 import { formatResponse } from "../../prompts/responses"
-import { ToolDirective } from "../../message-parsing/directives"
+import { ToolDirective, UseMcpToolToolDirective } from "../../message-parsing/directives"
 
 // Mock dependencies
 jest.mock("../../prompts/responses", () => ({
@@ -71,7 +71,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -99,7 +99,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -126,7 +126,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -157,7 +157,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -197,7 +197,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -227,7 +227,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -256,7 +256,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block,
+				block as UseMcpToolToolDirective,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,

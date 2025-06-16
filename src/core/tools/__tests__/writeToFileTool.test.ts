@@ -7,7 +7,7 @@ import { getReadablePath } from "../../../utils/path"
 import { unescapeHtmlEntities } from "../../../utils/text-normalization"
 import { everyLineHasLineNumbers, stripLineNumbers } from "../../../integrations/misc/extract-text"
 import { writeToFileTool } from "../writeToFileTool"
-import { ToolDirective, ToolResponse } from "../../message-parsing/directives"
+import { ToolDirective, ToolResponse, WriteToFileToolDirective } from "../../message-parsing/directives"
 
 jest.mock("path", () => {
 	const originalPath = jest.requireActual("path")
@@ -213,7 +213,7 @@ describe("writeToFileTool", () => {
 
 		await writeToFileTool(
 			mockCline,
-			ToolDirective,
+			ToolDirective as WriteToFileToolDirective,
 			mockAskApproval,
 			mockHandleError,
 			(result: ToolResponse) => {

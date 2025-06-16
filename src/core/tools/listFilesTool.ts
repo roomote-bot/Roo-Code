@@ -6,7 +6,7 @@ import { formatResponse } from "../prompts/responses"
 import { listFiles } from "../../services/glob/list-files"
 import { getReadablePath } from "../../utils/path"
 import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../shared/tools"
-import { ToolDirective } from "../message-parsing/directives"
+import { ListFilesToolDirective } from "../message-parsing/directives"
 
 /**
  * Implements the list_files tool.
@@ -25,7 +25,7 @@ import { ToolDirective } from "../message-parsing/directives"
 
 export async function listFilesTool(
 	cline: Task,
-	block: ToolDirective,
+	block: ListFilesToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,

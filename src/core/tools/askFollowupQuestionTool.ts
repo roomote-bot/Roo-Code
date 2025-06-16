@@ -2,11 +2,11 @@ import { Task } from "../task/Task"
 import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../../shared/tools"
 import { formatResponse } from "../prompts/responses"
 import { parseXml } from "../../utils/xml"
-import { ToolDirective } from "../message-parsing/directives"
+import { AskFollowupQuestionToolDirective } from "../message-parsing/directives"
 
 export async function askFollowupQuestionTool(
 	cline: Task,
-	block: ToolDirective,
+	block: AskFollowupQuestionToolDirective,
 	askApproval: AskApproval,
 	handleError: HandleError,
 	pushToolResult: PushToolResult,
