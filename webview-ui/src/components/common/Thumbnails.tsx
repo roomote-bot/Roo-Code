@@ -40,12 +40,36 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 	// Only allow data:image/ URLs since the backend openImage function only supports base64 data URIs
 	const sanitizeImageUrl = (url: string): string => {
 		try {
+			// Trim whitespace and convert to string to prevent injection
+			const trimmedUrl = String(url).trim()
+
+			// Reject URLs with potentially dangerous protocols or patterns
+			const dangerousPatterns = [
+				/^javascript:/i,
+				/^vbscript:/i,
+				/^data:text\/html/i,
+				/^data:application\/javascript/i,
+				/^data:.*script/i,
+				/<script/i,
+				/on\w+\s*=/i, // Event handlers like onclick=
+			]
+
+			if (dangerousPatterns.some((pattern) => pattern.test(trimmedUrl))) {
+				return ""
+			}
+
 			// Only allow data URLs (base64 images) - backend only supports these
-			if (url.startsWith("data:image/")) {
+			if (trimmedUrl.startsWith("data:image/")) {
 				// Additional validation: ensure it's a proper data URI format
-				const dataUriRegex = /^data:image\/[a-zA-Z]+;base64,/
-				if (dataUriRegex.test(url)) {
-					return url
+				// Allow common image formats: png, jpg, jpeg, gif, webp, svg
+				const dataUriRegex = /^data:image\/(png|jpg|jpeg|gif|webp|svg\+xml);base64,[A-Za-z0-9+/]+=*$/
+				if (dataUriRegex.test(trimmedUrl)) {
+					// Additional length check to prevent DoS
+					if (trimmedUrl.length > 5 * 1024 * 1024) {
+						// 5MB limit for data URIs
+						return ""
+					}
+					return trimmedUrl
 				}
 			}
 
@@ -90,7 +114,7 @@ const Thumbnails = ({ images, style, setImages, onHeightChange }: ThumbnailsProp
 								borderRadius: 4,
 								cursor: "pointer",
 							}}
-							onClick={() => handleImageClick(image)}
+							onClick={() => handleImageClick(sanitizedUrl)}
 						/>
 						{isDeletable && hoveredIndex === index && (
 							<div
