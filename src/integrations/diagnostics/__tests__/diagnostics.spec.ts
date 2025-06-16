@@ -64,6 +64,15 @@ vitest.mock("vscode", () => ({
 			stat: vitest.fn(),
 		},
 		openTextDocument: vitest.fn(),
+		getConfiguration: vitest.fn(() => ({
+			get: vitest.fn((key, defaultValue) => {
+				// Return default values for diagnostics configuration
+				if (key === "includeDiagnostics") return false
+				if (key === "maxDiagnosticsCount") return 50
+				if (key === "diagnosticsFilter") return []
+				return defaultValue
+			}),
+		})),
 	},
 }))
 
@@ -103,6 +112,7 @@ describe("diagnosticsToProblemsString", () => {
 			[[fileUri, diagnostics]],
 			[vscode.DiagnosticSeverity.Error, vscode.DiagnosticSeverity.Warning],
 			"/path/to",
+			{ includeDiagnostics: true },
 		)
 
 		// Verify only Error and Warning diagnostics are included
@@ -147,6 +157,7 @@ describe("diagnosticsToProblemsString", () => {
 			[[dirUri, [diagnostic]]],
 			[vscode.DiagnosticSeverity.Error],
 			"/path/to",
+			{ includeDiagnostics: true },
 		)
 
 		// Verify fs.stat was called with the directory URI
@@ -204,6 +215,7 @@ describe("diagnosticsToProblemsString", () => {
 			[[fileUri, diagnostics]],
 			[vscode.DiagnosticSeverity.Error, vscode.DiagnosticSeverity.Warning, vscode.DiagnosticSeverity.Information],
 			"/path/to",
+			{ includeDiagnostics: true },
 		)
 
 		// Verify all diagnostics are included in the output
@@ -277,6 +289,7 @@ describe("diagnosticsToProblemsString", () => {
 			],
 			[vscode.DiagnosticSeverity.Error, vscode.DiagnosticSeverity.Warning, vscode.DiagnosticSeverity.Information],
 			"/path/to",
+			{ includeDiagnostics: true },
 		)
 
 		// Verify file paths are correctly shown with relative paths
@@ -333,6 +346,7 @@ describe("diagnosticsToProblemsString", () => {
 			[[fileUri, diagnostics]],
 			[vscode.DiagnosticSeverity.Information, vscode.DiagnosticSeverity.Hint],
 			"/path/to",
+			{ includeDiagnostics: true },
 		)
 
 		// Verify empty string is returned
@@ -373,6 +387,7 @@ describe("diagnosticsToProblemsString", () => {
 			[[fileUri, [diagnostic]]],
 			[vscode.DiagnosticSeverity.Error],
 			"/project/root",
+			{ includeDiagnostics: true },
 		)
 
 		// Verify exact output format
