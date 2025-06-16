@@ -4,6 +4,7 @@ import { ParseContext, CodeBlockState } from "./ParseContext"
 import { DirectiveRegistryFactory } from "./DirectiveRegistryFactory"
 import { FallbackParser } from "./FallbackParser"
 import { XmlUtils } from "./XmlUtils"
+import { DirectiveHandler } from "./DirectiveHandler"
 
 export class DirectiveStreamingParser {
 	private static registry = DirectiveRegistryFactory.create()
@@ -23,7 +24,7 @@ export class DirectiveStreamingParser {
 		const parser = sax.parser(false, { lowercase: true })
 		let parseError = false
 		let tagStack: string[] = []
-		let activeHandler: any = null
+		let activeHandler: DirectiveHandler | null = null
 
 		parser.onopentag = (node: sax.Tag) => {
 			// Check if we're inside a code block (either global or within tool parameters)
