@@ -68,7 +68,6 @@ export const globalSettingsSchema = z.object({
 	maxWorkspaceFiles: z.number().optional(),
 	showRooIgnoredFiles: z.boolean().optional(),
 	maxReadFileLine: z.number().optional(),
-	truncateFileUris: z.boolean().optional(),
 
 	terminalOutputLineLimit: z.number().optional(),
 	terminalShellIntegrationTimeout: z.number().optional(),
@@ -155,7 +154,6 @@ export const GLOBAL_SETTINGS_KEYS = keysOf<GlobalSettings>()([
 	"maxWorkspaceFiles",
 	"showRooIgnoredFiles",
 	"maxReadFileLine",
-	"truncateFileUris",
 
 	"terminalOutputLineLimit",
 	"terminalShellIntegrationTimeout",
