@@ -30,10 +30,7 @@ export class DirectiveStreamingParser {
 			const insideCodeBlock = this.isInsideCodeBlock(context, activeHandler)
 
 			// Check if we're inside a tool parameter (but not at the parameter level itself)
-			const insideToolParameter =
-				activeHandler &&
-				activeHandler.constructor.name === "ToolDirectiveHandler" &&
-				(activeHandler as any).currentContext === "param"
+			const insideToolParameter = this.isInsideToolParameter(activeHandler)
 
 			// Only process XML tags if NOT inside code block AND NOT inside tool parameter
 			if (!insideCodeBlock && !insideToolParameter) {
@@ -64,11 +61,7 @@ export class DirectiveStreamingParser {
 			const insideCodeBlock = this.isInsideCodeBlock(context, activeHandler)
 
 			// Check if we're inside a tool parameter (but not at the parameter level itself)
-			const insideToolParameter =
-				activeHandler &&
-				activeHandler.constructor.name === "ToolDirectiveHandler" &&
-				(activeHandler as any).currentContext === "param" &&
-				tagName !== (activeHandler as any).currentParamName
+			const insideToolParameter = this.isInsideToolParameter(activeHandler, tagName)
 
 			if (!insideCodeBlock && !insideToolParameter) {
 				// Normal XML processing
@@ -132,6 +125,25 @@ export class DirectiveStreamingParser {
 				"isInsideParameterCodeBlock" in activeHandler &&
 				(activeHandler as any).isInsideParameterCodeBlock())
 		)
+	}
+
+	/**
+	 * Check if we're inside a tool parameter (but not at the parameter level itself)
+	 */
+	private static isInsideToolParameter(activeHandler: any, tagName?: string): boolean {
+		if (!activeHandler || activeHandler.constructor.name !== "ToolDirectiveHandler") {
+			return false
+		}
+
+		const isInParamContext = (activeHandler as any).currentContext === "param"
+
+		// For close tags, also check if this is not the parameter tag itself
+		if (tagName !== undefined) {
+			return isInParamContext && tagName !== (activeHandler as any).currentParamName
+		}
+
+		// For open tags, just check if we're in param context
+		return isInParamContext
 	}
 
 	/**
