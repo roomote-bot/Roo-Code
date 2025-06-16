@@ -5,6 +5,7 @@ import { DirectiveRegistryFactory } from "./DirectiveRegistryFactory"
 import { FallbackParser } from "./FallbackParser"
 import { XmlUtils } from "./XmlUtils"
 import { DirectiveHandler } from "./DirectiveHandler"
+import { ParameterCodeBlockHandler } from "./ParameterCodeBlockHandler"
 import { ToolDirectiveHandler } from "./handlers"
 
 export class DirectiveStreamingParser {
@@ -124,8 +125,8 @@ export class DirectiveStreamingParser {
 		return (
 			context.codeBlockState === CodeBlockState.INSIDE ||
 			(activeHandler &&
-				"isInsideParameterCodeBlock" in activeHandler &&
-				(activeHandler as any).isInsideParameterCodeBlock())
+				activeHandler instanceof ToolDirectiveHandler &&
+				(activeHandler as ParameterCodeBlockHandler).isInsideParameterCodeBlock())
 		)
 	}
 
@@ -133,15 +134,16 @@ export class DirectiveStreamingParser {
 	 * Check if we're inside a tool parameter (but not at the parameter level itself)
 	 */
 	private static isInsideToolParameter(activeHandler: DirectiveHandler | null, tagName?: string): boolean {
-		if (!activeHandler || activeHandler.constructor.name !== "ToolDirectiveHandler") {
+		if (!activeHandler || !(activeHandler instanceof ToolDirectiveHandler)) {
 			return false
 		}
 
-		const isInParamContext = (activeHandler as any).currentContext === "param"
+		const typedHandler = activeHandler as ParameterCodeBlockHandler
+		const isInParamContext = typedHandler.currentContext === "param"
 
 		// For close tags, also check if this is not the parameter tag itself
 		if (tagName !== undefined) {
-			return isInParamContext && tagName !== (activeHandler as any).currentParamName
+			return isInParamContext && tagName !== typedHandler.currentParamName
 		}
 
 		// For open tags, just check if we're in param context
