@@ -5,6 +5,7 @@ import { DirectiveRegistryFactory } from "./DirectiveRegistryFactory"
 import { FallbackParser } from "./FallbackParser"
 import { XmlUtils } from "./XmlUtils"
 import { DirectiveHandler } from "./DirectiveHandler"
+import { ToolDirectiveHandler } from "./handlers"
 
 export class DirectiveStreamingParser {
 	private static registry = DirectiveRegistryFactory.create()
@@ -119,7 +120,7 @@ export class DirectiveStreamingParser {
 	/**
 	 * Check if we're inside a code block (either global or within tool parameters)
 	 */
-	private static isInsideCodeBlock(context: ParseContext, activeHandler: any): boolean {
+	private static isInsideCodeBlock(context: ParseContext, activeHandler: DirectiveHandler | null): boolean {
 		return (
 			context.codeBlockState === CodeBlockState.INSIDE ||
 			(activeHandler &&
@@ -131,7 +132,7 @@ export class DirectiveStreamingParser {
 	/**
 	 * Check if we're inside a tool parameter (but not at the parameter level itself)
 	 */
-	private static isInsideToolParameter(activeHandler: any, tagName?: string): boolean {
+	private static isInsideToolParameter(activeHandler: DirectiveHandler | null, tagName?: string): boolean {
 		if (!activeHandler || activeHandler.constructor.name !== "ToolDirectiveHandler") {
 			return false
 		}
