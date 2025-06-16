@@ -1,1 +1,1 @@
-export * from "./LogManager"
+export type { LogManager } from "./LogManager"
