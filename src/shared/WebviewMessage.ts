@@ -137,6 +137,7 @@ export interface WebviewMessage {
 		| "remoteBrowserEnabled"
 		| "language"
 		| "maxReadFileLine"
+		| "truncateFileUris"
 		| "maxConcurrentFileReads"
 		| "searchFiles"
 		| "toggleApiConfigPin"

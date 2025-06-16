@@ -61,6 +61,7 @@ type ContextManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	maxWorkspaceFiles: number
 	showRooIgnoredFiles?: boolean
 	maxReadFileLine?: number
+	truncateFileUris?: boolean
 	setCachedStateField: SetCachedStateField<
 		| "autoCondenseContext"
 		| "autoCondenseContextPercent"
@@ -70,6 +71,7 @@ type ContextManagementSettingsProps = HTMLAttributes<HTMLDivElement> & {
 		| "maxWorkspaceFiles"
 		| "showRooIgnoredFiles"
 		| "maxReadFileLine"
+		| "truncateFileUris"
 	>
 }
 
@@ -84,6 +86,7 @@ export const ContextManagementSettings = ({
 	showRooIgnoredFiles,
 	setCachedStateField,
 	maxReadFileLine,
+	truncateFileUris,
 	className,
 	...props
 }: ContextManagementSettingsProps) => {
@@ -183,6 +186,20 @@ export const ContextManagementSettings = ({
 					</div>
 					<div className="text-vscode-descriptionForeground text-sm mt-2">
 						{t("settings:contextManagement.maxReadFile.description")}
+					</div>
+				</div>
+
+				<div>
+					<VSCodeCheckbox
+						checked={truncateFileUris}
+						onChange={(e: any) => setCachedStateField("truncateFileUris", e.target.checked)}
+						data-testid="truncate-file-uris-checkbox">
+						<label className="block font-medium mb-1">
+							{t("settings:contextManagement.truncateFileUris.label")}
+						</label>
+					</VSCodeCheckbox>
+					<div className="text-vscode-descriptionForeground text-sm mt-1">
+						{t("settings:contextManagement.truncateFileUris.description")}
 					</div>
 				</div>
 			</Section>
