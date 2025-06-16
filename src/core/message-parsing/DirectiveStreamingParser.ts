@@ -27,11 +27,7 @@ export class DirectiveStreamingParser {
 
 		parser.onopentag = (node: sax.Tag) => {
 			// Check if we're inside a code block (either global or within tool parameters)
-			const insideCodeBlock =
-				context.codeBlockState === CodeBlockState.INSIDE ||
-				(activeHandler &&
-					"isInsideParameterCodeBlock" in activeHandler &&
-					(activeHandler as any).isInsideParameterCodeBlock())
+			const insideCodeBlock = this.isInsideCodeBlock(context, activeHandler)
 
 			// Check if we're inside a tool parameter (but not at the parameter level itself)
 			const insideToolParameter =
@@ -65,11 +61,7 @@ export class DirectiveStreamingParser {
 
 		parser.onclosetag = (tagName: string) => {
 			// Check if we're inside a code block (either global or within tool parameters)
-			const insideCodeBlock =
-				context.codeBlockState === CodeBlockState.INSIDE ||
-				(activeHandler &&
-					"isInsideParameterCodeBlock" in activeHandler &&
-					(activeHandler as any).isInsideParameterCodeBlock())
+			const insideCodeBlock = this.isInsideCodeBlock(context, activeHandler)
 
 			// Check if we're inside a tool parameter (but not at the parameter level itself)
 			const insideToolParameter =
@@ -128,6 +120,18 @@ export class DirectiveStreamingParser {
 		}
 
 		return context.contentBlocks
+	}
+
+	/**
+	 * Check if we're inside a code block (either global or within tool parameters)
+	 */
+	private static isInsideCodeBlock(context: ParseContext, activeHandler: any): boolean {
+		return (
+			context.codeBlockState === CodeBlockState.INSIDE ||
+			(activeHandler &&
+				"isInsideParameterCodeBlock" in activeHandler &&
+				(activeHandler as any).isInsideParameterCodeBlock())
+		)
 	}
 
 	/**

@@ -297,4 +297,36 @@ I've provided an example of the XML format for the log_message directive.</resul
 		const logMessages = result.filter((r) => r.type === "log_message")
 		expect(logMessages).toHaveLength(0)
 	})
+
+	test("should correctly identify code block contexts in various scenarios", () => {
+		// Test that the extracted isInsideCodeBlock logic works correctly
+		// by testing scenarios that depend on this logic
+
+		// Test 1: Code block should prevent directive parsing
+		const codeBlockInput = "Text ```\n<log_message><message>Should not parse</message></log_message>\n``` end"
+		const codeBlockResult = DirectiveStreamingParser.parse(codeBlockInput)
+		expect(codeBlockResult).toHaveLength(1)
+		expect(codeBlockResult[0].type).toBe("text")
+		expect((codeBlockResult[0] as any).content).toContain("<log_message>")
+
+		// Test 2: Tool parameter code block should prevent directive parsing
+		const toolParamCodeBlockInput =
+			"<attempt_completion><result>```\n<log_message><message>Should not parse</message></log_message>\n```</result></attempt_completion>"
+		const toolParamResult = DirectiveStreamingParser.parse(toolParamCodeBlockInput)
+		expect(toolParamResult).toHaveLength(1)
+		expect(toolParamResult[0].type).toBe("tool_use")
+		expect((toolParamResult[0] as any).name).toBe("attempt_completion")
+		expect((toolParamResult[0] as any).params.result).toContain("<log_message>")
+
+		// Ensure no separate log_message directive was created
+		const logMessages = toolParamResult.filter((r) => r.type === "log_message")
+		expect(logMessages).toHaveLength(0)
+
+		// Test 3: Normal directive parsing outside code blocks should still work
+		const normalInput = "<log_message><message>Should parse normally</message><level>info</level></log_message>"
+		const normalResult = DirectiveStreamingParser.parse(normalInput)
+		expect(normalResult).toHaveLength(1)
+		expect(normalResult[0].type).toBe("log_message")
+		expect((normalResult[0] as any).message).toBe("Should parse normally")
+	})
 })
