@@ -1,7 +1,8 @@
 import * as sax from "sax"
 import { BaseDirectiveHandler } from "./BaseDirectiveHandler"
-import { ParseContext } from "../ParseContext"
+import { ParseContext, CodeBlockState } from "../ParseContext"
 import { ToolDirective, ToolParamName } from "../directives"
+import { CodeBlockStateMachine } from "../CodeBlockStateMachine"
 
 export class ToolDirectiveHandler extends BaseDirectiveHandler {
 	readonly tagName: string
@@ -9,6 +10,8 @@ export class ToolDirectiveHandler extends BaseDirectiveHandler {
 	private currentParamName?: ToolParamName
 	private currentParamValue = ""
 	private currentContext: "param" | "none" = "none"
+	private stateMachine = new CodeBlockStateMachine()
+	private paramCodeBlockState: CodeBlockState = CodeBlockState.OUTSIDE
 
 	constructor(toolName: string) {
 		super()
@@ -29,6 +32,8 @@ export class ToolDirectiveHandler extends BaseDirectiveHandler {
 			this.currentParamName = node.name as ToolParamName
 			this.currentParamValue = ""
 			this.currentContext = "param"
+			// Reset code block state for new parameter
+			this.paramCodeBlockState = CodeBlockState.OUTSIDE
 		}
 	}
 
@@ -49,7 +54,19 @@ export class ToolDirectiveHandler extends BaseDirectiveHandler {
 
 	override onText(text: string, context: ParseContext): void {
 		if (this.currentContext === "param" && this.currentParamName && this.currentToolDirective) {
-			this.currentParamValue += text
+			// Create a temporary context to track code block state within this parameter
+			const tempContext = {
+				...context,
+				codeBlockState: this.paramCodeBlockState,
+			}
+
+			// Process text through the code block state machine
+			const result = this.stateMachine.processText(text, tempContext)
+
+			// Update our parameter-specific code block state
+			this.paramCodeBlockState = tempContext.codeBlockState
+
+			this.currentParamValue += result.processedText
 		}
 	}
 
@@ -62,5 +79,12 @@ export class ToolDirectiveHandler extends BaseDirectiveHandler {
 			this.currentToolDirective.partial = true
 			context.contentBlocks.push(this.currentToolDirective)
 		}
+	}
+
+	/**
+	 * Check if we're currently inside a code block within a tool parameter
+	 */
+	isInsideParameterCodeBlock(): boolean {
+		return this.currentContext === "param" && this.paramCodeBlockState === CodeBlockState.INSIDE
 	}
 }

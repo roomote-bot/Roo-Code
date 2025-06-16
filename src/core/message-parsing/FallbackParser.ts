@@ -6,12 +6,34 @@ export class FallbackParser {
 	static parse(assistantMessage: string): Directive[] {
 		const contentBlocks: Directive[] = []
 
+		// Check if we're inside code blocks before parsing log messages
+		const codeBlockRegex = /```[\s\S]*?```/g
+		const codeBlocks: Array<{ start: number; end: number }> = []
+		let codeBlockMatch
+
+		// Find all code block ranges
+		while ((codeBlockMatch = codeBlockRegex.exec(assistantMessage)) !== null) {
+			codeBlocks.push({
+				start: codeBlockMatch.index,
+				end: codeBlockMatch.index + codeBlockMatch[0].length,
+			})
+		}
+
+		// Helper function to check if a position is inside a code block
+		const isInsideCodeBlock = (position: number): boolean => {
+			return codeBlocks.some((block) => position >= block.start && position < block.end)
+		}
+
 		// Handle multiple log messages
 		const logMessageRegex = /<log_message>([\s\S]*?)(?:<\/log_message>|$)/g
 		let lastIndex = 0
 		let match
 
 		while ((match = logMessageRegex.exec(assistantMessage)) !== null) {
+			// Skip log messages that are inside code blocks
+			if (isInsideCodeBlock(match.index)) {
+				continue
+			}
 			// Add any text before this log message
 			if (match.index > lastIndex) {
 				const textBefore = assistantMessage.substring(lastIndex, match.index).trim()
@@ -65,13 +87,68 @@ export class FallbackParser {
 					const toolContent = toolMatch[0]
 					const params: Record<string, string> = {}
 
-					// Extract parameters
-					const paramRegex = /<(\w+)>(.*?)(?:<\/\1>|$)/g
-					let paramMatch
-					while ((paramMatch = paramRegex.exec(toolContent)) !== null) {
-						const [, paramName, paramValue] = paramMatch
-						if (paramName !== toolName) {
+					// Extract parameters - need to be more careful about nested structures
+					// Find direct child parameters of the tool, not nested ones
+					const toolInnerContent = toolContent
+						.replace(new RegExp(`^<${toolName}>`), "")
+						.replace(new RegExp(`</${toolName}>$`), "")
+
+					// Use a more sophisticated approach to find top-level parameters
+					let currentIndex = 0
+					while (currentIndex < toolInnerContent.length) {
+						// Find the next opening tag
+						const tagMatch = toolInnerContent.substring(currentIndex).match(/<(\w+)>/)
+						if (!tagMatch) break
+
+						const paramName = tagMatch[1]
+						const tagStart = currentIndex + tagMatch.index!
+						const contentStart = tagStart + tagMatch[0].length
+
+						// Find the matching closing tag, accounting for nested tags
+						let depth = 1
+						let searchIndex = contentStart
+						let paramValue = ""
+
+						while (depth > 0 && searchIndex < toolInnerContent.length) {
+							const nextTag = toolInnerContent.substring(searchIndex).match(/<\/?(\w+)>/)
+							if (!nextTag) {
+								// No more tags, take the rest as content
+								paramValue = toolInnerContent.substring(contentStart)
+								break
+							}
+
+							const tagName = nextTag[1]
+							const isClosing = nextTag[0].startsWith("</")
+
+							if (tagName === paramName) {
+								if (isClosing) {
+									depth--
+									if (depth === 0) {
+										// Found the matching closing tag
+										paramValue = toolInnerContent.substring(
+											contentStart,
+											searchIndex + nextTag.index!,
+										)
+										currentIndex = searchIndex + nextTag.index! + nextTag[0].length
+										break
+									}
+								} else {
+									depth++
+								}
+							}
+
+							searchIndex += nextTag.index! + nextTag[0].length
+						}
+
+						if (paramName !== toolName && paramValue !== undefined) {
 							params[paramName] = paramValue
+						}
+
+						if (depth > 0) {
+							// Unclosed tag, take the rest
+							paramValue = toolInnerContent.substring(contentStart)
+							params[paramName] = paramValue
+							break
 						}
 					}
 

@@ -26,8 +26,15 @@ export class DirectiveStreamingParser {
 		let activeHandler: any = null
 
 		parser.onopentag = (node: sax.Tag) => {
+			// Check if we're inside a code block (either global or within tool parameters)
+			const insideCodeBlock =
+				context.codeBlockState === CodeBlockState.INSIDE ||
+				(activeHandler &&
+					"isInsideParameterCodeBlock" in activeHandler &&
+					(activeHandler as any).isInsideParameterCodeBlock())
+
 			// Only process XML tags if NOT inside code block
-			if (context.codeBlockState !== CodeBlockState.INSIDE) {
+			if (!insideCodeBlock) {
 				context.hasXmlTags = true
 				tagStack.push(node.name)
 				const handler = this.registry.getHandler(node.name)
@@ -42,12 +49,23 @@ export class DirectiveStreamingParser {
 			} else {
 				// Inside code block - treat as plain text
 				const tagText = `<${node.name}${this.attributesToString(node.attributes)}>`
-				this.registry.getTextHandler().onText(tagText, context)
+				if (activeHandler) {
+					activeHandler.onText(tagText, context)
+				} else {
+					this.registry.getTextHandler().onText(tagText, context)
+				}
 			}
 		}
 
 		parser.onclosetag = (tagName: string) => {
-			if (context.codeBlockState !== CodeBlockState.INSIDE) {
+			// Check if we're inside a code block (either global or within tool parameters)
+			const insideCodeBlock =
+				context.codeBlockState === CodeBlockState.INSIDE ||
+				(activeHandler &&
+					"isInsideParameterCodeBlock" in activeHandler &&
+					(activeHandler as any).isInsideParameterCodeBlock())
+
+			if (!insideCodeBlock) {
 				// Normal XML processing
 				if (activeHandler) {
 					activeHandler.onCloseTag(tagName, context)
@@ -59,7 +77,11 @@ export class DirectiveStreamingParser {
 				tagStack.pop()
 			} else {
 				// Inside code block - treat as plain text
-				this.registry.getTextHandler().onText(`</${tagName}>`, context)
+				if (activeHandler) {
+					activeHandler.onText(`</${tagName}>`, context)
+				} else {
+					this.registry.getTextHandler().onText(`</${tagName}>`, context)
+				}
 			}
 		}
 

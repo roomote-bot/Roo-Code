@@ -137,4 +137,76 @@ suite("DirectiveStreamingParser", () => {
 			} as TextDirective,
 		])
 	})
+
+	test("should not parse directives inside code blocks within tool directive parameters", () => {
+		const input =
+			"<attempt_completion><result>Here's the format:\n\n```xml\n<log_message>\n<message>This should be plain text</message>\n<level>debug</level>\n</log_message>\n```\n\nThat's the format.</result></attempt_completion>"
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toHaveLength(1)
+		expect(result[0].type).toBe("tool_use")
+		expect((result[0] as any).name).toBe("attempt_completion")
+		expect((result[0] as any).params.result).toContain("```xml")
+		expect((result[0] as any).params.result).toContain("<log_message>")
+		expect((result[0] as any).params.result).toContain("This should be plain text")
+		// The key test: ensure it's treated as one text block, not parsed as separate directives
+		expect((result[0] as any).params.result).toBe(
+			"Here's the format:\n\n```xml\n<log_message>\n<message>This should be plain text</message>\n<level>debug</level>\n</log_message>\n```\n\nThat's the format.",
+		)
+	})
+
+	test("should not parse directives inside code blocks within tool directive parameters during streaming", () => {
+		// Simulate streaming chunks
+		const chunks = [
+			"<attempt_completion>",
+			"<result>Here's the format:\n\n```xml\n",
+			"<log_message>\n<message>This should be plain text</message>\n<level>debug</level>\n</log_message>\n",
+			"```\n\nThat's the format.</result>",
+			"</attempt_completion>",
+		]
+
+		let accumulatedMessage = ""
+		let finalResult: any[] = []
+
+		// Test each streaming chunk
+		for (const chunk of chunks) {
+			accumulatedMessage += chunk
+			const result = DirectiveStreamingParser.parse(accumulatedMessage)
+			finalResult = result
+		}
+
+		// Final result should have only one directive (attempt_completion)
+		expect(finalResult).toHaveLength(1)
+		expect(finalResult[0].type).toBe("tool_use")
+		expect(finalResult[0].name).toBe("attempt_completion")
+
+		// The result parameter should contain the log_message as plain text
+		expect(finalResult[0].params.result).toContain("<log_message>")
+		expect(finalResult[0].params.result).toContain("This should be plain text")
+
+		// Most importantly: there should be NO separate log_message directive
+		const logMessages = finalResult.filter((r: any) => r.type === "log_message")
+		expect(logMessages).toHaveLength(0)
+	})
+
+	test("should handle malformed XML that might trigger FallbackParser", () => {
+		// Test a scenario that might cause parse errors and trigger FallbackParser
+		const input =
+			"<attempt_completion><result>Here's the format:\n\n```xml\n<log_message>\n<message>This should be plain text</message>\n<level>debug</level>\n</log_message>\n```\n\nThat's the format.</result></attempt_completion>"
+
+		// Add some malformed XML to potentially trigger fallback
+		const malformedInput = input + "<unclosed_tag>"
+
+		const result = DirectiveStreamingParser.parse(malformedInput)
+
+		// Should still not parse log_message as separate directive
+		const logMessages = result.filter((r: any) => r.type === "log_message")
+		expect(logMessages).toHaveLength(0)
+
+		// Should have attempt_completion with log_message preserved as text
+		const attemptCompletion = result.find((r: any) => r.type === "tool_use" && r.name === "attempt_completion")
+		expect(attemptCompletion).toBeDefined()
+		if (attemptCompletion && attemptCompletion.type === "tool_use") {
+			expect((attemptCompletion as any).params.result).toContain("<log_message>")
+		}
+	})
 })
