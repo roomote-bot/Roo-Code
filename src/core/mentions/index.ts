@@ -37,7 +37,9 @@ export async function openMention(mention?: string): Promise<void> {
 		if (mention.endsWith("/")) {
 			vscode.commands.executeCommand("revealInExplorer", vscode.Uri.file(absPath))
 		} else {
-			// Check if we're in an automated workflow to preserve chat focus during AI processing
+			// Check if we're in an automated workflow to preserve chat focus during AI processing.
+			// When users mention files (e.g., @/path/to/file.txt) while the AI is actively processing,
+			// we want to prevent the chatbox from losing focus to avoid accidental input interruption.
 			const shouldPreserveFocus = isInAutomatedWorkflowFromVisibleProvider()
 
 			openFile(absPath, { preserveFocus: shouldPreserveFocus })

@@ -427,7 +427,10 @@ export const webviewMessageHandler = async (
 			openImage(message.text!)
 			break
 		case "openFile":
-			// Check if we're in an automated workflow to preserve chat focus during AI processing
+			// Check if we're in an automated workflow to preserve chat focus during AI processing.
+			// This prevents the chatbox from losing focus when the AI is actively working,
+			// which could cause users to accidentally type sensitive information (like API keys)
+			// into the wrong window. See issue #4574 for more context.
 			const shouldPreserveFocus = isInAutomatedWorkflowFromProvider(provider)
 
 			openFile(message.text!, {
