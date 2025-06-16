@@ -57,7 +57,7 @@ describe("useMcpToolTool", () => {
 
 	describe("parameter validation", () => {
 		it("should handle missing server_name", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -71,7 +71,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -85,7 +85,7 @@ describe("useMcpToolTool", () => {
 		})
 
 		it("should handle missing tool_name", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -99,7 +99,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -113,7 +113,7 @@ describe("useMcpToolTool", () => {
 		})
 
 		it("should handle invalid JSON arguments", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -126,7 +126,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -142,7 +142,7 @@ describe("useMcpToolTool", () => {
 
 	describe("partial requests", () => {
 		it("should handle partial requests", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -157,7 +157,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -170,7 +170,7 @@ describe("useMcpToolTool", () => {
 
 	describe("successful execution", () => {
 		it("should execute tool successfully with valid parameters", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -197,7 +197,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -212,7 +212,7 @@ describe("useMcpToolTool", () => {
 		})
 
 		it("should handle user rejection", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -227,7 +227,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
@@ -241,7 +241,7 @@ describe("useMcpToolTool", () => {
 
 	describe("error handling", () => {
 		it("should handle unexpected errors", async () => {
-			const block: ToolDirective = {
+			const block: UseMcpToolToolDirective = {
 				type: "tool_use",
 				name: "use_mcp_tool",
 				params: {
@@ -256,7 +256,7 @@ describe("useMcpToolTool", () => {
 
 			await useMcpToolTool(
 				mockTask as Task,
-				block as UseMcpToolToolDirective,
+				block,
 				mockAskApproval,
 				mockHandleError,
 				mockPushToolResult,
