@@ -31,7 +31,8 @@
 		"prompts": "Lời nhắc",
 		"experimental": "Thử nghiệm",
 		"language": "Ngôn ngữ",
-		"about": "Giới thiệu"
+		"about": "Giới thiệu",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "Cấu hình các lời nhắc hỗ trợ được sử dụng cho các hành động nhanh như cải thiện lời nhắc, giải thích mã và khắc phục sự cố. Những lời nhắc này giúp Roo cung cấp hỗ trợ tốt hơn cho các tác vụ phát triển phổ biến."
@@ -613,5 +614,20 @@
 	"labels": {
 		"customArn": "ARN tùy chỉnh",
 		"useCustomArn": "Sử dụng ARN tùy chỉnh..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }

@@ -31,7 +31,8 @@
 		"prompts": "プロンプト",
 		"experimental": "実験的",
 		"language": "言語",
-		"about": "Roo Codeについて"
+		"about": "Roo Codeについて",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "プロンプトの強化、コードの説明、問題の修正などの迅速なアクションに使用されるサポートプロンプトを設定します。これらのプロンプトは、Rooが一般的な開発タスクでより良いサポートを提供するのに役立ちます。"
@@ -613,5 +614,20 @@
 	"labels": {
 		"customArn": "カスタム ARN",
 		"useCustomArn": "カスタム ARN を使用..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }

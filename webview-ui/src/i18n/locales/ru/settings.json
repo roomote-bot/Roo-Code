@@ -31,7 +31,8 @@
 		"prompts": "Промпты",
 		"experimental": "Экспериментальное",
 		"language": "Язык",
-		"about": "О Roo Code"
+		"about": "О Roo Code",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "Настройте промпты поддержки, используемые для быстрых действий, таких как улучшение промптов, объяснение кода и исправление проблем. Эти промпты помогают Roo обеспечить лучшую поддержку для общих задач разработки."
@@ -613,5 +614,20 @@
 	"labels": {
 		"customArn": "Пользовательский ARN",
 		"useCustomArn": "Использовать пользовательский ARN..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }

@@ -31,7 +31,8 @@
 		"prompts": "Prompt",
 		"experimental": "Eksperimental",
 		"language": "Bahasa",
-		"about": "Tentang Roo Code"
+		"about": "Tentang Roo Code",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "Konfigurasi support prompt yang digunakan untuk aksi cepat seperti meningkatkan prompt, menjelaskan kode, dan memperbaiki masalah. Prompt ini membantu Roo memberikan bantuan yang lebih baik untuk tugas pengembangan umum."
@@ -642,5 +643,20 @@
 	"labels": {
 		"customArn": "ARN Kustom",
 		"useCustomArn": "Gunakan ARN kustom..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }

@@ -31,7 +31,8 @@
 		"prompts": "प्रॉम्प्ट्स",
 		"experimental": "प्रायोगिक",
 		"language": "भाषा",
-		"about": "परिचय"
+		"about": "परिचय",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "प्रॉम्प्ट्स को बेहतर बनाना, कोड की व्याख्या करना और समस्याओं को ठीक करना जैसी त्वरित कार्रवाइयों के लिए उपयोग किए जाने वाले सहायक प्रॉम्प्ट्स को कॉन्फ़िगर करें। ये प्रॉम्प्ट्स Roo को सामान्य विकास कार्यों के लिए बेहतर सहायता प्रदान करने में मदद करते हैं।"
@@ -613,5 +614,20 @@
 	"labels": {
 		"customArn": "कस्टम ARN",
 		"useCustomArn": "कस्टम ARN का उपयोग करें..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }

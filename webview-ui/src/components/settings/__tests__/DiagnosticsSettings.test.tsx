@@ -14,7 +14,18 @@ jest.mock("@src/i18n/TranslationContext", () => ({
 jest.mock("@vscode/webview-ui-toolkit/react", () => ({
 	VSCodeCheckbox: ({ children, onChange, checked, ...props }: any) => (
 		<label>
-			<input type="checkbox" checked={checked} onChange={onChange} {...props} />
+			<input
+				type="checkbox"
+				checked={checked}
+				onChange={(e) => onChange && onChange(e)}
+				onClick={() => {
+					// Simulate onChange event on click
+					if (onChange) {
+						onChange({ target: { checked: !checked } })
+					}
+				}}
+				{...props}
+			/>
 			{children}
 		</label>
 	),
@@ -69,7 +80,7 @@ describe("DiagnosticsSettings", () => {
 	})
 
 	it("renders all diagnostic settings", () => {
-		render(<DiagnosticsSettings {...defaultProps} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
 
 		expect(screen.getByText("settings:sections.diagnostics")).toBeInTheDocument()
 		expect(screen.getByText("settings:diagnostics.description")).toBeInTheDocument()
@@ -94,14 +105,20 @@ describe("DiagnosticsSettings", () => {
 	it("calls setCachedStateField when checkbox is toggled", () => {
 		render(<DiagnosticsSettings {...defaultProps} />)
 
-		const checkbox = screen.getByTestId("include-diagnostics-checkbox")
-		fireEvent.change(checkbox, { target: { checked: true } })
+		// The mock renders the input with data-testid
+		const checkbox = screen.getByTestId("include-diagnostics-checkbox") as HTMLInputElement
+
+		// Verify it's unchecked initially
+		expect(checkbox.checked).toBe(false)
+
+		// Toggle the checkbox
+		fireEvent.click(checkbox)
 
 		expect(mockSetCachedStateField).toHaveBeenCalledWith("includeDiagnostics", true)
 	})
 
 	it("calls setCachedStateField when slider value changes", () => {
-		render(<DiagnosticsSettings {...defaultProps} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
 
 		const slider = screen.getByTestId("max-diagnostics-count-slider")
 		fireEvent.change(slider, { target: { value: "75" } })
@@ -110,7 +127,7 @@ describe("DiagnosticsSettings", () => {
 	})
 
 	it("validates slider value range", () => {
-		render(<DiagnosticsSettings {...defaultProps} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
 
 		const slider = screen.getByTestId("max-diagnostics-count-slider")
 
@@ -128,7 +145,7 @@ describe("DiagnosticsSettings", () => {
 	})
 
 	it("calls setCachedStateField when filter input changes", () => {
-		render(<DiagnosticsSettings {...defaultProps} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
 
 		const filterInput = screen.getByTestId("diagnostics-filter-input")
 		fireEvent.change(filterInput, { target: { value: "eslint, typescript" } })
@@ -137,7 +154,7 @@ describe("DiagnosticsSettings", () => {
 	})
 
 	it("handles empty filter input", () => {
-		render(<DiagnosticsSettings {...defaultProps} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
 
 		const filterInput = screen.getByTestId("diagnostics-filter-input")
 		fireEvent.change(filterInput, { target: { value: "" } })
@@ -146,7 +163,7 @@ describe("DiagnosticsSettings", () => {
 	})
 
 	it("trims whitespace from filter values", () => {
-		render(<DiagnosticsSettings {...defaultProps} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
 
 		const filterInput = screen.getByTestId("diagnostics-filter-input")
 		fireEvent.change(filterInput, { target: { value: "  eslint  ,  typescript  " } })
@@ -160,15 +177,26 @@ describe("DiagnosticsSettings", () => {
 		const checkbox = screen.getByTestId("include-diagnostics-checkbox") as HTMLInputElement
 		expect(checkbox.checked).toBe(false)
 
-		const slider = screen.getByTestId("max-diagnostics-count-slider") as HTMLInputElement
-		expect(slider.value).toBe("50")
+		// Slider and filter input won't be rendered when includeDiagnostics is false/undefined
+		expect(screen.queryByTestId("max-diagnostics-count-slider")).not.toBeInTheDocument()
+		expect(screen.queryByTestId("diagnostics-filter-input")).not.toBeInTheDocument()
+	})
 
-		const filterInput = screen.getByTestId("diagnostics-filter-input") as HTMLInputElement
-		expect(filterInput.value).toBe("")
+	it("shows/hides additional settings based on checkbox state", () => {
+		const { rerender } = render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={false} />)
+
+		// Initially hidden
+		expect(screen.queryByTestId("max-diagnostics-count-slider")).not.toBeInTheDocument()
+		expect(screen.queryByTestId("diagnostics-filter-input")).not.toBeInTheDocument()
+
+		// Show when checkbox is checked
+		rerender(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} />)
+		expect(screen.getByTestId("max-diagnostics-count-slider")).toBeInTheDocument()
+		expect(screen.getByTestId("diagnostics-filter-input")).toBeInTheDocument()
 	})
 
 	it("displays correct count value next to slider", () => {
-		render(<DiagnosticsSettings {...defaultProps} maxDiagnosticsCount={75} />)
+		render(<DiagnosticsSettings {...defaultProps} includeDiagnostics={true} maxDiagnosticsCount={75} />)
 
 		expect(screen.getByText("75")).toBeInTheDocument()
 	})

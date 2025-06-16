@@ -31,7 +31,8 @@
 		"prompts": "프롬프트",
 		"experimental": "실험적",
 		"language": "언어",
-		"about": "Roo Code 정보"
+		"about": "Roo Code 정보",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "프롬프트 향상, 코드 설명, 문제 해결과 같은 빠른 작업에 사용되는 지원 프롬프트를 구성합니다. 이러한 프롬프트는 Roo가 일반적인 개발 작업에 대해 더 나은 지원을 제공하는 데 도움이 됩니다."
@@ -613,5 +614,20 @@
 	"labels": {
 		"customArn": "사용자 지정 ARN",
 		"useCustomArn": "사용자 지정 ARN 사용..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }

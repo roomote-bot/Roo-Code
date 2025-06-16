@@ -31,7 +31,8 @@
 		"prompts": "Eingabeaufforderungen",
 		"experimental": "Experimentell",
 		"language": "Sprache",
-		"about": "Über Roo Code"
+		"about": "Über Roo Code",
+		"diagnostics": "Diagnostics"
 	},
 	"prompts": {
 		"description": "Konfiguriere Support-Prompts, die für schnelle Aktionen wie das Verbessern von Prompts, das Erklären von Code und das Beheben von Problemen verwendet werden. Diese Prompts helfen Roo dabei, bessere Unterstützung für häufige Entwicklungsaufgaben zu bieten."
@@ -613,5 +614,20 @@
 	"labels": {
 		"customArn": "Benutzerdefinierte ARN",
 		"useCustomArn": "Benutzerdefinierte ARN verwenden..."
+	},
+	"diagnostics": {
+		"description": "Configure how workspace diagnostics (errors and warnings) are included in the AI's context",
+		"includeDiagnostics": {
+			"label": "Include diagnostics in context",
+			"description": "When enabled, workspace errors and warnings will be included when using @problems mention"
+		},
+		"maxDiagnosticsCount": {
+			"label": "Maximum diagnostics count",
+			"description": "Limit the number of diagnostics included to prevent excessive token usage"
+		},
+		"diagnosticsFilter": {
+			"label": "Diagnostics filter",
+			"description": "Filter diagnostics by source and code (e.g., 'eslint', 'typescript', 'dart Error'). Leave empty to include all diagnostics"
+		}
 	}
 }
