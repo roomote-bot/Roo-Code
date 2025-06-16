@@ -39,7 +39,9 @@ export default async function AuthenticatedLayout({
         userRole={orgRole === 'org:admin' ? 'admin' : 'member'}
       />
       <Section divider={false} className="min-h-[calc(100vh-72px-72px-2px)]">
-        <div className="flex flex-col gap-8 py-8">{children}</div>
+        <div className="flex flex-col gap-4 sm:gap-6 lg:gap-8 py-4 sm:py-6 lg:py-8">
+          {children}
+        </div>
       </Section>
     </>
   );

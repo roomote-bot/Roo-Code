@@ -42,7 +42,7 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:gap-6">
+      <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
         <UsageCard userRole={userRole} currentUserId={currentUserId} />
         {!isMember && (
           <div className="flex flex-wrap gap-2">

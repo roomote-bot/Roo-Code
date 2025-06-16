@@ -91,8 +91,8 @@ export const UsageCard = ({
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-3">
-          <div className="flex flex-row flex-wrap gap-4 justify-between items-center">
-            <div className="flex flex-row gap-3 items-center">
+          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 justify-between items-start sm:items-center">
+            <div className="flex flex-row gap-2 sm:gap-3 items-center">
               {/* Time period toggles */}
               <div className="flex flex-row gap-1">
                 {allTimePeriods.map((periodConfig) => (
@@ -134,7 +134,7 @@ export const UsageCard = ({
             </div>
 
             {/* Compact inline metrics */}
-            <div className="flex flex-wrap gap-4 text-xs">
+            <div className="flex flex-wrap gap-2 sm:gap-4 text-xs">
               <div className="flex items-center gap-1">
                 <span className="text-muted-foreground">Developers:</span>
                 <span className="font-medium">

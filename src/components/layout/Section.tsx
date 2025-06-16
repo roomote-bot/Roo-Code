@@ -12,7 +12,7 @@ export const Section = ({
   <div className={cn({ 'border-b border-dashed': divider })}>
     <div
       className={cn(
-        'max-w-screen-lg border-l border-r border-dashed mx-auto px-8',
+        'max-w-screen-lg border-l border-r border-dashed mx-auto px-4 sm:px-6 lg:px-8',
         className,
       )}
       {...rest}
