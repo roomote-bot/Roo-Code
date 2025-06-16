@@ -33,8 +33,14 @@ export class DirectiveStreamingParser {
 					"isInsideParameterCodeBlock" in activeHandler &&
 					(activeHandler as any).isInsideParameterCodeBlock())
 
-			// Only process XML tags if NOT inside code block
-			if (!insideCodeBlock) {
+			// Check if we're inside a tool parameter (but not at the parameter level itself)
+			const insideToolParameter =
+				activeHandler &&
+				activeHandler.constructor.name === "ToolDirectiveHandler" &&
+				(activeHandler as any).currentContext === "param"
+
+			// Only process XML tags if NOT inside code block AND NOT inside tool parameter
+			if (!insideCodeBlock && !insideToolParameter) {
 				context.hasXmlTags = true
 				tagStack.push(node.name)
 				const handler = this.registry.getHandler(node.name)
@@ -47,7 +53,7 @@ export class DirectiveStreamingParser {
 					activeHandler.onOpenTag(node, context)
 				}
 			} else {
-				// Inside code block - treat as plain text
+				// Inside code block or tool parameter - treat as plain text
 				const tagText = `<${node.name}${this.attributesToString(node.attributes)}>`
 				if (activeHandler) {
 					activeHandler.onText(tagText, context)
@@ -65,7 +71,14 @@ export class DirectiveStreamingParser {
 					"isInsideParameterCodeBlock" in activeHandler &&
 					(activeHandler as any).isInsideParameterCodeBlock())
 
-			if (!insideCodeBlock) {
+			// Check if we're inside a tool parameter (but not at the parameter level itself)
+			const insideToolParameter =
+				activeHandler &&
+				activeHandler.constructor.name === "ToolDirectiveHandler" &&
+				(activeHandler as any).currentContext === "param" &&
+				tagName !== (activeHandler as any).currentParamName
+
+			if (!insideCodeBlock && !insideToolParameter) {
 				// Normal XML processing
 				if (activeHandler) {
 					activeHandler.onCloseTag(tagName, context)
@@ -76,7 +89,7 @@ export class DirectiveStreamingParser {
 				}
 				tagStack.pop()
 			} else {
-				// Inside code block - treat as plain text
+				// Inside code block or tool parameter - treat as plain text
 				if (activeHandler) {
 					activeHandler.onText(`</${tagName}>`, context)
 				} else {

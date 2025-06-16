@@ -7,9 +7,9 @@ import { CodeBlockStateMachine } from "../CodeBlockStateMachine"
 export class ToolDirectiveHandler extends BaseDirectiveHandler {
 	readonly tagName: string
 	private currentToolDirective?: ToolDirective
-	private currentParamName?: ToolParamName
+	public currentParamName?: ToolParamName
 	private currentParamValue = ""
-	private currentContext: "param" | "none" = "none"
+	public currentContext: "param" | "none" = "none"
 	private stateMachine = new CodeBlockStateMachine()
 	private paramCodeBlockState: CodeBlockState = CodeBlockState.OUTSIDE
 

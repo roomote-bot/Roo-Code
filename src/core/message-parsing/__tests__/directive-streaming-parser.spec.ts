@@ -209,4 +209,92 @@ suite("DirectiveStreamingParser", () => {
 			expect((attemptCompletion as any).params.result).toContain("<log_message>")
 		}
 	})
+
+	test("should handle real-world scenario with log message example", () => {
+		// Test a scenario similar to what's shown in the user's image
+		const input = `I'm happy to provide an example of the XML format for the log_message directive.
+
+<log_message>
+<message>This is an example log message for demonstration purposes</message>
+<level>info</level>
+</log_message>
+
+<attempt_completion>
+<result>I've provided an example of the XML format for the log_message directive.</result>
+</attempt_completion>`
+
+		const result = DirectiveStreamingParser.parse(input)
+
+		// Should have text, log_message, and attempt_completion
+		expect(result).toHaveLength(3)
+		expect(result[0].type).toBe("text")
+		expect(result[1].type).toBe("log_message")
+		expect(result[2].type).toBe("tool_use")
+
+		// The log message should be processed as a real directive (this is correct behavior)
+		expect((result[1] as any).message).toBe("This is an example log message for demonstration purposes")
+		expect((result[1] as any).level).toBe("info")
+	})
+
+	test("should NOT process log messages inside code blocks in attempt_completion", () => {
+		// Test the problematic scenario
+		const input = `<attempt_completion>
+<result>Here's an example:
+
+\`\`\`xml
+<log_message>
+<message>This should NOT be processed as a log directive</message>
+<level>debug</level>
+</log_message>
+\`\`\`
+
+That's the format.</result>
+</attempt_completion>`
+
+		const result = DirectiveStreamingParser.parse(input)
+
+		// Should only have the attempt_completion directive
+		expect(result).toHaveLength(1)
+		expect(result[0].type).toBe("tool_use")
+		expect((result[0] as any).name).toBe("attempt_completion")
+
+		// The result should contain the log_message as plain text
+		expect((result[0] as any).params.result).toContain("<log_message>")
+		expect((result[0] as any).params.result).toContain("This should NOT be processed as a log directive")
+
+		// Most importantly: NO separate log_message directive should exist
+		const logMessages = result.filter((r) => r.type === "log_message")
+		expect(logMessages).toHaveLength(0)
+	})
+
+	test("should handle log message directly inside attempt_completion result", () => {
+		// Test the actual scenario from the user's image - log message directly inside attempt_completion result
+		const input = `<attempt_completion>
+<result>I'm happy to provide an example of the XML format for the log_message directive.
+
+<log_message>
+<message>This is an example log message for demonstration purposes</message>
+<level>info</level>
+</log_message>
+
+I've provided an example of the XML format for the log_message directive.</result>
+</attempt_completion>`
+
+		const result = DirectiveStreamingParser.parse(input)
+
+		console.log("Result:", JSON.stringify(result, null, 2))
+
+		// Should only have the attempt_completion directive
+		expect(result).toHaveLength(1)
+		expect(result[0].type).toBe("tool_use")
+		expect((result[0] as any).name).toBe("attempt_completion")
+
+		// The result should contain the log_message as plain text (NOT as a separate directive)
+		expect((result[0] as any).params.result).toContain("<log_message>")
+		expect((result[0] as any).params.result).toContain("This is an example log message for demonstration purposes")
+
+		// Most importantly: NO separate log_message directive should exist
+		const logMessages = result.filter((r) => r.type === "log_message")
+		expect(logMessages).toHaveLength(0)
+	})
 })
