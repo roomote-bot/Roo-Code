@@ -1,4 +1,4 @@
-import { HTMLAttributes, ChangeEvent } from "react"
+import { HTMLAttributes } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { AlertCircle } from "lucide-react"
@@ -48,8 +48,8 @@ export const DiagnosticsSettings = ({
 				<div>
 					<VSCodeCheckbox
 						checked={includeDiagnostics}
-						onChange={(e: ChangeEvent<HTMLInputElement>) =>
-							setCachedStateField("includeDiagnostics", e.target.checked)
+						onChange={(e: Event) =>
+							setCachedStateField("includeDiagnostics", (e.target as HTMLInputElement).checked)
 						}
 						data-testid="include-diagnostics-checkbox">
 						<label className="block font-medium mb-1">
