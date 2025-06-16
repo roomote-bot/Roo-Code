@@ -48,9 +48,7 @@ export const DiagnosticsSettings = ({
 				<div>
 					<VSCodeCheckbox
 						checked={includeDiagnostics}
-						onChange={(e: Event) =>
-							setCachedStateField("includeDiagnostics", (e.target as HTMLInputElement).checked)
-						}
+						onChange={(e: any) => setCachedStateField("includeDiagnostics", e.target.checked)}
 						data-testid="include-diagnostics-checkbox">
 						<label className="block font-medium mb-1">
 							{t("settings:diagnostics.includeDiagnostics.label")}
