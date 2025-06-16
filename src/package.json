@@ -3,7 +3,7 @@
 	"displayName": "%extension.displayName%",
 	"description": "%extension.description%",
 	"publisher": "RooVeterinaryInc",
-	"version": "3.20.3",
+	"version": "3.20.4",
 	"icon": "assets/icons/icon.png",
 	"galleryBanner": {
 		"color": "#617A91",
@@ -347,7 +347,7 @@
 				},
 				"roo-cline.includeDiagnostics": {
 					"type": "boolean",
-					"default": true,
+					"default": false,
 					"description": "%settings.includeDiagnostics.description%"
 				},
 				"roo-cline.maxDiagnosticsCount": {

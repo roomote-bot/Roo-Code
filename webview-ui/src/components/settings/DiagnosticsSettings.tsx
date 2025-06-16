@@ -1,4 +1,4 @@
-import { HTMLAttributes } from "react"
+import { HTMLAttributes, ChangeEvent } from "react"
 import { useAppTranslation } from "@/i18n/TranslationContext"
 import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 import { AlertCircle } from "lucide-react"
@@ -48,7 +48,9 @@ export const DiagnosticsSettings = ({
 				<div>
 					<VSCodeCheckbox
 						checked={includeDiagnostics}
-						onChange={(e: any) => setCachedStateField("includeDiagnostics", e.target.checked)}
+						onChange={(e: ChangeEvent<HTMLInputElement>) =>
+							setCachedStateField("includeDiagnostics", e.target.checked)
+						}
 						data-testid="include-diagnostics-checkbox">
 						<label className="block font-medium mb-1">
 							{t("settings:diagnostics.includeDiagnostics.label")}
@@ -71,7 +73,11 @@ export const DiagnosticsSettings = ({
 									max={200}
 									step={1}
 									value={[maxDiagnosticsCount ?? 50]}
-									onValueChange={([value]) => setCachedStateField("maxDiagnosticsCount", value)}
+									onValueChange={([value]) => {
+										if (value >= 0 && value <= 200) {
+											setCachedStateField("maxDiagnosticsCount", value)
+										}
+									}}
 									data-testid="max-diagnostics-count-slider"
 								/>
 								<span className="w-10">{maxDiagnosticsCount ?? 50}</span>

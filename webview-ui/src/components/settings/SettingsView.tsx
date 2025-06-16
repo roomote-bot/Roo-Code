@@ -64,6 +64,7 @@ import { LanguageSettings } from "./LanguageSettings"
 import { About } from "./About"
 import { Section } from "./Section"
 import PromptsSettings from "./PromptsSettings"
+import { DiagnosticsSettings } from "./DiagnosticsSettings"
 import { cn } from "@/lib/utils"
 
 export const settingsTabsContainer = "flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden"
@@ -84,6 +85,7 @@ const sectionNames = [
 	"checkpoints",
 	"notifications",
 	"contextManagement",
+	"diagnostics",
 	"terminal",
 	"prompts",
 	"experimental",
@@ -172,6 +174,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 		codebaseIndexConfig,
 		codebaseIndexModels,
 		customSupportPrompts,
+		includeDiagnostics,
+		maxDiagnosticsCount,
+		diagnosticsFilter,
 	} = cachedState
 
 	const apiConfiguration = useMemo(() => cachedState.apiConfiguration ?? {}, [cachedState.apiConfiguration])
@@ -315,6 +320,9 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			vscode.postMessage({ type: "upsertApiConfiguration", text: currentApiConfigName, apiConfiguration })
 			vscode.postMessage({ type: "telemetrySetting", text: telemetrySetting })
 			vscode.postMessage({ type: "codebaseIndexConfig", values: codebaseIndexConfig })
+			vscode.postMessage({ type: "includeDiagnostics", bool: includeDiagnostics })
+			vscode.postMessage({ type: "maxDiagnosticsCount", value: maxDiagnosticsCount })
+			vscode.postMessage({ type: "diagnosticsFilter", values: diagnosticsFilter })
 			setChangeDetected(false)
 		}
 	}
@@ -390,6 +398,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "checkpoints", icon: GitBranch },
 			{ id: "notifications", icon: Bell },
 			{ id: "contextManagement", icon: Database },
+			{ id: "diagnostics", icon: AlertTriangle },
 			{ id: "terminal", icon: SquareTerminal },
 			{ id: "prompts", icon: MessageSquare },
 			{ id: "experimental", icon: FlaskConical },
@@ -644,6 +653,16 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							showRooIgnoredFiles={showRooIgnoredFiles}
 							maxReadFileLine={maxReadFileLine}
 							maxConcurrentFileReads={maxConcurrentFileReads}
+							setCachedStateField={setCachedStateField}
+						/>
+					)}
+
+					{/* Diagnostics Section */}
+					{activeTab === "diagnostics" && (
+						<DiagnosticsSettings
+							includeDiagnostics={includeDiagnostics}
+							maxDiagnosticsCount={maxDiagnosticsCount}
+							diagnosticsFilter={diagnosticsFilter}
 							setCachedStateField={setCachedStateField}
 						/>
 					)}

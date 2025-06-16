@@ -81,20 +81,15 @@ export async function diagnosticsToProblemsString(
 	},
 ): Promise<string> {
 	// Use provided options or fall back to VSCode configuration
-	const includeDiagnostics =
-		options?.includeDiagnostics ??
-		vscode.workspace.getConfiguration("roo-cline").get<boolean>("includeDiagnostics", false)
+	const config = vscode.workspace.getConfiguration("roo-cline")
+	const includeDiagnostics = options?.includeDiagnostics ?? config.get<boolean>("includeDiagnostics", false)
 
 	if (!includeDiagnostics) {
 		return ""
 	}
 
-	const maxDiagnosticsCount =
-		options?.maxDiagnosticsCount ??
-		vscode.workspace.getConfiguration("roo-cline").get<number>("maxDiagnosticsCount", 5)
-	const diagnosticsFilter =
-		options?.diagnosticsFilter ??
-		vscode.workspace.getConfiguration("roo-cline").get<string[]>("diagnosticsFilter", ["error", "warning"])
+	const maxDiagnosticsCount = options?.maxDiagnosticsCount ?? config.get<number>("maxDiagnosticsCount", 50)
+	const diagnosticsFilter = options?.diagnosticsFilter ?? config.get<string[]>("diagnosticsFilter", [])
 
 	const documents = new Map<vscode.Uri, vscode.TextDocument>()
 	const fileStats = new Map<vscode.Uri, vscode.FileStat>()
@@ -112,10 +107,10 @@ export async function diagnosticsToProblemsString(
 				const code = typeof d.code === "object" ? d.code.value : d.code
 				const filterKey = source ? `${source} ${code || ""}`.trim() : `${code || ""}`.trim()
 
-				// Check if this diagnostic should be filtered out
-				return !diagnosticsFilter.some((filter) => {
-					// Support partial matching
-					return filterKey.includes(filter) || d.message.includes(filter)
+				// Check if this diagnostic matches any filter (exact match)
+				return diagnosticsFilter.some((filter) => {
+					// Exact matching for filter key
+					return filterKey === filter || (filter && filterKey.startsWith(filter + " "))
 				})
 			})
 			.sort((a, b) => a.range.start.line - b.range.start.line)

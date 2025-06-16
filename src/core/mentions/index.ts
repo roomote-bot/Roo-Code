@@ -248,7 +248,7 @@ async function getFileOrFolderContent(
 async function getWorkspaceProblems(cwd: string): Promise<string> {
 	// Check if diagnostics are enabled
 	const config = vscode.workspace.getConfiguration("roo-cline")
-	const includeDiagnostics = config.get<boolean>("includeDiagnostics", true)
+	const includeDiagnostics = config.get<boolean>("includeDiagnostics", false)
 
 	if (!includeDiagnostics) {
 		return "Diagnostics are disabled in settings."
