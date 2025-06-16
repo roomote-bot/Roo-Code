@@ -123,4 +123,18 @@ suite("DirectiveStreamingParser", () => {
 		expect(result[0].type).toBe("text")
 		expect(result[1].type).toBe("log_message")
 	})
+
+	test("should not parse directives inside ```xml code blocks", () => {
+		const input =
+			"Here's the basic format:\n\n```xml\n<log_message>\n<message>This is a debug message for detailed troubleshooting information</message>\n<level>debug</level>\n</log_message>\n```\n\nThat should be treated as code."
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toEqual([
+			{
+				type: "text",
+				content:
+					"Here's the basic format:\n\n```xml\n<log_message>\n<message>This is a debug message for detailed troubleshooting information</message>\n<level>debug</level>\n</log_message>\n```\n\nThat should be treated as code.",
+				partial: true,
+			} as TextDirective,
+		])
+	})
 })
