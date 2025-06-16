@@ -257,13 +257,22 @@ export function isToolAllowedForMode(
 
 		// For the edit group, check file regex if specified
 		if (groupName === "edit" && options.fileRegex) {
+			// Check direct path parameter
 			const filePath = toolParams?.path
-			if (
-				filePath &&
-				(toolParams.diff || toolParams.content || toolParams.operations) &&
-				!doesFileMatchRegex(filePath, options.fileRegex)
-			) {
+			if (filePath && !doesFileMatchRegex(filePath, options.fileRegex)) {
 				throw new FileRestrictionError(mode.name, options.fileRegex, options.description, filePath)
+			}
+
+			// For apply_diff with multi-file support, also check paths in args parameter
+			if (tool === "apply_diff" && toolParams?.args && typeof toolParams.args === "string") {
+				// Extract all file paths from the XML args
+				const pathMatches = toolParams.args.matchAll(/<path>([^<]+)<\/path>/g)
+				for (const match of pathMatches) {
+					const xmlPath = match[1]
+					if (xmlPath && !doesFileMatchRegex(xmlPath, options.fileRegex)) {
+						throw new FileRestrictionError(mode.name, options.fileRegex, options.description, xmlPath)
+					}
+				}
 			}
 		}
 

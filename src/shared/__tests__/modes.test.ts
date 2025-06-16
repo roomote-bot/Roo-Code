@@ -94,54 +94,97 @@ describe("isToolAllowedForMode", () => {
 		})
 
 		it("handles partial streaming cases (path only, no content/diff)", () => {
-			// Should allow path-only for matching files (no validation yet since content/diff not provided)
-			expect(
-				isToolAllowedForMode("write_to_file", "markdown-editor", customModes, undefined, {
-					path: "test.js",
-				}),
-			).toBe(true)
+			// Should enforce file restrictions even when only path is provided (streaming scenario)
+			// This prevents bypassing restrictions when parameters arrive separately
 
-			expect(
-				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
-					path: "test.js",
-				}),
-			).toBe(true)
-
-			// Should allow path-only for architect mode too
-			expect(
-				isToolAllowedForMode("write_to_file", "architect", [], undefined, {
-					path: "test.js",
-				}),
-			).toBe(true)
-		})
-
-		it("applies restrictions to both write_to_file and apply_diff", () => {
-			// Test write_to_file
-			const writeResult = isToolAllowedForMode("write_to_file", "markdown-editor", customModes, undefined, {
-				path: "test.md",
-				content: "# Test",
-			})
-			expect(writeResult).toBe(true)
-
-			// Test apply_diff
-			const diffResult = isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
-				path: "test.md",
-				diff: "- old\n+ new",
-			})
-			expect(diffResult).toBe(true)
-
-			// Test both with non-matching file
+			// Non-matching files should be rejected immediately when path is provided
 			expect(() =>
 				isToolAllowedForMode("write_to_file", "markdown-editor", customModes, undefined, {
 					path: "test.js",
-					content: "console.log('test')",
 				}),
 			).toThrow(FileRestrictionError)
 
 			expect(() =>
 				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
 					path: "test.js",
+				}),
+			).toThrow(FileRestrictionError)
+
+			// Matching files should be allowed even with path-only
+			expect(
+				isToolAllowedForMode("write_to_file", "markdown-editor", customModes, undefined, {
+					path: "test.md",
+				}),
+			).toBe(true)
+
+			expect(
+				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
+					path: "test.md",
+				}),
+			).toBe(true)
+
+			// Architect mode (built-in) allows markdown files
+			expect(
+				isToolAllowedForMode("write_to_file", "architect", [], undefined, {
+					path: "test.md",
+				}),
+			).toBe(true)
+		})
+
+		it("applies restrictions to all edit tools", () => {
+			// Test all edit tools with matching files
+			const editTools = ["write_to_file", "apply_diff", "insert_content", "search_and_replace"]
+
+			editTools.forEach((tool) => {
+				// Matching file should be allowed
+				const params: any = { path: "test.md" }
+				if (tool === "write_to_file") params.content = "# Test"
+				if (tool === "apply_diff") params.diff = "- old\n+ new"
+				if (tool === "insert_content") params.content = "new line"
+				if (tool === "search_and_replace") {
+					params.search = "old"
+					params.replace = "new"
+				}
+
+				expect(isToolAllowedForMode(tool as any, "markdown-editor", customModes, undefined, params)).toBe(true)
+
+				// Non-matching file should be rejected
+				params.path = "test.js"
+				expect(() =>
+					isToolAllowedForMode(tool as any, "markdown-editor", customModes, undefined, params),
+				).toThrow(FileRestrictionError)
+			})
+		})
+
+		it("prevents bypassing restrictions via parameter streaming", () => {
+			// This test specifically addresses the bug where apply_diff could bypass
+			// file restrictions when path arrives before diff content
+
+			// Step 1: Path arrives first (should be rejected for non-matching files)
+			expect(() =>
+				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
+					path: "test.js", // Non-matching file
+				}),
+			).toThrow(FileRestrictionError)
+
+			// Step 2: Even when diff arrives later, it should still be rejected
+			expect(() =>
+				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
+					path: "test.js",
 					diff: "- old\n+ new",
+				}),
+			).toThrow(FileRestrictionError)
+
+			// Same for other edit tools
+			expect(() =>
+				isToolAllowedForMode("insert_content", "markdown-editor", customModes, undefined, {
+					path: "test.js",
+				}),
+			).toThrow(FileRestrictionError)
+
+			expect(() =>
+				isToolAllowedForMode("search_and_replace", "markdown-editor", customModes, undefined, {
+					path: "test.js",
 				}),
 			).toThrow(FileRestrictionError)
 		})
@@ -203,10 +246,17 @@ describe("isToolAllowedForMode", () => {
 				}),
 			).toBe(true)
 
-			// Test partial streaming cases
-			expect(
+			// Test partial streaming cases - should now reject non-matching files immediately
+			expect(() =>
 				isToolAllowedForMode("write_to_file", "docs-editor", customModesWithDescription, undefined, {
 					path: "test.js",
+				}),
+			).toThrow(FileRestrictionError)
+
+			// But should allow matching files even with path-only
+			expect(
+				isToolAllowedForMode("write_to_file", "docs-editor", customModesWithDescription, undefined, {
+					path: "test.md",
 				}),
 			).toBe(true)
 		})
@@ -246,6 +296,72 @@ describe("isToolAllowedForMode", () => {
 			expect(isToolAllowedForMode("read_file", "architect", [])).toBe(true)
 			expect(isToolAllowedForMode("browser_action", "architect", [])).toBe(true)
 			expect(isToolAllowedForMode("use_mcp_tool", "architect", [])).toBe(true)
+		})
+		it("validates paths in multi-file apply_diff args parameter", () => {
+			// Test multi-file apply_diff with XML args containing non-matching files
+			const argsWithNonMatchingFile = `<args>
+  <file>
+    <path>test.js</path>
+    <diff>
+      <content>- old
++ new</content>
+    </diff>
+  </file>
+</args>`
+
+			expect(() =>
+				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
+					args: argsWithNonMatchingFile,
+				}),
+			).toThrow(FileRestrictionError)
+
+			// Test with multiple files, one non-matching
+			const argsWithMixedFiles = `<args>
+  <file>
+    <path>doc.md</path>
+    <diff>
+      <content>- old
++ new</content>
+    </diff>
+  </file>
+  <file>
+    <path>script.js</path>
+    <diff>
+      <content>- old
++ new</content>
+    </diff>
+  </file>
+</args>`
+
+			expect(() =>
+				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
+					args: argsWithMixedFiles,
+				}),
+			).toThrow(FileRestrictionError)
+
+			// Test with only matching files (should pass)
+			const argsWithMatchingFiles = `<args>
+  <file>
+    <path>doc1.md</path>
+    <diff>
+      <content>- old
++ new</content>
+    </diff>
+  </file>
+  <file>
+    <path>doc2.md</path>
+    <diff>
+      <content>- old
++ new</content>
+    </diff>
+  </file>
+</args>`
+
+			expect(
+				isToolAllowedForMode("apply_diff", "markdown-editor", customModes, undefined, {
+					args: argsWithMatchingFiles,
+				}),
+			).toBe(true)
 		})
 	})
 
