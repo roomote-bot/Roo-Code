@@ -106,6 +106,24 @@
 		"providers": {
 			"groqApiKey": "Groq API 密钥",
 			"getGroqApiKey": "获取 Groq API 密钥"
+		},
+		"diagnostics": {
+			"description": "Configure which diagnostic messages are included in the context.",
+			"includeDiagnostics": {
+				"label": "Include Diagnostics",
+				"description": "Enable to include code diagnostics in the context."
+			},
+			"maxDiagnosticsCount": {
+				"label": "Max Diagnostics",
+				"description": "The maximum number of diagnostics to include."
+			},
+			"diagnosticsFilter": {
+				"label": "Filter",
+				"description": "A comma-separated list of diagnostic sources to include (e.g., eslint, tsc)."
+			}
+		},
+		"sections": {
+			"diagnostics": "Diagnostics"
 		}
 	}
 }

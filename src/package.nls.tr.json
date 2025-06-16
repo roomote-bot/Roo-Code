@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Dil modelinin sağlayıcısı (örn: copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Dil modelinin ailesi (örn: gpt-4)",
 	"settings.customStoragePath.description": "Özel depolama yolu. Varsayılan konumu kullanmak için boş bırakın. Mutlak yolları destekler (örn: 'D:\\RooCodeStorage')",
-	"settings.rooCodeCloudEnabled.description": "Roo Code Cloud'u Etkinleştir."
+	"settings.rooCodeCloudEnabled.description": "Roo Code Cloud'u Etkinleştir.",
+	"settings.includeDiagnostics.description": "API isteklerine tanılama (hatalar/uyarılar) ekleyin. Çok dosyalı özellikler oluştururken geçici hataların yapay zekayı rahatsız etmesini önlemek için bunu devre dışı bırakın.",
+	"settings.maxDiagnosticsCount.description": "API isteklerine dahil edilecek maksimum tanılama sayısı (sınırsız için 0). Jeton kullanımını kontrol etmeye yardımcı olur.",
+	"settings.diagnosticsFilter.description": "Tanılamayı koda veya kaynağa göre filtreleyin. Belirli türleri hariç tutmak için tanılama kodları (ör. 'dart Error', 'eslint/no-unused-vars') ekleyin."
 }

@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "語言模型供應商（例如：copilot）",
 	"settings.vsCodeLmModelSelector.family.description": "語言模型系列（例如：gpt-4）",
 	"settings.customStoragePath.description": "自訂儲存路徑。留空以使用預設位置。支援絕對路徑（例如：'D:\\RooCodeStorage'）",
-	"settings.rooCodeCloudEnabled.description": "啟用 Roo Code Cloud。"
+	"settings.rooCodeCloudEnabled.description": "啟用 Roo Code Cloud。",
+	"settings.includeDiagnostics.description": "在 API 請求中包含診斷資訊（錯誤/警告）。在建立多檔案功能時停用此功能，以避免暫時性錯誤干擾 AI。",
+	"settings.maxDiagnosticsCount.description": "在 API 請求中包含的最大診斷數（0 表示無限制）。有助於控制權杖使用。",
+	"settings.diagnosticsFilter.description": "按代碼或來源篩選診斷資訊。新增診斷代碼（例如 'dart Error'、'eslint/no-unused-vars'）以排除特定類型。"
 }

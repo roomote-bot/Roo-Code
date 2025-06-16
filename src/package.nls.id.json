@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Vendor dari model bahasa (misalnya copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Keluarga dari model bahasa (misalnya gpt-4)",
 	"settings.customStoragePath.description": "Path penyimpanan kustom. Biarkan kosong untuk menggunakan lokasi default. Mendukung path absolut (misalnya 'D:\\RooCodeStorage')",
-	"settings.rooCodeCloudEnabled.description": "Aktifkan Roo Code Cloud."
+	"settings.rooCodeCloudEnabled.description": "Aktifkan Roo Code Cloud.",
+	"settings.includeDiagnostics.description": "Sertakan diagnostik (kesalahan/peringatan) dalam permintaan API. Nonaktifkan ini saat membuat fitur multi-file untuk menghindari kesalahan sementara mengganggu AI.",
+	"settings.maxDiagnosticsCount.description": "Jumlah maksimum diagnostik yang akan disertakan dalam permintaan API (0 untuk tidak terbatas). Membantu mengontrol penggunaan token.",
+	"settings.diagnosticsFilter.description": "Filter diagnostik berdasarkan kode atau sumber. Tambahkan kode diagnostik (misalnya, 'dart Error', 'eslint/no-unused-vars') untuk mengecualikan jenis tertentu."
 }

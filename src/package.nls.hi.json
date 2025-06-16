@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "भाषा मॉडल का विक्रेता (उदा. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "भाषा मॉडल का परिवार (उदा. gpt-4)",
 	"settings.customStoragePath.description": "कस्टम स्टोरेज पाथ। डिफ़ॉल्ट स्थान का उपयोग करने के लिए खाली छोड़ें। पूर्ण पथ का समर्थन करता है (उदा. 'D:\\RooCodeStorage')",
-	"settings.rooCodeCloudEnabled.description": "Roo Code Cloud सक्षम करें।"
+	"settings.rooCodeCloudEnabled.description": "Roo Code Cloud सक्षम करें।",
+	"settings.includeDiagnostics.description": "API अनुरोधों में निदान (त्रुटियाँ/चेतावनी) शामिल करें। अस्थायी त्रुटियों को AI को विचलित करने से बचाने के लिए मल्टी-फ़ाइल सुविधाएँ बनाते समय इसे अक्षम करें।",
+	"settings.maxDiagnosticsCount.description": "API अनुरोधों में शामिल करने के लिए निदान की अधिकतम संख्या (असीमित के लिए 0)। टोकन उपयोग को नियंत्रित करने में मदद करता है।",
+	"settings.diagnosticsFilter.description": "कोड या स्रोत द्वारा निदान फ़िल्टर करें। विशिष्ट प्रकारों को बाहर करने के लिए निदान कोड (जैसे, 'dart Error', 'eslint/no-unused-vars') जोड़ें।"
 }

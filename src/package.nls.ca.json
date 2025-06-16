@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "El proveïdor del model de llenguatge (p. ex. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "La família del model de llenguatge (p. ex. gpt-4)",
 	"settings.customStoragePath.description": "Ruta d'emmagatzematge personalitzada. Deixeu-la buida per utilitzar la ubicació predeterminada. Admet rutes absolutes (p. ex. 'D:\\RooCodeStorage')",
-	"settings.rooCodeCloudEnabled.description": "Habilitar Roo Code Cloud."
+	"settings.rooCodeCloudEnabled.description": "Habilitar Roo Code Cloud.",
+	"settings.includeDiagnostics.description": "Inclou diagnòstics (errors/avisos) a les sol·licituds de l'API. Desactiva-ho en crear funcions de diversos fitxers per evitar que errors temporals distreguin la IA.",
+	"settings.maxDiagnosticsCount.description": "Nombre màxim de diagnòstics a incloure a les sol·licituds de l'API (0 per il·limitat). Ajuda a controlar l'ús de fitxes.",
+	"settings.diagnosticsFilter.description": "Filtra els diagnòstics per codi o font. Afegeix codis de diagnòstic (p. ex., 'dart Error', 'eslint/no-unused-vars') per excloure tipus específics."
 }

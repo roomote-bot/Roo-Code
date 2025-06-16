@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Dostawca modelu językowego (np. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Rodzina modelu językowego (np. gpt-4)",
 	"settings.customStoragePath.description": "Niestandardowa ścieżka przechowywania. Pozostaw puste, aby użyć domyślnej lokalizacji. Obsługuje ścieżki bezwzględne (np. 'D:\\RooCodeStorage')",
-	"settings.rooCodeCloudEnabled.description": "Włącz Roo Code Cloud."
+	"settings.rooCodeCloudEnabled.description": "Włącz Roo Code Cloud.",
+	"settings.includeDiagnostics.description": "Dołącz diagnostykę (błędy/ostrzeżenia) do żądań API. Wyłącz tę opcję podczas tworzenia funkcji wieloplikowych, aby uniknąć rozpraszania AI przez tymczasowe błędy.",
+	"settings.maxDiagnosticsCount.description": "Maksymalna liczba diagnostyk do uwzględnienia w żądaniach API (0 dla nieograniczonej). Pomaga kontrolować zużycie tokenów.",
+	"settings.diagnosticsFilter.description": "Filtruj diagnostykę według kodu lub źródła. Dodaj kody diagnostyczne (np. 'dart Error', 'eslint/no-unused-vars'), aby wykluczyć określone typy."
 }

@@ -30,5 +30,8 @@
 	"settings.vsCodeLmModelSelector.vendor.description": "Der Anbieter des Sprachmodells (z.B. copilot)",
 	"settings.vsCodeLmModelSelector.family.description": "Die Familie des Sprachmodells (z.B. gpt-4)",
 	"settings.customStoragePath.description": "Benutzerdefinierter Speicherpfad. Leer lassen, um den Standardspeicherort zu verwenden. Unterstützt absolute Pfade (z.B. 'D:\\RooCodeStorage')",
-	"settings.rooCodeCloudEnabled.description": "Aktiviere Roo Code Cloud."
+	"settings.rooCodeCloudEnabled.description": "Aktiviere Roo Code Cloud.",
+	"settings.includeDiagnostics.description": "Diagnosen (Fehler/Warnungen) in API-Anfragen einschließen. Deaktivieren Sie dies beim Erstellen von Funktionen mit mehreren Dateien, um zu vermeiden, dass temporäre Fehler die KI ablenken.",
+	"settings.maxDiagnosticsCount.description": "Maximale Anzahl von Diagnosen, die in API-Anfragen eingeschlossen werden sollen (0 für unbegrenzt). Hilft bei der Kontrolle der Token-Nutzung.",
+	"settings.diagnosticsFilter.description": "Diagnosen nach Code oder Quelle filtern. Fügen Sie Diagnosecodes hinzu (z.B. 'dart Error', 'eslint/no-unused-vars'), um bestimmte Typen auszuschließen."
 }
