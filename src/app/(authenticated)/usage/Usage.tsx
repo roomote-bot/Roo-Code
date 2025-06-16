@@ -12,7 +12,7 @@ import { type Filter, type ViewMode, viewModes } from './types';
 import { Developers } from './Developers';
 import { Models } from './Models';
 import { Tasks } from './Tasks';
-import { TaskDrawer } from './TaskDrawer';
+import { TaskModal } from './TaskModal';
 
 type UsageProps = {
   userRole?: 'admin' | 'member';
@@ -89,7 +89,9 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
           <Models onFilter={onFilter} />
         )}
       </div>
-      {task && <TaskDrawer task={task} onClose={() => setTask(null)} />}
+      {task && (
+        <TaskModal task={task} open={!!task} onClose={() => setTask(null)} />
+      )}
     </>
   );
 };

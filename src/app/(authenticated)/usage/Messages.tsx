@@ -19,17 +19,17 @@ export const Messages = ({ messages }: MessagesProps) => {
   );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {conversation.map((message) => (
         <div
           key={message.id}
           className={cn(
-            'flex flex-col gap-2 rounded-lg p-3',
+            'flex flex-col gap-3 rounded-lg p-4',
             message.role === 'user' ? 'bg-primary/10' : 'bg-secondary/10',
           )}
         >
-          <div className="flex flex-row items-center justify-between gap-1 text-xs font-medium text-muted-foreground">
-            <div className="flex items-center gap-1">
+          <div className="flex flex-row items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
+            <div className="flex items-center gap-2">
               <div>{message.name}</div>
               <div>&middot;</div>
               <div>{message.timestamp}</div>
@@ -40,7 +40,7 @@ export const Messages = ({ messages }: MessagesProps) => {
               </div>
             )}
           </div>
-          <div className="text-sm markdown-prose">
+          <div className="text-sm leading-relaxed markdown-prose">
             <ReactMarkdown>{message.text}</ReactMarkdown>
           </div>
         </div>
