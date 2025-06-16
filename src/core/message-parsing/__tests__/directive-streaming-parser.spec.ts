@@ -64,4 +64,18 @@ suite("DirectiveStreamingParser", () => {
 			} as ToolDirective,
 		])
 	})
+
+	test("should not parse directives inside triple backticks as directives", () => {
+		const input =
+			"Some text with\n```\n<log_message>\n<message>This is a warning message</message>\n<level>warn</level>\n</log_message>\n```\nMore text"
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toEqual([
+			{
+				type: "text",
+				content:
+					"Some text with\n```\n<log_message>\n<message>This is a warning message</message>\n<level>warn</level>\n</log_message>\n```\nMore text",
+				partial: true,
+			} as TextDirective,
+		])
+	})
 })
