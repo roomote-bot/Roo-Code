@@ -1,4 +1,4 @@
-import { logLevels } from "@roo-code/types"
+export const logLevels = ["debug", "info", "warn", "error"] as const
 
 /**
  * Represents a log message directive from the assistant to the system.

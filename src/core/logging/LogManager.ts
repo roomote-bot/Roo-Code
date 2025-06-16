@@ -1,4 +1,4 @@
-import { logLevels } from "@roo-code/types"
+import { logLevels } from "../message-parsing/directives"
 import { ClineProvider } from "../webview/ClineProvider"
 
 /**
