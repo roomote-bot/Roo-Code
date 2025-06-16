@@ -199,7 +199,7 @@ describe("writeToFileTool", () => {
 		mockCline.rooIgnoreController.validateAccess.mockReturnValue(accessAllowed)
 
 		// Create a tool use object
-		const ToolDirective: ToolDirective = {
+		const ToolDirective: WriteToFileToolDirective = {
 			type: "tool_use",
 			name: "write_to_file",
 			params: {
@@ -213,7 +213,7 @@ describe("writeToFileTool", () => {
 
 		await writeToFileTool(
 			mockCline,
-			ToolDirective as WriteToFileToolDirective,
+			ToolDirective,
 			mockAskApproval,
 			mockHandleError,
 			(result: ToolResponse) => {
