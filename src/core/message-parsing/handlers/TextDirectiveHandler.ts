@@ -1,10 +1,12 @@
 import { BaseDirectiveHandler } from "./BaseDirectiveHandler"
-import { ParseContext } from "../ParseContext"
+import { ParseContext, CodeBlockState } from "../ParseContext"
 import { TextDirective } from "../directives"
+import { CodeBlockStateMachine } from "../CodeBlockStateMachine"
 
 export class TextDirectiveHandler extends BaseDirectiveHandler {
 	readonly tagName = "text"
 	private currentState: "text" | "none" = "text"
+	private stateMachine = new CodeBlockStateMachine()
 
 	override canHandle(tagName: string): boolean {
 		return false // Text handler is fallback
@@ -12,7 +14,12 @@ export class TextDirectiveHandler extends BaseDirectiveHandler {
 
 	override onText(text: string, context: ParseContext): void {
 		if (this.currentState === "text") {
-			context.currentText += text
+			// Process text through the code block state machine
+			const result = this.stateMachine.processText(text, context)
+
+			// Always add processed text to current text
+			// The suppressXmlParsing flag is used by the parser to decide whether to process XML tags
+			context.currentText += result.processedText
 		}
 	}
 
@@ -21,6 +28,19 @@ export class TextDirectiveHandler extends BaseDirectiveHandler {
 	}
 
 	override onEnd(context: ParseContext): void {
+		// Handle any remaining code block content
+		if (context.codeBlockContent) {
+			context.currentText += context.codeBlockContent
+			context.codeBlockContent = ""
+		}
+
+		// Handle any pending backticks that weren't completed
+		if (context.pendingBackticks) {
+			context.currentText += context.pendingBackticks
+			context.pendingBackticks = ""
+		}
+
+		// Create text directive if we have content
 		if (context.currentText.trim()) {
 			context.contentBlocks.push({
 				type: "text",
@@ -28,5 +48,12 @@ export class TextDirectiveHandler extends BaseDirectiveHandler {
 				partial: true,
 			} as TextDirective)
 		}
+	}
+
+	/**
+	 * Check if we're currently inside a code block
+	 */
+	isInsideCodeBlock(context: ParseContext): boolean {
+		return context.codeBlockState === CodeBlockState.INSIDE
 	}
 }

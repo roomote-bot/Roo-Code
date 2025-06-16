@@ -78,4 +78,49 @@ suite("DirectiveStreamingParser", () => {
 			} as TextDirective,
 		])
 	})
+
+	test("should handle mixed content with code blocks and directives", () => {
+		const input =
+			"Some text ```\n<log_message>\n<message>This is code</message>\n</log_message>\n```\nMore text\n<log_message>\n<message>This is a real directive</message>\n<level>info</level>\n</log_message>"
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toHaveLength(2)
+		expect(result[0].type).toBe("text")
+		expect((result[0] as TextDirective).content).toContain("<log_message>")
+		expect(result[1].type).toBe("log_message")
+	})
+
+	test("should handle multiple code blocks in single message", () => {
+		const input =
+			"Text ```\n<directive1>content1</directive1>\n``` middle ```\n<directive2>content2</directive2>\n``` end"
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toEqual([
+			{
+				type: "text",
+				content:
+					"Text ```\n<directive1>content1</directive1>\n``` middle ```\n<directive2>content2</directive2>\n``` end",
+				partial: true,
+			} as TextDirective,
+		])
+	})
+
+	test("should handle nested backticks inside code blocks", () => {
+		const input = "Text ```\nSome `nested` backticks here\n``` end"
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toEqual([
+			{
+				type: "text",
+				content: "Text ```\nSome `nested` backticks here\n``` end",
+				partial: true,
+			} as TextDirective,
+		])
+	})
+
+	test("should not treat incomplete backticks as code blocks", () => {
+		const input =
+			"Text with `single` and ``double`` backticks <log_message><message>Should be parsed</message><level>info</level></log_message>"
+		const result = DirectiveStreamingParser.parse(input)
+		expect(result).toHaveLength(2)
+		expect(result[0].type).toBe("text")
+		expect(result[1].type).toBe("log_message")
+	})
 })
