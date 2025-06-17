@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, vi } from "vitest"
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
+// npx vitest run src/__tests__/TelemetryClient.test.ts
+
 import { TelemetryEventName } from "@roo-code/types"
+
 import { TelemetryClient } from "../TelemetryClient"
-import { AuthService } from "../AuthService"
-import { SettingsService } from "../SettingsService"
 
 // Mock dependencies
 vi.mock("../AuthService")
