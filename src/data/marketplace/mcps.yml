@@ -1113,6 +1113,78 @@ items:
       - name: 'Exa API Key'
         key: 'EXA_API_KEY'
         placeholder: 'your_exa_api_key_here'
+  - id: 'notion'
+    name: 'Notion'
+    description: "Official Notion MCP Server that provides seamless integration with Notion APIs, enabling advanced automation and interaction capabilities for managing pages, databases, comments, and content within Notion workspaces."
+    author: 'makenotion'
+    url: 'https://github.com/makenotion/notion-mcp-server'
+    tags:
+      - 'notion'
+      - 'productivity'
+      - 'note-taking'
+      - 'database-management'
+      - 'content-management'
+      - 'collaboration'
+      - 'workspace'
+      - 'api-integration'
+    prerequisites:
+      - 'Notion account with integration access'
+    content:
+      - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
+        content: |
+          {
+            "command": "npx",
+            "args": ["-y", "@notionhq/notion-mcp-server"],
+            "env": {
+              "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer {{NOTION_API_KEY}}\", \"Notion-Version\": \"2022-06-28\"}"
+            }
+          }
+      - name: 'Docker Hub Image'
+        prerequisites:
+          - 'Docker'
+        content: |
+          {
+            "command": "docker",
+            "args": [
+              "run",
+              "--rm",
+              "-i",
+              "-e", "OPENAPI_MCP_HEADERS",
+              "mcp/notion"
+            ],
+            "env": {
+              "OPENAPI_MCP_HEADERS": "{\"Authorization\": \"Bearer {{NOTION_API_KEY}}\", \"Notion-Version\": \"2022-06-28\"}"
+            }
+          }
+      - name: 'Docker Local Build'
+        prerequisites:
+          - 'Docker'
+        content: |
+          {
+            "command": "docker",
+            "args": [
+              "run",
+              "--rm",
+              "-i",
+              "-e",
+              "OPENAPI_MCP_HEADERS={\"Authorization\": \"Bearer {{NOTION_API_KEY}}\", \"Notion-Version\": \"2022-06-28\"}",
+              "notion-mcp-server"
+            ]
+          }
+      - name: 'Smithery Installation'
+        prerequisites:
+          - 'Node.js'
+        content: |
+          {
+            "command": "npx",
+            "args": ["-y", "@smithery/cli", "install", "@makenotion/notion-mcp-server", "--client", "claude"]
+          }
+    parameters:
+      - name: 'Notion API Key'
+        key: 'NOTION_API_KEY'
+        placeholder: 'ntn_your_notion_integration_token'
   - id: 'jetbrains'
     name: 'JetBrains IDE'
     description: "Proxies requests between AI assistants and JetBrains IDEs, enabling direct interaction with the IDE's built-in webserver for development tasks."
