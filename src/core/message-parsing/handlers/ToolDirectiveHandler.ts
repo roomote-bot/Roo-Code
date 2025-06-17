@@ -3,6 +3,7 @@ import { BaseDirectiveHandler } from "./BaseDirectiveHandler"
 import { ParseContext, CodeBlockState } from "../ParseContext"
 import { ToolDirective, ToolParamName } from "../directives"
 import { CodeBlockStateMachine } from "../CodeBlockStateMachine"
+import { ToolName } from "@roo-code/types"
 
 export class ToolDirectiveHandler extends BaseDirectiveHandler {
 	readonly tagName: string
@@ -23,7 +24,7 @@ export class ToolDirectiveHandler extends BaseDirectiveHandler {
 			this.flushCurrentText(context)
 			this.currentToolDirective = {
 				type: "tool_use",
-				name: this.tagName as any,
+				name: this.tagName as ToolName,
 				params: {},
 				partial: true,
 			}
