@@ -12,6 +12,7 @@ services:
       - POSTGRES_PASSWORD=password
       - POSTGRES_DATABASES=roo_code_development,roo_code_test
   clickhouse:
+    container_name: clickhouse
     image: clickhouse/clickhouse-server
     ports:
       - "8123:8123"

@@ -9,6 +9,7 @@ import {
 
 import type { AnyTimePeriod } from '@/types';
 import { analytics } from '@/lib/server';
+import { tokenSumSql } from '@/lib';
 import { type User, getUsersById } from '@/db/server';
 import { validateAnalyticsAccess } from '@/actions/auth';
 
@@ -108,7 +109,7 @@ export const getUsage = async ({
         type,
         COUNT(1) as events,
         COUNT(distinct userId) as users,
-        SUM(COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0)) AS tokens,
+        SUM(${tokenSumSql()}) AS tokens,
         SUM(COALESCE(cost, 0)) AS cost
       FROM events
       WHERE
@@ -186,7 +187,7 @@ export const getDeveloperUsage = async ({
         userId,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasksStarted,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_COMPLETED}' THEN 1 ELSE 0 END) AS tasksCompleted,
-        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost,
         MAX(timestamp) AS lastEventTimestamp
       FROM events
@@ -266,7 +267,7 @@ export const getModelUsage = async ({
         apiProvider as provider,
         modelId as model,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasks,
-        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
       FROM events
       WHERE
@@ -370,7 +371,7 @@ export const getTasks = async ({
         argMin(e.modelId, e.timestamp) as model,
         any(fm.mode) AS mode,
         MAX(CASE WHEN e.type = 'Task Completed' THEN 1 ELSE 0 END) AS completed,
-        SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.inputTokens, 0) + COALESCE(e.outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN e.type = 'LLM Completion' THEN ${tokenSumSql('e')} ELSE 0 END) AS tokens,
         SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.cost, 0) ELSE 0 END) AS cost,
         MIN(e.timestamp) AS timestamp,
         any(fm.title) AS title
@@ -433,6 +434,7 @@ export const getHourlyUsageByUser = async ({
   }
 
   const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
+
   const queryParams: Record<string, string | number | string[]> = {
     orgId: orgId!,
     timePeriod,
@@ -442,6 +444,7 @@ export const getHourlyUsageByUser = async ({
       TelemetryEventName.LLM_COMPLETION,
     ],
   };
+
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
   }
@@ -452,7 +455,7 @@ export const getHourlyUsageByUser = async ({
         toString(toStartOfHour(fromUnixTimestamp(timestamp))) as hour_utc,
         userId,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasks,
-        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(inputTokens, 0) + COALESCE(outputTokens, 0) ELSE 0 END) AS tokens,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
       FROM events
       WHERE

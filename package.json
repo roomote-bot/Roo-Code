@@ -19,6 +19,8 @@
     "db:test:migrate": "dotenvx run -f .env.test -- drizzle-kit migrate",
     "db:test:push": "dotenvx run -f .env.test -- drizzle-kit push",
     "db:test:studio": "dotenvx run -f .env.test -- drizzle-kit studio",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
     "storybook": "storybook dev -p 6006",
     "storybook:build": "storybook build",
     "storybook:serve": "http-server storybook-static --port 6006 --silent",
