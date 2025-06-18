@@ -521,11 +521,13 @@ export async function presentAssistantMessage(cline: Task) {
 			break
 	}
 
+	// Note: Checkpoints are now created BEFORE file modifications in individual tools
+	// This section is kept for any edge cases where files might be modified outside of tools
 	const recentlyModifiedFiles = cline.fileContextTracker.getAndClearCheckpointPossibleFile()
 
 	if (recentlyModifiedFiles.length > 0) {
-		// TODO: We can track what file changes were made and only
-		// checkpoint those files, this will be save storage.
+		// This should rarely be triggered now since checkpoints are created before modifications
+		console.log("[presentAssistantMessage] Creating checkpoint after file modification (fallback)")
 		await checkpointSave(cline)
 	}
 

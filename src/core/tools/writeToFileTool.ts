@@ -212,6 +212,11 @@ export async function writeToFileTool(
 				return
 			}
 
+			// Create checkpoint BEFORE making changes (fixes #4827)
+			if (cline.enableCheckpoints) {
+				await cline.checkpointSave()
+			}
+
 			// Call saveChanges to update the DiffViewProvider properties
 			await cline.diffViewProvider.saveChanges()
 

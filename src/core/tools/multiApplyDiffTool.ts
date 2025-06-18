@@ -381,6 +381,12 @@ Original error: ${errorMessage}`
 			updateOperationResult(opResult.path, { status: "approved" })
 		}
 
+		// Create checkpoint BEFORE processing any approved operations (fixes #4827)
+		const approvedOperations = operationResults.filter((op) => op.status === "approved")
+		if (approvedOperations.length > 0 && cline.enableCheckpoints) {
+			await cline.checkpointSave()
+		}
+
 		// Process approved operations
 		const results: string[] = []
 
