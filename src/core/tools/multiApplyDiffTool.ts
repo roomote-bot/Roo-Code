@@ -302,7 +302,6 @@ Original error: ${errorMessage}`
 					updateOperationResult(opResult.path, { status: "approved" })
 				})
 
-				// Create checkpoint BEFORE processing batch operations (fixes #4827)
 				if (cline.enableCheckpoints) {
 					await cline.checkpointSave()
 				}
@@ -347,7 +346,6 @@ Original error: ${errorMessage}`
 							cline.didRejectTool = true
 						}
 
-						// Create checkpoint BEFORE processing approved operations (fixes #4827)
 						if (hasAnyApproval && cline.enableCheckpoints) {
 							await cline.checkpointSave()
 						}
@@ -377,7 +375,6 @@ Original error: ${errorMessage}`
 							cline.didRejectTool = true
 						}
 
-						// Create checkpoint BEFORE processing approved operations (fixes #4827)
 						if (hasAnyApproval && cline.enableCheckpoints) {
 							await cline.checkpointSave()
 						}
@@ -399,8 +396,6 @@ Original error: ${errorMessage}`
 			const opResult = operationsToApprove[0]
 			updateOperationResult(opResult.path, { status: "approved" })
 		}
-
-		// Checkpoint is now created in askApproval function before this point (fixes #4827)
 
 		// Process approved operations
 		const results: string[] = []

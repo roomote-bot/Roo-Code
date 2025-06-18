@@ -226,8 +226,6 @@ export async function searchAndReplaceTool(
 			return
 		}
 
-		// Checkpoint is now created in askApproval function before this point (fixes #4827)
-
 		// Call saveChanges to update the DiffViewProvider properties
 		await cline.diffViewProvider.saveChanges()
 
