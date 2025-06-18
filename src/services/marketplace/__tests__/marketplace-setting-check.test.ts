@@ -1,6 +1,19 @@
 import { webviewMessageHandler } from "../../../core/webview/webviewMessageHandler"
 import { MarketplaceManager } from "../MarketplaceManager"
 
+// Mock vscode
+jest.mock("vscode", () => ({
+	workspace: {
+		getConfiguration: jest.fn(() => ({
+			get: jest.fn((key: string, defaultValue?: any) => {
+				if (key === "disableMarketplace") return false
+				if (key === "marketplaceTimeout") return 10000
+				return defaultValue
+			}),
+		})),
+	},
+}))
+
 // Mock the provider and marketplace manager
 const mockProvider = {
 	getState: jest.fn(),

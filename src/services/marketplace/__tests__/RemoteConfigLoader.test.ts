@@ -6,6 +6,19 @@ import type { MarketplaceItemType } from "@roo-code/types"
 jest.mock("axios")
 const mockedAxios = axios as jest.Mocked<typeof axios>
 
+// Mock vscode
+jest.mock("vscode", () => ({
+	workspace: {
+		getConfiguration: jest.fn(() => ({
+			get: jest.fn((key: string, defaultValue?: any) => {
+				if (key === "disableMarketplace") return false
+				if (key === "marketplaceTimeout") return 10000
+				return defaultValue
+			}),
+		})),
+	},
+}))
+
 // Mock the cloud config
 jest.mock("@roo-code/cloud", () => ({
 	getRooCodeApiUrl: () => "https://test.api.com",

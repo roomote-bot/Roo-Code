@@ -1467,7 +1467,10 @@ export const webviewMessageHandler = async (
 		case "filterMarketplaceItems": {
 			// Check if marketplace is enabled before making API calls
 			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
+			const config = vscode.workspace.getConfiguration("roo-cline")
+			const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+
+			if (!experiments.marketplace || isMarketplaceDisabled) {
 				console.log("Marketplace: Feature disabled, skipping API call")
 				break
 			}
@@ -1491,7 +1494,10 @@ export const webviewMessageHandler = async (
 		case "installMarketplaceItem": {
 			// Check if marketplace is enabled before installing
 			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
+			const config = vscode.workspace.getConfiguration("roo-cline")
+			const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+
+			if (!experiments.marketplace || isMarketplaceDisabled) {
 				console.log("Marketplace: Feature disabled, skipping installation")
 				break
 			}
@@ -1527,7 +1533,10 @@ export const webviewMessageHandler = async (
 		case "removeInstalledMarketplaceItem": {
 			// Check if marketplace is enabled before removing
 			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
+			const config = vscode.workspace.getConfiguration("roo-cline")
+			const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+
+			if (!experiments.marketplace || isMarketplaceDisabled) {
 				console.log("Marketplace: Feature disabled, skipping removal")
 				break
 			}
@@ -1546,7 +1555,10 @@ export const webviewMessageHandler = async (
 		case "installMarketplaceItemWithParameters": {
 			// Check if marketplace is enabled before installing with parameters
 			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
+			const config = vscode.workspace.getConfiguration("roo-cline")
+			const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+
+			if (!experiments.marketplace || isMarketplaceDisabled) {
 				console.log("Marketplace: Feature disabled, skipping installation with parameters")
 				break
 			}

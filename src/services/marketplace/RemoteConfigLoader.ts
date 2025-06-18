@@ -1,6 +1,7 @@
 import axios from "axios"
 import * as yaml from "yaml"
 import { z } from "zod"
+import * as vscode from "vscode"
 import { getRooCodeApiUrl } from "@roo-code/cloud"
 import type { MarketplaceItem, MarketplaceItemType } from "@roo-code/types"
 import { modeMarketplaceItemSchema, mcpMarketplaceItemSchema } from "@roo-code/types"
@@ -24,6 +25,15 @@ export class RemoteConfigLoader {
 	}
 
 	async loadAllItems(): Promise<MarketplaceItem[]> {
+		// Check if marketplace is disabled via user setting
+		const config = vscode.workspace.getConfiguration("roo-cline")
+		const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+
+		if (isMarketplaceDisabled) {
+			console.log("Marketplace: Disabled via user setting, returning empty items")
+			return []
+		}
+
 		const items: MarketplaceItem[] = []
 
 		const [modes, mcps] = await Promise.all([this.fetchModes(), this.fetchMcps()])
@@ -73,12 +83,16 @@ export class RemoteConfigLoader {
 	}
 
 	private async fetchWithRetry<T>(url: string, maxRetries = 3): Promise<T> {
+		// Get configurable timeout from user settings
+		const config = vscode.workspace.getConfiguration("roo-cline")
+		const timeout = config.get<number>("marketplaceTimeout", 10000)
+
 		let lastError: Error
 
 		for (let i = 0; i < maxRetries; i++) {
 			try {
 				const response = await axios.get(url, {
-					timeout: 10000, // 10 second timeout
+					timeout,
 					headers: {
 						Accept: "application/json",
 						"Content-Type": "application/json",
@@ -87,14 +101,21 @@ export class RemoteConfigLoader {
 				return response.data as T
 			} catch (error) {
 				lastError = error as Error
+				console.log(
+					`Marketplace: API request failed (attempt ${i + 1}/${maxRetries}):`,
+					error instanceof Error ? error.message : String(error),
+				)
+
 				if (i < maxRetries - 1) {
 					// Exponential backoff: 1s, 2s, 4s
 					const delay = Math.pow(2, i) * 1000
+					console.log(`Marketplace: Retrying in ${delay}ms...`)
 					await new Promise((resolve) => setTimeout(resolve, delay))
 				}
 			}
 		}
 
+		console.error(`Marketplace: All ${maxRetries} attempts failed for ${url}`)
 		throw lastError!
 	}
 

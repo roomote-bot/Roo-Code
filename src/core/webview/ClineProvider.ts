@@ -1251,12 +1251,12 @@ export class ClineProvider
 	private async updateVSCodeContext() {
 		const { experiments } = await this.getState()
 
-		// Set context for marketplace experiment
-		await vscode.commands.executeCommand(
-			"setContext",
-			`${Package.name}.marketplaceEnabled`,
-			experiments.marketplace ?? false,
-		)
+		// Set context for marketplace experiment and user setting
+		const config = vscode.workspace.getConfiguration("roo-cline")
+		const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+		const marketplaceEnabled = (experiments.marketplace ?? false) && !isMarketplaceDisabled
+
+		await vscode.commands.executeCommand("setContext", `${Package.name}.marketplaceEnabled`, marketplaceEnabled)
 	}
 
 	/**
@@ -1347,13 +1347,25 @@ export class ClineProvider
 		const allowedCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || []
 		const cwd = this.cwd
 
-		// Only fetch marketplace data if the feature is enabled
+		// Only fetch marketplace data if the feature is enabled and not disabled by user setting
 		let marketplaceItems: any[] = []
 		let marketplaceInstalledMetadata: any = { project: {}, global: {} }
 
-		if (experiments.marketplace) {
-			marketplaceItems = (await this.marketplaceManager.getCurrentItems()) || []
-			marketplaceInstalledMetadata = await this.marketplaceManager.getInstallationMetadata()
+		const config = vscode.workspace.getConfiguration("roo-cline")
+		const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+
+		if (experiments.marketplace && !isMarketplaceDisabled) {
+			try {
+				marketplaceItems = (await this.marketplaceManager.getCurrentItems()) || []
+				marketplaceInstalledMetadata = await this.marketplaceManager.getInstallationMetadata()
+			} catch (error) {
+				console.error("Failed to load marketplace items:", error)
+				// Continue with empty marketplace data instead of failing completely
+				marketplaceItems = []
+				marketplaceInstalledMetadata = { project: {}, global: {} }
+			}
+		} else if (isMarketplaceDisabled) {
+			console.log("Marketplace: Disabled via user setting")
 		}
 
 		// Check if there's a system prompt override for the current mode

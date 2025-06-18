@@ -344,6 +344,18 @@
 					"type": "boolean",
 					"default": false,
 					"description": "%settings.rooCodeCloudEnabled.description%"
+				},
+				"roo-cline.disableMarketplace": {
+					"type": "boolean",
+					"default": false,
+					"description": "%settings.disableMarketplace.description%"
+				},
+				"roo-cline.marketplaceTimeout": {
+					"type": "number",
+					"default": 10000,
+					"minimum": 1000,
+					"maximum": 60000,
+					"description": "%settings.marketplaceTimeout.description%"
 				}
 			}
 		}
