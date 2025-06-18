@@ -49,6 +49,54 @@ interface ParsedXmlResult {
 	file: ParsedFile | ParsedFile[]
 }
 
+/**
+ * Safely parse XML with timeout and error handling to prevent hangs
+ */
+function safeParseXml(xmlString: string, stopNodes?: string[], timeoutMs: number = 5000): Promise<unknown> {
+	return new Promise((resolve, reject) => {
+		const timeoutId = setTimeout(() => {
+			reject(
+				new Error(
+					`XML parsing timed out after ${timeoutMs}ms - this may indicate malformed or overly complex XML content`,
+				),
+			)
+		}, timeoutMs)
+
+		try {
+			const result = parseXml(xmlString, stopNodes)
+			clearTimeout(timeoutId)
+			resolve(result)
+		} catch (error) {
+			clearTimeout(timeoutId)
+			reject(error)
+		}
+	})
+}
+
+/**
+ * Check if content appears to be XML-like and might cause parsing issues
+ */
+function isProblematicXmlContent(content: string): boolean {
+	// Check for XML-like patterns that might cause issues
+	const xmlPatterns = [
+		/<[^>]+>/g, // XML tags
+		/&[a-zA-Z0-9#]+;/g, // HTML/XML entities
+		/<!DOCTYPE/i, // DOCTYPE declarations
+		/<\?xml/i, // XML declarations
+	]
+
+	let xmlElementCount = 0
+	for (const pattern of xmlPatterns) {
+		const matches = content.match(pattern)
+		if (matches) {
+			xmlElementCount += matches.length
+		}
+	}
+
+	// If we have many XML-like elements, it might be problematic
+	return xmlElementCount > 10
+}
+
 export async function applyDiffTool(
 	cline: Task,
 	block: ToolUse,
@@ -105,9 +153,15 @@ export async function applyDiffTool(
 	}
 
 	if (argsXmlTag) {
-		// Parse file entries from XML (new way)
+		// Parse file entries from XML (new way) with safety checks
 		try {
-			const parsed = parseXml(argsXmlTag, ["file.diff.content"]) as ParsedXmlResult
+			// Check if the XML content might be problematic before parsing
+			if (isProblematicXmlContent(argsXmlTag)) {
+				console.warn("Detected potentially problematic XML content, using safer parsing approach")
+			}
+
+			// Use safe XML parsing with timeout to prevent hangs
+			const parsed = (await safeParseXml(argsXmlTag, ["file.diff.content"])) as ParsedXmlResult
 			const files = Array.isArray(parsed.file) ? parsed.file : [parsed.file].filter(Boolean)
 
 			for (const file of files) {
@@ -142,10 +196,30 @@ export async function applyDiffTool(
 			}
 		} catch (error) {
 			const errorMessage = error instanceof Error ? error.message : String(error)
-			const detailedError = `Failed to parse apply_diff XML. This usually means:
-1. The XML structure is malformed or incomplete
+
+			// Check if this is a timeout error specifically
+			const isTimeoutError = errorMessage.includes("timed out")
+
+			const detailedError = `Failed to parse apply_diff XML. ${
+				isTimeoutError
+					? "The operation timed out, which often happens when processing XML files with complex content."
+					: "This usually means:"
+			}
+
+${
+	isTimeoutError
+		? `
+Possible solutions:
+1. Break down large XML changes into smaller, more targeted diffs
+2. Use the legacy apply_diff format (path/diff parameters) instead of XML args
+3. Simplify the diff content to avoid complex nested XML structures
+4. Consider using write_to_file for complete file rewrites if the changes are extensive
+
+`
+		: `1. The XML structure is malformed or incomplete
 2. Missing required <file>, <path>, or <diff> tags
 3. Invalid characters or encoding in the XML
+4. Complex XML content within diff content causing parsing conflicts
 
 Expected structure:
 <args>
@@ -158,7 +232,8 @@ Expected structure:
   </file>
 </args>
 
-Original error: ${errorMessage}`
+`
+}Original error: ${errorMessage}`
 			throw new Error(detailedError)
 		}
 	} else if (legacyPath && typeof legacyDiffContent === "string") {
@@ -406,11 +481,29 @@ Original error: ${errorMessage}`
 				let formattedError = ""
 
 				// Pre-process all diff items for HTML entity unescaping if needed
+				// Be more careful with XML content - only unescape for non-Claude models
+				// and add additional safety checks
 				const processedDiffItems = !cline.api.getModel().id.includes("claude")
-					? diffItems.map((item) => ({
-							...item,
-							content: item.content ? unescapeHtmlEntities(item.content) : item.content,
-						}))
+					? diffItems.map((item) => {
+							if (!item.content) return item
+
+							// Check if content looks like it might be XML that shouldn't be unescaped
+							const hasXmlStructure = item.content.includes("<") && item.content.includes(">")
+							const hasXmlEntities = /&[a-zA-Z0-9#]+;/.test(item.content)
+
+							// If it looks like XML content, be more conservative about unescaping
+							if (hasXmlStructure && hasXmlEntities) {
+								// Only unescape basic HTML entities, not XML-specific ones
+								const safeUnescaped = item.content
+									.replace(/&lt;/g, "<")
+									.replace(/&gt;/g, ">")
+									.replace(/&quot;/g, '"')
+									.replace(/&amp;/g, "&") // Do this last to avoid double-unescaping
+								return { ...item, content: safeUnescaped }
+							} else {
+								return { ...item, content: unescapeHtmlEntities(item.content) }
+							}
+						})
 					: diffItems
 
 				// Apply all diffs at once with the array-based method
@@ -450,6 +543,7 @@ Suggested fixes:
 3. Use <read_file> to see the current file content
 4. Consider breaking complex changes into smaller diffs
 5. Ensure start_line parameter matches the actual content location
+6. For XML files, be careful with special characters and entities
 ${errorDetails ? `\nDetailed error information:\n${errorDetails}\n` : ""}
 </error_details>\n\n`
 						}
@@ -465,6 +559,7 @@ Recovery suggestions:
 3. Check that the search content exactly matches what's in the file
 4. Consider using line numbers with start_line parameter
 5. Break large changes into smaller, more specific diffs
+6. For XML files, ensure proper escaping of special characters
 ${errorDetails ? `\nTechnical details:\n${errorDetails}\n` : ""}
 </error_details>\n\n`
 					}

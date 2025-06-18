@@ -24,7 +24,22 @@ export async function applyDiffToolLegacy(
 	let diffContent: string | undefined = block.params.diff
 
 	if (diffContent && !cline.api.getModel().id.includes("claude")) {
-		diffContent = unescapeHtmlEntities(diffContent)
+		// Be more careful with XML content - only unescape for non-Claude models
+		// and add additional safety checks
+		const hasXmlStructure = diffContent.includes("<") && diffContent.includes(">")
+		const hasXmlEntities = /&[a-zA-Z0-9#]+;/.test(diffContent)
+
+		// If it looks like XML content, be more conservative about unescaping
+		if (hasXmlStructure && hasXmlEntities) {
+			// Only unescape basic HTML entities, not XML-specific ones
+			diffContent = diffContent
+				.replace(/&lt;/g, "<")
+				.replace(/&gt;/g, ">")
+				.replace(/&quot;/g, '"')
+				.replace(/&amp;/g, "&") // Do this last to avoid double-unescaping
+		} else {
+			diffContent = unescapeHtmlEntities(diffContent)
+		}
 	}
 
 	const sharedMessageProps: ClineSayTool = {

@@ -463,11 +463,39 @@ Each file requires its own path, start_line, and diff elements.
 		8. ([\s\S]*?)(?:\n)?   Non‐greedy match for the "replace content" (group 7).
 		9. (?:(?<=\n)(?<!\\)>>>>>>> REPLACE)(?=\n|$)   Matches the final ">>>>>>> REPLACE" marker on its own line (and requires a following newline or the end of file).
 		*/
-		let matches = [
-			...diffContent.matchAll(
-				/(?:^|\n)(?<!\\)<<<<<<< SEARCH\s*\n((?:\:start_line:\s*(\d+)\s*\n))?((?:\:end_line:\s*(\d+)\s*\n))?((?<!\\)-------\s*\n)?([\s\S]*?)(?:\n)?(?:(?<=\n)(?<!\\)=======\s*\n)([\s\S]*?)(?:\n)?(?:(?<=\n)(?<!\\)>>>>>>> REPLACE)(?=\n|$)/g,
-			),
-		]
+		let matches: RegExpMatchArray[] = []
+
+		try {
+			// Use a timeout to prevent regex hangs on complex XML content
+			const timeoutMs = 10000 // 10 seconds timeout
+			const startTime = Date.now()
+
+			const regex =
+				/(?:^|\n)(?<!\\)<<<<<<< SEARCH\s*\n((?:\:start_line:\s*(\d+)\s*\n))?((?:\:end_line:\s*(\d+)\s*\n))?((?<!\\)-------\s*\n)?([\s\S]*?)(?:\n)?(?:(?<=\n)(?<!\\)=======\s*\n)([\s\S]*?)(?:\n)?(?:(?<=\n)(?<!\\)>>>>>>> REPLACE)(?=\n|$)/g
+
+			let match: RegExpMatchArray | null
+			while ((match = regex.exec(diffContent)) !== null) {
+				// Check for timeout to prevent infinite loops on complex content
+				if (Date.now() - startTime > timeoutMs) {
+					throw new Error(
+						`Regex matching timed out after ${timeoutMs}ms - this may indicate overly complex diff content`,
+					)
+				}
+
+				matches.push(match)
+
+				// Prevent infinite loops on zero-length matches
+				if (match.index === regex.lastIndex) {
+					regex.lastIndex++
+				}
+			}
+		} catch (error) {
+			const errorMessage = error instanceof Error ? error.message : String(error)
+			return {
+				success: false,
+				error: `Failed to parse diff content: ${errorMessage}\n\nThis often happens with complex XML content. Try:\n1. Breaking down large changes into smaller diffs\n2. Simplifying the diff content\n3. Using write_to_file for extensive changes`,
+			}
+		}
 
 		if (matches.length === 0) {
 			return {
