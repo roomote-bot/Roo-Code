@@ -140,10 +140,7 @@ export async function insertContentTool(
 			return
 		}
 
-		// Create checkpoint BEFORE making changes (fixes #4827)
-		if (cline.enableCheckpoints) {
-			await cline.checkpointSave()
-		}
+		// Checkpoint is now created in askApproval function before this point (fixes #4827)
 
 		// Call saveChanges to update the DiffViewProvider properties
 		await cline.diffViewProvider.saveChanges()

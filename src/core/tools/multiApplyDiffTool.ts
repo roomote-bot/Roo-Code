@@ -301,6 +301,11 @@ Original error: ${errorMessage}`
 				operationsToApprove.forEach((opResult) => {
 					updateOperationResult(opResult.path, { status: "approved" })
 				})
+
+				// Create checkpoint BEFORE processing batch operations (fixes #4827)
+				if (cline.enableCheckpoints) {
+					await cline.checkpointSave()
+				}
 			} else if (response === "noButtonClicked") {
 				// Deny all files
 				if (text) {
@@ -321,12 +326,14 @@ Original error: ${errorMessage}`
 					if (parsedResponse.action === "applyDiff" && parsedResponse.approvedFiles) {
 						const approvedFiles = parsedResponse.approvedFiles
 						let hasAnyDenial = false
+						let hasAnyApproval = false
 
 						operationsToApprove.forEach((opResult) => {
 							const approved = approvedFiles[opResult.path] === true
 
 							if (approved) {
 								updateOperationResult(opResult.path, { status: "approved" })
+								hasAnyApproval = true
 							} else {
 								hasAnyDenial = true
 								updateOperationResult(opResult.path, {
@@ -339,10 +346,16 @@ Original error: ${errorMessage}`
 						if (hasAnyDenial) {
 							cline.didRejectTool = true
 						}
+
+						// Create checkpoint BEFORE processing approved operations (fixes #4827)
+						if (hasAnyApproval && cline.enableCheckpoints) {
+							await cline.checkpointSave()
+						}
 					} else {
 						// Legacy individual permissions format
 						const individualPermissions = parsedResponse
 						let hasAnyDenial = false
+						let hasAnyApproval = false
 
 						batchDiffs.forEach((batchDiff, index) => {
 							const opResult = operationsToApprove[index]
@@ -350,6 +363,7 @@ Original error: ${errorMessage}`
 
 							if (approved) {
 								updateOperationResult(opResult.path, { status: "approved" })
+								hasAnyApproval = true
 							} else {
 								hasAnyDenial = true
 								updateOperationResult(opResult.path, {
@@ -361,6 +375,11 @@ Original error: ${errorMessage}`
 
 						if (hasAnyDenial) {
 							cline.didRejectTool = true
+						}
+
+						// Create checkpoint BEFORE processing approved operations (fixes #4827)
+						if (hasAnyApproval && cline.enableCheckpoints) {
+							await cline.checkpointSave()
 						}
 					}
 				} catch (error) {
@@ -381,11 +400,7 @@ Original error: ${errorMessage}`
 			updateOperationResult(opResult.path, { status: "approved" })
 		}
 
-		// Create checkpoint BEFORE processing any approved operations (fixes #4827)
-		const approvedOperations = operationResults.filter((op) => op.status === "approved")
-		if (approvedOperations.length > 0 && cline.enableCheckpoints) {
-			await cline.checkpointSave()
-		}
+		// Checkpoint is now created in askApproval function before this point (fixes #4827)
 
 		// Process approved operations
 		const results: string[] = []
