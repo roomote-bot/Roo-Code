@@ -18,6 +18,7 @@ jest.mock("vscode", () => ({
 const mockProvider = {
 	getState: jest.fn(),
 	postStateToWebview: jest.fn(),
+	getStateToPostToWebview: jest.fn(),
 } as any
 
 const mockMarketplaceManager = {
@@ -33,6 +34,9 @@ describe("Marketplace Setting Check", () => {
 		// Mock experiments with marketplace disabled
 		mockProvider.getState.mockResolvedValue({
 			experiments: { marketplace: false },
+		})
+		mockProvider.getStateToPostToWebview.mockResolvedValue({
+			marketplaceEnabled: false,
 		})
 
 		const message = {
@@ -51,6 +55,9 @@ describe("Marketplace Setting Check", () => {
 		// Mock experiments with marketplace enabled
 		mockProvider.getState.mockResolvedValue({
 			experiments: { marketplace: true },
+		})
+		mockProvider.getStateToPostToWebview.mockResolvedValue({
+			marketplaceEnabled: true,
 		})
 
 		const message = {
@@ -73,6 +80,9 @@ describe("Marketplace Setting Check", () => {
 		// Mock experiments with marketplace disabled
 		mockProvider.getState.mockResolvedValue({
 			experiments: { marketplace: false },
+		})
+		mockProvider.getStateToPostToWebview.mockResolvedValue({
+			marketplaceEnabled: false,
 		})
 
 		const mockInstallMarketplaceItem = jest.fn()
