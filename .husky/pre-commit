@@ -6,3 +6,4 @@ if [ "$branch" = "main" ]; then
 fi
 
 npx lint-staged
+pnpm lint

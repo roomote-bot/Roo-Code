@@ -1,0 +1,7 @@
+# next.js
+/.next
+/out
+
+# docker
+.docker/*
+!.docker/scripts

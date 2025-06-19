@@ -1,0 +1,55 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1747347845063,
+      "tag": "0000_daffy_psylocke",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1747347900000,
+      "tag": "0001_add_organization_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747537218300,
+      "tag": "0002_normal_mephistopheles",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747551227749,
+      "tag": "0003_strange_wild_pack",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1748555520729,
+      "tag": "0004_overjoyed_bucky",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1748916566563,
+      "tag": "0005_watery_sphinx",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1750289379751,
+      "tag": "0006_ambiguous_professor_monster",
+      "breakpoints": true
+    }
+  ]
+}

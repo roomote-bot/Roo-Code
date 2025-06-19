@@ -8,7 +8,7 @@ on:
 
 env:
   NODE_VERSION: 20.19.2
-  PNPM_VERSION: 10.8.1
+  PNPM_VERSION: 10.12.1
 
 jobs:
   build:
@@ -29,8 +29,8 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install
-      - name: Build Next.js
-        run: npx dotenvx run -f .env.test -- pnpm build
+      - name: Build workspaces
+        run: pnpm build
 
   test:
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
       - name: Run type checker
         run: pnpm check-types
       - name: Setup database schema
-        run: pnpm db:test:push --force
+        run: pnpm --filter @roo-code-cloud/web db:test:push --force
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/roo_code_test
       - name: Run unit tests
@@ -106,5 +106,6 @@ jobs:
         run: pnpm install
       - name: Migrate production database
         run: npx drizzle-kit migrate
+        working-directory: apps/web
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}

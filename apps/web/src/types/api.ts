@@ -1,0 +1,53 @@
+/**
+ * UserType
+ */
+
+const userTypes = ['user', 'agent'] as const;
+
+export type UserType = (typeof userTypes)[number];
+
+export const isUserType = (
+  type: string | undefined | null,
+): type is UserType => {
+  return userTypes.includes(type as UserType);
+};
+
+/**
+ * OrgRole
+ */
+
+const orgRoles = ['org:admin', 'org:member'] as const;
+
+export type OrgRole = (typeof orgRoles)[number];
+
+export const isOrgRole = (role: string | undefined | null): role is OrgRole => {
+  return orgRoles.includes(role as OrgRole);
+};
+
+/**
+ * Authentication
+ */
+
+export type AuthError = {
+  success: false;
+  error: string;
+};
+
+export type UserAuthSuccess = {
+  success: true;
+  userType: 'user';
+  userId: string;
+  orgId: string;
+  orgRole: OrgRole;
+};
+
+export type AgentAuthSuccess = {
+  success: true;
+  userType: 'agent';
+  userId: string;
+  orgId: string;
+};
+
+export type AuthResult = UserAuthSuccess | AuthError;
+
+export type ApiAuthResult = UserAuthSuccess | AgentAuthSuccess | AuthError;
