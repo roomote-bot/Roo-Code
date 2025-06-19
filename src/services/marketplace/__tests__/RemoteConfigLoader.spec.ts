@@ -1,32 +1,31 @@
 import * as vscode from "vscode"
+import { describe, it, expect, beforeEach, vi } from "vitest"
 import { RemoteConfigLoader } from "../RemoteConfigLoader"
 import { MarketplaceManager } from "../MarketplaceManager"
 
 // Mock vscode
-jest.mock("vscode", () => ({
+vi.mock("vscode", () => ({
 	workspace: {
-		getConfiguration: jest.fn(),
+		getConfiguration: vi.fn(),
 	},
 }))
 
 // Mock axios to simulate network timeouts
-jest.mock("axios")
+vi.mock("axios")
 
 describe("Network Timeout Fix", () => {
-	let mockGetConfiguration: jest.MockedFunction<typeof vscode.workspace.getConfiguration>
+	let mockGetConfiguration: ReturnType<typeof vi.fn>
 
 	beforeEach(() => {
-		mockGetConfiguration = vscode.workspace.getConfiguration as jest.MockedFunction<
-			typeof vscode.workspace.getConfiguration
-		>
-		jest.clearAllMocks()
+		mockGetConfiguration = vscode.workspace.getConfiguration as ReturnType<typeof vi.fn>
+		vi.clearAllMocks()
 	})
 
 	describe("RemoteConfigLoader", () => {
 		it("should return empty array when marketplace is disabled via user setting", async () => {
 			// Mock configuration to disable marketplace
 			mockGetConfiguration.mockReturnValue({
-				get: jest.fn((key: string, defaultValue?: any) => {
+				get: vi.fn((key: string, defaultValue?: any) => {
 					if (key === "disableMarketplace") return true
 					if (key === "marketplaceTimeout") return 10000
 					return defaultValue
@@ -45,7 +44,7 @@ describe("Network Timeout Fix", () => {
 
 			// Mock configuration with custom timeout
 			mockGetConfiguration.mockReturnValue({
-				get: jest.fn((key: string, defaultValue?: any) => {
+				get: vi.fn((key: string, defaultValue?: any) => {
 					if (key === "disableMarketplace") return false
 					if (key === "marketplaceTimeout") return customTimeout
 					return defaultValue
@@ -55,7 +54,7 @@ describe("Network Timeout Fix", () => {
 			const loader = new RemoteConfigLoader()
 
 			// Mock the private fetchWithRetry method to verify timeout is used
-			const fetchWithRetrySpy = jest.spyOn(loader as any, "fetchWithRetry")
+			const fetchWithRetrySpy = vi.spyOn(loader as any, "fetchWithRetry")
 			fetchWithRetrySpy.mockRejectedValue(new Error("Network timeout"))
 
 			try {
@@ -68,11 +67,11 @@ describe("Network Timeout Fix", () => {
 		})
 
 		it("should log appropriate messages when marketplace is disabled", async () => {
-			const consoleSpy = jest.spyOn(console, "log").mockImplementation()
+			const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {})
 
 			// Mock configuration to disable marketplace
 			mockGetConfiguration.mockReturnValue({
-				get: jest.fn((key: string, defaultValue?: any) => {
+				get: vi.fn((key: string, defaultValue?: any) => {
 					if (key === "disableMarketplace") return true
 					return defaultValue
 				}),
@@ -91,7 +90,7 @@ describe("Network Timeout Fix", () => {
 		it("should handle network errors gracefully", async () => {
 			// Mock configuration to enable marketplace but simulate network issues
 			mockGetConfiguration.mockReturnValue({
-				get: jest.fn((key: string, defaultValue?: any) => {
+				get: vi.fn((key: string, defaultValue?: any) => {
 					if (key === "disableMarketplace") return false
 					if (key === "marketplaceTimeout") return 1000 // Very short timeout
 					return defaultValue
@@ -100,8 +99,8 @@ describe("Network Timeout Fix", () => {
 
 			const mockContext = {
 				globalState: {
-					get: jest.fn(),
-					update: jest.fn(),
+					get: vi.fn(),
+					update: vi.fn(),
 				},
 				extensionPath: "/mock/path",
 			} as any
@@ -109,9 +108,7 @@ describe("Network Timeout Fix", () => {
 			const manager = new MarketplaceManager(mockContext)
 
 			// Mock the config loader to throw a timeout error
-			jest.spyOn(manager["configLoader"], "loadAllItems").mockRejectedValue(
-				new Error("timeout of 1000ms exceeded"),
-			)
+			vi.spyOn(manager["configLoader"], "loadAllItems").mockRejectedValue(new Error("timeout of 1000ms exceeded"))
 
 			const result = await manager.getMarketplaceItems()
 

@@ -101,10 +101,23 @@ export class RemoteConfigLoader {
 				return response.data as T
 			} catch (error) {
 				lastError = error as Error
-				console.log(
-					`Marketplace: API request failed (attempt ${i + 1}/${maxRetries}):`,
-					error instanceof Error ? error.message : String(error),
-				)
+				console.error(`Marketplace: API request failed (attempt ${i + 1}/${maxRetries})`, {
+					error:
+						error instanceof Error
+							? {
+									name: error.name,
+									message: error.message,
+									stack: error.stack,
+									...(axios.isAxiosError(error) && {
+										code: error.code,
+										status: error.response?.status,
+										statusText: error.response?.statusText,
+										data: error.response?.data,
+										headers: error.response?.headers,
+									}),
+								}
+							: error,
+				})
 
 				if (i < maxRetries - 1) {
 					// Exponential backoff: 1s, 2s, 4s
