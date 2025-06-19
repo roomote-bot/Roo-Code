@@ -155,6 +155,10 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("alwaysAllowWriteOutsideWorkspace", message.bool ?? undefined)
 			await provider.postStateToWebview()
 			break
+		case "alwaysAllowWriteProtected":
+			await updateGlobalState("alwaysAllowWriteProtected", message.bool ?? undefined)
+			await provider.postStateToWebview()
+			break
 		case "alwaysAllowExecute":
 			await updateGlobalState("alwaysAllowExecute", message.bool ?? undefined)
 			await provider.postStateToWebview()
@@ -825,37 +829,18 @@ export const webviewMessageHandler = async (
 			break
 		case "updateSupportPrompt":
 			try {
-				if (Object.keys(message?.values ?? {}).length === 0) {
+				if (!message?.values) {
 					return
 				}
 
-				const existingPrompts = getGlobalState("customSupportPrompts") ?? {}
-				const updatedPrompts = { ...existingPrompts, ...message.values }
-				await updateGlobalState("customSupportPrompts", updatedPrompts)
+				// Replace all prompts with the new values from the cached state
+				await updateGlobalState("customSupportPrompts", message.values)
 				await provider.postStateToWebview()
 			} catch (error) {
 				provider.log(
 					`Error update support prompt: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
 				)
 				vscode.window.showErrorMessage(t("common:errors.update_support_prompt"))
-			}
-			break
-		case "resetSupportPrompt":
-			try {
-				if (!message?.text) {
-					return
-				}
-
-				const existingPrompts = getGlobalState("customSupportPrompts") ?? {}
-				const updatedPrompts = { ...existingPrompts }
-				updatedPrompts[message.text] = undefined
-				await updateGlobalState("customSupportPrompts", updatedPrompts)
-				await provider.postStateToWebview()
-			} catch (error) {
-				provider.log(
-					`Error reset support prompt: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`,
-				)
-				vscode.window.showErrorMessage(t("common:errors.reset_support_prompt"))
 			}
 			break
 		case "updatePrompt":
@@ -1479,14 +1464,12 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
+		case "focusPanelRequest": {
+			// Execute the focusPanel command to focus the WebView
+			await vscode.commands.executeCommand(getCommand("focusPanel"))
+			break
+		}
 		case "filterMarketplaceItems": {
-			// Check if marketplace is enabled before making API calls
-			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
-				console.log("Marketplace: Feature disabled, skipping API call")
-				break
-			}
-
 			if (marketplaceManager && message.filters) {
 				try {
 					await marketplaceManager.updateWithFilteredItems({
@@ -1504,13 +1487,6 @@ export const webviewMessageHandler = async (
 		}
 
 		case "installMarketplaceItem": {
-			// Check if marketplace is enabled before installing
-			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
-				console.log("Marketplace: Feature disabled, skipping installation")
-				break
-			}
-
 			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
 				try {
 					const configFilePath = await marketplaceManager.installMarketplaceItem(
@@ -1540,13 +1516,6 @@ export const webviewMessageHandler = async (
 		}
 
 		case "removeInstalledMarketplaceItem": {
-			// Check if marketplace is enabled before removing
-			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
-				console.log("Marketplace: Feature disabled, skipping removal")
-				break
-			}
-
 			if (marketplaceManager && message.mpItem && message.mpInstallOptions) {
 				try {
 					await marketplaceManager.removeInstalledMarketplaceItem(message.mpItem, message.mpInstallOptions)
@@ -1559,13 +1528,6 @@ export const webviewMessageHandler = async (
 		}
 
 		case "installMarketplaceItemWithParameters": {
-			// Check if marketplace is enabled before installing with parameters
-			const { experiments } = await provider.getState()
-			if (!experiments.marketplace) {
-				console.log("Marketplace: Feature disabled, skipping installation with parameters")
-				break
-			}
-
 			if (marketplaceManager && message.payload && "item" in message.payload && "parameters" in message.payload) {
 				try {
 					const configFilePath = await marketplaceManager.installMarketplaceItem(message.payload.item, {

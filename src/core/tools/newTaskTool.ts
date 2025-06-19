@@ -4,6 +4,7 @@ import { AskApproval, HandleError, PushToolResult, RemoveClosingTag } from "../.
 import { Task } from "../task/Task"
 import { defaultModeSlug, getModeBySlug } from "../../shared/modes"
 import { formatResponse } from "../prompts/responses"
+import { t } from "../../i18n"
 import { NewTaskToolDirective } from "../message-parsing/directives"
 
 export async function newTaskTool(
@@ -87,6 +88,10 @@ export async function newTaskTool(
 			await delay(500)
 
 			const newCline = await provider.initClineWithTask(unescapedMessage, undefined, cline)
+			if (!newCline) {
+				pushToolResult(t("tools:newTask.errors.policy_restriction"))
+				return
+			}
 			cline.emit("taskSpawned", newCline.taskId)
 
 			pushToolResult(`Successfully created new task in ${targetMode.name} mode with message: ${unescapedMessage}`)
