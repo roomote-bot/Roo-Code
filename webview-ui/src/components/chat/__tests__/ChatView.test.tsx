@@ -935,6 +935,133 @@ describe("ChatView - Sound Playing Tests", () => {
 		})
 	})
 
+	it("does not play celebration sound when reopening completed tasks from history", async () => {
+		renderChatView()
+
+		// First hydrate state with a completed task from history
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "completion_result",
+					ts: Date.now() - 1000,
+					text: "Task completed successfully",
+					partial: false,
+				},
+			],
+		})
+
+		// Clear any previous sound calls
+		mockPlayFunction.mockClear()
+
+		// Then send the resume_completed_task message (reopening from history)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "completion_result",
+					ts: Date.now() - 1000,
+					text: "Task completed successfully",
+					partial: false,
+				},
+				{
+					type: "ask",
+					ask: "resume_completed_task",
+					ts: Date.now(),
+					text: "Resuming completed task",
+					partial: false,
+				},
+			],
+		})
+
+		// Wait a bit to ensure any async operations complete
+		await new Promise((resolve) => setTimeout(resolve, 100))
+
+		// Verify celebration sound was NOT played for resume_completed_task
+		// (it should have been played only once for the original completion_result)
+		expect(mockPlayFunction).toHaveBeenCalledTimes(1)
+	})
+
+	it("plays celebration sound only once per task completion", async () => {
+		renderChatView()
+
+		// First hydrate state with initial task
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+			],
+		})
+
+		// Clear any previous sound calls
+		mockPlayFunction.mockClear()
+
+		// Send the first completion result message
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "completion_result",
+					ts: Date.now(),
+					text: "Task completed successfully",
+					partial: false,
+				},
+			],
+		})
+
+		// Wait for the sound to be played
+		await waitFor(() => {
+			expect(mockPlayFunction).toHaveBeenCalledTimes(1)
+		})
+
+		// Send the same completion result message again (simulating reopening)
+		mockPostMessage({
+			clineMessages: [
+				{
+					type: "say",
+					say: "task",
+					ts: Date.now() - 2000,
+					text: "Initial task",
+				},
+				{
+					type: "ask",
+					ask: "completion_result",
+					ts: Date.now(),
+					text: "Task completed successfully",
+					partial: false,
+				},
+			],
+		})
+
+		// Wait a bit to ensure any async operations complete
+		await new Promise((resolve) => setTimeout(resolve, 100))
+
+		// Verify celebration sound was still only played once
+		expect(mockPlayFunction).toHaveBeenCalledTimes(1)
+	})
+
 	it("plays progress_loop sound for api failures", async () => {
 		renderChatView()
 

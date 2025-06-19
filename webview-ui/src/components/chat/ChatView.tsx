@@ -97,6 +97,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		soundVolume,
 	} = useExtensionState()
 
+	// Track which tasks have already played their completion sound
+	const [completedTasksWithSound, setCompletedTasksWithSound] = useState<Set<string>>(new Set())
+
 	const messagesRef = useRef(messages)
 	useEffect(() => {
 		messagesRef.current = messages
@@ -330,7 +333,15 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						case "completion_result":
 							// extension waiting for feedback. but we can just present a new task button
 							if (!isPartial) {
-								playSound("celebration")
+								const taskId = task?.ts?.toString() || "unknown"
+								if (!completedTasksWithSound.has(taskId)) {
+									playSound("celebration")
+									setCompletedTasksWithSound((prev) => {
+										const newSet = new Set(prev)
+										newSet.add(taskId)
+										return newSet
+									})
+								}
 							}
 							setSendingDisabled(isPartial)
 							setClineAsk("completion_result")
@@ -350,9 +361,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setDidClickCancel(false) // special case where we reset the cancel button state
 							break
 						case "resume_completed_task":
-							if (!isPartial) {
-								playSound("celebration")
-							}
+							// Don't play celebration sound when reopening completed tasks from history
+							// The sound should only play when the task is first completed
 							setSendingDisabled(false)
 							setClineAsk("resume_completed_task")
 							setEnableButtons(true)
@@ -406,6 +416,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	useEffect(() => {
 		setExpandedRows({})
 		everVisibleMessagesTsRef.current.clear() // Clear for new task
+		// Clear completed tasks sound tracking when starting a new task
+		setCompletedTasksWithSound(new Set())
 	}, [task?.ts])
 
 	useEffect(() => () => everVisibleMessagesTsRef.current.clear(), [])
