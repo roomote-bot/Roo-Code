@@ -28,6 +28,7 @@ import { McpServerManager } from "./services/mcp/McpServerManager"
 import { CodeIndexManager } from "./services/code-index/manager"
 import { migrateSettings } from "./utils/migrateSettings"
 import { API } from "./extension/api"
+import { memoryManager } from "./utils/memoryManager"
 
 import {
 	handleUri,
@@ -196,7 +197,28 @@ export async function activate(context: vscode.ExtensionContext) {
 // This method is called when your extension is deactivated.
 export async function deactivate() {
 	outputChannel.appendLine(`${Package.name} extension deactivated`)
-	await McpServerManager.cleanup(extensionContext)
-	TelemetryService.instance.shutdown()
-	TerminalRegistry.cleanup()
+
+	try {
+		await McpServerManager.cleanup(extensionContext)
+	} catch (error) {
+		console.error("Error cleaning up MCP server manager:", error)
+	}
+
+	try {
+		TelemetryService.instance.shutdown()
+	} catch (error) {
+		console.error("Error shutting down telemetry service:", error)
+	}
+
+	try {
+		TerminalRegistry.cleanup()
+	} catch (error) {
+		console.error("Error cleaning up terminal registry:", error)
+	}
+
+	try {
+		memoryManager.dispose()
+	} catch (error) {
+		console.error("Error disposing memory manager:", error)
+	}
 }

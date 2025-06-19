@@ -94,6 +94,7 @@ class WorkspaceTracker {
 	private async workspaceDidReset() {
 		if (this.resetTimer) {
 			clearTimeout(this.resetTimer)
+			this.resetTimer = null
 		}
 		this.resetTimer = setTimeout(async () => {
 			if (this.prevWorkSpacePath !== this.cwd) {
@@ -106,15 +107,18 @@ class WorkspaceTracker {
 				this.prevWorkSpacePath = this.cwd
 				this.initializeFilePaths()
 			}
+			this.resetTimer = null
 		}, 300) // Debounce for 300ms
 	}
 
 	private workspaceDidUpdate() {
 		if (this.updateTimer) {
 			clearTimeout(this.updateTimer)
+			this.updateTimer = null
 		}
 		this.updateTimer = setTimeout(() => {
 			if (!this.cwd) {
+				this.updateTimer = null
 				return
 			}
 

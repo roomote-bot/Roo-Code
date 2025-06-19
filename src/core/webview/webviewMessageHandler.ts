@@ -40,6 +40,7 @@ import { getModels, flushModels } from "../../api/providers/fetchers/modelCache"
 import { GetModelsOptions } from "../../shared/api"
 import { generateSystemPrompt } from "./generateSystemPrompt"
 import { getCommand } from "../../utils/commands"
+import { memoryManager } from "../../utils/memoryManager"
 
 const ALLOWED_VSCODE_SETTINGS = new Set(["terminal.integrated.inheritEnv"])
 
@@ -1573,6 +1574,48 @@ export const webviewMessageHandler = async (
 				// Send a message to the webview to switch to the specified tab
 				await provider.postMessageToWebview({ type: "action", action: "switchTab", tab: message.tab })
 			}
+			break
+		}
+		case "memoryPressure": {
+			// Handle memory pressure notification from webview
+			const usage = message.usage || 0
+			const usedMB = message.usedMB || 0
+			const totalMB = message.totalMB || 0
+
+			provider.log(
+				`[MemoryPressure] Webview reported high memory usage: ${usage.toFixed(1)}% (${usedMB.toFixed(1)}MB / ${totalMB.toFixed(1)}MB)`,
+			)
+
+			// Trigger immediate cleanup
+			memoryManager.forceCleanup()
+
+			// If memory usage is critically high (>90%), take more aggressive action
+			if (usage > 90) {
+				provider.log(`[MemoryPressure] Critical memory usage detected, performing aggressive cleanup`)
+
+				// Clear any non-essential caches
+				try {
+					const currentCline = provider.getCurrentCline()
+					if (currentCline && !currentCline.isStreaming) {
+						// Clear old message history if not currently streaming
+						if (currentCline.clineMessages.length > 100) {
+							provider.log(
+								`[MemoryPressure] Trimming message history from ${currentCline.clineMessages.length} to 50 messages`,
+							)
+							currentCline.clineMessages = currentCline.clineMessages.slice(-50)
+						}
+						if (currentCline.apiConversationHistory.length > 50) {
+							provider.log(
+								`[MemoryPressure] Trimming API history from ${currentCline.apiConversationHistory.length} to 25 messages`,
+							)
+							currentCline.apiConversationHistory = currentCline.apiConversationHistory.slice(-25)
+						}
+					}
+				} catch (error) {
+					provider.log(`[MemoryPressure] Error during aggressive cleanup: ${error}`)
+				}
+			}
+
 			break
 		}
 	}

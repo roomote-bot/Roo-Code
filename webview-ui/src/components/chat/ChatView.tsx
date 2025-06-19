@@ -150,8 +150,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [isCondensing, setIsCondensing] = useState<boolean>(false)
 	const everVisibleMessagesTsRef = useRef<LRUCache<number, boolean>>(
 		new LRUCache({
-			max: 250,
-			ttl: 1000 * 60 * 15, // 15 minutes TTL for long-running tasks
+			max: 100, // Reduced from 250 to prevent memory pressure
+			ttl: 1000 * 60 * 5, // Reduced from 15 minutes to 5 minutes to prevent grey screen
 		}),
 	)
 
@@ -408,7 +408,31 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		everVisibleMessagesTsRef.current.clear() // Clear for new task
 	}, [task?.ts])
 
-	useEffect(() => () => everVisibleMessagesTsRef.current.clear(), [])
+	// Cleanup effect to prevent memory leaks
+	useEffect(() => {
+		const cache = everVisibleMessagesTsRef.current
+		return () => {
+			cache.clear()
+			// Force garbage collection of the cache
+			everVisibleMessagesTsRef.current = new LRUCache({
+				max: 100,
+				ttl: 1000 * 60 * 5,
+			})
+		}
+	}, [])
+
+	// Periodic cleanup to prevent memory buildup
+	useEffect(() => {
+		const cleanupInterval = setInterval(
+			() => {
+				// Force cleanup of expired entries
+				everVisibleMessagesTsRef.current.purgeStale()
+			},
+			1000 * 60 * 2,
+		) // Every 2 minutes
+
+		return () => clearInterval(cleanupInterval)
+	}, [])
 
 	useEffect(() => {
 		const prev = prevExpandedRowsRef.current

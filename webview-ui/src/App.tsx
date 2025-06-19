@@ -135,6 +135,50 @@ const App = () => {
 	// Tell the extension that we are ready to receive messages.
 	useEffect(() => vscode.postMessage({ type: "webviewDidLaunch" }), [])
 
+	// Memory management to prevent grey screen issues
+	useEffect(() => {
+		// Check memory pressure every 2 minutes
+		const memoryCheckInterval = setInterval(
+			() => {
+				try {
+					// Check if we're in a browser environment with memory info
+					if (typeof window !== "undefined" && (window.performance as any)?.memory) {
+						const memory = (window.performance as any).memory
+						const usedMB = memory.usedJSHeapSize / 1024 / 1024
+						const totalMB = memory.totalJSHeapSize / 1024 / 1024
+						const limitMB = memory.jsHeapSizeLimit / 1024 / 1024
+
+						// If we're using more than 75% of available memory, trigger cleanup
+						const usagePercent = (totalMB / limitMB) * 100
+						if (usagePercent > 75) {
+							console.warn(`[App] High memory usage detected: ${usagePercent.toFixed(1)}%`)
+
+							// Force garbage collection if available
+							if ((window as any).gc) {
+								;(window as any).gc()
+							}
+
+							// Notify extension about memory pressure
+							vscode.postMessage({
+								type: "memoryPressure",
+								usage: usagePercent,
+								usedMB: usedMB,
+								totalMB: totalMB,
+							})
+						}
+					}
+				} catch (error) {
+					console.debug("[App] Memory check failed:", error)
+				}
+			},
+			2 * 60 * 1000,
+		) // Every 2 minutes
+
+		return () => {
+			clearInterval(memoryCheckInterval)
+		}
+	}, [])
+
 	if (!didHydrateState) {
 		return null
 	}

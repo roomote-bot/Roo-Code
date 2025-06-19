@@ -167,6 +167,7 @@ export interface WebviewMessage {
 		| "removeInstalledMarketplaceItem"
 		| "marketplaceInstallResult"
 		| "switchTab"
+		| "memoryPressure"
 	text?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
@@ -203,6 +204,9 @@ export interface WebviewMessage {
 	mpItem?: MarketplaceItem
 	mpInstallOptions?: InstallMarketplaceItemOptions
 	config?: Record<string, any> // Add config to the payload
+	usage?: number // Memory usage percentage
+	usedMB?: number // Used memory in MB
+	totalMB?: number // Total memory in MB
 }
 
 export const checkoutDiffPayloadSchema = z.object({

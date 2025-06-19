@@ -1009,6 +1009,11 @@ export class Task extends EventEmitter<ClineEvents> {
 			this.pauseInterval = undefined
 		}
 
+		// Clear any pending API request timeouts
+		if (this.lastApiRequestTime) {
+			this.lastApiRequestTime = undefined
+		}
+
 		// Release any terminals associated with this task.
 		try {
 			// Release any terminals associated with this task.
@@ -1052,6 +1057,24 @@ export class Task extends EventEmitter<ClineEvents> {
 			}
 		} catch (error) {
 			console.error("Error reverting diff changes:", error)
+		}
+
+		// Clear message arrays to prevent memory leaks
+		try {
+			this.apiConversationHistory = []
+			this.clineMessages = []
+			this.assistantMessageContent = []
+			this.userMessageContent = []
+			this.consecutiveMistakeCountForApplyDiff.clear()
+		} catch (error) {
+			console.error("Error clearing message arrays:", error)
+		}
+
+		// Clear tool usage tracking
+		try {
+			this.toolUsage = {}
+		} catch (error) {
+			console.error("Error clearing tool usage:", error)
 		}
 	}
 

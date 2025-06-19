@@ -234,44 +234,92 @@ export class ClineProvider
 	- https://github.com/microsoft/vscode-extension-samples/blob/main/webview-sample/src/extension.ts
 	*/
 	private clearWebviewResources() {
-		while (this.webviewDisposables.length) {
-			const x = this.webviewDisposables.pop()
-			if (x) {
-				x.dispose()
+		try {
+			while (this.webviewDisposables.length) {
+				const x = this.webviewDisposables.pop()
+				if (x) {
+					x.dispose()
+				}
 			}
+		} catch (error) {
+			console.error("Error clearing webview resources:", error)
 		}
 	}
 
 	async dispose() {
 		this.log("Disposing ClineProvider...")
-		await this.removeClineFromStack()
-		this.log("Cleared task")
 
-		if (this.view && "dispose" in this.view) {
-			this.view.dispose()
-			this.log("Disposed webview")
+		try {
+			await this.removeClineFromStack()
+			this.log("Cleared task")
+		} catch (error) {
+			console.error("Error removing cline from stack:", error)
+		}
+
+		try {
+			if (this.view && "dispose" in this.view) {
+				this.view.dispose()
+				this.log("Disposed webview")
+			}
+		} catch (error) {
+			console.error("Error disposing webview:", error)
 		}
 
 		this.clearWebviewResources()
 
-		while (this.disposables.length) {
-			const x = this.disposables.pop()
-
-			if (x) {
-				x.dispose()
+		try {
+			while (this.disposables.length) {
+				const x = this.disposables.pop()
+				if (x) {
+					x.dispose()
+				}
 			}
+		} catch (error) {
+			console.error("Error disposing disposables:", error)
 		}
 
-		this._workspaceTracker?.dispose()
-		this._workspaceTracker = undefined
-		await this.mcpHub?.unregisterClient()
-		this.mcpHub = undefined
-		this.marketplaceManager?.cleanup()
-		this.customModesManager?.dispose()
+		try {
+			this._workspaceTracker?.dispose()
+			this._workspaceTracker = undefined
+		} catch (error) {
+			console.error("Error disposing workspace tracker:", error)
+		}
+
+		try {
+			await this.mcpHub?.unregisterClient()
+			this.mcpHub = undefined
+		} catch (error) {
+			console.error("Error unregistering MCP client:", error)
+		}
+
+		try {
+			this.marketplaceManager?.cleanup()
+		} catch (error) {
+			console.error("Error cleaning up marketplace manager:", error)
+		}
+
+		try {
+			this.customModesManager?.dispose()
+		} catch (error) {
+			console.error("Error disposing custom modes manager:", error)
+		}
+
+		// Clear code index subscription to prevent memory leaks
+		try {
+			this.codeIndexStatusSubscription?.dispose()
+			this.codeIndexStatusSubscription = undefined
+		} catch (error) {
+			console.error("Error disposing code index subscription:", error)
+		}
+
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 
-		McpServerManager.unregisterProvider(this)
+		try {
+			McpServerManager.unregisterProvider(this)
+		} catch (error) {
+			console.error("Error unregistering MCP provider:", error)
+		}
 	}
 
 	public static getVisibleInstance(): ClineProvider | undefined {
