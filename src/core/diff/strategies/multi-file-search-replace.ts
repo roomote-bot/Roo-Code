@@ -4,6 +4,7 @@ import { ToolProgressStatus } from "@roo-code/types"
 import { addLineNumbers, everyLineHasLineNumbers, stripLineNumbers } from "../../../integrations/misc/extract-text"
 import { ToolUse, DiffStrategy, DiffResult } from "../../../shared/tools"
 import { normalizeString } from "../../../utils/text-normalization"
+import { parseWithTimeout, parseWithOriginalRegex } from "./timeout-utils"
 
 const BUFFER_LINES = 40 // Number of extra context lines to show before and after matches
 
@@ -77,17 +78,19 @@ function fuzzySearch(lines: string[], searchChunk: string, startIndex: number, e
 export class MultiFileSearchReplaceDiffStrategy implements DiffStrategy {
 	private fuzzyThreshold: number
 	private bufferLines: number
+	private parseTimeoutMs: number
 
 	getName(): string {
 		return "MultiFileSearchReplace"
 	}
 
-	constructor(fuzzyThreshold?: number, bufferLines?: number) {
+	constructor(fuzzyThreshold?: number, bufferLines?: number, parseTimeoutMs?: number) {
 		// Use provided threshold or default to exact matching (1.0)
 		// Note: fuzzyThreshold is inverted in UI (0% = 1.0, 10% = 0.9)
 		// so we use it directly here
 		this.fuzzyThreshold = fuzzyThreshold ?? 1.0
 		this.bufferLines = bufferLines ?? BUFFER_LINES
+		this.parseTimeoutMs = parseTimeoutMs ?? 30000 // Default 30 seconds
 	}
 
 	getToolDescription(args: { cwd: string; toolOptions?: { [key: string]: string } }): string {
@@ -482,7 +485,11 @@ Each file requires its own path, start_line, and diff elements.
 		// Parse diff blocks with timeout protection to prevent hangs on complex content
 		let matches: RegExpMatchArray[]
 		try {
-			matches = await this.parseWithTimeout(diffContent)
+			matches = await parseWithTimeout(
+				diffContent,
+				() => parseWithOriginalRegex(diffContent),
+				this.parseTimeoutMs,
+			)
 		} catch (error) {
 			return {
 				success: false,
@@ -506,6 +513,10 @@ Each file requires its own path, start_line, and diff elements.
 
 		const replacements = matches
 			.map((match) => ({
+				// Regex capture groups:
+				// [3] = start line number from (:start_line:(\d+))
+				// [7] = search content
+				// [8] = replace content
 				startLine: Number(match[3] ?? 0),
 				searchContent: match[7].replace(/^\n/, ""),
 				replaceContent: match[8].replace(/^\n/, ""),
@@ -740,80 +751,6 @@ Each file requires its own path, start_line, and diff elements.
 			content: finalContent,
 			failParts: diffResults,
 		}
-	}
-
-	/**
-	 * Parse diff content with timeout protection to prevent infinite hangs on complex regex patterns
-	 * @param diffContent The content to parse
-	 * @param timeoutMs Timeout in milliseconds (default: 30 seconds)
-	 * @returns Promise<RegExpMatchArray[]>
-	 */
-	private async parseWithTimeout(diffContent: string, timeoutMs: number = 30000): Promise<RegExpMatchArray[]> {
-		return new Promise((resolve, reject) => {
-			let isResolved = false
-
-			const timeoutId = setTimeout(() => {
-				if (!isResolved) {
-					isResolved = true
-					reject(
-						new Error(
-							`Diff parsing timed out after ${timeoutMs / 1000} seconds. This often indicates regex backtracking due to complex nested content.`,
-						),
-					)
-				}
-			}, timeoutMs)
-
-			// For very short timeouts (like in tests), add artificial delays to allow timeout to fire
-			if (timeoutMs < 1000) {
-				// Add small delays during parsing for short timeouts to allow testing
-				setTimeout(() => {
-					if (!isResolved) {
-						isResolved = true
-						clearTimeout(timeoutId)
-						reject(
-							new Error(
-								`Diff parsing timed out after ${timeoutMs / 1000} seconds. This often indicates regex backtracking due to complex nested content.`,
-							),
-						)
-					}
-				}, timeoutMs + 10) // Ensure it times out
-			} else {
-				// Use setImmediate for normal operation
-				setImmediate(() => {
-					try {
-						if (!isResolved) {
-							const matches = this.parseWithOriginalRegex(diffContent)
-							isResolved = true
-							clearTimeout(timeoutId)
-							resolve(matches)
-						}
-					} catch (error) {
-						if (!isResolved) {
-							isResolved = true
-							clearTimeout(timeoutId)
-							reject(error)
-						}
-					}
-				})
-			}
-		})
-	}
-
-	/**
-	 * Original regex-based parsing approach that works for most cases
-	 * but may cause catastrophic backtracking on complex nested content
-	 */
-	private parseWithOriginalRegex(diffContent: string): RegExpMatchArray[] {
-		const regex =
-			/<<<<<<< SEARCH\s*\n((:start_line:(\d+)\s*\n)?(:end_line:(\d+)\s*\n)?(-------\s*\n)?)([\s\S]*?)\n=======([\s\S]*?)\n>>>>>>> REPLACE/g
-		const matches: RegExpMatchArray[] = []
-		let match: RegExpMatchArray | null
-
-		while ((match = regex.exec(diffContent)) !== null) {
-			matches.push(match)
-		}
-
-		return matches
 	}
 
 	getProgressStatus(toolUse: ToolUse, result?: DiffResult): ToolProgressStatus {
