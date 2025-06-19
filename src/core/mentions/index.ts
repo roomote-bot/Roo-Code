@@ -245,12 +245,16 @@ async function getFileOrFolderContent(
 	}
 }
 
+// Maximum number of problems to include in session context to prevent overwhelming the session
+const MAX_PROBLEMS_IN_CONTEXT = 100
+
 async function getWorkspaceProblems(cwd: string): Promise<string> {
 	const diagnostics = vscode.languages.getDiagnostics()
 	const result = await diagnosticsToProblemsString(
 		diagnostics,
 		[vscode.DiagnosticSeverity.Error, vscode.DiagnosticSeverity.Warning],
 		cwd,
+		MAX_PROBLEMS_IN_CONTEXT,
 	)
 	if (!result) {
 		return "No errors or warnings detected."

@@ -384,4 +384,188 @@ describe("diagnosticsToProblemsString", () => {
 		expect(vscode.workspace.fs.stat).toHaveBeenCalledWith(fileUri)
 		expect(vscode.workspace.openTextDocument).toHaveBeenCalledWith(fileUri)
 	})
+
+	it("should limit the number of problems when maxProblems is specified", async () => {
+		// Mock file URI
+		const fileUri = vscode.Uri.file("/path/to/file.ts")
+
+		// Create more diagnostics than the limit
+		const diagnostics = [
+			new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "Error 1", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(1, 0, 1, 10), "Error 2", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(2, 0, 2, 10), "Error 3", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(3, 0, 3, 10), "Error 4", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(4, 0, 4, 10), "Error 5", vscode.DiagnosticSeverity.Error),
+		]
+
+		// Mock fs.stat to return file type
+		const mockStat = {
+			type: vscode.FileType.File,
+		}
+		vscode.workspace.fs.stat = vitest.fn().mockResolvedValue(mockStat)
+
+		// Mock document content
+		const mockDocument = {
+			lineAt: vitest.fn((line) => ({
+				text: `Line ${line + 1} content`,
+			})),
+		}
+		vscode.workspace.openTextDocument = vitest.fn().mockResolvedValue(mockDocument)
+
+		// Test with a limit of 3 problems
+		const result = await diagnosticsToProblemsString(
+			[[fileUri, diagnostics]],
+			[vscode.DiagnosticSeverity.Error],
+			"/path/to",
+			3,
+		)
+
+		// Verify only first 3 problems are included
+		expect(result).toContain("Error 1")
+		expect(result).toContain("Error 2")
+		expect(result).toContain("Error 3")
+		expect(result).not.toContain("Error 4")
+		expect(result).not.toContain("Error 5")
+
+		// Verify truncation message is included
+		expect(result).toContain("... and 2 more problems (truncated to prevent context overflow)")
+	})
+
+	it("should not show truncation message when problem count is within limit", async () => {
+		// Mock file URI
+		const fileUri = vscode.Uri.file("/path/to/file.ts")
+
+		// Create fewer diagnostics than the limit
+		const diagnostics = [
+			new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "Error 1", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(1, 0, 1, 10), "Error 2", vscode.DiagnosticSeverity.Error),
+		]
+
+		// Mock fs.stat to return file type
+		const mockStat = {
+			type: vscode.FileType.File,
+		}
+		vscode.workspace.fs.stat = vitest.fn().mockResolvedValue(mockStat)
+
+		// Mock document content
+		const mockDocument = {
+			lineAt: vitest.fn((line) => ({
+				text: `Line ${line + 1} content`,
+			})),
+		}
+		vscode.workspace.openTextDocument = vitest.fn().mockResolvedValue(mockDocument)
+
+		// Test with a limit of 5 problems (more than we have)
+		const result = await diagnosticsToProblemsString(
+			[[fileUri, diagnostics]],
+			[vscode.DiagnosticSeverity.Error],
+			"/path/to",
+			5,
+		)
+
+		// Verify all problems are included
+		expect(result).toContain("Error 1")
+		expect(result).toContain("Error 2")
+
+		// Verify no truncation message is included
+		expect(result).not.toContain("more problems")
+		expect(result).not.toContain("truncated")
+	})
+
+	it("should work correctly when maxProblems is undefined (no limit)", async () => {
+		// Mock file URI
+		const fileUri = vscode.Uri.file("/path/to/file.ts")
+
+		// Create many diagnostics
+		const diagnostics = Array.from(
+			{ length: 10 },
+			(_, i) =>
+				new vscode.Diagnostic(new vscode.Range(i, 0, i, 10), `Error ${i + 1}`, vscode.DiagnosticSeverity.Error),
+		)
+
+		// Mock fs.stat to return file type
+		const mockStat = {
+			type: vscode.FileType.File,
+		}
+		vscode.workspace.fs.stat = vitest.fn().mockResolvedValue(mockStat)
+
+		// Mock document content
+		const mockDocument = {
+			lineAt: vitest.fn((line) => ({
+				text: `Line ${line + 1} content`,
+			})),
+		}
+		vscode.workspace.openTextDocument = vitest.fn().mockResolvedValue(mockDocument)
+
+		// Test without specifying maxProblems (should include all)
+		const result = await diagnosticsToProblemsString(
+			[[fileUri, diagnostics]],
+			[vscode.DiagnosticSeverity.Error],
+			"/path/to",
+		)
+
+		// Verify all problems are included
+		for (let i = 1; i <= 10; i++) {
+			expect(result).toContain(`Error ${i}`)
+		}
+
+		// Verify no truncation message is included
+		expect(result).not.toContain("more problems")
+		expect(result).not.toContain("truncated")
+	})
+
+	it("should handle limit across multiple files correctly", async () => {
+		// Mock URIs for different files
+		const fileUri1 = vscode.Uri.file("/path/to/file1.ts")
+		const fileUri2 = vscode.Uri.file("/path/to/file2.ts")
+
+		// Create diagnostics for each file
+		const diagnostics1 = [
+			new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "File1 Error 1", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(1, 0, 1, 10), "File1 Error 2", vscode.DiagnosticSeverity.Error),
+		]
+
+		const diagnostics2 = [
+			new vscode.Diagnostic(new vscode.Range(0, 0, 0, 10), "File2 Error 1", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(1, 0, 1, 10), "File2 Error 2", vscode.DiagnosticSeverity.Error),
+			new vscode.Diagnostic(new vscode.Range(2, 0, 2, 10), "File2 Error 3", vscode.DiagnosticSeverity.Error),
+		]
+
+		// Mock fs.stat to return file type
+		const mockStat = {
+			type: vscode.FileType.File,
+		}
+		vscode.workspace.fs.stat = vitest.fn().mockResolvedValue(mockStat)
+
+		// Mock document content
+		const mockDocument = {
+			lineAt: vitest.fn((line) => ({
+				text: `Line ${line + 1} content`,
+			})),
+		}
+		vscode.workspace.openTextDocument = vitest.fn().mockResolvedValue(mockDocument)
+
+		// Test with a limit of 3 problems (should include all from file1 and only 1 from file2)
+		const result = await diagnosticsToProblemsString(
+			[
+				[fileUri1, diagnostics1],
+				[fileUri2, diagnostics2],
+			],
+			[vscode.DiagnosticSeverity.Error],
+			"/path/to",
+			3,
+		)
+
+		// Verify first file's problems are included
+		expect(result).toContain("File1 Error 1")
+		expect(result).toContain("File1 Error 2")
+
+		// Verify only first problem from second file is included
+		expect(result).toContain("File2 Error 1")
+		expect(result).not.toContain("File2 Error 2")
+		expect(result).not.toContain("File2 Error 3")
+
+		// Verify truncation message shows correct remaining count
+		expect(result).toContain("... and 2 more problems (truncated to prevent context overflow)")
+	})
 })

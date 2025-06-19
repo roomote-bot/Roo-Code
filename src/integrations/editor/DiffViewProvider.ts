@@ -220,6 +220,7 @@ export class DiffViewProvider {
 				vscode.DiagnosticSeverity.Error, // only including errors since warnings can be distracting (if user wants to fix warnings they can use the @problems mention)
 			],
 			this.cwd,
+			// No limit for new problems since these are specifically related to the current edit
 		) // Will be empty string if no errors.
 
 		const newProblemsMessage =
