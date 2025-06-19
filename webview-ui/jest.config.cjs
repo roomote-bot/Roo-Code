@@ -23,11 +23,10 @@ module.exports = {
 		"^@src/utils/highlighter$": "<rootDir>/src/__mocks__/utils/highlighter.ts",
 		"^shiki$": "<rootDir>/src/__mocks__/shiki.ts",
 		"^react-markdown$": "<rootDir>/src/__mocks__/react-markdown.tsx",
-		"^remark-gfm$": "<rootDir>/src/__mocks__/remark-gfm.ts",
 	},
 	reporters: [["jest-simple-dot-reporter", {}]],
 	transformIgnorePatterns: [
-		"/node_modules/(?!(shiki|rehype-highlight|react-remark|unist-util-visit|unist-util-find-after|vfile|unified|bail|is-plain-obj|trough|vfile-message|unist-util-stringify-position|mdast-util-from-markdown|mdast-util-to-string|micromark|decode-named-character-reference|character-entities|markdown-table|zwitch|longest-streak|escape-string-regexp|unist-util-is|hast-util-to-text|@vscode/webview-ui-toolkit|@microsoft/fast-react-wrapper|@microsoft/fast-element|@microsoft/fast-foundation|@microsoft/fast-web-utilities|exenv-es6|vscrui)/)",
+		"/node_modules/(?!(shiki|rehype-highlight|react-remark|remark-gfm|mdast-util-gfm|mdast-util-gfm-table|mdast-util-gfm-strikethrough|mdast-util-gfm-task-list-item|mdast-util-gfm-autolink-literal|mdast-util-gfm-footnote|micromark-extension-gfm|micromark-extension-gfm-table|micromark-extension-gfm-strikethrough|micromark-extension-gfm-task-list-item|micromark-extension-gfm-autolink-literal|micromark-extension-gfm-footnote|unist-util-visit|unist-util-visit-parents|unist-util-find-after|unist-util-is|unist-util-stringify-position|vfile|vfile-message|unified|bail|is-plain-obj|trough|mdast-util-from-markdown|mdast-util-to-string|micromark|decode-named-character-reference|character-entities|markdown-table|zwitch|longest-streak|escape-string-regexp|hast-util-to-text|@vscode/webview-ui-toolkit|@microsoft/fast-react-wrapper|@microsoft/fast-element|@microsoft/fast-foundation|@microsoft/fast-web-utilities|exenv-es6|vscrui)/)",
 	],
 	roots: ["<rootDir>"],
 	moduleDirectories: ["node_modules", "src"],
