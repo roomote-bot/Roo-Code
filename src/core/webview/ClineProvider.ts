@@ -103,6 +103,7 @@ export class ClineProvider
 	}
 	protected mcpHub?: McpHub // Change from private to protected
 	private marketplaceManager: MarketplaceManager
+	private _isMarketplaceEnabled?: boolean // Cache marketplace enabled state
 
 	public isViewLaunched = false
 	public settingsImportedAt?: number
@@ -1256,6 +1257,9 @@ export class ClineProvider
 		const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
 		const marketplaceEnabled = (experiments.marketplace ?? false) && !isMarketplaceDisabled
 
+		// Cache the marketplace enabled state for reuse
+		this._isMarketplaceEnabled = marketplaceEnabled
+
 		await vscode.commands.executeCommand("setContext", `${Package.name}.marketplaceEnabled`, marketplaceEnabled)
 	}
 
@@ -1351,10 +1355,14 @@ export class ClineProvider
 		let marketplaceItems: any[] = []
 		let marketplaceInstalledMetadata: any = { project: {}, global: {} }
 
-		const config = vscode.workspace.getConfiguration("roo-cline")
-		const isMarketplaceDisabled = config.get<boolean>("disableMarketplace", false)
+		// Use the cached marketplace enabled state from updateVSCodeContext
+		// If not cached yet, calculate it (this shouldn't happen in normal flow)
+		const marketplaceEnabled =
+			this._isMarketplaceEnabled ??
+			((experiments.marketplace ?? false) &&
+				!vscode.workspace.getConfiguration("roo-cline").get<boolean>("disableMarketplace", false))
 
-		if (experiments.marketplace && !isMarketplaceDisabled) {
+		if (marketplaceEnabled) {
 			try {
 				marketplaceItems = (await this.marketplaceManager.getCurrentItems()) || []
 				marketplaceInstalledMetadata = await this.marketplaceManager.getInstallationMetadata()
@@ -1364,8 +1372,8 @@ export class ClineProvider
 				marketplaceItems = []
 				marketplaceInstalledMetadata = { project: {}, global: {} }
 			}
-		} else if (isMarketplaceDisabled) {
-			console.log("Marketplace: Disabled via user setting")
+		} else {
+			console.log("Marketplace: Disabled")
 		}
 
 		// Check if there's a system prompt override for the current mode
@@ -1376,6 +1384,7 @@ export class ClineProvider
 			version: this.context.extension?.packageJSON?.version ?? "",
 			marketplaceItems,
 			marketplaceInstalledMetadata,
+			marketplaceEnabled,
 			apiConfiguration,
 			customInstructions,
 			alwaysAllowReadOnly: alwaysAllowReadOnly ?? false,
