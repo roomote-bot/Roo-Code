@@ -115,4 +115,89 @@ describe("CodeIndexManager - handleExternalSettingsChange regression", () => {
 			await expect(manager.handleExternalSettingsChange()).resolves.not.toThrow()
 		})
 	})
+
+	describe("clearIndexData and startIndexing sequence", () => {
+		it("should allow startIndexing immediately after clearIndexData completes", async () => {
+			// Mock the required dependencies
+			const mockConfigManager = {
+				loadConfiguration: vitest.fn().mockResolvedValue({ requiresRestart: false }),
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+			}
+			const mockOrchestrator = {
+				clearIndexData: vitest.fn().mockResolvedValue(undefined),
+				startIndexing: vitest.fn().mockResolvedValue(undefined),
+				stopWatcher: vitest.fn(),
+			}
+			const mockCacheManager = {
+				clearCacheFile: vitest.fn().mockResolvedValue(undefined),
+			}
+
+			// Set up the manager with mocked dependencies
+			;(manager as any)._configManager = mockConfigManager
+			;(manager as any)._orchestrator = mockOrchestrator
+			;(manager as any)._searchService = {}
+			;(manager as any)._cacheManager = mockCacheManager
+
+			// Mock the feature state
+			vitest.spyOn(manager, "isFeatureEnabled", "get").mockReturnValue(true)
+			vitest.spyOn(manager, "isFeatureConfigured", "get").mockReturnValue(true)
+
+			// Verify manager is considered initialized
+			expect(manager.isInitialized).toBe(true)
+
+			// Test the sequence: clearIndexData followed by startIndexing
+			await manager.clearIndexData()
+			expect(mockOrchestrator.clearIndexData).toHaveBeenCalled()
+			expect(mockCacheManager.clearCacheFile).toHaveBeenCalled()
+
+			// This should not throw an error about being in processing state
+			await expect(manager.startIndexing()).resolves.not.toThrow()
+			expect(mockOrchestrator.startIndexing).toHaveBeenCalled()
+		})
+
+		it("should handle rapid clearIndexData and startIndexing calls", async () => {
+			// Mock the required dependencies
+			const mockConfigManager = {
+				loadConfiguration: vitest.fn().mockResolvedValue({ requiresRestart: false }),
+				isFeatureEnabled: true,
+				isFeatureConfigured: true,
+			}
+			const mockOrchestrator = {
+				clearIndexData: vitest
+					.fn()
+					.mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 100))),
+				startIndexing: vitest.fn().mockResolvedValue(undefined),
+				stopWatcher: vitest.fn(),
+			}
+			const mockCacheManager = {
+				clearCacheFile: vitest.fn().mockResolvedValue(undefined),
+			}
+
+			// Set up the manager with mocked dependencies
+			;(manager as any)._configManager = mockConfigManager
+			;(manager as any)._orchestrator = mockOrchestrator
+			;(manager as any)._searchService = {}
+			;(manager as any)._cacheManager = mockCacheManager
+
+			// Mock the feature state
+			vitest.spyOn(manager, "isFeatureEnabled", "get").mockReturnValue(true)
+			vitest.spyOn(manager, "isFeatureConfigured", "get").mockReturnValue(true)
+
+			// Test rapid sequence: start clearIndexData and immediately call startIndexing
+			const clearPromise = manager.clearIndexData()
+
+			// Wait a bit to ensure clearIndexData has started but not finished
+			await new Promise((resolve) => setTimeout(resolve, 50))
+
+			// This should wait for clearIndexData to complete before proceeding
+			const startPromise = manager.startIndexing()
+
+			// Both should complete successfully
+			await Promise.all([clearPromise, startPromise])
+
+			expect(mockOrchestrator.clearIndexData).toHaveBeenCalled()
+			expect(mockOrchestrator.startIndexing).toHaveBeenCalled()
+		})
+	})
 })

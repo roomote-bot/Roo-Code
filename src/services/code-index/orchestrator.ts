@@ -93,15 +93,19 @@ export class CodeIndexOrchestrator {
 			return
 		}
 
-		if (
-			this._isProcessing ||
-			(this.stateManager.state !== "Standby" &&
-				this.stateManager.state !== "Error" &&
-				this.stateManager.state !== "Indexed")
-		) {
+		if (this._isProcessing) {
 			console.warn(
-				`[CodeIndexOrchestrator] Start rejected: Already processing or in state ${this.stateManager.state}.`,
+				`[CodeIndexOrchestrator] Start rejected: Already processing (state: ${this.stateManager.state}).`,
 			)
+			return
+		}
+
+		if (
+			this.stateManager.state !== "Standby" &&
+			this.stateManager.state !== "Error" &&
+			this.stateManager.state !== "Indexed"
+		) {
+			console.warn(`[CodeIndexOrchestrator] Start rejected: Invalid state ${this.stateManager.state}.`)
 			return
 		}
 
@@ -179,7 +183,7 @@ export class CodeIndexOrchestrator {
 		if (this.stateManager.state !== "Error") {
 			this.stateManager.setSystemState("Standby", "File watcher stopped.")
 		}
-		this._isProcessing = false
+		// Note: Don't reset _isProcessing here as it may be managed by calling methods
 	}
 
 	/**
@@ -190,7 +194,8 @@ export class CodeIndexOrchestrator {
 		this._isProcessing = true
 
 		try {
-			await this.stopWatcher()
+			// Stop the watcher first
+			this.stopWatcher()
 
 			try {
 				if (this.configManager.isFeatureConfigured) {
@@ -201,6 +206,7 @@ export class CodeIndexOrchestrator {
 			} catch (error: any) {
 				console.error("[CodeIndexOrchestrator] Failed to clear vector collection:", error)
 				this.stateManager.setSystemState("Error", `Failed to clear vector collection: ${error.message}`)
+				return // Exit early on error, _isProcessing will be reset in finally
 			}
 
 			await this.cacheManager.clearCacheFile()

@@ -1440,7 +1440,7 @@ export const webviewMessageHandler = async (
 						await manager.initialize(provider.contextProxy)
 					}
 
-					manager.startIndexing()
+					await manager.startIndexing()
 				}
 			} catch (error) {
 				provider.log(`Error starting indexing: ${error instanceof Error ? error.message : String(error)}`)
