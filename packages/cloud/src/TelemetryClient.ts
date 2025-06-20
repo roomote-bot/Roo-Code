@@ -29,7 +29,7 @@ export class TelemetryClient extends BaseTelemetryClient {
 	 */
 	public initializeRetryQueue(context: vscode.ExtensionContext): void {
 		this.context = context
-		const retrySettings = context.globalState.get("telemetryRetrySettings") as any
+		const retrySettings = context.globalState.get("telemetryRetrySettings") as Record<string, unknown> | undefined
 		this.retryQueue = new TelemetryRetryQueue(context, retrySettings)
 
 		// Start periodic retry processing

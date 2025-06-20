@@ -47,7 +47,7 @@ describe("ResilientTelemetryClient", () => {
 				get: vi.fn().mockReturnValue([]),
 				update: vi.fn().mockResolvedValue(undefined),
 			},
-		} as any
+		} as unknown as vscode.ExtensionContext
 
 		resilientClient = new ResilientTelemetryClient(mockWrappedClient, mockContext)
 	})
@@ -97,7 +97,7 @@ describe("ResilientTelemetryClient", () => {
 			}
 
 			// Make wrapped client throw error
-			;(mockWrappedClient.capture as any).mockRejectedValue(new Error("Network error"))
+			vi.mocked(mockWrappedClient.capture).mockRejectedValue(new Error("Network error"))
 
 			await resilientClient.capture(event)
 
@@ -112,7 +112,7 @@ describe("ResilientTelemetryClient", () => {
 			}
 
 			// Make wrapped client fail
-			;(mockWrappedClient.capture as any).mockRejectedValue(new Error("Network error"))
+			vi.mocked(mockWrappedClient.capture).mockRejectedValue(new Error("Network error"))
 
 			await resilientClient.capture(highPriorityEvent)
 
@@ -125,7 +125,7 @@ describe("ResilientTelemetryClient", () => {
 				properties: { taskId: "test" },
 			}
 
-			;(mockWrappedClient.isTelemetryEnabled as any).mockReturnValue(false)
+			vi.mocked(mockWrappedClient.isTelemetryEnabled).mockReturnValue(false)
 
 			await resilientClient.capture(event)
 
@@ -137,7 +137,7 @@ describe("ResilientTelemetryClient", () => {
 
 	describe("delegation methods", () => {
 		it("should delegate setProvider to wrapped client", () => {
-			const mockProvider = {} as any
+			const mockProvider = {} as Parameters<typeof mockWrappedClient.setProvider>[0]
 			resilientClient.setProvider(mockProvider)
 
 			expect(mockWrappedClient.setProvider).toHaveBeenCalledWith(mockProvider)
@@ -157,7 +157,7 @@ describe("ResilientTelemetryClient", () => {
 		})
 
 		it("should return subscription from wrapped client", () => {
-			const mockSubscription = { type: "exclude", events: [] } as any
+			const mockSubscription = { type: "exclude", events: [] } as typeof mockWrappedClient.subscription
 			mockWrappedClient.subscription = mockSubscription
 
 			expect(resilientClient.subscription).toBe(mockSubscription)
@@ -219,7 +219,7 @@ describe("ResilientTelemetryClient", () => {
 				}
 
 				// Make wrapped client fail to trigger queueing
-				;(mockWrappedClient.capture as any).mockRejectedValue(new Error("Network error"))
+				vi.mocked(mockWrappedClient.capture).mockRejectedValue(new Error("Network error"))
 
 				await resilientClient.capture(event)
 

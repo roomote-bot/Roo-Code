@@ -38,7 +38,7 @@ describe("TelemetryRetryQueue", () => {
 				get: vi.fn().mockReturnValue([]),
 				update: vi.fn().mockResolvedValue(undefined),
 			},
-		} as any
+		} as unknown as vscode.ExtensionContext
 
 		retryQueue = new TelemetryRetryQueue(mockContext)
 	})
@@ -97,7 +97,7 @@ describe("TelemetryRetryQueue", () => {
 			await retryQueue.enqueue(highEvent, "high")
 
 			// High priority event should be inserted before normal priority
-			const calls = (mockContext.globalState.update as any).mock.calls
+			const calls = vi.mocked(mockContext.globalState.update).mock.calls
 			const lastCall = calls[calls.length - 1]
 			const queue = lastCall[1]
 
@@ -131,7 +131,7 @@ describe("TelemetryRetryQueue", () => {
 			}
 
 			// Mock existing queue with one event
-			;(mockContext.globalState.get as any).mockReturnValue([
+			vi.mocked(mockContext.globalState.get).mockReturnValue([
 				{
 					id: "test-id",
 					event,
@@ -165,7 +165,7 @@ describe("TelemetryRetryQueue", () => {
 				priority: "normal",
 			}
 
-			;(mockContext.globalState.get as any).mockReturnValue([queuedEvent])
+			vi.mocked(mockContext.globalState.get).mockReturnValue([queuedEvent])
 
 			const sendFunction = vi.fn().mockResolvedValue(false) // Failure
 
@@ -173,7 +173,7 @@ describe("TelemetryRetryQueue", () => {
 
 			expect(sendFunction).toHaveBeenCalledWith(event)
 
-			const updateCalls = (mockContext.globalState.update as any).mock.calls
+			const updateCalls = vi.mocked(mockContext.globalState.update).mock.calls
 			const lastCall = updateCalls[updateCalls.length - 1]
 			const updatedQueue = lastCall[1]
 
@@ -196,7 +196,7 @@ describe("TelemetryRetryQueue", () => {
 				priority: "normal",
 			}
 
-			;(mockContext.globalState.get as any).mockReturnValue([queuedEvent])
+			vi.mocked(mockContext.globalState.get).mockReturnValue([queuedEvent])
 
 			const sendFunction = vi.fn().mockResolvedValue(false) // Failure
 
@@ -218,7 +218,7 @@ describe("TelemetryRetryQueue", () => {
 				priority: "normal" as const,
 			}))
 
-			;(mockContext.globalState.get as any).mockReturnValue(events)
+			vi.mocked(mockContext.globalState.get).mockReturnValue(events)
 
 			const sendFunction = vi.fn().mockResolvedValue(true)
 
@@ -236,7 +236,7 @@ describe("TelemetryRetryQueue", () => {
 				{ id: "2", event: {}, timestamp: 0, retryCount: 0, nextRetryAt: 0, priority: "normal" },
 			]
 
-			;(mockContext.globalState.get as any).mockReturnValue(events)
+			vi.mocked(mockContext.globalState.get).mockReturnValue(events)
 
 			const size = await retryQueue.getQueueSize()
 			expect(size).toBe(2)
