@@ -1414,6 +1414,101 @@ export const webviewMessageHandler = async (
 
 			break
 		}
+		case "rooCloudSignInToEnvironment": {
+			if (message.environmentId) {
+				try {
+					TelemetryService.instance.captureEvent(TelemetryEventName.AUTHENTICATION_INITIATED)
+					await CloudService.loginToEnvironment(message.environmentId)
+					await provider.postStateToWebview()
+				} catch (error) {
+					provider.log(`AuthService#loginToEnvironment failed for ${message.environmentId}: ${error}`)
+					vscode.window.showErrorMessage(`Sign in to ${message.environmentId} failed.`)
+				}
+			}
+			break
+		}
+		case "rooCloudSignOutFromEnvironment": {
+			if (message.environmentId) {
+				try {
+					await CloudService.logoutFromEnvironment(message.environmentId)
+					await provider.postStateToWebview()
+				} catch (error) {
+					provider.log(`AuthService#logoutFromEnvironment failed for ${message.environmentId}: ${error}`)
+					vscode.window.showErrorMessage(`Sign out from ${message.environmentId} failed.`)
+				}
+			}
+			break
+		}
+		case "rooCloudSetActiveEnvironment": {
+			if (message.environmentId) {
+				try {
+					CloudService.setActiveEnvironment(message.environmentId)
+					await provider.postStateToWebview()
+				} catch (error) {
+					provider.log(`Failed to set active environment to ${message.environmentId}: ${error}`)
+					vscode.window.showErrorMessage(`Failed to switch to ${message.environmentId}.`)
+				}
+			}
+			break
+		}
+		case "rooCloudGetEnvironments": {
+			try {
+				const instances = CloudService.getAllInstances()
+				const environments: any[] = []
+				for (const environmentId in instances) {
+					if (instances.hasOwnProperty(environmentId)) {
+						environments.push(instances[environmentId].getEnvironment())
+					}
+				}
+				provider.postMessageToWebview({
+					type: "cloudEnvironments",
+					environments
+				})
+			} catch (error) {
+				provider.log(`Failed to get environments: ${error}`)
+			}
+			break
+		}
+		case "rooCloudGetAuthenticatedEnvironments": {
+			try {
+				const authenticatedIds = CloudService.getAuthenticatedEnvironments()
+				const instances = CloudService.getAllInstances()
+				const authenticatedEnvironments: any[] = []
+				
+				for (const id of authenticatedIds) {
+					const instance = instances[id]
+					if (instance) {
+						authenticatedEnvironments.push(instance.getEnvironment())
+					}
+				}
+				
+				provider.postMessageToWebview({
+					type: "cloudAuthenticatedEnvironments",
+					authenticatedEnvironments
+				})
+			} catch (error) {
+				provider.log(`Failed to get authenticated environments: ${error}`)
+			}
+			break
+		}
+		case "rooCloudLogoutFromAllEnvironments": {
+			try {
+				const authenticatedIds = CloudService.getAuthenticatedEnvironments()
+				const logoutPromises: Promise<void>[] = []
+				
+				for (const id of authenticatedIds) {
+					logoutPromises.push(CloudService.logoutFromEnvironment(id))
+				}
+				
+				await Promise.allSettled(logoutPromises)
+				await provider.postStateToWebview()
+				provider.postMessageToWebview({ type: "authenticatedUser", userInfo: undefined })
+			} catch (error) {
+				provider.log(`Failed to logout from all environments: ${error}`)
+				vscode.window.showErrorMessage("Failed to logout from all environments.")
+			}
+			break
+		}
 		case "codebaseIndexConfig": {
 			const codebaseIndexConfig = message.values ?? {
 				codebaseIndexEnabled: false,

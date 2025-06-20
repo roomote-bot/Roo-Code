@@ -4,14 +4,18 @@ import type { CloudUserInfo, TelemetryEvent, OrganizationAllowList } from "@roo-
 import { TelemetryService } from "@roo-code/telemetry"
 
 import { CloudServiceCallbacks } from "./types"
-import { AuthService } from "./AuthService"
+import { AuthService, CloudEnvironment } from "./AuthService"
 import { SettingsService } from "./SettingsService"
 import { TelemetryClient } from "./TelemetryClient"
 import { ShareService } from "./ShareService"
 
-export class CloudService {
-	private static _instance: CloudService | null = null
+export { CloudEnvironment }
 
+export class CloudService {
+	private static _instances: { [environmentId: string]: CloudService } = {}
+	private static _activeEnvironmentId: string | null = null
+
+	private environment: CloudEnvironment
 	private context: vscode.ExtensionContext
 	private callbacks: CloudServiceCallbacks
 	private authListener: () => void
@@ -22,7 +26,8 @@ export class CloudService {
 	private isInitialized = false
 	private log: (...args: unknown[]) => void
 
-	private constructor(context: vscode.ExtensionContext, callbacks: CloudServiceCallbacks) {
+	private constructor(environment: CloudEnvironment, context: vscode.ExtensionContext, callbacks: CloudServiceCallbacks) {
+		this.environment = environment
 		this.context = context
 		this.callbacks = callbacks
 		this.log = callbacks.log || console.log
@@ -37,7 +42,7 @@ export class CloudService {
 		}
 
 		try {
-			this.authService = new AuthService(this.context, this.log)
+			this.authService = new AuthService(this.environment, this.context, this.log)
 			await this.authService.initialize()
 
 			this.authService.on("inactive-session", this.authListener)
@@ -57,14 +62,28 @@ export class CloudService {
 			try {
 				TelemetryService.instance.register(this.telemetryClient)
 			} catch (error) {
-				this.log("[CloudService] Failed to register TelemetryClient:", error)
+				this.log(`[CloudService:${this.environment.id}] Failed to register TelemetryClient:`, error)
 			}
 
 			this.isInitialized = true
 		} catch (error) {
-			this.log("[CloudService] Failed to initialize:", error)
-			throw new Error(`Failed to initialize CloudService: ${error}`)
+			this.log(`[CloudService:${this.environment.id}] Failed to initialize:`, error)
+			throw new Error(`Failed to initialize CloudService for ${this.environment.name}: ${error}`)
 		}
+	}
+
+	// Environment Management
+
+	public getEnvironment(): CloudEnvironment {
+		return this.environment
+	}
+
+	public getEnvironmentId(): string {
+		return this.environment.id
+	}
+
+	public getEnvironmentName(): string {
+		return this.environment.name
 	}
 
 	// AuthService
@@ -165,43 +184,121 @@ export class CloudService {
 
 	private ensureInitialized(): void {
 		if (!this.isInitialized) {
-			throw new Error("CloudService not initialized.")
+			throw new Error(`CloudService for ${this.environment.name} not initialized.`)
 		}
+	}
+
+	// Static methods for managing multiple instances
+
+	static getActiveEnvironmentId(): string | null {
+		return this._activeEnvironmentId
+	}
+
+	static getAllInstances(): { [environmentId: string]: CloudService } {
+		return { ...this._instances }
 	}
 
 	static get instance(): CloudService {
-		if (!this._instance) {
-			throw new Error("CloudService not initialized")
+		const activeId = this._activeEnvironmentId
+		if (!activeId || !this._instances[activeId]) {
+			throw new Error("No active CloudService instance")
 		}
+		return this._instances[activeId]
+	}
 
-		return this._instance
+	static getInstance(environmentId: string): CloudService | null {
+		return this._instances[environmentId] || null
+	}
+
+	static setActiveEnvironment(environmentId: string): void {
+		if (!this._instances[environmentId]) {
+			throw new Error(`CloudService instance for environment '${environmentId}' not found`)
+		}
+		this._activeEnvironmentId = environmentId
 	}
 
 	static async createInstance(
+		environment: CloudEnvironment,
 		context: vscode.ExtensionContext,
 		callbacks: CloudServiceCallbacks = {},
 	): Promise<CloudService> {
-		if (this._instance) {
-			throw new Error("CloudService instance already created")
+		if (this._instances[environment.id]) {
+			throw new Error(`CloudService instance for environment '${environment.id}' already exists`)
 		}
 
-		this._instance = new CloudService(context, callbacks)
-		await this._instance.initialize()
-		return this._instance
+		const instance = new CloudService(environment, context, callbacks)
+		await instance.initialize()
+		this._instances[environment.id] = instance
+
+		// Set as active if it's the first instance
+		if (!this._activeEnvironmentId) {
+			this._activeEnvironmentId = environment.id
+		}
+
+		return instance
 	}
 
-	static hasInstance(): boolean {
-		return this._instance !== null && this._instance.isInitialized
+	static hasInstance(environmentId?: string): boolean {
+		if (environmentId) {
+			const instance = this._instances[environmentId]
+			return instance !== undefined && instance.isInitialized
+		}
+		return this._activeEnvironmentId !== null && this.hasInstance(this._activeEnvironmentId)
 	}
 
-	static resetInstance(): void {
-		if (this._instance) {
-			this._instance.dispose()
-			this._instance = null
+	static removeInstance(environmentId: string): void {
+		const instance = this._instances[environmentId]
+		if (instance) {
+			instance.dispose()
+			delete this._instances[environmentId]
+
+			// Update active environment if needed
+			if (this._activeEnvironmentId === environmentId) {
+				const remainingIds = Object.keys(this._instances)
+				this._activeEnvironmentId = remainingIds.length > 0 ? remainingIds[0] : null
+			}
 		}
 	}
 
-	static isEnabled(): boolean {
-		return !!this._instance?.isAuthenticated()
+	static resetAllInstances(): void {
+		for (const instance of Object.values(this._instances)) {
+			instance.dispose()
+		}
+		this._instances = {}
+		this._activeEnvironmentId = null
+	}
+
+	static isEnabled(environmentId?: string): boolean {
+		if (environmentId) {
+			const instance = this._instances[environmentId]
+			return !!instance?.isAuthenticated()
+		}
+		return !!this.instance?.isAuthenticated()
+	}
+
+	static getAuthenticatedEnvironments(): string[] {
+		const authenticated: string[] = []
+		for (const [envId, instance] of Object.entries(this._instances)) {
+			if (instance.isAuthenticated()) {
+				authenticated.push(envId)
+			}
+		}
+		return authenticated
+	}
+
+	static async loginToEnvironment(environmentId: string): Promise<void> {
+		const instance = this._instances[environmentId]
+		if (!instance) {
+			throw new Error(`CloudService instance for environment '${environmentId}' not found`)
+		}
+		return instance.login()
+	}
+
+	static async logoutFromEnvironment(environmentId: string): Promise<void> {
+		const instance = this._instances[environmentId]
+		if (!instance) {
+			throw new Error(`CloudService instance for environment '${environmentId}' not found`)
+		}
+		return instance.logout()
 	}
 }

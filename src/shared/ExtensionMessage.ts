@@ -90,6 +90,9 @@ export interface ExtensionMessage {
 		| "indexCleared"
 		| "codebaseIndexConfig"
 		| "marketplaceInstallResult"
+		| "cloudEnvironments"
+		| "cloudAuthenticatedEnvironments"
+		| "cloudActiveEnvironment"
 	text?: string
 	payload?: any // Add a generic payload for now, can refine later
 	action?:
@@ -136,6 +139,24 @@ export interface ExtensionMessage {
 	userInfo?: CloudUserInfo
 	organizationAllowList?: OrganizationAllowList
 	tab?: string
+	environments?: Array<{
+		id: string
+		name: string
+		apiUrl?: string
+		clerkBaseUrl?: string
+	}>
+	authenticatedEnvironments?: Array<{
+		id: string
+		name: string
+		apiUrl?: string
+		clerkBaseUrl?: string
+	}>
+	activeEnvironment?: {
+		id: string
+		name: string
+		apiUrl?: string
+		clerkBaseUrl?: string
+	} | null
 }
 
 export type ExtensionState = Pick<

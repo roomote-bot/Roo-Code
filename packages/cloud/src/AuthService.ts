@@ -17,6 +17,13 @@ export interface AuthServiceEvents {
 	"user-info": [data: { userInfo: CloudUserInfo }]
 }
 
+export interface CloudEnvironment {
+	id: string
+	name: string
+	apiUrl?: string
+	clerkBaseUrl?: string
+}
+
 const authCredentialsSchema = z.object({
 	clientToken: z.string().min(1, "Client token cannot be empty"),
 	sessionId: z.string().min(1, "Session ID cannot be empty"),
@@ -24,8 +31,8 @@ const authCredentialsSchema = z.object({
 
 type AuthCredentials = z.infer<typeof authCredentialsSchema>
 
-const AUTH_CREDENTIALS_KEY = "clerk-auth-credentials"
-const AUTH_STATE_KEY = "clerk-auth-state"
+const AUTH_CREDENTIALS_KEY_PREFIX = "clerk-auth-credentials"
+const AUTH_STATE_KEY_PREFIX = "clerk-auth-state"
 
 type AuthState = "initializing" | "logged-out" | "active-session" | "inactive-session"
 
@@ -85,6 +92,7 @@ class InvalidClientTokenError extends Error {
 }
 
 export class AuthService extends EventEmitter<AuthServiceEvents> {
+	private environment: CloudEnvironment
 	private context: vscode.ExtensionContext
 	private timer: RefreshTimer
 	private state: AuthState = "initializing"
@@ -94,9 +102,10 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 	private sessionToken: string | null = null
 	private userInfo: CloudUserInfo | null = null
 
-	constructor(context: vscode.ExtensionContext, log?: (...args: unknown[]) => void) {
+	constructor(environment: CloudEnvironment, context: vscode.ExtensionContext, log?: (...args: unknown[]) => void) {
 		super()
 
+		this.environment = environment
 		this.context = context
 		this.log = log || console.log
 
@@ -109,6 +118,14 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 			initialBackoffMs: 1_000,
 			maxBackoffMs: 300_000,
 		})
+	}
+
+	private getCredentialsKey(): string {
+		return `${AUTH_CREDENTIALS_KEY_PREFIX}-${this.environment.id}`
+	}
+
+	private getStateKey(): string {
+		return `${AUTH_STATE_KEY_PREFIX}-${this.environment.id}`
 	}
 
 	private async handleCredentialsChange(): Promise<void> {
@@ -129,7 +146,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 				}
 			}
 		} catch (error) {
-			this.log("[auth] Error handling credentials change:", error)
+			this.log(`[auth:${this.environment.id}] Error handling credentials change:`, error)
 		}
 	}
 
@@ -145,7 +162,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 
 		this.emit("logged-out", { previousState })
 
-		this.log("[auth] Transitioned to logged-out state")
+		this.log(`[auth:${this.environment.id}] Transitioned to logged-out state`)
 	}
 
 	private transitionToInactiveSession(credentials: AuthCredentials): void {
@@ -161,7 +178,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 
 		this.timer.start()
 
-		this.log("[auth] Transitioned to inactive-session state")
+		this.log(`[auth:${this.environment.id}] Transitioned to inactive-session state`)
 	}
 
 	/**
@@ -172,7 +189,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 	 */
 	public async initialize(): Promise<void> {
 		if (this.state !== "initializing") {
-			this.log("[auth] initialize() called after already initialized")
+			this.log(`[auth:${this.environment.id}] initialize() called after already initialized`)
 			return
 		}
 
@@ -180,7 +197,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 
 		this.context.subscriptions.push(
 			this.context.secrets.onDidChange((e) => {
-				if (e.key === AUTH_CREDENTIALS_KEY) {
+				if (e.key === this.getCredentialsKey()) {
 					this.handleCredentialsChange()
 				}
 			}),
@@ -188,11 +205,11 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 	}
 
 	private async storeCredentials(credentials: AuthCredentials): Promise<void> {
-		await this.context.secrets.store(AUTH_CREDENTIALS_KEY, JSON.stringify(credentials))
+		await this.context.secrets.store(this.getCredentialsKey(), JSON.stringify(credentials))
 	}
 
 	private async loadCredentials(): Promise<AuthCredentials | null> {
-		const credentialsJson = await this.context.secrets.get(AUTH_CREDENTIALS_KEY)
+		const credentialsJson = await this.context.secrets.get(this.getCredentialsKey())
 		if (!credentialsJson) return null
 
 		try {
@@ -200,16 +217,16 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 			return authCredentialsSchema.parse(parsedJson)
 		} catch (error) {
 			if (error instanceof z.ZodError) {
-				this.log("[auth] Invalid credentials format:", error.errors)
+				this.log(`[auth:${this.environment.id}] Invalid credentials format:`, error.errors)
 			} else {
-				this.log("[auth] Failed to parse stored credentials:", error)
+				this.log(`[auth:${this.environment.id}] Failed to parse stored credentials:`, error)
 			}
 			return null
 		}
 	}
 
 	private async clearCredentials(): Promise<void> {
-		await this.context.secrets.delete(AUTH_CREDENTIALS_KEY)
+		await this.context.secrets.delete(this.getCredentialsKey())
 	}
 
 	/**
@@ -222,19 +239,21 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 		try {
 			// Generate a cryptographically random state parameter.
 			const state = crypto.randomBytes(16).toString("hex")
-			await this.context.globalState.update(AUTH_STATE_KEY, state)
+			await this.context.globalState.update(this.getStateKey(), state)
 			const packageJSON = this.context.extension?.packageJSON
 			const publisher = packageJSON?.publisher ?? "RooVeterinaryInc"
 			const name = packageJSON?.name ?? "roo-cline"
 			const params = new URLSearchParams({
 				state,
 				auth_redirect: `${vscode.env.uriScheme}://${publisher}.${name}`,
+				environment: this.environment.id,
 			})
-			const url = `${getRooCodeApiUrl()}/extension/sign-in?${params.toString()}`
+			const apiUrl = this.environment.apiUrl || getRooCodeApiUrl()
+			const url = `${apiUrl}/extension/sign-in?${params.toString()}`
 			await vscode.env.openExternal(vscode.Uri.parse(url))
 		} catch (error) {
-			this.log(`[auth] Error initiating Roo Code Cloud auth: ${error}`)
-			throw new Error(`Failed to initiate Roo Code Cloud authentication: ${error}`)
+			this.log(`[auth:${this.environment.id}] Error initiating Roo Code Cloud auth: ${error}`)
+			throw new Error(`Failed to initiate Roo Code Cloud authentication for ${this.environment.name}: ${error}`)
 		}
 	}
 
@@ -255,10 +274,10 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 
 		try {
 			// Validate state parameter to prevent CSRF attacks.
-			const storedState = this.context.globalState.get(AUTH_STATE_KEY)
+			const storedState = this.context.globalState.get(this.getStateKey())
 
 			if (state !== storedState) {
-				this.log("[auth] State mismatch in callback")
+				this.log(`[auth:${this.environment.id}] State mismatch in callback`)
 				throw new Error("Invalid state parameter. Authentication request may have been tampered with.")
 			}
 
@@ -266,14 +285,14 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 
 			await this.storeCredentials(credentials)
 
-			vscode.window.showInformationMessage("Successfully authenticated with Roo Code Cloud")
-			this.log("[auth] Successfully authenticated with Roo Code Cloud")
+			vscode.window.showInformationMessage(`Successfully authenticated with ${this.environment.name}`)
+			this.log(`[auth:${this.environment.id}] Successfully authenticated with ${this.environment.name}`)
 		} catch (error) {
-			this.log(`[auth] Error handling Roo Code Cloud callback: ${error}`)
+			this.log(`[auth:${this.environment.id}] Error handling Roo Code Cloud callback: ${error}`)
 			const previousState = this.state
 			this.state = "logged-out"
 			this.emit("logged-out", { previousState })
-			throw new Error(`Failed to handle Roo Code Cloud callback: ${error}`)
+			throw new Error(`Failed to handle Roo Code Cloud callback for ${this.environment.name}: ${error}`)
 		}
 	}
 
@@ -288,22 +307,26 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 		try {
 			// Clear credentials from storage - onDidChange will handle state transitions
 			await this.clearCredentials()
-			await this.context.globalState.update(AUTH_STATE_KEY, undefined)
+			await this.context.globalState.update(this.getStateKey(), undefined)
 
 			if (oldCredentials) {
 				try {
 					await this.clerkLogout(oldCredentials)
 				} catch (error) {
-					this.log("[auth] Error calling clerkLogout:", error)
+					this.log(`[auth:${this.environment.id}] Error calling clerkLogout:`, error)
 				}
 			}
 
-			vscode.window.showInformationMessage("Logged out from Roo Code Cloud")
-			this.log("[auth] Logged out from Roo Code Cloud")
+			vscode.window.showInformationMessage(`Logged out from ${this.environment.name}`)
+			this.log(`[auth:${this.environment.id}] Logged out from ${this.environment.name}`)
 		} catch (error) {
-			this.log(`[auth] Error logging out from Roo Code Cloud: ${error}`)
-			throw new Error(`Failed to log out from Roo Code Cloud: ${error}`)
+			this.log(`[auth:${this.environment.id}] Error logging out from Roo Code Cloud: ${error}`)
+			throw new Error(`Failed to log out from ${this.environment.name}: ${error}`)
 		}
+	}
+
+	public getEnvironment(): CloudEnvironment {
+		return this.environment
 	}
 
 	public getState(): AuthState {
@@ -338,7 +361,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 	 */
 	private async refreshSession(): Promise<void> {
 		if (!this.credentials) {
-			this.log("[auth] Cannot refresh session: missing credentials")
+			this.log(`[auth:${this.environment.id}] Cannot refresh session: missing credentials`)
 			return
 		}
 
@@ -348,16 +371,16 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 			this.state = "active-session"
 
 			if (previousState !== "active-session") {
-				this.log("[auth] Transitioned to active-session state")
+				this.log(`[auth:${this.environment.id}] Transitioned to active-session state`)
 				this.emit("active-session", { previousState })
 				this.fetchUserInfo()
 			}
 		} catch (error) {
 			if (error instanceof InvalidClientTokenError) {
-				this.log("[auth] Invalid/Expired client token: clearing credentials")
+				this.log(`[auth:${this.environment.id}] Invalid/Expired client token: clearing credentials`)
 				this.clearCredentials()
 			}
-			this.log("[auth] Failed to refresh session", error)
+			this.log(`[auth:${this.environment.id}] Failed to refresh session`, error)
 			throw error
 		}
 	}
@@ -483,7 +506,7 @@ export class AuthService extends EventEmitter<AuthServiceEvents> {
 				}
 			}
 		} catch (error) {
-			this.log("[auth] Failed to fetch organization memberships:", error)
+			this.log(`[auth:${this.environment.id}] Failed to fetch organization memberships:`, error)
 			// Don't throw - organization info is optional
 		}
 

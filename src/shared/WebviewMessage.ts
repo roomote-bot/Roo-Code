@@ -168,6 +168,12 @@ export interface WebviewMessage {
 		| "removeInstalledMarketplaceItem"
 		| "marketplaceInstallResult"
 		| "switchTab"
+		| "rooCloudSignInToEnvironment"
+		| "rooCloudSignOutFromEnvironment"
+		| "rooCloudSetActiveEnvironment"
+		| "rooCloudGetEnvironments"
+		| "rooCloudGetAuthenticatedEnvironments"
+		| "rooCloudLogoutFromAllEnvironments"
 	text?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
@@ -205,6 +211,7 @@ export interface WebviewMessage {
 	mpInstallOptions?: InstallMarketplaceItemOptions
 	config?: Record<string, any> // Add config to the payload
 	visibility?: "organization" | "public" // For share visibility
+	environmentId?: string
 }
 
 export const checkoutDiffPayloadSchema = z.object({
