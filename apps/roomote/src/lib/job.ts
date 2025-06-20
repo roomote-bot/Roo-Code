@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm';
 import { Job } from 'bullmq';
 
-import { db, cloudJobs, type UpdateCloudJob } from '@/db';
+import { db, cloudJobs, type UpdateCloudJob } from '@roo-code-cloud/db/server';
+
 import type { JobType, JobStatus, JobParams, JobPayload } from '@/types';
 
 import { fixGitHubIssue } from './jobs/fixGitHubIssue';

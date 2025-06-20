@@ -3,14 +3,20 @@
 import { eq, and, sql, desc } from 'drizzle-orm';
 
 import {
+  type TaskShare,
+  AuditLogTargetType,
+  db,
+  taskShares,
+  users,
+} from '@roo-code-cloud/db/server';
+
+import {
   type CreateTaskShareRequest,
+  type SharedByUser,
+  TaskShareVisibility,
   createTaskShareSchema,
   shareIdSchema,
 } from '@/types';
-import type { SharedByUser } from '@/types/task-sharing';
-import { TaskShareVisibility } from '@/types/task-sharing';
-import { type TaskShare, AuditLogTargetType } from '@/db';
-import { client as db, taskShares, users } from '@/db/server';
 import { handleError, generateShareToken } from '@/lib/server';
 import {
   isValidShareToken,

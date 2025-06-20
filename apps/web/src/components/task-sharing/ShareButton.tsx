@@ -12,9 +12,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { TaskShare } from '@/db';
-import type { TaskWithUser } from '@/actions/analytics';
+import type { TaskShare } from '@roo-code-cloud/db';
+
 import { TaskShareVisibility } from '@/types/task-sharing';
+import type { TaskWithUser } from '@/actions/analytics';
 import {
   createTaskShare,
   deleteTaskShare,

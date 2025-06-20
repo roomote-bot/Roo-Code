@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
+import type { AuditLogWithUser } from '@roo-code-cloud/db';
+
 import { type TimePeriod, timePeriods } from '@/types';
-import type { AuditLogWithUser } from '@/db';
 import { getAuditLogs } from '@/actions/auditLogs';
 import {
   Button,

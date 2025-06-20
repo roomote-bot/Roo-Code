@@ -2,7 +2,7 @@
 
 import { createHmac } from 'crypto';
 
-vi.mock('@/db', () => ({
+vi.mock('@roo-code-cloud/db/server', () => ({
   db: {
     insert: vi.fn(),
   },
@@ -22,7 +22,7 @@ describe('GitHub Webhook Utils', () => {
   beforeEach(async () => {
     vi.clearAllMocks();
 
-    const dbModule = await import('@/db');
+    const dbModule = await import('@roo-code-cloud/db/server');
     const libModule = await import('@/lib');
     mockDb = dbModule.db as unknown as { insert: ReturnType<typeof vi.fn> };
     mockEnqueue = libModule.enqueue as unknown as ReturnType<typeof vi.fn>;
@@ -45,28 +45,23 @@ describe('GitHub Webhook Utils', () => {
       const actualHash = createHmac('sha256', secret)
         .update(body, 'utf8')
         .digest('hex');
+
       const validSignature = `sha256=${actualHash}`;
-
       const result = verifySignature(body, validSignature, secret);
-
       expect(result).toBe(true);
     });
 
     it('should return false for invalid signature', () => {
       const body = 'test body';
       const invalidSignature = 'sha256=invalid';
-
       const result = verifySignature(body, invalidSignature, secret);
-
       expect(result).toBe(false);
     });
 
     it('should handle signature without sha256= prefix', () => {
       const body = 'test body';
       const signature = '1234567890abcdef';
-
       const result = verifySignature(body, signature, secret);
-
       // This will be false since we're not mocking crypto properly for this test.
       expect(typeof result).toBe('boolean');
     });
@@ -74,18 +69,14 @@ describe('GitHub Webhook Utils', () => {
     it('should work with empty body', () => {
       const body = '';
       const signature = 'sha256=somehash';
-
       const result = verifySignature(body, signature, secret);
-
       expect(typeof result).toBe('boolean');
     });
 
     it('should work with special characters in body', () => {
       const body = '{"test": "value with 特殊字符 and émojis 🎉"}';
       const signature = 'sha256=somehash';
-
       const result = verifySignature(body, signature, secret);
-
       expect(typeof result).toBe('boolean');
     });
   });
@@ -101,6 +92,7 @@ describe('GitHub Webhook Utils', () => {
           returning: vi.fn().mockResolvedValue([mockJob]),
         }),
       });
+
       mockEnqueue.mockResolvedValue(mockEnqueuedJob);
     });
 

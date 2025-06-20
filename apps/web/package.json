@@ -8,11 +8,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "clean": "rimraf .next .turbo out",
-    "db:generate": "dotenvx run -f .env.development -- drizzle-kit generate",
-    "db:migrate": "dotenvx run -f .env.development -- drizzle-kit migrate",
-    "db:push": "dotenvx run -f .env.development -- drizzle-kit push",
-    "db:test:push": "dotenvx run -f .env.test -- drizzle-kit push"
+    "clean": "rimraf .next .turbo out"
   },
   "dependencies": {
     "@clerk/localizations": "^3.16.3",
@@ -35,6 +31,7 @@
     "@radix-ui/react-tabs": "^1.1.12",
     "@radix-ui/react-toast": "^1.2.14",
     "@radix-ui/react-tooltip": "^1.2.7",
+    "@roo-code-cloud/db": "workspace:^",
     "@roo-code/types": "^1.26.0",
     "@sentry/nextjs": "^9.23.0",
     "@t3-oss/env-nextjs": "^0.13.6",
@@ -46,8 +43,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^4.1.0",
-    "drizzle-orm": "^0.43.1",
-    "drizzle-zod": "^0.7.1",
+    "drizzle-orm": "^0.44.2",
     "fuzzysort": "^3.1.0",
     "import-in-the-middle": "^1.14.2",
     "jsonwebtoken": "^9.0.2",
@@ -88,7 +84,6 @@
     "@types/react": "^19.1.6",
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.5.2",
-    "drizzle-kit": "^0.31.1",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-only-warn": "^1.1.0",
     "eslint-plugin-react": "^7.37.5",

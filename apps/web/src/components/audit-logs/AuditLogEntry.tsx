@@ -1,7 +1,7 @@
 import { formatDistance } from 'date-fns';
 import { Settings, Sliders, Users } from 'lucide-react';
 
-import { type AuditLogWithUser, AuditLogTargetType } from '@/db';
+import { type AuditLogWithUser, AuditLogTargetType } from '@roo-code-cloud/db';
 
 type AuditLogEntryProps = {
   log: AuditLogWithUser;

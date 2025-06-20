@@ -12,7 +12,7 @@ import {
   ORGANIZATION_DEFAULT,
 } from '@roo-code/types';
 
-import { AuditLogTargetType, client as db, orgSettings } from '@/db/server';
+import { AuditLogTargetType, db, orgSettings } from '@roo-code-cloud/db/server';
 
 import { authorize } from './auth';
 import { insertAuditLog } from './auditLogs';

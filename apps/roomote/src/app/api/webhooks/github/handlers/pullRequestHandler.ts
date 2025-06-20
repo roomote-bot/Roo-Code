@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { db, cloudJobs } from '@/db';
+import { db, cloudJobs } from '@roo-code-cloud/db/server';
+
 import { SlackNotifier } from '@/lib/slack';
 
 const githubPullRequestWebhookSchema = z.object({

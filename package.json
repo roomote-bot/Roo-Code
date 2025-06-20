@@ -15,7 +15,7 @@
     "services:down": "docker compose down postgres clickhouse redis roomote-dashboard",
     "db:up": "docker compose up postgres clickhouse -d --wait && pnpm db:push",
     "db:down": "docker compose down postgres clickhouse",
-    "db:push": "pnpm --filter @roo-code-cloud/web db:push --force && pnpm --filter @roo-code-cloud/web db:test:push --force",
+    "db:push": "pnpm --filter @roo-code-cloud/db db:push --force && pnpm --filter @roo-code-cloud/db db:test:push --force",
     "db:reset": "pnpm db:down && rimraf .docker/data .docker/logs && pnpm db:up"
   },
   "devDependencies": {

@@ -6,10 +6,11 @@ import { clerkClient, currentUser } from '@clerk/nextjs/server';
 import {
   type CreateUser,
   type CreateOrg,
-  client as db,
+  db,
   users,
   orgs,
-} from '@/db/server';
+} from '@roo-code-cloud/db/server';
+
 import { logger } from '@/lib/server';
 
 export async function syncCurrentUser({

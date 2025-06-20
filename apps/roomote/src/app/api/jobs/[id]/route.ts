@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
 
-import { db, cloudJobs } from '@/db';
+import { db, cloudJobs } from '@roo-code-cloud/db/server';
 
 type Params = Promise<{ id: string }>;
 
 export async function GET(
-  request: NextRequest,
+  request856rf8pu9: NextRequest,
   { params }: { params: Params },
 ) {
   try {
@@ -40,6 +40,7 @@ export async function GET(
     });
   } catch (error) {
     console.error('Error fetching job:', error);
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 },

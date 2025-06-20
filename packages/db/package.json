@@ -1,4 +1,40 @@
 {
   "name": "@roo-code-cloud/db",
-  "private": true
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "require": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./server": {
+      "import": "./src/server.ts",
+      "require": "./src/server.ts",
+      "types": "./src/server.ts"
+    }
+  },
+  "scripts": {
+    "lint": "eslint src --ext=ts --max-warnings=0",
+    "check-types": "tsc --noEmit",
+    "clean": "rimraf .turbo",
+    "drizzle-kit": "dotenvx run -f .env -- tsx node_modules/drizzle-kit/bin.cjs",
+    "db:generate": "dotenvx run -f .env.development -- drizzle-kit generate",
+    "db:migrate": "dotenvx run -f .env.development -- drizzle-kit migrate",
+    "db:push": "dotenvx run -f .env.development -- drizzle-kit push",
+    "db:test:push": "dotenvx run -f .env.test -- drizzle-kit push"
+  },
+  "dependencies": {
+    "@roo-code/types": "^1.26.0",
+    "drizzle-orm": "^0.44.2",
+    "postgres": "^3.4.7",
+    "zod": "^3.25.41"
+  },
+  "devDependencies": {
+    "@roo-code-cloud/config-eslint": "workspace:^",
+    "@roo-code-cloud/config-typescript": "workspace:^",
+    "@types/node": "^24.0.3",
+    "drizzle-kit": "^0.31.1"
+  }
 }

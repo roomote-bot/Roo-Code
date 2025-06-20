@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
-import { db } from '@/db';
+import { db } from '@roo-code-cloud/db/server';
+
 import { redis } from '@/lib';
 
 export async function GET() {

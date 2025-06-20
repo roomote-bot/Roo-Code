@@ -1,4 +1,5 @@
-import type { AuditLogWithUser } from '@/db';
+import type { AuditLogWithUser } from '@roo-code-cloud/db';
+
 import {
   Drawer,
   DrawerContent,

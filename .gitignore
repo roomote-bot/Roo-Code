@@ -11,6 +11,7 @@ Thumbs.db
 # .env
 .env
 .env*.local
+.env*.preview
 .env*.production
 
 # turbo

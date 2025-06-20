@@ -10,7 +10,7 @@ import {
 import type { AnyTimePeriod } from '@/types';
 import { analytics } from '@/lib/server';
 import { tokenSumSql } from '@/lib';
-import { type User, getUsersById } from '@/db/server';
+import { type User, getUsersById } from '@roo-code-cloud/db/server';
 import { authorizeAnalytics } from '@/actions/auth';
 
 type Table = 'events' | 'messages';

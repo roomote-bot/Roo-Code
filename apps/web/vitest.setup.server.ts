@@ -5,13 +5,10 @@ import { sql } from 'drizzle-orm';
 let pgClient: ReturnType<typeof postgres> | undefined = undefined;
 
 async function resetTestDatabase() {
-  pgClient = postgres(
-    'postgres://postgres:password@localhost:5432/roo_code_test',
-    {
-      prepare: false,
-      onnotice: () => {}, // Suppress NOTICE logs.
-    },
-  );
+  pgClient = postgres('postgres://postgres:password@localhost:5432/test', {
+    prepare: false,
+    onnotice: () => {}, // Suppress NOTICE logs.
+  });
 
   const db = drizzle({ client: pgClient });
 

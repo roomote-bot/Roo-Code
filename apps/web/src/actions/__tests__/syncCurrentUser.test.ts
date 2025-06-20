@@ -2,8 +2,9 @@
 
 import { eq } from 'drizzle-orm';
 
+import { db, users, orgs } from '@roo-code-cloud/db/server';
+
 import { logger } from '@/lib/server/logger';
-import { client as db, users, orgs } from '@/db/server';
 
 import { syncCurrentUser } from '../sync';
 

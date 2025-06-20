@@ -5,14 +5,15 @@ import { clerkClient, auth } from '@clerk/nextjs/server';
 import type { Mock } from 'vitest';
 
 import {
-  client as db,
+  type Agent,
+  db,
   agents,
   users,
   orgs,
   agentRequestLogs,
-} from '@/db/server';
+} from '@roo-code-cloud/db/server';
+
 import type { CreateAgentRequest } from '@/types';
-import type { Agent } from '@/db/types';
 
 import { createAgent, revokeAgent, updateAgentUsage } from '../agents';
 

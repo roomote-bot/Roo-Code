@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
+import { db, cloudJobs } from '@roo-code-cloud/db/server';
+
 import { createJobSchema } from '@/types';
-import { db, cloudJobs } from '@/db';
 import { enqueue } from '@/lib';
 
 export async function POST(request: NextRequest) {

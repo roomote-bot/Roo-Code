@@ -1,6 +1,6 @@
 import { inArray } from 'drizzle-orm';
 
-import { client as db } from '../db';
+import { db } from '../db';
 import { users } from '../schema';
 import type { User } from '../types';
 

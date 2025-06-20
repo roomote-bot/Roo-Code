@@ -7,9 +7,9 @@ import {
   type DatabaseOrTransaction,
   type AuditLogWithUser,
   type CreateAuditLog,
-  client as db,
+  db,
   auditLogs,
-} from '@/db/server';
+} from '@roo-code-cloud/db/server';
 
 export const getAuditLogs = async ({
   orgId,

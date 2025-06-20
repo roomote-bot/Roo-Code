@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, Calendar, Clock, User } from 'lucide-react';
 
-import type { AuditLogWithUser } from '@/db';
+import type { AuditLogWithUser } from '@roo-code-cloud/db';
 
 export const AuditLogDetails = ({ log }: { log: AuditLogWithUser }) => (
   <div className="space-y-6">

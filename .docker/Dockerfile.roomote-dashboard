@@ -1,4 +1,4 @@
-# docker compose build base dashboard
+# docker compose build base roomote-dashboard
 
 FROM roomote-base AS base
 
@@ -14,12 +14,10 @@ COPY apps/roomote/package.json ./apps/roomote/
 COPY scripts/bootstrap.mjs ./scripts/
 RUN pnpm install
 
-COPY apps/roomote ./apps/roomote/
+COPY apps/roomote-dashboard ./apps/roomote-dashboard/
 COPY packages/config-eslint ./packages/config-eslint/
 COPY packages/config-typescript ./packages/config-typescript/
-COPY packages/types ./packages/types/
-COPY packages/ipc ./packages/ipc/
 
-WORKDIR /roo/apps/roomote
+WORKDIR /roo/apps/roomote-dashboard
 EXPOSE 3002
-CMD ["pnpm", "dashboard"]
+CMD ["pnpm", "dev"]

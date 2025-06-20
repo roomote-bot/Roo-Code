@@ -4,12 +4,16 @@ import { eq, and } from 'drizzle-orm';
 import { clerkClient } from '@clerk/nextjs/server';
 import crypto from 'crypto';
 
-import type { Agent } from '@/db/types';
+import {
+  type Agent,
+  db,
+  agents,
+  agentRequestLogs,
+} from '@roo-code-cloud/db/server';
 import {
   type CreateAgentRequest,
   createAgentRequestSchema,
 } from '@/types/agents';
-import { client as db, agents, agentRequestLogs } from '@/db/server';
 
 import { authorize } from './auth';
 
