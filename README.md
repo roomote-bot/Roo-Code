@@ -20,7 +20,7 @@ Then you can start the app in dev mode:
 pnpm --filter @roo-code-cloud/web dev
 ```
 
-The app will be available at (localhost:3000)[http://localhost:3000/].
+The app will be available at [localhost:3000](http://localhost:3000/).
 
 ### Roomote
 
