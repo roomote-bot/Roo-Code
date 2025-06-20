@@ -7,7 +7,8 @@ import {
   createTaskShareSchema,
   shareIdSchema,
 } from '@/types';
-import type { SharedByUser } from '@/types';
+import type { SharedByUser } from '@/types/task-sharing';
+import { TaskShareVisibility } from '@/types/task-sharing';
 import { type TaskShare, AuditLogTargetType } from '@/db';
 import { client as db, taskShares, users } from '@/db/server';
 import { handleError, generateShareToken } from '@/lib/server';
@@ -41,6 +42,7 @@ export async function canShareTask(taskId: string): Promise<{
   orgRole?: string;
 }> {
   try {
+    // Get authentication info
     const authResult = await authorize();
 
     if (!authResult.success) {
@@ -56,6 +58,7 @@ export async function canShareTask(taskId: string): Promise<{
         orgId,
         allowCrossUserAccess: true,
       });
+
       const task = tasks[0];
 
       if (!task) {
@@ -100,7 +103,11 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
       return { success: false, error: 'Invalid request data' };
     }
 
-    const { taskId, expirationDays } = result.data;
+    const {
+      taskId,
+      expirationDays,
+      visibility = TaskShareVisibility.ORGANIZATION,
+    } = result.data;
 
     const orgSettingsData = await getOrganizationSettings();
 
@@ -142,6 +149,7 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
           orgId,
           createdByUserId: userId,
           shareToken,
+          visibility,
           expiresAt,
         })
         .returning();
@@ -158,11 +166,12 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
         newValue: {
           action: 'created',
           shareId: insertedShare[0].id,
+          visibility,
           expiresAt: expiresAt.toISOString(),
           taskOwnerId: task.userId,
           sharedByAdmin: orgRole === 'org:admin' && task.userId !== userId,
         },
-        description: `Created task share for task ${taskId}${
+        description: `Created ${visibility} task share for task ${taskId}${
           orgRole === 'org:admin' && task.userId !== userId
             ? ` (admin sharing task created by ${task.user.name})`
             : ''
@@ -182,8 +191,8 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
 
     return {
       success: true,
-      message: 'Task share created successfully',
       data: { shareUrl, shareId: newShare.id, expiresAt },
+      message: 'Task share created successfully',
     };
   } catch (error) {
     return handleError(error, 'task_sharing');
@@ -198,18 +207,14 @@ export async function getTaskByShareToken(token: string): Promise<{
   messages: Message[];
   sharedBy: SharedByUser;
   sharedAt: Date;
+  visibility: string;
 } | null> {
   try {
-    const authResult = await authorize();
-
-    if (!authResult.success) {
-      throw new Error('Authentication required');
-    }
-
     if (!isValidShareToken(token)) {
       return null;
     }
 
+    // First, get the share without auth check to determine visibility
     const [shareWithUser] = await db
       .select({
         share: taskShares,
@@ -221,12 +226,7 @@ export async function getTaskByShareToken(token: string): Promise<{
       })
       .from(taskShares)
       .innerJoin(users, eq(taskShares.createdByUserId, users.id))
-      .where(
-        and(
-          eq(taskShares.shareToken, token),
-          eq(taskShares.orgId, authResult.orgId),
-        ),
-      )
+      .where(eq(taskShares.shareToken, token))
       .limit(1);
 
     if (!shareWithUser) {
@@ -239,12 +239,25 @@ export async function getTaskByShareToken(token: string): Promise<{
       return null;
     }
 
+    // Check visibility and auth requirements
+    if (share.visibility === TaskShareVisibility.ORGANIZATION) {
+      const authResult = await authorize();
+      const userId = authResult.success ? authResult.userId : null;
+      const orgId = authResult.success ? authResult.orgId : null;
+
+      if (!userId || !orgId || orgId !== share.orgId) {
+        throw new Error('Authentication required for organization shares');
+      }
+    }
+    // For public shares, no auth check needed
+
+    // Get task data based on visibility
     const tasks = await getTasks({
       taskId: share.taskId,
       orgId: share.orgId,
       allowCrossUserAccess: true,
+      skipAuth: share.visibility === TaskShareVisibility.PUBLIC, // Skip auth for public shares
     });
-
     const task = tasks[0];
 
     if (!task) {
@@ -258,6 +271,7 @@ export async function getTaskByShareToken(token: string): Promise<{
       messages,
       sharedBy: sharedByUser,
       sharedAt: share.createdAt,
+      visibility: share.visibility,
     };
   } catch (error) {
     console.error(
@@ -281,6 +295,7 @@ export async function deleteTaskShare(shareId: string) {
     }
 
     const { userId, orgId, orgRole } = authResult;
+
     const shareIdResult = shareIdSchema.safeParse(shareId);
 
     if (!shareIdResult.success) {

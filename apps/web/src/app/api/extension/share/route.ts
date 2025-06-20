@@ -1,18 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { authorizeApi } from '@/actions/auth';
 import { createTaskShare } from '@/actions/taskSharing';
 import { getTasks } from '@/actions/analytics';
 import { getOrganizationSettings } from '@/actions/organizationSettings';
+import { authorize } from '@/actions/auth';
+import { TaskShareVisibility } from '@/types/task-sharing';
 
 const createShareRequestSchema = z.object({
   taskId: z.string().min(1, 'Task ID is required'),
+  visibility: z
+    .nativeEnum(TaskShareVisibility)
+    .default(TaskShareVisibility.ORGANIZATION),
 });
 
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await authorizeApi(request);
+    const authResult = await authorize();
 
     if (!authResult.success) {
       return NextResponse.json(
@@ -33,7 +37,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { taskId } = result.data;
+    const { taskId, visibility } = result.data;
 
     // Check if task sharing is enabled for the organization
     const orgSettings = await getOrganizationSettings();
@@ -59,7 +63,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const shareResponse = await createTaskShare({ taskId });
+    const shareResponse = await createTaskShare({ taskId, visibility });
 
     if (!shareResponse.success || !shareResponse.data) {
       return NextResponse.json(

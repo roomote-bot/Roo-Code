@@ -309,17 +309,24 @@ export const getTasks = async ({
   userId,
   taskId,
   allowCrossUserAccess = false,
+  skipAuth = false,
 }: {
   orgId?: string | null;
   userId?: string | null;
   taskId?: string | null;
   allowCrossUserAccess?: boolean;
+  skipAuth?: boolean;
 }): Promise<TaskWithUser[]> => {
-  const { effectiveUserId } = await authorizeAnalytics({
-    requestedOrgId: orgId,
-    requestedUserId: userId,
-    allowCrossUserAccess,
-  });
+  let effectiveUserId = userId;
+
+  if (!skipAuth) {
+    const authResult = await authorizeAnalytics({
+      requestedOrgId: orgId,
+      requestedUserId: userId,
+      allowCrossUserAccess,
+    });
+    effectiveUserId = authResult.effectiveUserId;
+  }
 
   if (!orgId) {
     return [];

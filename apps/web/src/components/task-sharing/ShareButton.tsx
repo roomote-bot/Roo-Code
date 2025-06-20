@@ -1,11 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Copy, Share, Trash2, ExternalLink } from 'lucide-react';
+import {
+  Copy,
+  Share,
+  Trash2,
+  ExternalLink,
+  Users,
+  Globe,
+  Check,
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import type { TaskShare } from '@/db';
 import type { TaskWithUser } from '@/actions/analytics';
+import { TaskShareVisibility } from '@/types/task-sharing';
 import {
   createTaskShare,
   deleteTaskShare,
@@ -25,6 +34,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  Label,
+  Badge,
 } from '@/components/ui';
 
 type ShareButtonProps = {
@@ -36,6 +47,9 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
   const [isCreating, setIsCreating] = useState(false);
   const [shares, setShares] = useState<TaskShare[]>([]);
   const [newShareUrl, setNewShareUrl] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<TaskShareVisibility>(
+    TaskShareVisibility.ORGANIZATION,
+  );
 
   const { data: orgSettings } = useOrganizationSettings();
 
@@ -58,13 +72,17 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
     if (open) {
       loadShares();
       setNewShareUrl(null);
+      setVisibility(TaskShareVisibility.ORGANIZATION); // Reset to default when opening
     }
   };
 
   const handleCreateShare = async () => {
     setIsCreating(true);
     try {
-      const response = await createTaskShare({ taskId: task.taskId });
+      const response = await createTaskShare({
+        taskId: task.taskId,
+        visibility,
+      });
 
       if (response.success && response.data) {
         setNewShareUrl(response.data.shareUrl);
@@ -119,20 +137,31 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
           Share
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>Share Task</DialogTitle>
           <DialogDescription>
-            Create a link to share this task with your team.
+            {newShareUrl
+              ? 'Your share link is ready to use.'
+              : visibility === TaskShareVisibility.ORGANIZATION
+                ? 'Create a link to share this task with your team.'
+                : 'Create a public link that anyone can access.'}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           {/* Create New Share */}
           {newShareUrl ? (
-            <div className="space-y-3">
-              <div className="p-3 border rounded-md">
-                <p className="text-sm font-medium mb-2">Share link created!</p>
+            <div className="space-y-4">
+              <div className="p-4 border-2 border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30 rounded-lg">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex-shrink-0">
+                    <Check className="size-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <p className="font-medium text-green-800 dark:text-green-200">
+                    Share link created!
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <Button
                     onClick={(e) => {
@@ -156,21 +185,117 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
                   </Button>
                 </div>
               </div>
+              <Button
+                variant="outline"
+                onClick={() => setNewShareUrl(null)}
+                className="w-full"
+              >
+                Create Another Link
+              </Button>
             </div>
           ) : (
-            <Button
-              onClick={handleCreateShare}
-              disabled={isCreating}
-              className="w-full"
-            >
-              {isCreating ? 'Creating...' : 'Create Share Link'}
-            </Button>
+            <>
+              {/* Visibility Selector */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-foreground">
+                  Who can access this link?
+                </Label>
+                <div className="grid gap-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setVisibility(TaskShareVisibility.ORGANIZATION)
+                    }
+                    className={`relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all hover:bg-muted/50 ${
+                      visibility === TaskShareVisibility.ORGANIZATION
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                        : 'border-border'
+                    }`}
+                  >
+                    <div
+                      className={`flex-shrink-0 mt-0.5 ${
+                        visibility === TaskShareVisibility.ORGANIZATION
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      <Users className="size-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">
+                          Organization
+                        </span>
+                        {visibility === TaskShareVisibility.ORGANIZATION && (
+                          <Check className="size-4 text-primary" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Only members of your organization can view
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setVisibility(TaskShareVisibility.PUBLIC)}
+                    className={`relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all hover:bg-muted/50 ${
+                      visibility === TaskShareVisibility.PUBLIC
+                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                        : 'border-border'
+                    }`}
+                  >
+                    <div
+                      className={`flex-shrink-0 mt-0.5 ${
+                        visibility === TaskShareVisibility.PUBLIC
+                          ? 'text-primary'
+                          : 'text-muted-foreground'
+                      }`}
+                    >
+                      <Globe className="size-5" />
+                    </div>
+                    <div className="flex-1 text-left">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium text-foreground">
+                          Public
+                        </span>
+                        {visibility === TaskShareVisibility.PUBLIC && (
+                          <Check className="size-4 text-primary" />
+                        )}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Anyone with the link can view
+                      </p>
+                    </div>
+                  </button>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleCreateShare}
+                disabled={isCreating}
+                className="w-full h-11 text-base font-medium"
+                size="lg"
+              >
+                {isCreating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Share className="size-4 mr-2" />
+                    Create Share Link
+                  </>
+                )}
+              </Button>
+            </>
           )}
 
           {/* Existing Shares */}
           {shares.length > 0 && (
-            <div>
-              <h4 className="text-sm font-medium mb-2">
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-foreground">
                 Previous Links ({shares.length})
               </h4>
               <div className="space-y-2">
@@ -179,19 +304,34 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
                   return (
                     <div
                       key={share.id}
-                      className="flex items-center justify-between p-2 border rounded"
+                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors"
                     >
+                      <div className="flex-shrink-0">
+                        {share.visibility === TaskShareVisibility.PUBLIC ? (
+                          <Globe className="size-4 text-muted-foreground" />
+                        ) : (
+                          <Users className="size-4 text-muted-foreground" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs text-muted-foreground truncate">
-                          Created{' '}
-                          {new Date(share.createdAt).toLocaleDateString()}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs text-muted-foreground truncate">
+                            Created{' '}
+                            {new Date(share.createdAt).toLocaleDateString()}
+                          </p>
+                          {share.visibility === TaskShareVisibility.PUBLIC && (
+                            <Badge variant="secondary" className="text-xs">
+                              Public
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-1">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleCopyLink(shareUrl)}
+                          className="h-8 w-8 p-0"
                         >
                           <Copy className="size-3" />
                         </Button>
@@ -199,6 +339,7 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteShare(share.id)}
+                          className="h-8 w-8 p-0"
                         >
                           <Trash2 className="size-3" />
                         </Button>
@@ -207,7 +348,7 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
                   );
                 })}
                 {shares.length > 3 && (
-                  <p className="text-xs text-muted-foreground text-center">
+                  <p className="text-xs text-muted-foreground text-center py-2">
                     +{shares.length - 3} more links
                   </p>
                 )}
@@ -216,10 +357,14 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
           )}
 
           {/* Simple Info */}
-          <p className="text-xs text-muted-foreground">
-            Links expire in {expirationDays} days and are only accessible to
-            your organization members.
-          </p>
+          {!newShareUrl && (
+            <p className="text-xs text-muted-foreground">
+              Links expire in {expirationDays} days
+              {visibility === TaskShareVisibility.ORGANIZATION
+                ? ' and are only accessible to your organization members.'
+                : '. Anyone with the link will be able to view this task.'}
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -178,6 +178,7 @@ export const taskShares = pgTable(
       .notNull()
       .references(() => users.id),
     shareToken: text('share_token').notNull().unique(),
+    visibility: text('visibility').notNull().default('organization'),
     expiresAt: timestamp('expires_at'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
@@ -188,6 +189,7 @@ export const taskShares = pgTable(
     index('task_shares_org_id_idx').on(table.orgId),
     index('task_shares_expires_at_idx').on(table.expiresAt),
     index('task_shares_created_by_user_id_idx').on(table.createdByUserId),
+    index('task_shares_visibility_idx').on(table.visibility),
   ],
 );
 
