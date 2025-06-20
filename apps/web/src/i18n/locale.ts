@@ -12,7 +12,9 @@ export const Locales: Record<Locale, string> = {
   fr: 'Français',
 };
 
-export const getClerkLocale = (locale: string) => {
+type ClerkLocalization = typeof enUS;
+
+export const getClerkLocale = (locale: string): ClerkLocalization => {
   if (!isLocale(locale)) {
     return enUS;
   }

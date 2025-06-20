@@ -10,7 +10,13 @@
     "check-types": "turbo check-types --log-order grouped --output-logs new-only",
     "test": "turbo test --log-order grouped --output-logs new-only",
     "build": "turbo build --log-order grouped --output-logs new-only",
-    "clean": "turbo clean --log-order grouped --output-logs new-only && rimraf .turbo"
+    "clean": "turbo clean --log-order grouped --output-logs new-only && rimraf .turbo",
+    "services:up": "docker compose up postgres clickhouse redis roomote-dashboard -d --wait && pnpm db:push",
+    "services:down": "docker compose down postgres clickhouse redis roomote-dashboard",
+    "db:up": "docker compose up postgres clickhouse -d --wait && pnpm db:push",
+    "db:down": "docker compose down postgres clickhouse",
+    "db:push": "pnpm --filter @roo-code-cloud/web db:push --force && pnpm --filter @roo-code-cloud/web db:test:push --force",
+    "db:reset": "pnpm db:down && rimraf .docker/data .docker/logs && pnpm db:up"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.44.2",

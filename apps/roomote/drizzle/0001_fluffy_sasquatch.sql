@@ -1,0 +1,1 @@
+ALTER TABLE "cloud_jobs" ADD COLUMN "slack_thread_ts" text;

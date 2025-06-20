@@ -4,11 +4,8 @@ import postgres from 'postgres';
 import { Env } from '@/lib/server';
 import * as schema from './schema';
 
-const pgClient = postgres(Env.DATABASE_URL, { prepare: false });
-
-const client = drizzle({ client: pgClient, schema });
-
-let testDb: typeof client | undefined = undefined;
+const postgresClient = postgres(Env.DATABASE_URL, { prepare: false });
+const client = drizzle({ client: postgresClient, schema });
 
 if (process.env.NODE_ENV === 'test') {
   if (
@@ -17,16 +14,12 @@ if (process.env.NODE_ENV === 'test') {
   ) {
     throw new Error('DATABASE_URL is not a test database');
   }
-
-  testDb = client;
 }
 
-const disconnect = async () => {
-  await pgClient.end();
-};
+const disconnect = async () => postgresClient.end();
 
 type DatabaseOrTransaction =
   | typeof client
   | Parameters<Parameters<typeof client.transaction>[0]>[0];
 
-export { client, testDb, disconnect, type DatabaseOrTransaction };
+export { client, disconnect, type DatabaseOrTransaction };

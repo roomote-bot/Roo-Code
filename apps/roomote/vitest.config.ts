@@ -5,9 +5,5 @@ export default defineConfig({
     globals: true,
     watch: false,
     reporters: ['dot'],
-    coverage: {
-      include: ['src/**/*'],
-      exclude: ['src/**/*.stories.{js,jsx,ts,tsx}', '**/*.d.ts'],
-    },
   },
 });

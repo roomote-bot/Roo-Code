@@ -2,20 +2,17 @@
   "name": "@roo-code-cloud/web",
   "private": true,
   "scripts": {
-    "lint": "eslint .",
-    "check-types": "tsc --noEmit --pretty",
+    "lint": "next lint --max-warnings 0",
+    "check-types": "tsc --noEmit",
     "test": "dotenvx run -f .env.test -f .env -- vitest run",
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "clean": "rimraf .next out coverage",
+    "clean": "rimraf .next .turbo out",
     "db:generate": "dotenvx run -f .env.development -- drizzle-kit generate",
     "db:migrate": "dotenvx run -f .env.development -- drizzle-kit migrate",
     "db:push": "dotenvx run -f .env.development -- drizzle-kit push",
-    "db:test:push": "dotenvx run -f .env.test -- drizzle-kit push",
-    "db:up": "docker compose up -d --wait && pnpm db:push --force && pnpm db:test:push --force",
-    "db:down": "docker compose down",
-    "db:reset": "pnpm db:down && rimraf .docker/data .docker/logs && pnpm db:up"
+    "db:test:push": "dotenvx run -f .env.test -- drizzle-kit push"
   },
   "dependencies": {
     "@clerk/localizations": "^3.16.3",
@@ -81,15 +78,16 @@
     "@eslint/js": "^9.27.0",
     "@next/bundle-analyzer": "^15.3.3",
     "@next/eslint-plugin-next": "^15.3.3",
+    "@roo-code-cloud/config-eslint": "workspace:^",
+    "@roo-code-cloud/config-typescript": "workspace:^",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^22.15.27",
     "@types/pg": "^8.15.2",
     "@types/react": "^19.1.6",
-    "@vitejs/plugin-react": "^4.5.0",
-    "@vitest/coverage-v8": "^3.1.4",
-    "@vitest/expect": "^3.1.4",
+    "@types/react-dom": "^19.1.6",
+    "@vitejs/plugin-react": "^4.5.2",
     "drizzle-kit": "^0.31.1",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-only-warn": "^1.1.0",
@@ -103,6 +101,6 @@
     "tailwindcss-animate": "^1.0.7",
     "typescript-eslint": "^8.33.0",
     "vite-tsconfig-paths": "^5.1.4",
-    "vitest": "^3.1.4"
+    "vitest": "^3.2.3"
   }
 }

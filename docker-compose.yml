@@ -1,0 +1,148 @@
+name: roo-code-cloud
+
+services:
+  base:
+    build:
+      context: ../../
+      dockerfile: .docker/Dockerfile.base
+    image: roo-code-cloud-base
+
+  postgres:
+    container_name: roo-code-cloud-postgres
+    image: postgres:17.5
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./.docker/data/postgres:/var/lib/postgresql/data
+      - ./.docker/scripts/postgres:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DATABASES=roo_code_development,roo_code_test
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d roo_code_development"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  clickhouse:
+    container_name: roo-code-cloud-clickhouse
+    image: clickhouse/clickhouse-server
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - ./.docker/data/clickhouse:/var/lib/clickhouse/
+      - ./.docker/logs/clickhouse:/var/log/clickhouse-server/
+      - ./.docker/scripts/clickhouse:/docker-entrypoint-initdb.d
+    environment:
+      - CLICKHOUSE_DB=default
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=password
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1",
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    container_name: roo-code-cloud-redis
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - ./.docker/data/redis:/data
+    command: redis-server --appendonly yes
+
+  roomote-dashboard:
+    container_name: roo-code-cloud-roomote-dashboard
+    build:
+      context: ../../
+      dockerfile: .docker/Dockerfile.dashboard
+    image: roo-code-cloud-roomote-dashboard
+    ports:
+      - "3002:3002"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    depends_on:
+      redis:
+        condition: service_started
+
+  roomote-api:
+    container_name: roo-code-cloud-roomote-api
+    build:
+      context: ../../
+      dockerfile: .docker/Dockerfile.api
+    image: roo-code-cloud-roomote-api
+    ports:
+      - "3001:3001"
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@db:5432/cloud_agents
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  roomote-controller:
+    container_name: roo-code-cloud-roomote-controller
+    build:
+      context: ../../
+      dockerfile: .docker/Dockerfile.controller
+      args:
+        - GH_TOKEN=${GH_TOKEN}
+    image: roo-code-cloud-roomote-controller
+    env_file:
+      - .env
+    environment:
+      - HOST_EXECUTION_METHOD=docker
+      - DATABASE_URL=postgresql://postgres:password@db:5432/cloud_agents
+      - REDIS_URL=redis://redis:6379
+      - NODE_ENV=production
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/roomote/controller:/var/log/roomote
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+
+  roomote-worker:
+    build:
+      context: ../../
+      dockerfile: .docker/Dockerfile.worker
+      args:
+        - GH_TOKEN=${GH_TOKEN}
+    image: roomote-worker
+    env_file:
+      - .env
+    environment:
+      - HOST_EXECUTION_METHOD=docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/roomote/worker:/var/log/roomote
+    stdin_open: true
+    tty: true
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+networks:
+  default:
+    name: roo-code-cloud_default
+    driver: bridge

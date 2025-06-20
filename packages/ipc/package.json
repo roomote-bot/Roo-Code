@@ -1,0 +1,22 @@
+{
+  "name": "@roo-code-cloud/ipc",
+  "private": true,
+  "type": "module",
+  "exports": "./src/index.ts",
+  "scripts": {
+    "lint": "eslint src --ext=ts --max-warnings=0",
+    "check-types": "tsc --noEmit",
+    "clean": "rimraf .turbo"
+  },
+  "dependencies": {
+    "@roo-code/types": "^1.26.0",
+    "node-ipc": "^12.0.0"
+  },
+  "devDependencies": {
+    "@roo-code-cloud/config-eslint": "workspace:^",
+    "@roo-code-cloud/config-typescript": "workspace:^",
+    "@types/node": "20.x",
+    "@types/node-ipc": "^9.2.3",
+    "vitest": "^3.2.3"
+  }
+}
