@@ -12,6 +12,10 @@ Sentry.init({
   debug: false,
   replaysSessionSampleRate: 0.1,
   replaysOnErrorSampleRate: 1.0,
+
+  // Increase max length for messages to prevent truncation (default is 250)
+  maxValueLength: 8192,
+
   integrations: [
     Sentry.replayIntegration({
       maskAllText: true,

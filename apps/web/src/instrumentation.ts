@@ -17,6 +17,9 @@ export async function register() {
 
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
+
+      // Increase max length for messages to prevent truncation (default is 250)
+      maxValueLength: 8192,
     });
   }
 
@@ -35,6 +38,9 @@ export async function register() {
 
       // Setting this option to true will print useful information to the console while you're setting up Sentry.
       debug: false,
+
+      // Increase max length for messages to prevent truncation (default is 250)
+      maxValueLength: 8192,
     });
   }
 }
