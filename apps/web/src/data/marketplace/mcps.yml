@@ -487,7 +487,14 @@ items:
         content: |
           {
             "command": "docker",
-            "args": ["run", "-i", "--rm", "-e", "TAVILY_API_KEY", "tavily/mcp"],
+            "args": [
+              "run",
+              "-i",
+              "--rm",
+              "-e",
+              "TAVILY_API_KEY",
+              "mcp/tavily"
+            ],
             "env": {
               "TAVILY_API_KEY": "{{TAVILY_API_KEY}}"
             }
@@ -495,7 +502,7 @@ items:
     parameters:
       - name: 'Tavily API Key'
         key: 'TAVILY_API_KEY'
-        placeholder: 'your_tavily_api_key_here'
+        placeholder: 'your-tavily-apikey-here'
   - id: 'gdrive'
     name: 'Google Drive'
     description: 'Enables searching, listing, and reading files from Google Drive, with automatic export of Google Workspace files to common formats like Markdown, CSV, and PNG.'
