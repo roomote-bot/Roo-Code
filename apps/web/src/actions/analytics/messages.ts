@@ -10,7 +10,7 @@ import { analytics } from '@/lib/server';
 
 const messageSchema = z.object({
   id: z.string(),
-  orgId: z.string(),
+  orgId: z.string().nullable(),
   userId: z.string(),
   taskId: z.string(),
   mode: z.string().nullable(),

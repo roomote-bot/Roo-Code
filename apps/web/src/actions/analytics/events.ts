@@ -21,7 +21,7 @@ type Table = 'events' | 'messages';
 
 type AnalyticsEvent = {
   id: string;
-  orgId: string;
+  orgId: string | null;
   userId: string;
   timestamp: number;
   event: RooCodeTelemetryEvent;
@@ -36,6 +36,7 @@ export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
       table = 'messages';
       const { taskId, mode, message } = event.properties;
       const { ts, type, ask, say, text, reasoning, partial } = message;
+
       value = {
         ...rest,
         taskId,
@@ -48,6 +49,7 @@ export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
         reasoning,
         partial,
       };
+
       break;
     }
     default: {
@@ -95,10 +97,12 @@ export const getUsage = async ({
   }
 
   const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
+
   const queryParams: Record<string, string | number> = {
     orgId: orgId!,
     timePeriod,
   };
+
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
   }

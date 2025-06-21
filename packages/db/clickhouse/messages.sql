@@ -18,3 +18,4 @@ ORDER BY (id, timestamp)
 SETTINGS index_granularity = 8192;
 
 ALTER TABLE default.messages ADD COLUMN mode Nullable(String);
+ALTER TABLE default.messages MODIFY COLUMN `orgId` Nullable(String);

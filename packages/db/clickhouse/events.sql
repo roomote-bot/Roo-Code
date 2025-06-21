@@ -32,3 +32,5 @@ CREATE TABLE default.events
 ENGINE = ReplicatedMergeTree('/clickhouse/tables/{uuid}/{shard}', '{replica}')
 ORDER BY (id, type, timestamp)
 SETTINGS index_granularity = 8192;
+
+ALTER TABLE default.events MODIFY COLUMN `orgId` Nullable(String);
