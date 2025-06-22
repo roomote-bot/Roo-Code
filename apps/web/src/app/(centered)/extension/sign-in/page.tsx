@@ -43,7 +43,11 @@ export default async function Page(props: Props) {
   let editorRedirect = EXTENSION_URI_SCHEME;
 
   try {
-    const params = new URLSearchParams({ state, code });
+    const params = new URLSearchParams({
+      state,
+      code,
+      organizationId: orgId,
+    });
 
     editorRedirect = new URL(
       `/auth/clerk/callback?${params.toString()}`,
