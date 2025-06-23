@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:15.4
+        image: postgres:17.5
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: password
@@ -45,6 +45,20 @@ jobs:
           - 5432:5432
         options: >-
           --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      clickhouse:
+        image: clickhouse/clickhouse-server
+        env:
+          CLICKHOUSE_DB: default
+          CLICKHOUSE_USER: default
+          CLICKHOUSE_PASSWORD: password
+        ports:
+          - 8123:8123
+          - 9000:9000
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
@@ -72,10 +86,23 @@ jobs:
         run: pnpm --filter @roo-code-cloud/db db:test:push --force
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/test
+      - name: Setup ClickHouse schema
+        run: |
+          # Wait for ClickHouse to be ready
+          curl --retry 30 --retry-delay 1 --retry-connrefused http://localhost:8123/ping
+
+          # Install clickhouse-client
+          sudo apt-get update
+          sudo apt-get install -y clickhouse-client
+
+          # Execute the schema file directly using clickhouse-client
+          clickhouse-client --host localhost --port 9000 --password password --multiquery < .docker/scripts/clickhouse/001-create-tables.sql
       - name: Run unit tests
         run: pnpm test
         env:
           DATABASE_URL: postgres://postgres:password@localhost:5432/test
+          CLICKHOUSE_URL: http://localhost:8123/default
+          CLICKHOUSE_PASSWORD: password
 
   check:
     needs: [build, test]
