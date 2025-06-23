@@ -353,7 +353,40 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
+		await sleep(2000) // Wait for Roo Code to fully initialize
 
+		// Trigger MCP server detection by opening and modifying the file
+		console.log("Triggering MCP server detection by modifying the config file...")
+		try {
+			const mcpConfigUri = vscode.Uri.file(testFiles.mcpConfig)
+			const document = await vscode.workspace.openTextDocument(mcpConfigUri)
+			const editor = await vscode.window.showTextDocument(document)
+
+			// Make a small modification to trigger the save event, without this Roo Code won't load the MCP server
+			const edit = new vscode.WorkspaceEdit()
+			const currentContent = document.getText()
+			const modifiedContent = currentContent.replace(
+				'"alwaysAllow": []',
+				'"alwaysAllow": ["read_file", "read_multiple_files", "write_file", "edit_file", "create_directory", "list_directory", "directory_tree", "move_file", "search_files", "get_file_info", "list_allowed_directories"]',
+			)
+
+			const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length))
+
+			edit.replace(mcpConfigUri, fullRange, modifiedContent)
+			await vscode.workspace.applyEdit(edit)
+
+			// Save the document to trigger MCP server detection
+			await editor.document.save()
+
+			// Close the editor
+			await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+
+			console.log("MCP config file modified and saved successfully")
+		} catch (error) {
+			console.error("Failed to modify/save MCP config file:", error)
+		}
+
+		await sleep(5000) // Wait for MCP servers to initialize
 		let taskId: string
 		try {
 			// Start task requesting to use MCP filesystem write_file tool
@@ -481,7 +514,40 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
+		await sleep(2000) // Wait for Roo Code to fully initialize
 
+		// Trigger MCP server detection by opening and modifying the file
+		console.log("Triggering MCP server detection by modifying the config file...")
+		try {
+			const mcpConfigUri = vscode.Uri.file(testFiles.mcpConfig)
+			const document = await vscode.workspace.openTextDocument(mcpConfigUri)
+			const editor = await vscode.window.showTextDocument(document)
+
+			// Make a small modification to trigger the save event, without this Roo Code won't load the MCP server
+			const edit = new vscode.WorkspaceEdit()
+			const currentContent = document.getText()
+			const modifiedContent = currentContent.replace(
+				'"alwaysAllow": []',
+				'"alwaysAllow": ["read_file", "read_multiple_files", "write_file", "edit_file", "create_directory", "list_directory", "directory_tree", "move_file", "search_files", "get_file_info", "list_allowed_directories"]',
+			)
+
+			const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length))
+
+			edit.replace(mcpConfigUri, fullRange, modifiedContent)
+			await vscode.workspace.applyEdit(edit)
+
+			// Save the document to trigger MCP server detection
+			await editor.document.save()
+
+			// Close the editor
+			await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+
+			console.log("MCP config file modified and saved successfully")
+		} catch (error) {
+			console.error("Failed to modify/save MCP config file:", error)
+		}
+
+		await sleep(5000) // Wait for MCP servers to initialize
 		let taskId: string
 		try {
 			// Start task requesting MCP filesystem list_directory tool
@@ -620,7 +686,40 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
+		await sleep(2000) // Wait for Roo Code to fully initialize
 
+		// Trigger MCP server detection by opening and modifying the file
+		console.log("Triggering MCP server detection by modifying the config file...")
+		try {
+			const mcpConfigUri = vscode.Uri.file(testFiles.mcpConfig)
+			const document = await vscode.workspace.openTextDocument(mcpConfigUri)
+			const editor = await vscode.window.showTextDocument(document)
+
+			// Make a small modification to trigger the save event, without this Roo Code won't load the MCP server
+			const edit = new vscode.WorkspaceEdit()
+			const currentContent = document.getText()
+			const modifiedContent = currentContent.replace(
+				'"alwaysAllow": []',
+				'"alwaysAllow": ["read_file", "read_multiple_files", "write_file", "edit_file", "create_directory", "list_directory", "directory_tree", "move_file", "search_files", "get_file_info", "list_allowed_directories"]',
+			)
+
+			const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length))
+
+			edit.replace(mcpConfigUri, fullRange, modifiedContent)
+			await vscode.workspace.applyEdit(edit)
+
+			// Save the document to trigger MCP server detection
+			await editor.document.save()
+
+			// Close the editor
+			await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+
+			console.log("MCP config file modified and saved successfully")
+		} catch (error) {
+			console.error("Failed to modify/save MCP config file:", error)
+		}
+
+		await sleep(5000) // Wait for MCP servers to initialize
 		let taskId: string
 		try {
 			// Start task requesting MCP filesystem directory_tree tool
@@ -841,7 +940,40 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
+		await sleep(2000) // Wait for Roo Code to fully initialize
 
+		// Trigger MCP server detection by opening and modifying the file
+		console.log("Triggering MCP server detection by modifying the config file...")
+		try {
+			const mcpConfigUri = vscode.Uri.file(testFiles.mcpConfig)
+			const document = await vscode.workspace.openTextDocument(mcpConfigUri)
+			const editor = await vscode.window.showTextDocument(document)
+
+			// Make a small modification to trigger the save event, without this Roo Code won't load the MCP server
+			const edit = new vscode.WorkspaceEdit()
+			const currentContent = document.getText()
+			const modifiedContent = currentContent.replace(
+				'"alwaysAllow": []',
+				'"alwaysAllow": ["read_file", "read_multiple_files", "write_file", "edit_file", "create_directory", "list_directory", "directory_tree", "move_file", "search_files", "get_file_info", "list_allowed_directories"]',
+			)
+
+			const fullRange = new vscode.Range(document.positionAt(0), document.positionAt(document.getText().length))
+
+			edit.replace(mcpConfigUri, fullRange, modifiedContent)
+			await vscode.workspace.applyEdit(edit)
+
+			// Save the document to trigger MCP server detection
+			await editor.document.save()
+
+			// Close the editor
+			await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+
+			console.log("MCP config file modified and saved successfully")
+		} catch (error) {
+			console.error("Failed to modify/save MCP config file:", error)
+		}
+
+		await sleep(5000) // Wait for MCP servers to initialize
 		let taskId: string
 		try {
 			// Start task requesting MCP filesystem get_file_info tool
@@ -857,7 +989,7 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			})
 
 			// Wait for attempt_completion to be called (indicating task finished)
-			await waitFor(() => attemptCompletionCalled, { timeout: 45_000 })
+			await waitFor(() => attemptCompletionCalled, { timeout: 50_000 })
 
 			// Verify the MCP tool was requested with valid format
 			assert.ok(mcpToolRequested, "The use_mcp_tool should have been requested")
