@@ -14,7 +14,7 @@ export interface CodeIndexConfig {
 	openAiCompatibleOptions?: { baseUrl: string; apiKey: string; modelDimension?: number }
 	qdrantUrl?: string
 	qdrantApiKey?: string
-	searchMinScore?: number
+	searchMinScore: number
 }
 
 /**

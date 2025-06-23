@@ -3,7 +3,7 @@ import { ContextProxy } from "../../core/config/ContextProxy"
 import { EmbedderProvider } from "./interfaces/manager"
 import { CodeIndexConfig, PreviousConfigSnapshot } from "./interfaces/config"
 import { SEARCH_MIN_SCORE } from "./constants"
-import { getDefaultModelId, getModelDimension } from "../../shared/embeddingModels"
+import { getDefaultModelId, getModelDimension, getModelScoreThreshold } from "../../shared/embeddingModels"
 
 /**
  * Manages configuration state and validation for the code indexing feature.
@@ -18,7 +18,6 @@ export class CodeIndexConfigManager {
 	private openAiCompatibleOptions?: { baseUrl: string; apiKey: string; modelDimension?: number }
 	private qdrantUrl?: string = "http://localhost:6333"
 	private qdrantApiKey?: string
-	private searchMinScore?: number
 
 	constructor(private readonly contextProxy: ContextProxy) {
 		// Initialize with current configuration to avoid false restart triggers
@@ -61,7 +60,6 @@ export class CodeIndexConfigManager {
 		this.qdrantUrl = codebaseIndexQdrantUrl
 		this.qdrantApiKey = qdrantApiKey ?? ""
 		this.openAiOptions = { openAiNativeApiKey: openAiKey }
-		this.searchMinScore = SEARCH_MIN_SCORE
 
 		// Set embedder provider with support for openai-compatible
 		if (codebaseIndexEmbedderProvider === "ollama") {
@@ -139,7 +137,7 @@ export class CodeIndexConfigManager {
 				openAiCompatibleOptions: this.openAiCompatibleOptions,
 				qdrantUrl: this.qdrantUrl,
 				qdrantApiKey: this.qdrantApiKey,
-				searchMinScore: this.searchMinScore,
+				searchMinScore: this.currentSearchMinScore,
 			},
 			requiresRestart,
 		}
@@ -294,7 +292,7 @@ export class CodeIndexConfigManager {
 			openAiCompatibleOptions: this.openAiCompatibleOptions,
 			qdrantUrl: this.qdrantUrl,
 			qdrantApiKey: this.qdrantApiKey,
-			searchMinScore: this.searchMinScore,
+			searchMinScore: this.currentSearchMinScore,
 		}
 	}
 
@@ -337,9 +335,12 @@ export class CodeIndexConfigManager {
 	}
 
 	/**
-	 * Gets the configured minimum search score.
+	 * Gets the configured minimum search score based on the current model.
+	 * Falls back to the constant SEARCH_MIN_SCORE if no model-specific threshold is found.
 	 */
-	public get currentSearchMinScore(): number | undefined {
-		return this.searchMinScore
+	public get currentSearchMinScore(): number {
+		const currentModelId = this.modelId ?? getDefaultModelId(this.embedderProvider)
+		const modelSpecificThreshold = getModelScoreThreshold(this.embedderProvider, currentModelId)
+		return modelSpecificThreshold ?? SEARCH_MIN_SCORE
 	}
 }

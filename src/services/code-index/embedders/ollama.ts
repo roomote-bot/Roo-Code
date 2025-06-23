@@ -1,5 +1,6 @@
 import { ApiHandlerOptions } from "../../../shared/api"
 import { EmbedderInfo, EmbeddingResponse, IEmbedder } from "../interfaces"
+import { getModelQueryPrefix } from "../../../shared/embeddingModels"
 import { t } from "../../../i18n"
 
 /**
@@ -25,6 +26,10 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 		const modelToUse = model || this.defaultModelId
 		const url = `${this.baseUrl}/api/embed` // Endpoint as specified
 
+		// Apply model-specific query prefix if required
+		const queryPrefix = getModelQueryPrefix("ollama", modelToUse)
+		const processedTexts = queryPrefix ? texts.map((text) => `${queryPrefix}${text}`) : texts
+
 		try {
 			// Note: Standard Ollama API uses 'prompt' for single text, not 'input' for array.
 			// Implementing based on user's specific request structure.
@@ -35,7 +40,7 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 				},
 				body: JSON.stringify({
 					model: modelToUse,
-					input: texts, // Using 'input' as requested
+					input: processedTexts, // Using 'input' as requested
 				}),
 			})
 

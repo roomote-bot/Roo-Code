@@ -8,6 +8,7 @@ import {
 	MAX_BATCH_RETRIES as MAX_RETRIES,
 	INITIAL_RETRY_DELAY_MS as INITIAL_DELAY_MS,
 } from "../constants"
+import { getModelQueryPrefix } from "../../../shared/embeddingModels"
 import { t } from "../../../i18n"
 
 /**
@@ -36,9 +37,14 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 	 */
 	async createEmbeddings(texts: string[], model?: string): Promise<EmbeddingResponse> {
 		const modelToUse = model || this.defaultModelId
+
+		// Apply model-specific query prefix if required
+		const queryPrefix = getModelQueryPrefix("openai", modelToUse)
+		const processedTexts = queryPrefix ? texts.map((text) => `${queryPrefix}${text}`) : texts
+
 		const allEmbeddings: number[][] = []
 		const usage = { promptTokens: 0, totalTokens: 0 }
-		const remainingTexts = [...texts]
+		const remainingTexts = [...processedTexts]
 
 		while (remainingTexts.length > 0) {
 			const currentBatch: string[] = []
