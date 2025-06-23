@@ -18,8 +18,15 @@ export async function authorize(): Promise<AuthResult> {
     return { success: false, error: 'Unauthorized: User required' };
   }
 
+  // Personal context is valid - no org required
   if (!orgId) {
-    return { success: false, error: 'Unauthorized: Organization required' };
+    return {
+      success: true,
+      userType: 'user',
+      userId,
+      orgId: null,
+      orgRole: null,
+    };
   }
 
   return {
@@ -110,6 +117,27 @@ export async function authorizeAnalytics({
   allowCrossUserAccess?: boolean;
 }) {
   const { orgId: authOrgId, orgRole, userId: authUserId } = await auth();
+
+  if (!authUserId) {
+    throw new Error('Unauthorized: User required');
+  }
+
+  // Handle personal context
+  if (!authOrgId && !requestedOrgId) {
+    // Personal context - user can only access their own data
+    if (requestedUserId && requestedUserId !== authUserId) {
+      throw new Error(
+        'Unauthorized: Personal users can only access their own data',
+      );
+    }
+
+    return {
+      authOrgId: null,
+      authUserId,
+      orgRole: null,
+      effectiveUserId: authUserId,
+    };
+  }
 
   // Ensure user is authenticated and belongs to the organization
   if (!authOrgId || !authUserId || authOrgId !== requestedOrgId) {

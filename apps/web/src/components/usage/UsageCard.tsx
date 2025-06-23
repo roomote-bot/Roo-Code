@@ -51,7 +51,7 @@ export const UsageCard = ({
       orgId,
       selectedPeriod.value,
       selectedPeriod.granularity,
-      userRole === 'member' ? currentUserId : null,
+      userRole === 'member' || !orgId ? currentUserId : null,
     ],
     queryFn: () =>
       getUsage({
@@ -60,16 +60,22 @@ export const UsageCard = ({
           selectedPeriod.granularity === 'daily'
             ? (selectedPeriod.value as 7 | 30 | 90)
             : (selectedPeriod.value as 1), // Use 1 day for 24h view
-        userId: userRole === 'member' ? currentUserId : undefined,
+        userId: userRole === 'member' || !orgId ? currentUserId : undefined,
       }),
-    enabled: !!orgId,
+    enabled: !!orgId || (!orgId && !!currentUserId), // Run for org context OR personal context with userId
   });
 
   return (
     <Card>
       <CardHeader className="relative">
-        <CardTitle>{t('analytics_title')}</CardTitle>
-        <CardDescription>{t('analytics_description')}</CardDescription>
+        <CardTitle>
+          {!orgId ? 'Personal Account Usage' : t('analytics_title')}
+        </CardTitle>
+        <CardDescription>
+          {!orgId
+            ? 'Your personal account activity and usage'
+            : t('analytics_description')}
+        </CardDescription>
         {path !== '/usage' && (
           <EnhancedButton
             variant="ghost"

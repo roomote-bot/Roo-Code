@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@clerk/nextjs';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { getMessages } from '@/actions/analytics';
@@ -16,9 +17,11 @@ type TaskModalProps = {
 };
 
 export const TaskModal = ({ task, open, onClose }: TaskModalProps) => {
+  const { orgId, userId } = useAuth();
+
   const { data: messages = [] } = useQuery({
-    queryKey: ['messages', task.taskId],
-    queryFn: () => getMessages(task.taskId),
+    queryKey: ['messages', task.taskId, orgId, userId],
+    queryFn: () => getMessages(task.taskId, orgId, userId, false),
     enabled: open && !!task.taskId,
   });
 

@@ -44,8 +44,8 @@ export async function canShareTask(taskId: string): Promise<{
   task?: TaskWithUser;
   error?: string;
   userId?: string;
-  orgId?: string;
-  orgRole?: string;
+  orgId?: string | null;
+  orgRole?: string | null;
 }> {
   try {
     // Get authentication info
@@ -57,6 +57,24 @@ export async function canShareTask(taskId: string): Promise<{
 
     const { userId, orgId, orgRole } = authResult;
 
+    // Handle personal context
+    if (!orgId) {
+      // Personal users can only share tasks they created
+      const tasks = await getTasks({ taskId, orgId: null, userId });
+      const task = tasks[0];
+
+      if (!task || task.userId !== userId) {
+        return {
+          canShare: false,
+          error:
+            'Task not found or you do not have permission to share this task',
+        };
+      }
+
+      return { canShare: true, task, userId, orgId: null, orgRole: null };
+    }
+
+    // Organization context - existing logic
     // Admins can share any task in the organization
     if (orgRole === 'org:admin') {
       const tasks = await getTasks({
@@ -115,15 +133,6 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
       visibility = TaskShareVisibility.ORGANIZATION,
     } = result.data;
 
-    const orgSettingsData = await getOrganizationSettings();
-
-    if (!orgSettingsData.cloudSettings?.enableTaskSharing) {
-      return {
-        success: false,
-        error: 'Task sharing is not enabled for this organization',
-      };
-    }
-
     // Check if user can share this specific task (includes auth)
     const { canShare, task, error, userId, orgId, orgRole } =
       await canShareTask(taskId);
@@ -132,17 +141,39 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
       return { success: false, error: error || 'Access denied' };
     }
 
-    if (!task || !userId || !orgId || !orgRole) {
+    if (!task || !userId) {
       return {
         success: false,
         error: 'Task not found or authentication failed',
       };
     }
 
-    const expirationDaysToUse =
-      expirationDays ||
-      orgSettingsData.cloudSettings?.taskShareExpirationDays ||
-      DEFAULT_SHARE_EXPIRATION_DAYS;
+    let expirationDaysToUse: number;
+    let shareVisibility: string;
+
+    if (!orgId) {
+      // Personal account - always public, 30-day expiration
+      expirationDaysToUse = 30; // Fixed 30-day expiration for personal accounts
+      shareVisibility = TaskShareVisibility.PUBLIC; // Personal accounts only create public shares
+    } else {
+      // Organization account
+      const orgSettingsData = await getOrganizationSettings();
+
+      if (!orgSettingsData.cloudSettings?.enableTaskSharing) {
+        return {
+          success: false,
+          error: 'Task sharing is not enabled for this organization',
+        };
+      }
+
+      expirationDaysToUse =
+        expirationDays ||
+        orgSettingsData.cloudSettings?.taskShareExpirationDays ||
+        DEFAULT_SHARE_EXPIRATION_DAYS;
+
+      // Organization shares default to organization visibility
+      shareVisibility = visibility;
+    }
 
     const expiresAt = calculateExpirationDate(expirationDaysToUse);
     const shareToken = generateShareToken();
@@ -152,10 +183,10 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
         .insert(taskShares)
         .values({
           taskId,
-          orgId,
+          orgId, // Will be null for personal accounts
           createdByUserId: userId,
           shareToken,
-          visibility,
+          visibility: shareVisibility,
           expiresAt,
         })
         .returning();
@@ -164,25 +195,28 @@ export async function createTaskShare(data: CreateTaskShareRequest) {
         throw new Error('Failed to create task share');
       }
 
-      await insertAuditLog(tx, {
-        userId,
-        orgId,
-        targetType: AuditLogTargetType.TASK_SHARE,
-        targetId: taskId,
-        newValue: {
-          action: 'created',
-          shareId: insertedShare[0].id,
-          visibility,
-          expiresAt: expiresAt.toISOString(),
-          taskOwnerId: task.userId,
-          sharedByAdmin: orgRole === 'org:admin' && task.userId !== userId,
-        },
-        description: `Created ${visibility} task share for task ${taskId}${
-          orgRole === 'org:admin' && task.userId !== userId
-            ? ` (admin sharing task created by ${task.user.name})`
-            : ''
-        }`,
-      });
+      // Only create audit log for organization accounts
+      if (orgId) {
+        await insertAuditLog(tx, {
+          userId,
+          orgId,
+          targetType: AuditLogTargetType.TASK_SHARE,
+          targetId: taskId,
+          newValue: {
+            action: 'created',
+            shareId: insertedShare[0].id,
+            visibility: shareVisibility,
+            expiresAt: expiresAt.toISOString(),
+            taskOwnerId: task.userId,
+            sharedByAdmin: orgRole === 'org:admin' && task.userId !== userId,
+          },
+          description: `Created ${shareVisibility} task share for task ${taskId}${
+            orgRole === 'org:admin' && task.userId !== userId
+              ? ` (admin sharing task created by ${task.user.name})`
+              : ''
+          }`,
+        });
+      }
 
       return insertedShare;
     });
@@ -251,16 +285,17 @@ export async function getTaskByShareToken(token: string): Promise<{
       const userId = authResult.success ? authResult.userId : null;
       const orgId = authResult.success ? authResult.orgId : null;
 
+      // For organization shares, require auth and matching orgId
       if (!userId || !orgId || orgId !== share.orgId) {
         throw new Error('Authentication required for organization shares');
       }
     }
-    // For public shares, no auth check needed
+    // For public shares (including personal shares), no auth check needed
 
     // Get task data based on visibility
     const tasks = await getTasks({
       taskId: share.taskId,
-      orgId: share.orgId,
+      orgId: share.orgId, // Will be null for personal shares
       allowCrossUserAccess: true,
       skipAuth: share.visibility === TaskShareVisibility.PUBLIC, // Skip auth for public shares
     });
@@ -270,7 +305,12 @@ export async function getTaskByShareToken(token: string): Promise<{
       return null;
     }
 
-    const messages = await getMessages(share.taskId);
+    const messages = await getMessages(
+      share.taskId,
+      share.orgId,
+      task.userId,
+      share.visibility === TaskShareVisibility.PUBLIC, // Skip auth for public shares
+    );
 
     return {
       task,
@@ -309,10 +349,25 @@ export async function deleteTaskShare(shareId: string) {
     }
 
     // First, find the share to check permissions
+    let whereConditions;
+    if (!orgId) {
+      // For personal context, find shares with null orgId
+      whereConditions = and(
+        eq(taskShares.id, shareId),
+        sql`${taskShares.orgId} IS NULL`,
+      );
+    } else {
+      // For organization context, find shares with matching orgId
+      whereConditions = and(
+        eq(taskShares.id, shareId),
+        eq(taskShares.orgId, orgId),
+      );
+    }
+
     const [share] = await db
       .select()
       .from(taskShares)
-      .where(and(eq(taskShares.id, shareId), eq(taskShares.orgId, orgId)))
+      .where(whereConditions)
       .limit(1);
 
     if (!share) {
@@ -320,34 +375,47 @@ export async function deleteTaskShare(shareId: string) {
     }
 
     // Check if user can delete this share
-    // Admins can delete any share, members can only delete shares they created
-    if (orgRole !== 'org:admin' && share.createdByUserId !== userId) {
-      return {
-        success: false,
-        error: 'Access denied: You can only delete shares you created',
-      };
+    if (!orgId) {
+      // Personal users can only delete shares they created
+      if (share.createdByUserId !== userId) {
+        return {
+          success: false,
+          error: 'Access denied: You can only delete shares you created',
+        };
+      }
+    } else {
+      // Organization context - admins can delete any share, members can only delete shares they created
+      if (orgRole !== 'org:admin' && share.createdByUserId !== userId) {
+        return {
+          success: false,
+          error: 'Access denied: You can only delete shares you created',
+        };
+      }
     }
 
     await db.transaction(async (tx) => {
       await tx.delete(taskShares).where(eq(taskShares.id, shareId));
 
-      await insertAuditLog(tx, {
-        userId,
-        orgId,
-        targetType: AuditLogTargetType.TASK_SHARE,
-        targetId: share.taskId,
-        newValue: {
-          action: 'deleted',
-          shareId: share.id,
-          deletedByAdmin:
-            orgRole === 'org:admin' && share.createdByUserId !== userId,
-        },
-        description: `Deleted task share for task ${share.taskId}${
-          orgRole === 'org:admin' && share.createdByUserId !== userId
-            ? ' (admin deletion)'
-            : ''
-        }`,
-      });
+      // Only create audit log for organization accounts
+      if (orgId) {
+        await insertAuditLog(tx, {
+          userId,
+          orgId,
+          targetType: AuditLogTargetType.TASK_SHARE,
+          targetId: share.taskId,
+          newValue: {
+            action: 'deleted',
+            shareId: share.id,
+            deletedByAdmin:
+              orgRole === 'org:admin' && share.createdByUserId !== userId,
+          },
+          description: `Deleted task share for task ${share.taskId}${
+            orgRole === 'org:admin' && share.createdByUserId !== userId
+              ? ' (admin deletion)'
+              : ''
+          }`,
+        });
+      }
     });
 
     return { success: true, message: 'Task share deleted successfully' };
@@ -369,19 +437,35 @@ export async function getTaskShares(taskId: string): Promise<TaskShare[]> {
       throw new Error(error || 'Task not found or access denied');
     }
 
-    if (!userId || !orgId) {
+    if (!userId) {
       throw new Error('Authentication failed');
     }
 
-    // For admins, show all shares for the task
-    // For members, only show shares they created
-    const whereConditions = [
-      eq(taskShares.taskId, taskId),
-      eq(taskShares.orgId, orgId),
-    ];
+    let whereConditions;
 
-    if (orgRole !== 'org:admin') {
-      whereConditions.push(eq(taskShares.createdByUserId, userId));
+    if (!orgId) {
+      // Personal context - only show shares they created for this task
+      whereConditions = [
+        eq(taskShares.taskId, taskId),
+        sql`${taskShares.orgId} IS NULL`,
+        eq(taskShares.createdByUserId, userId),
+      ];
+    } else {
+      // Organization context - existing logic
+      if (!orgId) {
+        throw new Error('Organization ID required for organization context');
+      }
+
+      // For admins, show all shares for the task
+      // For members, only show shares they created
+      whereConditions = [
+        eq(taskShares.taskId, taskId),
+        eq(taskShares.orgId, orgId),
+      ];
+
+      if (orgRole !== 'org:admin') {
+        whereConditions.push(eq(taskShares.createdByUserId, userId));
+      }
     }
 
     const shares = await db

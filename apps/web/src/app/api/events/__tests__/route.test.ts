@@ -37,24 +37,44 @@ describe('/api/events POST', () => {
       });
     });
 
-    it('should return 401 when organization is not provided', async () => {
+    it('should allow personal accounts (orgId is null)', async () => {
       mockAuth.mockResolvedValue({
         userId: 'test-user-id',
         orgId: null,
       } as any); // eslint-disable-line @typescript-eslint/no-explicit-any
 
+      const validEvent = {
+        type: 'Task Created',
+        properties: {
+          appName: 'test-app',
+          appVersion: '1.0.0',
+          vscodeVersion: '1.80.0',
+          platform: 'darwin',
+          editorName: 'vscode',
+          language: 'typescript',
+          mode: 'code',
+          taskId: 'task-123',
+          apiProvider: 'anthropic',
+          modelId: 'claude-3-sonnet',
+        },
+      };
+
       const request = new NextRequest('http://localhost/api/events', {
         method: 'POST',
-        body: JSON.stringify({ type: 'test-event' }),
+        body: JSON.stringify(validEvent),
       });
 
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data).toEqual({
-        success: false,
-        error: 'Authentication required',
+      expect(response.status).toBe(200);
+      expect(data).toEqual({ success: true, id: expect.any(String) });
+      expect(mockCaptureEvent).toHaveBeenCalledWith({
+        id: expect.any(String),
+        orgId: null, // Personal account has null orgId
+        userId: 'test-user-id',
+        timestamp: expect.any(Number),
+        event: validEvent,
       });
     });
   });

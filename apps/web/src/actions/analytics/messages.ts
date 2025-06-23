@@ -3,6 +3,7 @@
 import { z } from 'zod';
 
 import { analytics } from '@/lib/server';
+import { authorizeAnalytics } from '@/actions/auth';
 
 /**
  * getMessages
@@ -26,17 +27,44 @@ const messageSchema = z.object({
 
 export type Message = z.infer<typeof messageSchema>;
 
-export const getMessages = async (taskId: string): Promise<Message[]> => {
+export const getMessages = async (
+  taskId: string,
+  orgId?: string | null,
+  userId?: string | null,
+  skipAuth = false,
+): Promise<Message[]> => {
+  // Authorize the request - this will handle both personal and org contexts
+  // Skip auth for public shares viewed by unauthenticated users
+  if (!skipAuth) {
+    await authorizeAnalytics({
+      requestedOrgId: orgId,
+      requestedUserId: userId,
+      allowCrossUserAccess: true, // Allow viewing messages within authorized tasks
+    });
+  }
+
+  // For personal accounts, query with orgId IS NULL
+  // For organizations, query with specific orgId
+  const orgCondition = !orgId ? 'orgId IS NULL' : 'orgId = {orgId: String}';
+
+  const queryParams: Record<string, string> = { taskId };
+  if (orgId) {
+    queryParams.orgId = orgId;
+  }
+
   const results = await analytics.query({
     query: `
       SELECT *
       FROM messages
       WHERE taskId = {taskId: String}
+        AND ${orgCondition}
       ORDER BY ts ASC
     `,
     format: 'JSONEachRow',
-    query_params: { taskId },
+    query_params: queryParams,
   });
 
-  return z.array(messageSchema).parse(await results.json());
+  const messages = z.array(messageSchema).parse(await results.json());
+
+  return messages;
 };

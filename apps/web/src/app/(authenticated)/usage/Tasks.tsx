@@ -25,13 +25,18 @@ export const Tasks = ({
   const { orgId } = useAuth();
 
   const { data = [], isPending } = useQuery({
-    queryKey: ['getTasks', orgId, userRole === 'member' ? currentUserId : null],
+    queryKey: [
+      'getTasks',
+      orgId,
+      userRole === 'member' ? currentUserId : null,
+      !orgId,
+    ],
     queryFn: () =>
       getTasks({
         orgId,
         userId: userRole === 'member' ? currentUserId : undefined,
       }),
-    enabled: !!orgId,
+    enabled: true, // Run for both personal and organization context
   });
 
   const tasks = useMemo(() => {

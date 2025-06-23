@@ -24,6 +24,11 @@ export async function getOrganizationSettings(): Promise<OrganizationSettings> {
     throw new Error('Unauthorized');
   }
 
+  // Organization settings are only available for organizations, not personal accounts
+  if (!authResult.orgId) {
+    return ORGANIZATION_DEFAULT;
+  }
+
   const settings = await db
     .select()
     .from(orgSettings)
@@ -63,6 +68,13 @@ export async function updateOrganization(data: UpdateOrganizationRequest) {
   }
 
   const { userId, orgId } = authResult;
+
+  // Organization settings are only available for organizations, not personal accounts
+  if (!orgId) {
+    throw new Error(
+      'Organization settings are only available for organization accounts',
+    );
+  }
 
   const validatedData = updateOrganizationSchema.parse(data);
 

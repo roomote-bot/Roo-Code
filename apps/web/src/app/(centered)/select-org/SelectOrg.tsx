@@ -57,7 +57,8 @@ export const SelectOrg = () => {
     <OrganizationList
       afterSelectOrganizationUrl={redirectUrl}
       afterCreateOrganizationUrl={redirectUrl}
-      hidePersonal
+      afterSelectPersonalUrl={redirectUrl}
+      hidePersonal={false}
     />
   );
 };

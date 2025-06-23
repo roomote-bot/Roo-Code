@@ -479,15 +479,15 @@ export const UsageChart = ({
       orgId,
       timePeriodConfig.value,
       timePeriodConfig.granularity,
-      userRole === 'member' ? currentUserId : null,
+      userRole === 'member' || !orgId ? currentUserId : null,
     ],
     queryFn: () =>
       getHourlyUsageByUser({
         orgId,
         timePeriod: timePeriodConfig.value,
-        userId: userRole === 'member' ? currentUserId : undefined,
+        userId: userRole === 'member' || !orgId ? currentUserId : undefined,
       }),
-    enabled: !!orgId,
+    enabled: !!orgId || (!orgId && !!currentUserId), // Run for org context OR personal context with userId
   });
 
   // Process data based on granularity

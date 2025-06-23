@@ -11,6 +11,7 @@ import {
   Check,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@clerk/nextjs';
 
 import type { TaskShare } from '@roo-code-cloud/db';
 
@@ -52,11 +53,13 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
     TaskShareVisibility.ORGANIZATION,
   );
 
+  const { orgId } = useAuth();
   const { data: orgSettings } = useOrganizationSettings();
 
-  const expirationDays =
-    orgSettings?.cloudSettings?.taskShareExpirationDays ??
-    DEFAULT_SHARE_EXPIRATION_DAYS;
+  const expirationDays = !orgId
+    ? 30 // Fixed 30 days for personal accounts
+    : (orgSettings?.cloudSettings?.taskShareExpirationDays ??
+      DEFAULT_SHARE_EXPIRATION_DAYS);
 
   const loadShares = async () => {
     try {
@@ -73,7 +76,10 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
     if (open) {
       loadShares();
       setNewShareUrl(null);
-      setVisibility(TaskShareVisibility.ORGANIZATION); // Reset to default when opening
+      // Set appropriate default visibility based on context
+      setVisibility(
+        !orgId ? TaskShareVisibility.PUBLIC : TaskShareVisibility.ORGANIZATION,
+      );
     }
   };
 
@@ -144,9 +150,9 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
           <DialogDescription>
             {newShareUrl
               ? 'Your share link is ready to use.'
-              : visibility === TaskShareVisibility.ORGANIZATION
-                ? 'Create a link to share this task with your team.'
-                : 'Create a public link that anyone can access.'}
+              : visibility === TaskShareVisibility.PUBLIC
+                ? 'Create a public link that anyone can access.'
+                : 'Create a link to share this task with your team.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -196,81 +202,83 @@ export const ShareButton = ({ task }: ShareButtonProps) => {
             </div>
           ) : (
             <>
-              {/* Visibility Selector */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium text-foreground">
-                  Who can access this link?
-                </Label>
-                <div className="grid gap-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setVisibility(TaskShareVisibility.ORGANIZATION)
-                    }
-                    className={`relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all hover:bg-muted/50 ${
-                      visibility === TaskShareVisibility.ORGANIZATION
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                        : 'border-border'
-                    }`}
-                  >
-                    <div
-                      className={`flex-shrink-0 mt-0.5 ${
+              {/* Visibility Selector - only show for organization accounts */}
+              {orgId && (
+                <div className="space-y-3">
+                  <Label className="text-sm font-medium text-foreground">
+                    Who can access this link?
+                  </Label>
+                  <div className="grid gap-3">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setVisibility(TaskShareVisibility.ORGANIZATION)
+                      }
+                      className={`relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all hover:bg-muted/50 ${
                         visibility === TaskShareVisibility.ORGANIZATION
-                          ? 'text-primary'
-                          : 'text-muted-foreground'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                          : 'border-border'
                       }`}
                     >
-                      <Users className="size-5" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          Organization
-                        </span>
-                        {visibility === TaskShareVisibility.ORGANIZATION && (
-                          <Check className="size-4 text-primary" />
-                        )}
+                      <div
+                        className={`flex-shrink-0 mt-0.5 ${
+                          visibility === TaskShareVisibility.ORGANIZATION
+                            ? 'text-primary'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        <Users className="size-5" />
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Only members of your organization can view
-                      </p>
-                    </div>
-                  </button>
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground">
+                            Organization
+                          </span>
+                          {visibility === TaskShareVisibility.ORGANIZATION && (
+                            <Check className="size-4 text-primary" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Only members of your organization can view
+                        </p>
+                      </div>
+                    </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setVisibility(TaskShareVisibility.PUBLIC)}
-                    className={`relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all hover:bg-muted/50 ${
-                      visibility === TaskShareVisibility.PUBLIC
-                        ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                        : 'border-border'
-                    }`}
-                  >
-                    <div
-                      className={`flex-shrink-0 mt-0.5 ${
+                    <button
+                      type="button"
+                      onClick={() => setVisibility(TaskShareVisibility.PUBLIC)}
+                      className={`relative flex items-start gap-3 p-4 rounded-lg border-2 transition-all hover:bg-muted/50 ${
                         visibility === TaskShareVisibility.PUBLIC
-                          ? 'text-primary'
-                          : 'text-muted-foreground'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
+                          : 'border-border'
                       }`}
                     >
-                      <Globe className="size-5" />
-                    </div>
-                    <div className="flex-1 text-left">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-foreground">
-                          Public
-                        </span>
-                        {visibility === TaskShareVisibility.PUBLIC && (
-                          <Check className="size-4 text-primary" />
-                        )}
+                      <div
+                        className={`flex-shrink-0 mt-0.5 ${
+                          visibility === TaskShareVisibility.PUBLIC
+                            ? 'text-primary'
+                            : 'text-muted-foreground'
+                        }`}
+                      >
+                        <Globe className="size-5" />
                       </div>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Anyone with the link can view
-                      </p>
-                    </div>
-                  </button>
+                      <div className="flex-1 text-left">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium text-foreground">
+                            Public
+                          </span>
+                          {visibility === TaskShareVisibility.PUBLIC && (
+                            <Check className="size-4 text-primary" />
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          Anyone with the link can view
+                        </p>
+                      </div>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <Button
                 onClick={handleCreateShare}

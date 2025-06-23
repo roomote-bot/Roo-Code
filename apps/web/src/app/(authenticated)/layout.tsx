@@ -23,7 +23,9 @@ export default async function AuthenticatedLayout({
   // Set enhanced Sentry context for authenticated users.
   const { userId, orgId, orgRole } = authResult;
   setSentryUserContext({ id: userId, orgId, orgRole });
-  setSentryOrganizationContext(orgId, orgRole);
+  if (orgId && orgRole) {
+    setSentryOrganizationContext(orgId, orgRole);
+  }
 
   return (
     <>

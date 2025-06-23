@@ -29,6 +29,14 @@ export async function createAgent(
 
     const { userId, orgId, orgRole } = authResult;
 
+    // Agents are only available for organizations, not personal accounts
+    if (!orgId || !orgRole) {
+      return {
+        success: false,
+        error: 'Agents are only available for organization accounts.',
+      };
+    }
+
     if (orgRole !== 'org:admin') {
       return {
         success: false,
@@ -104,6 +112,14 @@ export async function revokeAgent(
     }
 
     const { orgId, orgRole } = authResult;
+
+    // Agents are only available for organizations, not personal accounts
+    if (!orgId || !orgRole) {
+      return {
+        success: false,
+        error: 'Agents are only available for organization accounts.',
+      };
+    }
 
     if (orgRole !== 'org:admin') {
       return {

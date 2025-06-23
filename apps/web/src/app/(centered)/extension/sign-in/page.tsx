@@ -35,7 +35,9 @@ export default async function Page(props: Props) {
     redirect(`/sign-in?${authParams.toString()}`);
   }
 
-  if (!orgId) {
+  // For personal accounts, orgId will be null - that's okay for extensions
+  // Only redirect to select-org if user is not authenticated or not in personal context
+  if (!orgId && !(authResult.success && !authResult.orgId)) {
     redirect(`/select-org?${authParams.toString()}`);
   }
 
@@ -46,7 +48,7 @@ export default async function Page(props: Props) {
     const params = new URLSearchParams({
       state,
       code,
-      organizationId: orgId,
+      ...(orgId && { organizationId: orgId }), // Only include orgId if it exists
     });
 
     editorRedirect = new URL(

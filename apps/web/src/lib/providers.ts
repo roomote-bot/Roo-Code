@@ -14,7 +14,7 @@ import {
 } from '@roo-code/types';
 
 export const PROVIDERS: Record<
-  Exclude<ProviderName, 'fake-ai' | 'human-relay'>,
+  Exclude<ProviderName, 'fake-ai' | 'human-relay' | 'claude-code'>,
   { id: ProviderName; label: string; models: string[] }
 > = {
   anthropic: {

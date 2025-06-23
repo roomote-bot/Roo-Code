@@ -20,5 +20,5 @@ Thumbs.db
 .vercel
 
 # docker
-.docker/data
-.docker/logs
+**/.docker/data
+**/.docker/logs

@@ -37,8 +37,8 @@ export type UserAuthSuccess = {
   success: true;
   userType: 'user';
   userId: string;
-  orgId: string;
-  orgRole: OrgRole;
+  orgId: string | null;
+  orgRole: OrgRole | null;
 };
 
 export type AgentAuthSuccess = {

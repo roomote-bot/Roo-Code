@@ -92,16 +92,23 @@ export const getUsage = async ({
     requestedUserId: userId,
   });
 
-  if (!orgId) {
-    return {};
+  // For personal accounts, query by userId instead of orgId
+  if (!orgId && !effectiveUserId) {
+    return {}; // Personal accounts must have a userId
   }
 
   const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
 
+  // Build query conditions based on account type
+  const orgCondition = !orgId ? 'orgId IS NULL' : 'orgId = {orgId: String}';
+
   const queryParams: Record<string, string | number> = {
-    orgId: orgId!,
     timePeriod,
   };
+
+  if (orgId) {
+    queryParams.orgId = orgId;
+  }
 
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
@@ -117,7 +124,7 @@ export const getUsage = async ({
         SUM(COALESCE(cost, 0)) AS cost
       FROM events
       WHERE
-        orgId = {orgId: String}
+        ${orgCondition}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         ${userFilter}
       GROUP BY 1
@@ -332,8 +339,10 @@ export const getTasks = async ({
     effectiveUserId = authResult.effectiveUserId;
   }
 
-  if (!orgId) {
-    return [];
+  // For personal accounts, query by userId instead of orgId
+  // Exception: when skipAuth is true (for public shares), we can query without userId
+  if (!orgId && !effectiveUserId && !skipAuth) {
+    return []; // Personal accounts must have a userId unless we're skipping auth
   }
 
   const userFilter = effectiveUserId ? 'AND e.userId = {userId: String}' : '';
@@ -345,14 +354,24 @@ export const getTasks = async ({
 
   const messageTaskFilter = taskId ? 'AND taskId = {taskId: String}' : '';
 
+  // Build query conditions based on account type
+  const orgCondition = !orgId ? 'e.orgId IS NULL' : 'e.orgId = {orgId: String}';
+
+  const messageOrgCondition = !orgId
+    ? 'orgId IS NULL'
+    : 'orgId = {orgId: String}';
+
   const queryParams: Record<string, string | string[]> = {
-    orgId: orgId!,
     types: [
       TelemetryEventName.TASK_CREATED,
       TelemetryEventName.TASK_COMPLETED,
       TelemetryEventName.LLM_COMPLETION,
     ],
   };
+
+  if (orgId) {
+    queryParams.orgId = orgId;
+  }
 
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
@@ -370,7 +389,7 @@ export const getTasks = async ({
           argMin(text, ts) as title,
           argMin(mode, ts) as mode
         FROM messages
-        WHERE orgId = {orgId: String}
+        WHERE ${messageOrgCondition}
         ${messageUserFilter}
         ${messageTaskFilter}
         GROUP BY taskId
@@ -389,7 +408,7 @@ export const getTasks = async ({
       FROM events e
       LEFT JOIN first_messages fm ON e.taskId = fm.taskId
       WHERE
-        e.orgId = {orgId: String}
+        ${orgCondition}
         AND e.type IN ({types: Array(String)})
         AND e.modelId IS NOT NULL
         ${userFilter}
@@ -440,14 +459,17 @@ export const getHourlyUsageByUser = async ({
     requestedUserId: userId,
   });
 
-  if (!orgId) {
-    return [];
+  // For personal accounts, query by userId instead of orgId
+  if (!orgId && !effectiveUserId) {
+    return []; // Personal accounts must have a userId
   }
 
   const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
 
+  // Build query conditions based on account type
+  const orgCondition = !orgId ? 'orgId IS NULL' : 'orgId = {orgId: String}';
+
   const queryParams: Record<string, string | number | string[]> = {
-    orgId: orgId!,
     timePeriod,
     types: [
       TelemetryEventName.TASK_CREATED,
@@ -455,6 +477,10 @@ export const getHourlyUsageByUser = async ({
       TelemetryEventName.LLM_COMPLETION,
     ],
   };
+
+  if (orgId) {
+    queryParams.orgId = orgId;
+  }
 
   if (effectiveUserId) {
     queryParams.userId = effectiveUserId;
@@ -470,7 +496,7 @@ export const getHourlyUsageByUser = async ({
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
       FROM events
       WHERE
-        orgId = {orgId: String}
+        ${orgCondition}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
         ${userFilter}

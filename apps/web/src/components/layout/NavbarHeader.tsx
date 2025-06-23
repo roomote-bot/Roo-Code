@@ -18,7 +18,8 @@ export const NavbarHeader = (props: NavbarHeaderProps) => (
           organizationProfileMode="navigation"
           organizationProfileUrl="/org"
           afterCreateOrganizationUrl="/usage"
-          hidePersonal
+          hidePersonal={false}
+          afterSelectPersonalUrl="/usage"
         />
       </div>
       <ul className="flex items-center gap-2">
