@@ -1,0 +1,1 @@
+ALTER TABLE "task_shares" ALTER COLUMN "organization_id" DROP NOT NULL;

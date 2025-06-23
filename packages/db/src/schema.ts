@@ -172,9 +172,7 @@ export const taskShares = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     taskId: text('task_id').notNull(),
-    orgId: text('organization_id')
-      .notNull()
-      .references(() => orgs.id),
+    orgId: text('organization_id').references(() => orgs.id),
     createdByUserId: text('created_by_user_id')
       .notNull()
       .references(() => users.id),

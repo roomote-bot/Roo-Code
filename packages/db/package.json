@@ -19,7 +19,7 @@
     "lint": "eslint src --ext=ts --max-warnings=0",
     "check-types": "tsc --noEmit",
     "clean": "rimraf .turbo",
-    "drizzle-kit": "dotenvx run -f .env -- tsx node_modules/drizzle-kit/bin.cjs",
+    "drizzle-kit": "tsx node_modules/drizzle-kit/bin.cjs",
     "db:generate": "dotenvx run -f .env.development -- drizzle-kit generate",
     "db:migrate": "dotenvx run -f .env.development -- drizzle-kit migrate",
     "db:push": "dotenvx run -f .env.development -- drizzle-kit push",

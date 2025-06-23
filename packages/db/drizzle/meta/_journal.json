@@ -8,6 +8,13 @@
       "when": 1750457882404,
       "tag": "0000_freezing_beyonder",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750703234599,
+      "tag": "0001_noisy_captain_stacy",
+      "breakpoints": true
     }
   ]
 }

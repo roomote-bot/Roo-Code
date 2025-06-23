@@ -13,9 +13,10 @@
     "clean": "turbo clean --log-order grouped --output-logs new-only && rimraf .turbo",
     "services:up": "docker compose up postgres clickhouse redis roomote-dashboard -d --wait && pnpm db:push",
     "services:down": "docker compose down postgres clickhouse redis roomote-dashboard",
-    "db:up": "docker compose up postgres clickhouse -d --wait && pnpm db:push",
+    "db:up": "docker compose up postgres clickhouse -d --wait && pnpm --filter @roo-code-cloud/db db:migrate && pnpm --filter @roo-code-cloud/db db:test:push --force",
     "db:down": "docker compose down postgres clickhouse",
-    "db:push": "pnpm --filter @roo-code-cloud/db db:push --force && pnpm --filter @roo-code-cloud/db db:test:push --force",
+    "db:generate": "pnpm --filter @roo-code-cloud/db db:generate",
+    "db:migrate": "pnpm --filter @roo-code-cloud/db db:migrate",
     "db:reset": "pnpm db:down && rimraf .docker/data .docker/logs && pnpm db:up"
   },
   "devDependencies": {
