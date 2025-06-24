@@ -81,11 +81,11 @@ export const gitPropertiesSchema = z.object({
 export const telemetryPropertiesSchema = z.object({
 	...appPropertiesSchema.shape,
 	...taskPropertiesSchema.shape,
+	...gitPropertiesSchema.shape,
 })
 
 export const cloudTelemetryPropertiesSchema = z.object({
 	...telemetryPropertiesSchema.shape,
-	...gitPropertiesSchema.shape,
 })
 
 export type TelemetryProperties = z.infer<typeof telemetryPropertiesSchema>

@@ -1,6 +1,10 @@
 import * as vscode from "vscode"
 import * as path from "path"
 import { promises as fs } from "fs"
+import { exec } from "child_process"
+import { promisify } from "util"
+
+const execAsync = promisify(exec)
 
 export interface GitRepositoryInfo {
 	repositoryUrl?: string
@@ -156,32 +160,126 @@ export async function getWorkspaceGitInfo(): Promise<GitRepositoryInfo> {
 }
 
 /**
- * Gets git commit information - stub implementation
- * @param workspaceRoot The workspace root directory
- * @returns Promise resolving to commit info
+ * Gets git commit information for a specific commit hash
+ * @param commitHash The commit hash to get information for
+ * @param workspaceRoot Optional workspace root directory (if not provided, uses the first workspace folder)
+ * @returns Promise resolving to formatted commit info string
  */
-export async function getCommitInfo(workspaceRoot: string): Promise<GitCommit[]> {
-	// TODO: Implement git commit retrieval
-	return []
+export async function getCommitInfo(commitHash: string, workspaceRoot?: string): Promise<string> {
+	try {
+		// Get workspace root if not provided
+		if (!workspaceRoot) {
+			const workspaceFolders = vscode.workspace.workspaceFolders
+			if (!workspaceFolders || workspaceFolders.length === 0) {
+				return ""
+			}
+			workspaceRoot = workspaceFolders[0].uri.fsPath
+		}
+
+		// Check if .git directory exists
+		const gitDir = path.join(workspaceRoot, ".git")
+		try {
+			await fs.access(gitDir)
+		} catch {
+			// Not a git repository
+			return ""
+		}
+
+		// Use git show to get detailed commit information
+		// The format is similar to what git show would normally output
+		const command = `git -C "${workspaceRoot}" show --no-patch --format="%H %s%n%nAuthor: %an%nDate: %ad" ${commitHash}`
+
+		const { stdout } = await execAsync(command)
+		return stdout.trim()
+	} catch (error) {
+		console.error(`Error retrieving git commit info: ${error instanceof Error ? error.message : String(error)}`)
+		return ""
+	}
 }
 
 /**
- * Gets git working state - stub implementation
+ * Gets git working state - checks if there are uncommitted changes
  * @param workspaceRoot The workspace root directory
  * @returns Promise resolving to working state info
  */
 export async function getWorkingState(workspaceRoot: string): Promise<{ hasChanges: boolean }> {
-	// TODO: Implement git working state check
-	return { hasChanges: false }
+	try {
+		// Check if .git directory exists
+		const gitDir = path.join(workspaceRoot, ".git")
+		try {
+			await fs.access(gitDir)
+		} catch {
+			// Not a git repository
+			return { hasChanges: false }
+		}
+
+		// Use git status --porcelain for machine-readable output
+		// If there are changes, it will output lines describing the changes
+		// If there are no changes, the output will be empty
+		const command = `git -C "${workspaceRoot}" status --porcelain`
+
+		const { stdout } = await execAsync(command)
+
+		// If stdout is not empty, there are changes
+		return { hasChanges: stdout.trim() !== "" }
+	} catch (error) {
+		console.error(`Error checking git working state: ${error instanceof Error ? error.message : String(error)}`)
+		return { hasChanges: false }
+	}
 }
 
 /**
- * Searches git commits - stub implementation
- * @param workspaceRoot The workspace root directory
- * @param query The search query
+ * Searches git commits matching a query string
+ * @param query The search query (searches commit messages)
+ * @param workspaceRoot Optional workspace root directory (if not provided, uses the first workspace folder)
+ * @param limit Maximum number of commits to retrieve (default: 20)
  * @returns Promise resolving to matching commits
  */
-export async function searchCommits(workspaceRoot: string, query: string): Promise<GitCommit[]> {
-	// TODO: Implement git commit search
-	return []
+export async function searchCommits(query: string, workspaceRoot?: string, limit: number = 20): Promise<GitCommit[]> {
+	try {
+		// Get workspace root if not provided
+		if (!workspaceRoot) {
+			const workspaceFolders = vscode.workspace.workspaceFolders
+			if (!workspaceFolders || workspaceFolders.length === 0) {
+				return []
+			}
+			workspaceRoot = workspaceFolders[0].uri.fsPath
+		}
+
+		// Check if .git directory exists
+		const gitDir = path.join(workspaceRoot, ".git")
+		try {
+			await fs.access(gitDir)
+		} catch {
+			// Not a git repository
+			return []
+		}
+
+		// Format: hash, author, date, message
+		// %H: full hash, %an: author name, %ad: author date, %s: subject (message)
+		const format = "--pretty=format:%H|%an|%ad|%s"
+
+		// Use git log with grep to search commit messages
+		// The -i flag makes the search case-insensitive
+		const command = `git -C "${workspaceRoot}" log ${format} -n ${limit} --grep="${query}" -i`
+
+		const { stdout } = await execAsync(command)
+
+		// Parse the output into GitCommit objects
+		return stdout
+			.split("\n")
+			.filter((line) => line.trim() !== "")
+			.map((line) => {
+				const [hash, author, date, message] = line.split("|")
+				return {
+					hash,
+					author,
+					date,
+					message,
+				}
+			})
+	} catch (error) {
+		console.error(`Error searching git commits: ${error instanceof Error ? error.message : String(error)}`)
+		return []
+	}
 }

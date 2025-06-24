@@ -1715,6 +1715,9 @@ export class ClineProvider
 
 		const packageJSON = this.context.extension?.packageJSON
 
+		// Get git repository information
+		const gitInfo = await getWorkspaceGitInfo()
+
 		return {
 			appName: packageJSON?.name ?? Package.name,
 			appVersion: packageJSON?.version ?? Package.version,
@@ -1727,6 +1730,7 @@ export class ClineProvider
 			modelId: task?.api?.getModel().id,
 			diffStrategy: task?.diffStrategy?.getName(),
 			isSubtask: task ? !!task.parentTask : undefined,
+			...gitInfo, // Include Git information in all telemetry events
 		}
 	}
 
@@ -1735,14 +1739,8 @@ export class ClineProvider
 	 * This method is called by cloud telemetry clients to get extended context
 	 */
 	public async getCloudTelemetryProperties(): Promise<CloudTelemetryProperties> {
-		const baseTelemetryProperties = await this.getTelemetryProperties()
-
-		// Get git repository information
-		const gitInfo = await getWorkspaceGitInfo()
-
-		return {
-			...baseTelemetryProperties,
-			...gitInfo,
-		}
+		// Since getTelemetryProperties now includes Git information with defaults,
+		// we can simply return its result as CloudTelemetryProperties
+		return (await this.getTelemetryProperties()) as CloudTelemetryProperties
 	}
 }
