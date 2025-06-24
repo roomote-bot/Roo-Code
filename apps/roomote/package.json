@@ -10,8 +10,8 @@
     "build": "next build",
     "start": "next start --port 3001",
     "clean": "rimraf .next .turbo",
-    "worker": "dotenvx run -f ../../.env -- tsx src/lib/worker.ts",
-    "controller": "dotenvx run -f ../../.env -- tsx src/lib/controller.ts"
+    "worker": "tsx src/lib/worker.ts",
+    "controller": "tsx src/lib/controller.ts"
   },
   "dependencies": {
     "@roo-code-cloud/db": "workspace:^",

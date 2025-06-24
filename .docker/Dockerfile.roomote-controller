@@ -21,4 +21,5 @@ COPY apps/roomote ./apps/roomote/
 
 WORKDIR /roo/apps/roomote
 ENV NODE_ENV=production
+ENV HOST_EXECUTION_METHOD=docker
 CMD ["pnpm", "controller"]

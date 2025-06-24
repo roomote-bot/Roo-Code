@@ -66,11 +66,10 @@ services:
       context: .
       dockerfile: .docker/Dockerfile.roomote-dashboard
     image: roo-code-cloud-roomote-dashboard
+    env_file:
+      - .env
     ports:
       - "3002:3002"
-    environment:
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
     depends_on:
       redis:
         condition: service_started
@@ -81,12 +80,10 @@ services:
       context: .
       dockerfile: .docker/Dockerfile.roomote-api
     image: roo-code-cloud-roomote-api
+    env_file:
+      - .env
     ports:
       - "3001:3001"
-    environment:
-      - DATABASE_URL=postgres://postgres:password@postgres:5432/development
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     depends_on:
@@ -105,11 +102,6 @@ services:
     image: roo-code-cloud-roomote-controller
     env_file:
       - .env
-    environment:
-      - HOST_EXECUTION_METHOD=docker
-      - DATABASE_URL=postgres://postgres:password@postgres:5432/development
-      - REDIS_URL=redis://redis:6379
-      - NODE_ENV=production
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/roomote/controller:/var/log/roomote
@@ -129,8 +121,6 @@ services:
     image: roomote-worker
     env_file:
       - .env
-    environment:
-      - HOST_EXECUTION_METHOD=docker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/roomote/worker:/var/log/roomote
