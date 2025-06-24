@@ -66,7 +66,8 @@ export const Tasks = ({
   if (tasks.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
-        No tasks found
+        No tasks have been synced yet. Check back after creating or sharing a
+        task.
       </div>
     );
   }
