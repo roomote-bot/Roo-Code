@@ -239,6 +239,7 @@ describe('/api/events/backfill', () => {
     }>;
 
     expect(eventData).toHaveLength(1);
+
     expect(eventData[0]).toMatchObject({
       taskId: 'test-task-from-file',
       type: 'Task Created',
@@ -246,6 +247,7 @@ describe('/api/events/backfill', () => {
       userId: 'test-user-id',
       orgId: 'test-org-id',
     });
+
     expect(typeof eventData[0]?.timestamp).toBe('number');
 
     const dbResults = await analytics.query({
@@ -276,6 +278,7 @@ describe('/api/events/backfill', () => {
     expect(dbData).toHaveLength(messages.length);
 
     const textMessage = dbData.find((msg) => msg.say === 'text');
+
     expect(textMessage).toMatchObject({
       taskId: 'test-task-from-file',
       mode: 'code',
@@ -285,6 +288,7 @@ describe('/api/events/backfill', () => {
     });
 
     const apiMessage = dbData.find((msg) => msg.say === 'api_req_started');
+
     expect(apiMessage).toMatchObject({
       taskId: 'test-task-from-file',
       mode: 'code',
@@ -301,6 +305,134 @@ describe('/api/events/backfill', () => {
     expect(messageTypes).toContain('checkpoint_saved');
     expect(messageTypes).toContain('reasoning');
     expect(messageTypes).toContain('completion_result');
+
+    const llmEventsResults = await analytics.query({
+      query: `
+        SELECT
+          taskId,
+          type,
+          mode,
+          inputTokens,
+          outputTokens,
+          cacheReadTokens,
+          cacheWriteTokens,
+          cost,
+          userId,
+          orgId,
+          timestamp
+        FROM events
+        WHERE taskId = 'test-task-from-file' AND type = 'LLM Completion'
+        ORDER BY timestamp ASC
+      `,
+      format: 'JSONEachRow',
+    });
+
+    const llmEventData = (await llmEventsResults.json()) as Array<{
+      taskId: string;
+      type: string;
+      mode: string;
+      inputTokens: number;
+      outputTokens: number;
+      cacheReadTokens?: number;
+      cacheWriteTokens?: number;
+      cost?: number;
+      userId: string;
+      orgId: string;
+      timestamp: number;
+    }>;
+
+    expect(llmEventData).toHaveLength(3);
+
+    expect(llmEventData[0]).toMatchObject({
+      taskId: 'test-task-from-file',
+      type: 'LLM Completion',
+      mode: 'code',
+      inputTokens: 12990,
+      outputTokens: 559,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      cost: 0.02246925,
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+
+    expect(llmEventData[1]).toMatchObject({
+      taskId: 'test-task-from-file',
+      type: 'LLM Completion',
+      mode: 'code',
+      inputTokens: 13788,
+      outputTokens: 487,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      cost: 0.0142215,
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+
+    expect(llmEventData[2]).toMatchObject({
+      taskId: 'test-task-from-file',
+      type: 'LLM Completion',
+      mode: 'code',
+      inputTokens: 14399,
+      outputTokens: 466,
+      cacheReadTokens: 0,
+      cacheWriteTokens: 0,
+      cost: 0.01344465,
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+
+    llmEventData.forEach((event) => {
+      expect(typeof event.timestamp).toBe('number');
+    });
+
+    const taskCompletedEventsResults = await analytics.query({
+      query: `
+        SELECT
+          taskId,
+          type,
+          mode,
+          userId,
+          orgId,
+          timestamp
+        FROM events
+        WHERE taskId = 'test-task-from-file' AND type = 'Task Completed'
+        ORDER BY timestamp ASC
+      `,
+      format: 'JSONEachRow',
+    });
+
+    const taskCompletedEventData =
+      (await taskCompletedEventsResults.json()) as Array<{
+        taskId: string;
+        type: string;
+        mode: string;
+        userId: string;
+        orgId: string;
+        timestamp: number;
+      }>;
+
+    expect(taskCompletedEventData).toHaveLength(2);
+
+    expect(taskCompletedEventData[0]).toMatchObject({
+      taskId: 'test-task-from-file',
+      type: 'Task Completed',
+      mode: 'code',
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+
+    expect(taskCompletedEventData[1]).toMatchObject({
+      taskId: 'test-task-from-file',
+      type: 'Task Completed',
+      mode: 'code',
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+
+    taskCompletedEventData.forEach((event) => {
+      expect(typeof event.timestamp).toBe('number');
+    });
   });
 
   it('should return 401 if authentication fails', async () => {

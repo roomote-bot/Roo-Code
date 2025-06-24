@@ -109,6 +109,54 @@ export async function POST(request: NextRequest) {
         const timestamp = Math.round(message.ts / 1000);
         const mode = extractMode(message.text) || defaultMode;
 
+        if (message.say === 'api_req_started') {
+          try {
+            const result = apiReqStartedSchema.safeParse(
+              JSON.parse(message.text || '{}'),
+            );
+
+            if (
+              result.success &&
+              (result.data.tokensIn ||
+                result.data.tokensOut ||
+                result.data.cost)
+            ) {
+              await captureEvent({
+                id: uuidv4(),
+                orgId,
+                userId,
+                timestamp,
+                event: {
+                  type: TelemetryEventName.LLM_COMPLETION,
+                  properties: {
+                    taskId,
+                    ...properties,
+                    mode,
+                    inputTokens: result.data.tokensIn ?? 0,
+                    outputTokens: result.data.tokensOut ?? 0,
+                    cacheReadTokens: result.data.cacheReads,
+                    cacheWriteTokens: result.data.cacheWrites,
+                    cost: result.data.cost,
+                  },
+                },
+              });
+            }
+          } catch {
+            // Ignore JSON parsing and validation errors.
+          }
+        } else if (message.say === 'completion_result') {
+          await captureEvent({
+            id: uuidv4(),
+            orgId,
+            userId,
+            timestamp,
+            event: {
+              type: TelemetryEventName.TASK_COMPLETED,
+              properties: { taskId, ...properties, mode },
+            },
+          });
+        }
+
         const event = {
           type: TelemetryEventName.TASK_MESSAGE as const,
           properties: { taskId, message, ...properties, mode },
@@ -132,6 +180,14 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+const apiReqStartedSchema = z.object({
+  tokensIn: z.number().optional(),
+  tokensOut: z.number().optional(),
+  cacheReads: z.number().optional(),
+  cacheWrites: z.number().optional(),
+  cost: z.number().optional(),
+});
 
 /**
  * Extracts the mode from a message text if it contains a <slug>mode</slug> pattern.
