@@ -4,7 +4,7 @@
 // Note: User context (userId, orgId, orgRole) is set via SentryUserContext component
 
 import * as Sentry from '@sentry/nextjs';
-// import * as Spotlight from '@spotlightjs/spotlight';
+import posthog from 'posthog-js';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -24,9 +24,10 @@ Sentry.init({
   ],
 });
 
-// if (process.env.NODE_ENV === 'development') {
-//   Spotlight.init();
-// }
+posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY!, {
+  api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST,
+  defaults: '2025-05-24',
+});
 
 // This export will instrument router navigations, and is only relevant if you enable tracing.
 // `captureRouterTransitionStart` is available from SDK version 9.12.0 onwards
