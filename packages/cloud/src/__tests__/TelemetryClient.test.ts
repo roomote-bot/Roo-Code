@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // npx vitest run src/__tests__/TelemetryClient.test.ts
 
 import { TelemetryEventName } from "@roo-code/types"
@@ -21,12 +19,15 @@ vi.mock("../Config", () => ({
 const mockAuthService = {
 	isAuthenticated: vi.fn(),
 	getSessionToken: vi.fn(),
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any
 
 const mockSettingsService = {
 	getSettings: vi.fn(),
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as any
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockFetch = fetch as any
 
 describe("TelemetryClient", () => {
@@ -46,6 +47,7 @@ describe("TelemetryClient", () => {
 	describe("cloud telemetry client identification", () => {
 		it("should identify itself as a cloud telemetry client", () => {
 			// Access protected method for testing
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const isCloudClient = (client as any).isCloudTelemetryClient()
 			expect(isCloudClient).toBe(true)
 		})
@@ -57,11 +59,19 @@ describe("TelemetryClient", () => {
 				getTelemetryProperties: vi.fn().mockResolvedValue({
 					appName: "test-app",
 					appVersion: "1.0.0",
+					vscodeVersion: "1.85.0",
+					platform: "darwin",
+					editorName: "vscode",
+					language: "en",
 					mode: "code",
 				}),
 				getCloudTelemetryProperties: vi.fn().mockResolvedValue({
 					appName: "test-app",
 					appVersion: "1.0.0",
+					vscodeVersion: "1.85.0",
+					platform: "darwin",
+					editorName: "vscode",
+					language: "en",
 					mode: "code",
 					repositoryUrl: "https://github.com/user/repo.git",
 					repositoryName: "user/repo",
@@ -98,6 +108,10 @@ describe("TelemetryClient", () => {
 				expect.objectContaining({
 					appName: "test-app",
 					appVersion: "1.0.0",
+					vscodeVersion: "1.85.0",
+					platform: "darwin",
+					editorName: "vscode",
+					language: "en",
 					mode: "code",
 					repositoryUrl: "https://github.com/user/repo.git",
 					repositoryName: "user/repo",
@@ -112,6 +126,10 @@ describe("TelemetryClient", () => {
 				getTelemetryProperties: vi.fn().mockResolvedValue({
 					appName: "test-app",
 					appVersion: "1.0.0",
+					vscodeVersion: "1.85.0",
+					platform: "darwin",
+					editorName: "vscode",
+					language: "en",
 					mode: "code",
 				}),
 				// No getCloudTelemetryProperties method
@@ -137,6 +155,10 @@ describe("TelemetryClient", () => {
 				expect.objectContaining({
 					appName: "test-app",
 					appVersion: "1.0.0",
+					vscodeVersion: "1.85.0",
+					platform: "darwin",
+					editorName: "vscode",
+					language: "en",
 					mode: "code",
 					taskId: "test-123",
 				}),
@@ -149,6 +171,10 @@ describe("TelemetryClient", () => {
 				getTelemetryProperties: vi.fn().mockResolvedValue({
 					appName: "test-app",
 					appVersion: "1.0.0",
+					vscodeVersion: "1.85.0",
+					platform: "darwin",
+					editorName: "vscode",
+					language: "en",
 					mode: "code",
 				}),
 				getCloudTelemetryProperties: vi.fn().mockRejectedValue(new Error("Git error")),
@@ -168,12 +194,9 @@ describe("TelemetryClient", () => {
 				properties: { taskId: "test-123" },
 			})
 
-			// Should still send the event with event properties only
-			expect(mockFetch).toHaveBeenCalled()
+			// Should not send the event due to schema validation failure when no base properties are available
+			expect(mockFetch).not.toHaveBeenCalled()
 			expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("Error getting telemetry properties"))
-
-			const callBody = JSON.parse(mockFetch.mock.calls[0][1]?.body as string)
-			expect(callBody.properties).toEqual({ taskId: "test-123" })
 
 			consoleSpy.mockRestore()
 		})
