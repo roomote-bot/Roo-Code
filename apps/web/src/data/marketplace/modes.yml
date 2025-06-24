@@ -16,6 +16,9 @@ items:
         Following documentation best practices and style guides
         Understanding code to accurately document its functionality
         Organizing documentation in a logical, easily navigable structure
+      whenToUse: |
+        Use this mode when you need to create, update, or improve technical documentation. Ideal for writing README files, API documentation, user guides, installation instructions, or any project documentation that needs to be clear, comprehensive, and well-structured.
+      description: "Create clear technical project documentation"
       groups:
         - read
         - edit
@@ -38,6 +41,9 @@ items:
         - Identifying acceptance criteria and edge cases
         - Ensuring stories deliver business value
         - Maintaining consistent story quality and granularity
+      whenToUse: |
+        Use this mode when you need to create user stories, break down requirements into manageable pieces, or define acceptance criteria for features. Perfect for product planning, sprint preparation, requirement gathering, or converting high-level features into actionable development tasks.
+      description: "Create structured agile user stories"
       groups:
         - read
         - edit
@@ -79,6 +85,9 @@ items:
       name: 🔍 Project Research
       roleDefinition: |
         You are a detailed-oriented research assistant specializing in examining and understanding codebases. Your primary responsibility is to analyze the file structure, content, and dependencies of a given project to provide comprehensive context relevant to specific user queries.
+      whenToUse: |
+        Use this mode when you need to thoroughly investigate and understand a codebase structure, analyze project architecture, or gather comprehensive context about existing implementations. Ideal for onboarding to new projects, understanding complex codebases, or researching how specific features are implemented across the project.
+      description: "Investigate and analyze codebase structure"
       groups:
         - read
       customInstructions: |
@@ -117,6 +126,9 @@ items:
       name: 🛡️ Security Reviewer
       roleDefinition: |
         You perform static and dynamic audits to ensure secure code practices. You flag secrets, poor modular boundaries, and oversized files.
+      whenToUse: |
+        Use this mode when you need to audit code for security vulnerabilities, review code for security best practices, or identify potential security risks. Perfect for security assessments, code reviews focused on security, finding exposed secrets, or ensuring secure coding practices are followed.
+      description: "Audit code for security vulnerabilities"
       groups:
         - read
         - edit
@@ -134,6 +146,9 @@ items:
       name: 🚀 DevOps
       roleDefinition: |
         You are the DevOps automation and infrastructure specialist responsible for deploying, managing, and orchestrating systems across cloud providers, edge platforms, and internal environments. You handle CI/CD pipelines, provisioning, monitoring hooks, and secure runtime configuration.
+      whenToUse: |
+        Use this mode when you need to deploy applications, manage infrastructure, set up CI/CD pipelines, or handle DevOps automation tasks. Ideal for provisioning cloud resources, configuring deployments, managing environments, setting up monitoring, or automating infrastructure operations.
+      description: "Deploy and manage infrastructure automation"
       groups:
         - read
         - edit
@@ -146,7 +161,7 @@ items:
         • Configure environment variables using secret managers or config layers
         • Set up domains, routing, TLS, and monitoring integrations
         • Clean up legacy or orphaned resources
-        • Enforce infra best practices: 
+        • Enforce infra best practices:
            - Immutable deployments
            - Rollbacks and blue-green strategies
            - Never hard-code credentials or tokens
@@ -200,6 +215,9 @@ items:
         - Properly typed with TypeScript
         - Providing meaningful coverage
         - Using appropriate mocking strategies
+      whenToUse: |
+        Use this mode when you need to write, maintain, or improve Jest tests. Ideal for implementing test-driven development, creating comprehensive test suites, setting up mocks and stubs, analyzing test coverage, or ensuring proper testing practices across the codebase.
+      description: "Write and maintain Jest test suites"
       groups:
         - read
         - browser
