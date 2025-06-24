@@ -2,7 +2,7 @@ CREATE TABLE IF NOT EXISTS default.events
 (
     -- Shared
     `id` UUID,
-    `orgId` String,
+    `orgId` Nullable(String),
     `userId` String,
     `timestamp` Int32,
     `type` String,
@@ -36,7 +36,7 @@ SETTINGS index_granularity = 8192;
 CREATE TABLE IF NOT EXISTS default.messages
 (
     `id` UUID,
-    `orgId` String,
+    `orgId` Nullable(String),
     `userId` String,
     `taskId` String,
     `ts` Int32,
