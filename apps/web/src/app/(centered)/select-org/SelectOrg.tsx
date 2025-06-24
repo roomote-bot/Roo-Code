@@ -1,14 +1,16 @@
 'use client';
 
-import Link from 'next/link';
-import { OrganizationList, useOrganizationList } from '@clerk/nextjs';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { OrganizationList, useOrganizationList, useClerk } from '@clerk/nextjs';
 import { LoaderCircle } from 'lucide-react';
 
 import { useAuthState } from '@/hooks/useAuthState';
-import { Button } from '@/components/ui';
 
 export const SelectOrg = () => {
   const authState = useAuthState();
+  const router = useRouter();
+  const { setActive } = useClerk();
 
   const { isLoaded, userMemberships, userSuggestions, userInvitations } =
     useOrganizationList({
@@ -27,30 +29,39 @@ export const SelectOrg = () => {
     userInvitations.isLoading ||
     userSuggestions.isLoading;
 
+  // Auto-redirect if user has no organizations or exactly one organization
+  useEffect(() => {
+    if (isLoaded) {
+      const membershipCount = userMemberships.data?.length || 0;
+
+      if (membershipCount === 0) {
+        // No organizations - redirect directly
+        router.push(redirectUrl);
+      } else if (membershipCount === 1) {
+        // One organization - set it as active and redirect
+        const singleOrg = userMemberships.data[0];
+        if (singleOrg) {
+          setActive({ organization: singleOrg.organization.id })
+            .then(() => {
+              router.push(redirectUrl);
+            })
+            .catch((error: unknown) => {
+              console.error('Failed to set active organization:', error);
+              // If setting active org fails, fall back to showing the org list
+            });
+        }
+      }
+    }
+  }, [isLoaded, userMemberships.data, redirectUrl, router, setActive]);
+
   if (isLoading) {
     return <LoaderCircle className="animate-spin" />;
   }
 
-  const isBlocked =
-    userMemberships.count === 0 &&
-    userInvitations.count === 0 &&
-    userSuggestions.count === 0;
-
-  if (isBlocked) {
-    return (
-      <div className="flex flex-row items-center gap-2">
-        <div className="flex flex-col gap-2 items-center">
-          <div>Roo Code Cloud is in closed beta.</div>
-          <div>
-            <Button asChild>
-              <Link href="https://roocode.com/enterprise#contact">
-                Request Early Access
-              </Link>
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+  // If user has 0 or 1 organizations, show loading while redirecting
+  const membershipCount = userMemberships.data?.length || 0;
+  if (membershipCount === 0 || membershipCount === 1) {
+    return <LoaderCircle className="animate-spin" />;
   }
 
   return (
