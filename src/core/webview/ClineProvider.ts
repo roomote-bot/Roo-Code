@@ -1487,6 +1487,7 @@ export class ClineProvider
 			},
 			mdmCompliant: this.checkMdmCompliance(),
 			profileThresholds: profileThresholds ?? {},
+			hasOpenedModeSelector: this.getGlobalState("hasOpenedModeSelector") ?? false,
 		}
 	}
 
