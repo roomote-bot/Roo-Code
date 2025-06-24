@@ -37,6 +37,9 @@ describe('/api/events/backfill', () => {
       await analytics.command({
         query: `DELETE FROM messages WHERE taskId LIKE 'test-%'`,
       });
+      await analytics.command({
+        query: `DELETE FROM events WHERE taskId LIKE 'test-%'`,
+      });
     } catch {
       // Ignore cleanup errors.
     }
@@ -91,6 +94,41 @@ describe('/api/events/backfill', () => {
 
     expect(response.status).toBe(200);
     expect(responseData.success).toBe(true);
+
+    const eventsResults = await analytics.query({
+      query: `
+        SELECT
+          taskId,
+          type,
+          mode,
+          userId,
+          orgId,
+          timestamp
+        FROM events
+        WHERE taskId = 'test-task-integration' AND type = 'Task Created'
+        ORDER BY timestamp ASC
+      `,
+      format: 'JSONEachRow',
+    });
+
+    const eventData = (await eventsResults.json()) as Array<{
+      taskId: string;
+      type: string;
+      mode: string;
+      userId: string;
+      orgId: string;
+      timestamp: number;
+    }>;
+
+    expect(eventData).toHaveLength(1);
+    expect(eventData[0]).toMatchObject({
+      taskId: 'test-task-integration',
+      type: 'Task Created',
+      mode: 'code',
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+    expect(typeof eventData[0]?.timestamp).toBe('number');
 
     const dbResults = await analytics.query({
       query: `
@@ -174,6 +212,41 @@ describe('/api/events/backfill', () => {
 
     expect(response.status).toBe(200);
     expect(responseData.success).toBe(true);
+
+    const eventsResults = await analytics.query({
+      query: `
+        SELECT
+          taskId,
+          type,
+          mode,
+          userId,
+          orgId,
+          timestamp
+        FROM events
+        WHERE taskId = 'test-task-from-file' AND type = 'Task Created'
+        ORDER BY timestamp ASC
+      `,
+      format: 'JSONEachRow',
+    });
+
+    const eventData = (await eventsResults.json()) as Array<{
+      taskId: string;
+      type: string;
+      mode: string;
+      userId: string;
+      orgId: string;
+      timestamp: number;
+    }>;
+
+    expect(eventData).toHaveLength(1);
+    expect(eventData[0]).toMatchObject({
+      taskId: 'test-task-from-file',
+      type: 'Task Created',
+      mode: 'code',
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+    expect(typeof eventData[0]?.timestamp).toBe('number');
 
     const dbResults = await analytics.query({
       query: `
@@ -263,6 +336,14 @@ describe('/api/events/backfill', () => {
 
     const dbData = (await dbResults.json()) as Array<{ count: string }>;
     expect(dbData[0]?.count).toBe('0');
+
+    const eventsResults = await analytics.query({
+      query: `SELECT COUNT() as count FROM events WHERE taskId = 'test' AND type = 'Task Created'`,
+      format: 'JSONEachRow',
+    });
+
+    const eventsData = (await eventsResults.json()) as Array<{ count: string }>;
+    expect(eventsData[0]?.count).toBe('0');
   });
 
   it('should return 400 if no file is provided', async () => {
@@ -440,6 +521,41 @@ describe('/api/events/backfill', () => {
     expect(response.status).toBe(200);
     expect(responseData.success).toBe(true);
 
+    const eventsResults = await analytics.query({
+      query: `
+        SELECT
+          taskId,
+          type,
+          mode,
+          userId,
+          orgId,
+          timestamp
+        FROM events
+        WHERE taskId = 'test-task-mode-extraction' AND type = 'Task Created'
+        ORDER BY timestamp ASC
+      `,
+      format: 'JSONEachRow',
+    });
+
+    const eventData = (await eventsResults.json()) as Array<{
+      taskId: string;
+      type: string;
+      mode: string;
+      userId: string;
+      orgId: string;
+      timestamp: number;
+    }>;
+
+    expect(eventData).toHaveLength(1);
+    expect(eventData[0]).toMatchObject({
+      taskId: 'test-task-mode-extraction',
+      type: 'Task Created',
+      mode: 'debug',
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+    });
+    expect(typeof eventData[0]?.timestamp).toBe('number');
+
     const dbResults = await analytics.query({
       query: `
         SELECT
@@ -488,6 +604,107 @@ describe('/api/events/backfill', () => {
       messageType: 'say',
       say: 'text',
     });
+  });
+
+  it('should emit TASK_CREATED event with correct properties and timestamp', async () => {
+    mockAuthorizeApi.mockResolvedValue({
+      success: true,
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+      userType: 'user',
+      orgRole: 'admin',
+    } as unknown as ApiAuthResult);
+
+    const messages = [
+      {
+        ts: 1750702747687,
+        type: 'say' as const,
+        say: 'text' as const,
+        text: 'Test task creation',
+        images: [],
+      },
+    ];
+
+    const fileContent = JSON.stringify(messages);
+    const file = new File([fileContent], 'test-messages.json', {
+      type: 'application/json',
+    });
+
+    const customProperties = {
+      ...testProperties,
+      mode: 'architect',
+      apiProvider: 'openai',
+      modelId: 'gpt-4',
+    };
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('taskId', 'test-task-created-event');
+    formData.append('properties', JSON.stringify(customProperties));
+
+    const request = new NextRequest(
+      'http://localhost:3000/api/events/backfill',
+      {
+        method: 'POST',
+        body: formData,
+      },
+    );
+
+    const response = await POST(request);
+    const responseData = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(responseData.success).toBe(true);
+
+    const eventsResults = await analytics.query({
+      query: `
+        SELECT
+          taskId,
+          type,
+          mode,
+          userId,
+          orgId,
+          timestamp,
+          apiProvider,
+          modelId,
+          appVersion,
+          platform
+        FROM events
+        WHERE taskId = 'test-task-created-event' AND type = 'Task Created'
+      `,
+      format: 'JSONEachRow',
+    });
+
+    const eventData = (await eventsResults.json()) as Array<{
+      taskId: string;
+      type: string;
+      mode: string;
+      userId: string;
+      orgId: string;
+      timestamp: number;
+      apiProvider: string;
+      modelId: string;
+      appVersion: string;
+      platform: string;
+    }>;
+
+    expect(eventData).toHaveLength(1);
+
+    const taskCreatedEvent = eventData[0]!;
+    expect(taskCreatedEvent).toMatchObject({
+      taskId: 'test-task-created-event',
+      type: 'Task Created',
+      mode: 'architect',
+      userId: 'test-user-id',
+      orgId: 'test-org-id',
+      apiProvider: 'openai',
+      modelId: 'gpt-4',
+      appVersion: '1.0.0',
+      platform: 'darwin',
+    });
+
+    const expectedTimestamp = Math.round(messages[0]!.ts / 1000);
+    expect(taskCreatedEvent.timestamp).toBe(expectedTimestamp);
   });
 
   it('should handle invalid ClineMessage schema', async () => {

@@ -80,7 +80,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (messages.length === 0) {
+    const message = messages[0];
+
+    if (!message) {
       return NextResponse.json(
         { success: false, error: 'File contains no messages' },
         { status: 400 },
@@ -88,6 +90,17 @@ export async function POST(request: NextRequest) {
     }
 
     const defaultMode = extractMode(messages[0]?.text) || properties.mode;
+
+    await captureEvent({
+      id: uuidv4(),
+      orgId,
+      userId,
+      timestamp: Math.round(message.ts / 1000),
+      event: {
+        type: TelemetryEventName.TASK_CREATED,
+        properties: { taskId, ...properties, mode: defaultMode },
+      },
+    });
 
     await pMap(
       messages,
