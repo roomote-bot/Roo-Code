@@ -294,12 +294,12 @@ export const agentRequestLogsRelations = relations(
  */
 
 export const cloudJobs = pgTable('cloud_jobs', {
-  id: integer().primaryKey().generatedAlwaysAsIdentity(),
-  type: text().notNull().$type<JobType>(),
-  status: text().notNull().default('pending').$type<JobStatus>(),
-  payload: jsonb().notNull().$type<JobPayload>(),
-  result: jsonb(),
-  error: text(),
+  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+  type: text('type').notNull().$type<JobType>(),
+  status: text('status').notNull().default('pending').$type<JobStatus>(),
+  payload: jsonb('payload').notNull().$type<JobPayload>(),
+  result: jsonb('result'),
+  error: text('error'),
   slackThreadTs: text('slack_thread_ts'),
   startedAt: timestamp('started_at'),
   completedAt: timestamp('completed_at'),

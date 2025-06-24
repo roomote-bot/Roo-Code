@@ -2,6 +2,27 @@
 
 export * from './index';
 
-export * from './db';
-export * from './schema';
+export { db, disconnect, type DatabaseOrTransaction } from './db';
+
+export {
+  users,
+  userRelations,
+  orgs,
+  orgsRelations,
+  orgSettings,
+  orgSettingsRelations,
+  auditLogs,
+  auditLogsRelations,
+  taskShares,
+  taskSharesRelations,
+  agents,
+  agentsRelations,
+  agentRequestLogs,
+  agentRequestLogsRelations,
+  cloudJobs,
+  type CloudJob,
+  type InsertCloudJob,
+  type UpdateCloudJob,
+} from './schema';
+
 export * from './queries';

@@ -12,7 +12,7 @@ import { processJob } from './job';
 //   --network roo-code-cloud_default \
 //   -e HOST_EXECUTION_METHOD=docker \
 //   -e GH_TOKEN=$GH_TOKEN \
-//   -e DATABASE_URL=postgresql://postgres:password@db:5432/cloud_agents \
+//   -e DATABASE_URL=postgres://postgres:password@postgres:5432/development \
 //   -e REDIS_URL=redis://redis:6379 \
 //   -e NODE_ENV=production \
 //   -v /var/run/docker.sock:/var/run/docker.sock \

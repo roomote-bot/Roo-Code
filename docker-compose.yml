@@ -3,7 +3,7 @@ name: roo-code-cloud
 services:
   base:
     build:
-      context: ../../
+      context: .
       dockerfile: .docker/Dockerfile.base
     image: roo-code-cloud-base
 
@@ -55,7 +55,7 @@ services:
     container_name: roo-code-cloud-redis
     image: redis:7-alpine
     ports:
-      - "6380:6379"
+      - "6379:6379"
     volumes:
       - ./.docker/data/redis:/data
     command: redis-server --appendonly yes
@@ -63,8 +63,8 @@ services:
   roomote-dashboard:
     container_name: roo-code-cloud-roomote-dashboard
     build:
-      context: ../../
-      dockerfile: .docker/Dockerfile.dashboard
+      context: .
+      dockerfile: .docker/Dockerfile.roomote-dashboard
     image: roo-code-cloud-roomote-dashboard
     ports:
       - "3002:3002"
@@ -78,13 +78,13 @@ services:
   roomote-api:
     container_name: roo-code-cloud-roomote-api
     build:
-      context: ../../
-      dockerfile: .docker/Dockerfile.api
+      context: .
+      dockerfile: .docker/Dockerfile.roomote-api
     image: roo-code-cloud-roomote-api
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_URL=postgresql://postgres:password@db:5432/cloud_agents
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/development
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
     volumes:
@@ -98,8 +98,8 @@ services:
   roomote-controller:
     container_name: roo-code-cloud-roomote-controller
     build:
-      context: ../../
-      dockerfile: .docker/Dockerfile.controller
+      context: .
+      dockerfile: .docker/Dockerfile.roomote-controller
       args:
         - GH_TOKEN=${GH_TOKEN}
     image: roo-code-cloud-roomote-controller
@@ -107,7 +107,7 @@ services:
       - .env
     environment:
       - HOST_EXECUTION_METHOD=docker
-      - DATABASE_URL=postgresql://postgres:password@db:5432/cloud_agents
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/development
       - REDIS_URL=redis://redis:6379
       - NODE_ENV=production
     volumes:
@@ -122,8 +122,8 @@ services:
 
   roomote-worker:
     build:
-      context: ../../
-      dockerfile: .docker/Dockerfile.worker
+      context: .
+      dockerfile: .docker/Dockerfile.roomote-worker
       args:
         - GH_TOKEN=${GH_TOKEN}
     image: roomote-worker

@@ -1,0 +1,30 @@
+# git
+.git
+
+# build artifacts
+bin/
+dist/
+**/dist/
+out/
+**/out/
+
+# dependencies
+node_modules/
+**/node_modules/
+
+# testing
+coverage/
+**/.vscode-test/
+**/mock/
+
+# devtools
+knip.json
+.husky/
+
+# monorepo
+.turbo/
+**/.turbo/
+
+# next.js
+**/.next/
+.vercel

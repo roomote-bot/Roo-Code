@@ -1,7 +1,7 @@
-# docker compose build worker
+# docker compose build roomote-worker
 # Note: Requires $GH_TOKEN to be set as build argument.
 
-FROM roomote-base AS base
+FROM roo-code-cloud-base AS base
 
 # Install additional worker-specific packages
 RUN apt update && \
@@ -44,18 +44,17 @@ WORKDIR /roo
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/config-eslint/package.json ./packages/config-eslint/
 COPY packages/config-typescript/package.json ./packages/config-typescript/
-COPY packages/types/package.json ./packages/types/
+COPY packages/db/package.json ./packages/db/
 COPY packages/ipc/package.json ./packages/ipc/
 COPY apps/roomote/package.json ./apps/roomote/
 
-COPY scripts/bootstrap.mjs ./scripts/
 RUN pnpm install
 
-COPY apps/roomote ./apps/roomote/
 COPY packages/config-eslint ./packages/config-eslint/
 COPY packages/config-typescript ./packages/config-typescript/
-COPY packages/types ./packages/types/
+COPY packages/db ./packages/db/
 COPY packages/ipc ./packages/ipc/
+COPY apps/roomote ./apps/roomote/
 
 WORKDIR /roo/apps/roomote
 ENV NODE_ENV=production

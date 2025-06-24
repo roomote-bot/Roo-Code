@@ -6,7 +6,7 @@ import { db, cloudJobs } from '@roo-code-cloud/db/server';
 type Params = Promise<{ id: string }>;
 
 export async function GET(
-  request856rf8pu9: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params },
 ) {
   try {

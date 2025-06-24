@@ -1,9 +1,6 @@
 {
   "name": "roo-code-cloud",
   "packageManager": "pnpm@10.12.1",
-  "engines": {
-    "node": "20.19.2"
-  },
   "scripts": {
     "prepare": "husky",
     "lint": "turbo lint --log-order grouped --output-logs new-only",
@@ -11,13 +8,15 @@
     "test": "turbo test --log-order grouped --output-logs new-only",
     "build": "turbo build --log-order grouped --output-logs new-only",
     "clean": "turbo clean --log-order grouped --output-logs new-only && rimraf .turbo",
-    "services:up": "docker compose up postgres clickhouse redis roomote-dashboard -d --wait && pnpm db:push",
-    "services:down": "docker compose down postgres clickhouse redis roomote-dashboard",
     "db:up": "docker compose up postgres clickhouse -d --wait && pnpm --filter @roo-code-cloud/db db:migrate && pnpm --filter @roo-code-cloud/db db:test:push --force",
     "db:down": "docker compose down postgres clickhouse",
     "db:generate": "pnpm --filter @roo-code-cloud/db db:generate",
     "db:migrate": "pnpm --filter @roo-code-cloud/db db:migrate",
-    "db:reset": "pnpm db:down && rimraf .docker/data .docker/logs && pnpm db:up"
+    "db:reset": "pnpm db:down && rimraf .docker/data .docker/logs && pnpm db:up",
+    "services:build": "docker compose build base && docker compose build roomote-api roomote-dashboard roomote-controller roomote-worker",
+    "services:up": "docker compose up redis roomote-dashboard roomote-api -d --wait",
+    "services:down": "docker compose down redis roomote-dashboard roomote-api",
+    "tunnel": "ngrok http 3001 --domain cte.ngrok.dev"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.44.2",
