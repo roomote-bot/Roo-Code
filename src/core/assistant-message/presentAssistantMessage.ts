@@ -1,5 +1,6 @@
 import cloneDeep from "clone-deep"
 import { serializeError } from "serialize-error"
+import { Anthropic } from "@anthropic-ai/sdk"
 
 import type { ToolName, ClineAsk, ToolProgressStatus } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
@@ -275,6 +276,16 @@ export async function presentAssistantMessage(cline: Task) {
 					// Handle both messageResponse and noButtonClicked with text.
 					if (text) {
 						await cline.say("user_feedback", text, images)
+
+						// Add user feedback to API conversation history to preserve context
+						const userContent: Anthropic.Messages.ContentBlockParam[] = [
+							{ type: "text", text: `[User feedback during tool validation]: ${text}` },
+						]
+						if (images && images.length > 0) {
+							userContent.push(...formatResponse.imageBlocks(images))
+						}
+						await cline.addToApiConversationHistory({ role: "user", content: userContent })
+
 						pushToolResult(formatResponse.toolResult(formatResponse.toolDeniedWithFeedback(text), images))
 					} else {
 						pushToolResult(formatResponse.toolDenied())
@@ -286,7 +297,15 @@ export async function presentAssistantMessage(cline: Task) {
 				// Handle yesButtonClicked with text.
 				if (text) {
 					await cline.say("user_feedback", text, images)
-					pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
+
+					// Add user feedback to API conversation history to preserve context
+					const userContent: Anthropic.Messages.ContentBlockParam[] = [
+						{ type: "text", text: `[User feedback during tool validation]: ${text}` },
+					]
+					if (images && images.length > 0) {
+						userContent.push(...formatResponse.imageBlocks(images))
+					}
+					await cline.addToApiConversationHistory({ role: "user", content: userContent })
 				}
 
 				return true
