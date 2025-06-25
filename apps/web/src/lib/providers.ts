@@ -75,4 +75,8 @@ export const PROVIDERS: Record<
   litellm: { id: 'litellm', label: 'LiteLLM', models: [] },
   unbound: { id: 'unbound', label: 'Unbound', models: [] },
   glama: { id: 'glama', label: 'Glama', models: [] },
-};
+  'claude-code': { id: 'claude-code', label: 'Claude Code', models: [] },
+} as Record<
+  Exclude<ProviderName, 'fake-ai' | 'human-relay'>,
+  { id: ProviderName; label: string; models: string[] }
+>;

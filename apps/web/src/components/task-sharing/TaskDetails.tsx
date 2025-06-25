@@ -53,7 +53,7 @@ export const TaskDetails = ({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">Developer</p>
               <p className="font-mono truncate">{task.user.name}</p>
@@ -73,6 +73,17 @@ export const TaskDetails = ({
             <div>
               <p className="text-muted-foreground">Cost</p>
               <p className="font-mono">{formatCurrency(task.cost)}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Git Workspace</p>
+
+              {task.repositoryName ? (
+                <p className="font-mono truncate">{task.repositoryName}</p>
+              ) : (
+                <p className="text-muted-foreground text-xs italic">
+                  Not available
+                </p>
+              )}
             </div>
           </div>
           {task.mode && (

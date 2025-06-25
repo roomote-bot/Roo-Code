@@ -311,6 +311,9 @@ const taskSchema = z.object({
   tokens: z.coerce.number(),
   cost: z.coerce.number(),
   timestamp: z.coerce.number(),
+  repositoryUrl: z.string().nullable().optional(),
+  repositoryName: z.string().nullable().optional(),
+  defaultBranch: z.string().nullable().optional(),
 });
 
 export type TaskWithUser = z.infer<typeof taskSchema> & { user: User };
@@ -404,7 +407,10 @@ export const getTasks = async ({
         SUM(CASE WHEN e.type = 'LLM Completion' THEN ${tokenSumSql('e')} ELSE 0 END) AS tokens,
         SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.cost, 0) ELSE 0 END) AS cost,
         MIN(e.timestamp) AS timestamp,
-        any(fm.title) AS title
+        any(fm.title) AS title,
+        any(e.repositoryUrl) AS repositoryUrl,
+        any(e.repositoryName) AS repositoryName,
+        any(e.defaultBranch) AS defaultBranch
       FROM events e
       LEFT JOIN first_messages fm ON e.taskId = fm.taskId
       WHERE

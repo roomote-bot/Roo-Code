@@ -21,6 +21,9 @@ CREATE TABLE IF NOT EXISTS default.events
     `modelId` Nullable(String),
     `diffStrategy` Nullable(String),
     `isSubtask` Nullable(Bool),
+    `repositoryUrl` Nullable(String),
+    `repositoryName` Nullable(String),
+    `defaultBranch` Nullable(String),
 
     -- Completion
     `inputTokens` Nullable(Int32),

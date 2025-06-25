@@ -16,7 +16,7 @@
   "dependencies": {
     "@roo-code-cloud/db": "workspace:^",
     "@roo-code-cloud/ipc": "workspace:^",
-    "@roo-code/types": "^1.26.0",
+    "@roo-code/types": "^1.29.0",
     "bullmq": "^5.37.0",
     "drizzle-orm": "^0.44.2",
     "execa": "^9.6.0",
