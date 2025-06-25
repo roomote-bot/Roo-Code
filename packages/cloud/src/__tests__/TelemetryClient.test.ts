@@ -32,9 +32,16 @@ const mockFetch = fetch as any
 
 describe("TelemetryClient", () => {
 	let client: TelemetryClient
+	let mockConsoleError: ReturnType<typeof vi.spyOn>
+	let mockConsoleInfo: ReturnType<typeof vi.spyOn>
 
 	beforeEach(() => {
 		vi.clearAllMocks()
+
+		// Create fresh console mocks for each test
+		mockConsoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+		mockConsoleInfo = vi.spyOn(console, "info").mockImplementation(() => {})
+
 		client = new TelemetryClient(mockAuthService, mockSettingsService, true)
 
 		mockAuthService.isAuthenticated.mockReturnValue(true)
@@ -42,6 +49,11 @@ describe("TelemetryClient", () => {
 		mockSettingsService.getSettings.mockReturnValue({
 			cloudSettings: { recordTaskMessages: false },
 		})
+	})
+
+	afterEach(() => {
+		mockConsoleError.mockRestore()
+		mockConsoleInfo.mockRestore()
 	})
 
 	describe("cloud telemetry client identification", () => {
@@ -237,7 +249,7 @@ describe("TelemetryClient", () => {
 			await client.backfillMessages(messages, "test-task-id")
 
 			expect(mockFetch).not.toHaveBeenCalled()
-			expect(console.error).toHaveBeenCalledWith(
+			expect(mockConsoleError).toHaveBeenCalledWith(
 				"[TelemetryClient#backfillMessages] Unauthorized: No session token available.",
 			)
 		})
@@ -279,11 +291,11 @@ describe("TelemetryClient", () => {
 			await client.backfillMessages(messages, "test-task-id")
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				"https://app.roocode.com/api/events/backfill",
+				"https://api.test.com/api/events/backfill",
 				expect.objectContaining({
 					method: "POST",
 					headers: {
-						Authorization: "Bearer mock-token",
+						Authorization: "Bearer test-token",
 					},
 					body: expect.any(FormData),
 				}),
@@ -334,11 +346,11 @@ describe("TelemetryClient", () => {
 			await client.backfillMessages(messages, "test-task-id")
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				"https://app.roocode.com/api/events/backfill",
+				"https://api.test.com/api/events/backfill",
 				expect.objectContaining({
 					method: "POST",
 					headers: {
-						Authorization: "Bearer mock-token",
+						Authorization: "Bearer test-token",
 					},
 					body: expect.any(FormData),
 				}),
@@ -380,11 +392,11 @@ describe("TelemetryClient", () => {
 			await client.backfillMessages(messages, "test-task-id")
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				"https://app.roocode.com/api/events/backfill",
+				"https://api.test.com/api/events/backfill",
 				expect.objectContaining({
 					method: "POST",
 					headers: {
-						Authorization: "Bearer mock-token",
+						Authorization: "Bearer test-token",
 					},
 					body: expect.any(FormData),
 				}),
@@ -427,7 +439,7 @@ describe("TelemetryClient", () => {
 
 			await expect(client.backfillMessages(messages, "test-task-id")).resolves.not.toThrow()
 
-			expect(console.error).toHaveBeenCalledWith(
+			expect(mockConsoleError).toHaveBeenCalledWith(
 				expect.stringContaining(
 					"[TelemetryClient#backfillMessages] Error uploading messages: Error: Network error",
 				),
@@ -454,13 +466,18 @@ describe("TelemetryClient", () => {
 
 			await client.backfillMessages(messages, "test-task-id")
 
-			expect(console.error).toHaveBeenCalledWith(
+			expect(mockConsoleError).toHaveBeenCalledWith(
 				"[TelemetryClient#backfillMessages] POST events/backfill -> 404 Not Found",
 			)
 		})
 
 		it("should log debug information when debug is enabled", async () => {
 			const client = new TelemetryClient(mockAuthService, mockSettingsService, true)
+
+			// Mock successful response for debug success message
+			mockFetch.mockResolvedValue({
+				ok: true,
+			} as Response)
 
 			const messages = [
 				{
@@ -473,10 +490,10 @@ describe("TelemetryClient", () => {
 
 			await client.backfillMessages(messages, "test-task-id")
 
-			expect(console.info).toHaveBeenCalledWith(
+			expect(mockConsoleInfo).toHaveBeenCalledWith(
 				"[TelemetryClient#backfillMessages] Uploading 1 messages for task test-task-id",
 			)
-			expect(console.info).toHaveBeenCalledWith(
+			expect(mockConsoleInfo).toHaveBeenCalledWith(
 				"[TelemetryClient#backfillMessages] Successfully uploaded messages for task test-task-id",
 			)
 		})
@@ -487,11 +504,11 @@ describe("TelemetryClient", () => {
 			await client.backfillMessages([], "test-task-id")
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				"https://app.roocode.com/api/events/backfill",
+				"https://api.test.com/api/events/backfill",
 				expect.objectContaining({
 					method: "POST",
 					headers: {
-						Authorization: "Bearer mock-token",
+						Authorization: "Bearer test-token",
 					},
 					body: expect.any(FormData),
 				}),
