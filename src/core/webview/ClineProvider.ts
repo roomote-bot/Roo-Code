@@ -76,6 +76,7 @@ import { ProfileValidator } from "../../shared/ProfileValidator"
 
 export type ClineProviderEvents = {
 	clineCreated: [cline: Task]
+	mcpServersInitialized: []
 }
 
 class OrganizationAllowListViolationError extends Error {

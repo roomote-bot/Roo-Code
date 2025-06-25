@@ -26,11 +26,16 @@ suite("Roo Code use_mcp_tool Tool", function () {
 		// Create test files in VSCode workspace directory
 		const workspaceDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || tempDir
 
+		// Resolve the real path to avoid symlink issues on macOS
+		const realWorkspaceDir = await fs.realpath(workspaceDir)
+		console.log("Original workspace dir:", workspaceDir)
+		console.log("Real workspace dir:", realWorkspaceDir)
+
 		// Create test files for MCP filesystem operations
 		testFiles = {
-			simple: path.join(workspaceDir, `mcp-test-${Date.now()}.txt`),
-			testData: path.join(workspaceDir, `mcp-data-${Date.now()}.json`),
-			mcpConfig: path.join(workspaceDir, ".roo", "mcp.json"),
+			simple: path.join(realWorkspaceDir, `mcp-test-${Date.now()}.txt`),
+			testData: path.join(realWorkspaceDir, `mcp-data-${Date.now()}.json`),
+			mcpConfig: path.join(realWorkspaceDir, ".roo", "mcp.json"),
 		}
 
 		// Create initial test files
@@ -38,21 +43,21 @@ suite("Roo Code use_mcp_tool Tool", function () {
 		await fs.writeFile(testFiles.testData, JSON.stringify({ test: "data", value: 42 }, null, 2))
 
 		// Create .roo directory and MCP configuration file
-		const rooDir = path.join(workspaceDir, ".roo")
+		const rooDir = path.join(realWorkspaceDir, ".roo")
 		await fs.mkdir(rooDir, { recursive: true })
 
 		const mcpConfig = {
 			mcpServers: {
 				filesystem: {
 					command: "npx",
-					args: ["-y", "@modelcontextprotocol/server-filesystem", workspaceDir],
+					args: ["-y", "@modelcontextprotocol/server-filesystem", realWorkspaceDir],
 					alwaysAllow: [],
 				},
 			},
 		}
 		await fs.writeFile(testFiles.mcpConfig, JSON.stringify(mcpConfig, null, 2))
 
-		console.log("MCP test files created in:", workspaceDir)
+		console.log("MCP test files created in:", realWorkspaceDir)
 		console.log("Test files:", testFiles)
 	})
 
@@ -76,7 +81,8 @@ suite("Roo Code use_mcp_tool Tool", function () {
 
 		// Clean up .roo directory
 		const workspaceDir = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || tempDir
-		const rooDir = path.join(workspaceDir, ".roo")
+		const realWorkspaceDir = await fs.realpath(workspaceDir)
+		const rooDir = path.join(realWorkspaceDir, ".roo")
 		try {
 			await fs.rm(rooDir, { recursive: true, force: true })
 		} catch {
@@ -353,7 +359,6 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
-		await sleep(2000) // Wait for Roo Code to fully initialize
 
 		// Trigger MCP server detection by opening and modifying the file
 		console.log("Triggering MCP server detection by modifying the config file...")
@@ -386,7 +391,9 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			console.error("Failed to modify/save MCP config file:", error)
 		}
 
-		await sleep(5000) // Wait for MCP servers to initialize
+		// Give MCP servers a moment to be ready (they should already be initialized)
+		await sleep(1000)
+
 		let taskId: string
 		try {
 			// Start task requesting to use MCP filesystem write_file tool
@@ -514,7 +521,6 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
-		await sleep(2000) // Wait for Roo Code to fully initialize
 
 		// Trigger MCP server detection by opening and modifying the file
 		console.log("Triggering MCP server detection by modifying the config file...")
@@ -547,7 +553,9 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			console.error("Failed to modify/save MCP config file:", error)
 		}
 
-		await sleep(5000) // Wait for MCP servers to initialize
+		// Give MCP servers a moment to be ready (they should already be initialized)
+		await sleep(1000)
+
 		let taskId: string
 		try {
 			// Start task requesting MCP filesystem list_directory tool
@@ -686,7 +694,6 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
-		await sleep(2000) // Wait for Roo Code to fully initialize
 
 		// Trigger MCP server detection by opening and modifying the file
 		console.log("Triggering MCP server detection by modifying the config file...")
@@ -719,7 +726,9 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			console.error("Failed to modify/save MCP config file:", error)
 		}
 
-		await sleep(5000) // Wait for MCP servers to initialize
+		// Give MCP servers a moment to be ready (they should already be initialized)
+		await sleep(1000)
+
 		let taskId: string
 		try {
 			// Start task requesting MCP filesystem directory_tree tool
@@ -940,7 +949,8 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			}
 		}
 		api.on("taskCompleted", taskCompletedHandler)
-		await sleep(2000) // Wait for Roo Code to fully initialize
+
+		// Wait for MCP servers to be initialized instead of using sleep
 
 		// Trigger MCP server detection by opening and modifying the file
 		console.log("Triggering MCP server detection by modifying the config file...")
@@ -973,7 +983,9 @@ suite("Roo Code use_mcp_tool Tool", function () {
 			console.error("Failed to modify/save MCP config file:", error)
 		}
 
-		await sleep(5000) // Wait for MCP servers to initialize
+		// Give MCP servers a moment to be ready (they should already be initialized)
+		await sleep(1000)
+
 		let taskId: string
 		try {
 			// Start task requesting MCP filesystem get_file_info tool
