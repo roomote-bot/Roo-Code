@@ -293,11 +293,13 @@ export async function getTaskByShareToken(token: string): Promise<{
     // For public shares (including personal shares), no auth check needed
 
     // Get task data based on visibility
+    // For organization shares, we need to skip auth since the viewer might be a different user
+    // but they're authorized to view this share within their organization
     const tasks = await getTasks({
       taskId: share.taskId,
       orgId: share.orgId, // Will be null for personal shares
       allowCrossUserAccess: true,
-      skipAuth: share.visibility === TaskShareVisibility.PUBLIC, // Skip auth for public shares
+      skipAuth: true, // Skip auth for both public and organization shares since we've already validated access above
     });
     const task = tasks[0];
 
@@ -309,7 +311,7 @@ export async function getTaskByShareToken(token: string): Promise<{
       share.taskId,
       share.orgId,
       task.userId,
-      share.visibility === TaskShareVisibility.PUBLIC, // Skip auth for public shares
+      true, // Skip auth for both public and organization shares since we've already validated access above
     );
 
     return {
