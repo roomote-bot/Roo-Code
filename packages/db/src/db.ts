@@ -1,18 +1,19 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 
+import { Env } from '@roo-code-cloud/env';
+
 import * as schema from './schema';
 
-const client = postgres(process.env.DATABASE_URL!, { prepare: false });
+const client = postgres(Env.DATABASE_URL, { prepare: false });
 const db = drizzle({ client, schema });
 
-if (process.env.NODE_ENV === 'test') {
-  if (
-    !process.env.DATABASE_URL!.includes('test') ||
-    !process.env.DATABASE_URL!.includes('localhost')
-  ) {
-    throw new Error('DATABASE_URL is not a test database');
-  }
+if (
+  Env.NODE_ENV === 'test' &&
+  (!Env.DATABASE_URL.includes('test') ||
+    !Env.DATABASE_URL.includes('localhost'))
+) {
+  throw new Error('DATABASE_URL is not a test database');
 }
 
 const disconnect = async () => client.end();

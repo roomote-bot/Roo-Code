@@ -1,7 +1,7 @@
 import * as path from 'path';
 import * as os from 'node:os';
 
-import type { JobType, JobPayload } from '@/types';
+import type { JobType, JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
 import { Logger } from '../logger';
@@ -46,7 +46,6 @@ Your job isn't done until you've created a pull request. Try to solve any git is
     jobType,
     jobPayload,
     prompt,
-    publish: async () => {},
     logger: new Logger({
       logDir: path.resolve(os.tmpdir(), 'logs'),
       filename: 'worker.log',

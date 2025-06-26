@@ -1,6 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 
+import { Env } from '@roo-code-cloud/env';
+
 const agentTokenPayloadSchema = z.object({
   sub: z.string().min(1, 'Subject (sub) is required'),
   org_id: z.string().min(1, 'Organization ID is required'),
@@ -24,7 +26,7 @@ export async function getAgentToken(agentId: string, orgId: string) {
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + 15 * 60, // 15 minutes
     },
-    process.env.CLERK_SECRET_KEY || 'fallback-secret',
+    Env.CLERK_SECRET_KEY,
     { algorithm: 'HS256' },
   );
 }
@@ -58,11 +60,9 @@ export async function validateAgentToken(
   token: string,
 ): Promise<AgentTokenPayload> {
   try {
-    const rawPayload = jwt.verify(
-      token,
-      process.env.CLERK_SECRET_KEY || 'fallback-secret',
-      { algorithms: ['HS256'] },
-    );
+    const rawPayload = jwt.verify(token, Env.CLERK_SECRET_KEY, {
+      algorithms: ['HS256'],
+    });
 
     const parseResult = agentTokenPayloadSchema.safeParse(rawPayload);
 

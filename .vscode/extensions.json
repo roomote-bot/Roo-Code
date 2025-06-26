@@ -5,6 +5,7 @@
     "csstools.postcss",
     "bradlc.vscode-tailwindcss",
     "vitest.explorer",
-    "yoavbls.pretty-ts-errors"
+    "yoavbls.pretty-ts-errors",
+    "tamasfe.even-better-toml"
   ]
 }

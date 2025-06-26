@@ -1,4 +1,3 @@
-export { Env } from './env';
 export { logger } from './logger';
 export { handleError } from './api';
 export { analytics } from './analytics';

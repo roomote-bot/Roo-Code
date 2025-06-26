@@ -1,13 +1,8 @@
 import type { NextConfig } from 'next';
-import withBundleAnalyzer from '@next/bundle-analyzer';
 import { withSentryConfig } from '@sentry/nextjs';
 import createNextIntlPlugin from 'next-intl/plugin';
 
 const withNextIntl = createNextIntlPlugin();
-
-const bundleAnalyzer = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-});
 
 const nextConfig: NextConfig = {
   eslint: { dirs: ['.'] },
@@ -20,7 +15,7 @@ const nextConfig: NextConfig = {
   // },
 };
 
-export default withSentryConfig(bundleAnalyzer(withNextIntl(nextConfig)), {
+export default withSentryConfig(withNextIntl(nextConfig), {
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options
   // FIXME: Add your Sentry organization and project names

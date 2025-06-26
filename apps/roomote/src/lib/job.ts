@@ -1,9 +1,15 @@
 import { eq } from 'drizzle-orm';
 import { Job } from 'bullmq';
 
-import { db, cloudJobs, type UpdateCloudJob } from '@roo-code-cloud/db/server';
-
-import type { JobType, JobStatus, JobParams, JobPayload } from '@/types';
+import {
+  type JobType,
+  type JobStatus,
+  type JobParams,
+  type JobPayload,
+  type UpdateCloudJob,
+  db,
+  cloudJobs,
+} from '@roo-code-cloud/db/server';
 
 import { fixGitHubIssue } from './jobs/fixGitHubIssue';
 import { processPullRequestComment } from './jobs/processPullRequestComment';
@@ -26,7 +32,7 @@ export async function processJob<T extends JobType>({
           payload as JobPayload<'github.issue.fix'>,
           {
             onTaskStarted: async (
-              slackThreadTs: string | null,
+              slackThreadTs: string | null | undefined,
               _rooTaskId: string,
             ) => {
               if (slackThreadTs) {
@@ -48,7 +54,7 @@ export async function processJob<T extends JobType>({
           payload as JobPayload<'github.issue.comment.respond'>,
           {
             onTaskStarted: async (
-              slackThreadTs: string | null,
+              slackThreadTs: string | null | undefined,
               _rooTaskId: string,
             ) => {
               if (slackThreadTs) {
@@ -70,7 +76,7 @@ export async function processJob<T extends JobType>({
           payload as JobPayload<'github.pr.comment.respond'>,
           {
             onTaskStarted: async (
-              slackThreadTs: string | null,
+              slackThreadTs: string | null | undefined,
               _rooTaskId: string,
             ) => {
               if (slackThreadTs) {

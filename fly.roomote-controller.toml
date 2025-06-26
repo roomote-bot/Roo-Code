@@ -1,0 +1,16 @@
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+# Deploy with: `fly deploy --config fly.roomote-controller.toml`
+
+app = "roomote-controller"
+primary_region = "sjc" # See `fly platform regions`
+
+[env]
+  APP_ENV = "production"
+
+[build]
+  dockerfile = ".docker/Dockerfile.roomote-controller"
+  ignorefile = ".dockerignore"
+
+[[vm]]
+  size = "performance-2x" # See `fly platform vm-sizes`

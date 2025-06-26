@@ -81,11 +81,7 @@ export class WorkerController {
         `--name roomote-${workerId}`,
         '--rm',
         '--network roo-code-cloud_default',
-        '-e HOST_EXECUTION_METHOD=docker',
         `-e GH_TOKEN=${process.env.GH_TOKEN}`,
-        `-e DATABASE_URL=${process.env.DATABASE_URL}`,
-        `-e REDIS_URL=${process.env.REDIS_URL}`,
-        `-e NODE_ENV=${process.env.NODE_ENV}`,
         '-v /var/run/docker.sock:/var/run/docker.sock',
         '-v /tmp/roomote:/var/log/roomote',
       ];

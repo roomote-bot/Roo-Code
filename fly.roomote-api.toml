@@ -1,0 +1,21 @@
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+# Deploy with: `fly deploy --config fly.roomote-api.toml`
+
+app = "roomote-api"
+primary_region = "sjc" # See `fly platform regions`
+
+[env]
+  APP_ENV = "production"
+
+[build]
+  dockerfile = ".docker/Dockerfile.roomote-api"
+  ignorefile = ".dockerignore"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "performance-1x" # See `fly platform vm-sizes`

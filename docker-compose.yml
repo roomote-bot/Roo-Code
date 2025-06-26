@@ -1,12 +1,6 @@
 name: roo-code-cloud
 
 services:
-  base:
-    build:
-      context: .
-      dockerfile: .docker/Dockerfile.base
-    image: roo-code-cloud-base
-
   postgres:
     container_name: roo-code-cloud-postgres
     image: postgres:17.5
@@ -67,7 +61,7 @@ services:
       dockerfile: .docker/Dockerfile.roomote-dashboard
     image: roo-code-cloud-roomote-dashboard
     env_file:
-      - .env
+      - .env.keys
     ports:
       - "3002:3002"
     depends_on:
@@ -81,7 +75,7 @@ services:
       dockerfile: .docker/Dockerfile.roomote-api
     image: roo-code-cloud-roomote-api
     env_file:
-      - .env
+      - .env.keys
     ports:
       - "3001:3001"
     volumes:
@@ -97,11 +91,9 @@ services:
     build:
       context: .
       dockerfile: .docker/Dockerfile.roomote-controller
-      args:
-        - GH_TOKEN=${GH_TOKEN}
     image: roo-code-cloud-roomote-controller
     env_file:
-      - .env
+      - .env.keys
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/roomote/controller:/var/log/roomote
@@ -116,11 +108,9 @@ services:
     build:
       context: .
       dockerfile: .docker/Dockerfile.roomote-worker
-      args:
-        - GH_TOKEN=${GH_TOKEN}
     image: roomote-worker
     env_file:
-      - .env
+      - .env.keys
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/roomote/worker:/var/log/roomote

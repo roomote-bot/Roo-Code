@@ -1,6 +1,6 @@
 import { Queue, Job } from 'bullmq';
 
-import type { JobTypes, JobPayload, JobParams } from '@/types';
+import type { JobTypes, JobPayload, JobParams } from '@roo-code-cloud/db';
 
 import { redis } from './redis';
 

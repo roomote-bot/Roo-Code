@@ -28,3 +28,6 @@ knip.json
 # next.js
 **/.next/
 .vercel
+
+# env
+.env.keys

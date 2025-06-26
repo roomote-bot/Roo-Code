@@ -5,7 +5,7 @@
   "scripts": {
     "lint": "eslint src --ext=ts --max-warnings=0",
     "check-types": "tsc --noEmit",
-    "dev": "tsx src/index.ts",
+    "dev": "dotenvx run -f ../../.env.development -- tsx src/index.ts",
     "clean": "rimraf .turbo"
   },
   "dependencies": {

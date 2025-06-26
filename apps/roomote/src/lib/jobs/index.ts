@@ -1,0 +1,3 @@
+export { fixGitHubIssue } from './fixGitHubIssue';
+export { processIssueComment } from './processIssueComment';
+export { processPullRequestComment } from './processPullRequestComment';

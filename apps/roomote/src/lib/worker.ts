@@ -10,16 +10,12 @@ import { processJob } from './job';
 //   --interactive \
 //   --tty \
 //   --network roo-code-cloud_default \
-//   -e HOST_EXECUTION_METHOD=docker \
 //   -e GH_TOKEN=$GH_TOKEN \
-//   -e DATABASE_URL=postgres://postgres:password@postgres:5432/development \
-//   -e REDIS_URL=redis://redis:6379 \
-//   -e NODE_ENV=production \
 //   -v /var/run/docker.sock:/var/run/docker.sock \
 //   -v /tmp/roomote:/var/log/roomote \
 //   roomote-worker sh -c "bash"
 
-async function processSingleJob() {
+async function processNextJob() {
   const worker = new Worker('roomote', undefined, {
     autorun: false,
     connection: redis,
@@ -69,4 +65,4 @@ if (!process.env.GH_TOKEN) {
   throw new Error('GH_TOKEN is not set');
 }
 
-processSingleJob();
+processNextJob();

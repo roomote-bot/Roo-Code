@@ -122,6 +122,12 @@ export const createJobSchema = z.discriminatedUnion('type', [
       commentUrl: z.string(),
     }),
   }),
+  z.object({
+    type: z.literal('test.prompt'),
+    payload: z.object({
+      text: z.string(),
+    }),
+  }),
 ]);
 
 export type CreateJob = z.infer<typeof createJobSchema>;
@@ -129,7 +135,6 @@ export type CreateJob = z.infer<typeof createJobSchema>;
 export type JobTypes = {
   [K in CreateJob['type']]: Extract<CreateJob, { type: K }>['payload'];
 };
-
 /**
  * JobType, JobStatus, JobPayload, JobParams
  */

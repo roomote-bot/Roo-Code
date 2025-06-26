@@ -1,7 +1,34 @@
-# docker compose build roomote-worker
-# Note: Requires $GH_TOKEN to be set as build argument.
+# docker compose build roomote-worker && docker compose up roomote-worker
 
-FROM roo-code-cloud-base AS base
+FROM node:20-slim AS base
+
+# Install pnpm
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+# Install common system packages
+RUN apt update && \
+  apt install -y \
+  curl \
+  git \
+  vim \
+  jq \
+  netcat-openbsd \
+  apt-transport-https \
+  ca-certificates \
+  gnupg \
+  lsb-release \
+  wget \
+  gpg \
+  gh \
+  && rm -rf /var/lib/apt/lists/*
+
+# Install Docker cli
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null \
+  && apt update && apt install -y docker-ce-cli \
+  && rm -rf /var/lib/apt/lists/*
 
 # Install additional worker-specific packages
 RUN apt update && \
@@ -39,11 +66,12 @@ WORKDIR /roo/repos/Roo-Code
 RUN gh repo set-default RooCodeInc/Roo-Code
 RUN pnpm install
 
-# Install dependencies
 WORKDIR /roo
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .env.* ./
 COPY packages/config-eslint/package.json ./packages/config-eslint/
 COPY packages/config-typescript/package.json ./packages/config-typescript/
+COPY packages/env/package.json ./packages/env/
 COPY packages/db/package.json ./packages/db/
 COPY packages/ipc/package.json ./packages/ipc/
 COPY apps/roomote/package.json ./apps/roomote/
@@ -52,11 +80,13 @@ RUN pnpm install
 
 COPY packages/config-eslint ./packages/config-eslint/
 COPY packages/config-typescript ./packages/config-typescript/
+COPY packages/env ./packages/env/
 COPY packages/db ./packages/db/
 COPY packages/ipc ./packages/ipc/
 COPY apps/roomote ./apps/roomote/
 
 WORKDIR /roo/apps/roomote
+
 ENV NODE_ENV=production
 ENV HOST_EXECUTION_METHOD=docker
-CMD ["pnpm", "worker"]
+CMD ["sh", "-c", "npx dotenvx run -f ../../.env.${APP_ENV:-development} -- tsx src/lib/controller.ts"]

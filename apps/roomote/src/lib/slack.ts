@@ -1,4 +1,5 @@
-import { JobPayload, JobType } from '@/types';
+import type { JobPayload, JobType } from '@roo-code-cloud/db';
+
 import { Logger } from './logger';
 
 export interface SlackMessage {

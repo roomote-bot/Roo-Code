@@ -49,10 +49,8 @@ Create an `.env.local` file and fill out the required secrets, including:
 - `CLICKHOUSE_URL`
 - `CLICKHOUSE_PASSWORD`
 - `CLERK_SECRET_KEY`
-- `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`
-- `NEXT_PUBLIC_CLERK_FRONTEND_API`
 
-You can now start the Next.js app and [Spotlight](https://spotlightjs.com/) with:
+You can now start the Next.js app with:
 
 ```sh
 pnpm dev

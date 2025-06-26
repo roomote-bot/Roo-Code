@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import type { JobPayload } from '@/types';
+import type { JobPayload } from '@roo-code-cloud/db';
 
 import { createAndEnqueueJob } from './utils';
 

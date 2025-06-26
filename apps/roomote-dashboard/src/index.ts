@@ -6,7 +6,11 @@ import { createBullBoard } from '@bull-board/api';
 import express from 'express';
 import type { Express, Request, Response } from 'express';
 
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6380', {
+if (!process.env.REDIS_URL) {
+  throw new Error('REDIS_URL is not set');
+}
+
+const redis = new Redis(process.env.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
 

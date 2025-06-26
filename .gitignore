@@ -9,9 +9,8 @@ node_modules
 Thumbs.db
 
 # .env
-.env*.local
-.env*.preview
-.env*.production
+.env.keys
+.env.local
 
 # turbo
 .turbo

@@ -1,8 +1,12 @@
 import { createHmac } from 'crypto';
 
-import { db, cloudJobs } from '@roo-code-cloud/db/server';
+import {
+  type JobType,
+  type JobPayload,
+  db,
+  cloudJobs,
+} from '@roo-code-cloud/db/server';
 
-import type { JobType, JobPayload } from '@/types';
 import { enqueue } from '@/lib';
 
 export function verifySignature(

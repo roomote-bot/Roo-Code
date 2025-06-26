@@ -1,5 +1,11 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  "globalPassThroughEnv": [
+    "DOTENV_PRIVATE_KEY_TEST",
+    "DOTENV_PRIVATE_KEY_DEVELOPMENT",
+    "DOTENV_PRIVATE_KEY_PREVIEW",
+    "DOTENV_PRIVATE_KEY_PRODUCTION"
+  ],
   "tasks": {
     "lint": {},
     "check-types": {},

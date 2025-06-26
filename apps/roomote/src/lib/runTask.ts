@@ -6,7 +6,7 @@ import pWaitFor from 'p-wait-for';
 import { execa } from 'execa';
 
 import {
-  type TaskEvent,
+  type RooCodeSettings,
   TaskCommandName,
   RooCodeEventName,
   IpcMessageType,
@@ -14,7 +14,7 @@ import {
 } from '@roo-code/types';
 import { IpcClient } from '@roo-code-cloud/ipc';
 
-import type { JobPayload, JobType } from '@/types';
+import type { JobPayload, JobType } from '@roo-code-cloud/db';
 
 import { Logger } from './logger';
 import { isDockerContainer } from './utils';
@@ -31,12 +31,12 @@ class SubprocessTimeoutError extends Error {
 
 export type RunTaskCallbacks = {
   onTaskStarted?: (
-    slackThreadTs: string | null,
+    slackThreadTs: string | null | undefined,
     rooTaskId: string,
   ) => Promise<void>;
-  onTaskAborted?: (slackThreadTs: string | null) => Promise<void>;
+  onTaskAborted?: (slackThreadTs: string | null | undefined) => Promise<void>;
   onTaskCompleted?: (
-    slackThreadTs: string | null,
+    slackThreadTs: string | null | undefined,
     success: boolean,
     duration: number,
     rooTaskId?: string,
@@ -49,24 +49,28 @@ type RunTaskOptions<T extends JobType> = {
   jobType: T;
   jobPayload: JobPayload<T>;
   prompt: string;
-  publish: (taskEvent: TaskEvent) => Promise<void>;
   logger: Logger;
   callbacks?: RunTaskCallbacks;
+  notify?: boolean;
+  workspacePath?: string;
+  settings?: RooCodeSettings;
 };
 
 export const runTask = async <T extends JobType>({
   jobType,
   jobPayload,
   prompt,
-  publish,
   logger,
   callbacks,
+  notify = true,
+  workspacePath = '/roo/repos/Roo-Code',
+  settings = {},
 }: RunTaskOptions<T>) => {
-  const workspacePath = '/roo/repos/Roo-Code'; // findGitRoot(process.cwd())
   const ipcSocketPath = path.resolve(
     os.tmpdir(),
     `${crypto.randomUUID().slice(0, 8)}.sock`,
   );
+
   const env = { ROO_CODE_IPC_SOCKET_PATH: ipcSocketPath };
   const controller = new AbortController();
   const cancelSignal = controller.signal;
@@ -124,8 +128,8 @@ export const runTask = async <T extends JobType>({
   let rooTaskId: string | undefined;
   let isClientDisconnected = false;
 
-  const slackNotifier = new SlackNotifier(logger);
-  let slackThreadTs: string | null = null;
+  const slackNotifier = notify ? new SlackNotifier(logger) : undefined;
+  let slackThreadTs: string | null | undefined = null;
 
   const ignoreEvents: Record<'broadcast' | 'log', RooCodeEventName[]> = {
     broadcast: [RooCodeEventName.Message],
@@ -137,11 +141,6 @@ export const runTask = async <T extends JobType>({
 
   client.on(IpcMessageType.TaskEvent, async (taskEvent) => {
     const { eventName, payload } = taskEvent;
-
-    // Publish all events except for these to Redis.
-    if (!ignoreEvents.broadcast.includes(eventName)) {
-      await publish({ ...taskEvent });
-    }
 
     // Log all events except for these.
     // For message events we only log non-partial messages.
@@ -158,7 +157,7 @@ export const runTask = async <T extends JobType>({
       rooTaskId = payload[0];
 
       if (rooTaskId) {
-        slackThreadTs = await slackNotifier.postTaskStarted({
+        slackThreadTs = await slackNotifier?.postTaskStarted({
           jobType,
           jobPayload,
           rooTaskId,
@@ -174,7 +173,7 @@ export const runTask = async <T extends JobType>({
       taskAbortedAt = Date.now();
 
       if (slackThreadTs) {
-        await slackNotifier.postTaskUpdated(
+        await slackNotifier?.postTaskUpdated(
           slackThreadTs,
           'Task was aborted',
           'warning',
@@ -190,7 +189,7 @@ export const runTask = async <T extends JobType>({
       taskFinishedAt = Date.now();
 
       if (slackThreadTs) {
-        await slackNotifier.postTaskCompleted(
+        await slackNotifier?.postTaskCompleted(
           slackThreadTs,
           true,
           taskFinishedAt - taskStartedAt,
@@ -220,6 +219,7 @@ export const runTask = async <T extends JobType>({
       configuration: {
         ...EVALS_SETTINGS,
         openRouterApiKey: process.env.OPENROUTER_API_KEY,
+        ...settings,
       },
       text: prompt,
       newTab: true,
@@ -239,7 +239,7 @@ export const runTask = async <T extends JobType>({
     logger.error('time limit reached');
 
     if (slackThreadTs) {
-      await slackNotifier.postTaskUpdated(
+      await slackNotifier?.postTaskUpdated(
         slackThreadTs,
         'Task timed out after 30 minutes',
         'error',
@@ -266,7 +266,7 @@ export const runTask = async <T extends JobType>({
     logger.error('client disconnected before task finished');
 
     if (slackThreadTs) {
-      await slackNotifier.postTaskUpdated(
+      await slackNotifier?.postTaskUpdated(
         slackThreadTs,
         'Client disconnected before task completion',
         'error',

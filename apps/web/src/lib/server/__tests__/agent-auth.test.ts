@@ -2,6 +2,12 @@
 
 import jwt from 'jsonwebtoken';
 
+vi.mock('@roo-code-cloud/env', () => ({
+  Env: {
+    CLERK_SECRET_KEY: 'test-secret-key-for-jwt-testing',
+  },
+}));
+
 import {
   getAgentToken,
   refreshAgentTokenIfNeeded,
@@ -10,14 +16,9 @@ import {
 } from '../agent-auth';
 
 describe('agent-auth', () => {
-  const originalEnv = process.env;
   const testSecret = 'test-secret-key-for-jwt-testing';
 
   beforeEach(() => {
-    // Reset environment variables
-    process.env = { ...originalEnv };
-    process.env.CLERK_SECRET_KEY = testSecret;
-
     // Mock Date.now() to return a consistent timestamp
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2023-01-01T00:00:00Z'));
@@ -25,7 +26,6 @@ describe('agent-auth', () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    process.env = originalEnv;
   });
 
   describe('getAgentToken', () => {
@@ -51,7 +51,13 @@ describe('agent-auth', () => {
     });
 
     it('should use fallback secret when CLERK_SECRET_KEY is not set', async () => {
-      delete process.env.CLERK_SECRET_KEY;
+      // Import the mocked module to modify it
+      const { Env } = await import('@roo-code-cloud/env');
+      const mockedEnv = vi.mocked(Env);
+
+      // Update the mock to use fallback secret
+      mockedEnv.CLERK_SECRET_KEY = 'fallback-secret';
+
       const token = await getAgentToken('agent-123', 'org-456');
 
       // Token should still be valid with fallback secret
@@ -61,6 +67,9 @@ describe('agent-auth', () => {
       // Verify it was signed with the fallback secret
       const decoded = jwt.verify(token, 'fallback-secret') as AgentTokenPayload;
       expect(decoded.sub).toBe('agent-123');
+
+      // Reset back to test secret
+      mockedEnv.CLERK_SECRET_KEY = testSecret;
     });
 
     it('should set correct expiration time (15 minutes)', async () => {
@@ -240,7 +249,13 @@ describe('agent-auth', () => {
     });
 
     it('should use fallback secret when CLERK_SECRET_KEY is not set', async () => {
-      delete process.env.CLERK_SECRET_KEY;
+      // Import the mocked module to modify it
+      const { Env } = await import('@roo-code-cloud/env');
+      const mockedEnv = vi.mocked(Env);
+
+      // Update the mock to use fallback secret
+      mockedEnv.CLERK_SECRET_KEY = 'fallback-secret';
+
       const token = jwt.sign(validPayload, 'fallback-secret', {
         algorithm: 'HS256',
       });
@@ -248,6 +263,9 @@ describe('agent-auth', () => {
       const result = await validateAgentToken(token);
 
       expect(result).toEqual(validPayload);
+
+      // Reset back to test secret
+      mockedEnv.CLERK_SECRET_KEY = testSecret;
     });
 
     it('should throw error for invalid JWT signature', async () => {

@@ -19,13 +19,17 @@
     "lint": "eslint src --ext=ts --max-warnings=0",
     "check-types": "tsc --noEmit",
     "clean": "rimraf .turbo",
-    "drizzle-kit": "tsx node_modules/drizzle-kit/bin.cjs",
-    "db:generate": "dotenvx run -f .env.development -- drizzle-kit generate",
-    "db:migrate": "dotenvx run -f .env.development -- drizzle-kit migrate",
-    "db:push": "dotenvx run -f .env.development -- drizzle-kit push",
-    "db:test:push": "dotenvx run -f .env.test -- drizzle-kit push"
+    "drizzle-kit:test": "NODE_ENV=test dotenvx run -f ../../.env.test -- tsx node_modules/drizzle-kit/bin.cjs",
+    "drizzle-kit:development": "NODE_ENV=development dotenvx run -f ../../.env.development -- tsx node_modules/drizzle-kit/bin.cjs",
+    "drizzle-kit:production": "NODE_ENV=production dotenvx run -f ../../.env.production -- tsx node_modules/drizzle-kit/bin.cjs",
+    "db:generate": "pnpm drizzle-kit:development generate",
+    "db:migrate": "pnpm drizzle-kit:development migrate",
+    "db:push": "pnpm drizzle-kit:development push",
+    "db:test:push": "pnpm drizzle-kit:test push",
+    "db:production:migrate": "pnpm drizzle-kit:production migrate"
   },
   "dependencies": {
+    "@roo-code-cloud/env": "workspace:^",
     "@roo-code/types": "^1.29.0",
     "drizzle-orm": "^0.44.2",
     "postgres": "^3.4.7",
