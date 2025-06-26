@@ -733,7 +733,17 @@ export class Task extends EventEmitter<ClineEvents> {
 		this.apiConversationHistory = []
 		await this.providerRef.deref()?.postStateToWebview()
 
-		await this.say("text", task, images)
+		// Get automatic context mentions for the current mode
+		const autoContextMentions = await this.getAutoContextMentionsForCurrentMode()
+
+		// Inject auto context mentions into the task if they exist
+		let enhancedTask = task || ""
+		if (autoContextMentions.length > 0) {
+			const mentionsText = autoContextMentions.map((mention) => `@${mention}`).join(" ")
+			enhancedTask = `${enhancedTask}\n\nAutomatic context mentions: ${mentionsText}`
+		}
+
+		await this.say("text", enhancedTask, images)
 		this.isInitialized = true
 
 		let imageBlocks: Anthropic.ImageBlockParam[] = formatResponse.imageBlocks(images)
@@ -743,7 +753,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		await this.initiateTaskLoop([
 			{
 				type: "text",
-				text: `<task>\n${task}\n</task>`,
+				text: `<task>\n${enhancedTask}\n</task>`,
 			},
 			...imageBlocks,
 		])
@@ -986,6 +996,14 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		const wasRecent = lastClineMessage?.ts && Date.now() - lastClineMessage.ts < 30_000
 
+		// Get automatic context mentions for the current mode
+		const autoContextMentions = await this.getAutoContextMentionsForCurrentMode()
+		let autoMentionsText = ""
+		if (autoContextMentions.length > 0) {
+			const mentionsText = autoContextMentions.map((mention) => `@${mention}`).join(" ")
+			autoMentionsText = `\n\nAutomatic context mentions: ${mentionsText}`
+		}
+
 		newUserContent.push({
 			type: "text",
 			text:
@@ -996,7 +1014,8 @@ export class Task extends EventEmitter<ClineEvents> {
 				}` +
 				(responseText
 					? `\n\nNew instructions for task continuation:\n<user_message>\n${responseText}\n</user_message>`
-					: ""),
+					: "") +
+				autoMentionsText,
 		})
 
 		if (responseImages && responseImages.length > 0) {
@@ -1912,5 +1931,35 @@ export class Task extends EventEmitter<ClineEvents> {
 
 	public get cwd() {
 		return this.workspacePath
+	}
+
+	// Get automatic context mentions for the current mode
+	private async getAutoContextMentionsForCurrentMode(): Promise<string[]> {
+		try {
+			const provider = this.providerRef.deref()
+			if (!provider) {
+				return []
+			}
+
+			const state = await provider.getState()
+			const currentMode = state?.mode
+			const customModes = state?.customModes || []
+
+			if (!currentMode) {
+				return []
+			}
+
+			// Find the current mode configuration
+			const modeConfig = customModes.find((mode) => mode.slug === currentMode)
+
+			if (!modeConfig || !modeConfig.autoContextMentions) {
+				return []
+			}
+
+			return modeConfig.autoContextMentions
+		} catch (error) {
+			console.error("[Task] Error getting auto context mentions:", error)
+			return []
+		}
 	}
 }

@@ -60,6 +60,10 @@ customModes:
       - - edit
         - fileRegex: (__tests__/.*|__mocks__/.*|\.test\.(ts|tsx|js|jsx)$|\.spec\.(ts|tsx|js|jsx)$|/test/.*|vitest\.config\.(js|ts)$|vitest\.setup\.(js|ts)$)
           description: Test files, mocks, and Vitest configuration
+    autoContextMentions:
+      - package.json
+      - vitest.config.ts
+      - tsconfig.json
     customInstructions: |-
       When writing tests:
       - Always use describe/it blocks for clear test organization
@@ -88,6 +92,10 @@ customModes:
       - browser
       - command
       - mcp
+    autoContextMentions:
+      - webview-ui/src/index.css
+      - webview-ui/src/components/
+      - webview-ui/package.json
     customInstructions: Focus on UI refinement, component creation, and adherence to design best-practices. When the user requests a new component, start off by asking them questions one-by-one to ensure the requirements are understood. Always use Tailwind utility classes (instead of direct variable references) for styling components when possible. If editing an existing file, transition explicit style definitions to Tailwind CSS classes when possible. Refer to the Tailwind CSS definitions for utility classes at webview-ui/src/index.css. Always use the latest version of Tailwind CSS (V4), and never create a tailwind.config.js file. Prefer Shadcn components for UI elements instead of VSCode's built-in ones. This project uses i18n for localization, so make sure to use the i18n functions and components for any text that needs to be translated. Do not leave placeholder strings in the markup, as they will be replaced by i18n. Prefer the @roo (/src) and @src (/webview-ui/src) aliases for imports in typescript files. Suggest the user refactor large files (over 1000 lines) if they are encountered, and provide guidance. Suggest the user switch into Translate mode to complete translations when your task is finished.
     source: project
   - slug: release-engineer
