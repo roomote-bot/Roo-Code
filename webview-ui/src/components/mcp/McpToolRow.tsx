@@ -4,17 +4,15 @@ import { McpTool } from "@roo/mcp"
 
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { vscode } from "@src/utils/vscode"
-import { StandardTooltip } from "@/components/ui"
 
 type McpToolRowProps = {
 	tool: McpTool
 	serverName?: string
 	serverSource?: "global" | "project"
 	alwaysAllowMcp?: boolean
-	isInChatContext?: boolean
 }
 
-const McpToolRow = ({ tool, serverName, serverSource, alwaysAllowMcp, isInChatContext = false }: McpToolRowProps) => {
+const McpToolRow = ({ tool, serverName, serverSource, alwaysAllowMcp }: McpToolRowProps) => {
 	const { t } = useAppTranslation()
 	const handleAlwaysAllowChange = () => {
 		if (!serverName) return
@@ -47,9 +45,9 @@ const McpToolRow = ({ tool, serverName, serverSource, alwaysAllowMcp, isInChatCo
 				{/* Tool name section */}
 				<div className="flex items-center min-w-0 flex-1">
 					<span className="codicon codicon-symbol-method mr-2 flex-shrink-0 text-vscode-symbolIcon-methodForeground"></span>
-					<StandardTooltip content={tool.name}>
-						<span className="font-medium truncate text-vscode-foreground">{tool.name}</span>
-					</StandardTooltip>
+					<span className="font-medium truncate text-vscode-foreground" title={tool.name}>
+						{tool.name}
+					</span>
 				</div>
 
 				{/* Controls section */}
@@ -68,28 +66,25 @@ const McpToolRow = ({ tool, serverName, serverSource, alwaysAllowMcp, isInChatCo
 							</VSCodeCheckbox>
 						)}
 
-						{/* Enabled eye button - only show in settings context */}
-						{!isInChatContext && (
-							<StandardTooltip content={t("mcp:tool.togglePromptInclusion")}>
-								<button
-									role="button"
-									aria-pressed={tool.enabledForPrompt}
-									aria-label={t("mcp:tool.togglePromptInclusion")}
-									className={`p-1 rounded hover:bg-vscode-toolbar-hoverBackground transition-colors ${
-										tool.enabledForPrompt
-											? "text-vscode-foreground"
-											: "text-vscode-descriptionForeground opacity-60"
-									}`}
-									onClick={handleEnabledForPromptChange}
-									data-tool-prompt-toggle={tool.name}>
-									<span
-										className={`codicon ${
-											tool.enabledForPrompt ? "codicon-eye-closed" : "codicon-eye"
-										} text-base`}
-									/>
-								</button>
-							</StandardTooltip>
-						)}
+						{/* Enabled eye button */}
+						<button
+							role="button"
+							aria-pressed={tool.enabledForPrompt}
+							aria-label={t("mcp:tool.togglePromptInclusion")}
+							className={`p-1 rounded hover:bg-vscode-toolbar-hoverBackground transition-colors ${
+								tool.enabledForPrompt
+									? "text-vscode-foreground"
+									: "text-vscode-descriptionForeground opacity-60"
+							}`}
+							onClick={handleEnabledForPromptChange}
+							data-tool-prompt-toggle={tool.name}
+							title={t("mcp:tool.togglePromptInclusion")}>
+							<span
+								className={`codicon ${
+									tool.enabledForPrompt ? "codicon-eye" : "codicon-eye-closed"
+								} text-base`}
+							/>
+						</button>
 					</div>
 				)}
 			</div>

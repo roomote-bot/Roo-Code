@@ -21,7 +21,6 @@ export class BrowserSession {
 	private page?: Page
 	private currentMousePosition?: string
 	private lastConnectionAttempt?: number
-	private isUsingRemoteBrowser: boolean = false
 
 	constructor(context: vscode.ExtensionContext) {
 		this.context = context
@@ -71,7 +70,6 @@ export class BrowserSession {
 			defaultViewport: this.getViewport(),
 			// headless: false,
 		})
-		this.isUsingRemoteBrowser = false
 	}
 
 	/**
@@ -88,7 +86,6 @@ export class BrowserSession {
 			console.log(`Connected to remote browser at ${chromeHostUrl}`)
 			this.context.globalState.update("cachedChromeHostUrl", chromeHostUrl)
 			this.lastConnectionAttempt = Date.now()
-			this.isUsingRemoteBrowser = true
 
 			return true
 		} catch (error) {
@@ -195,12 +192,15 @@ export class BrowserSession {
 		if (this.browser || this.page) {
 			console.log("closing browser...")
 
-			if (this.isUsingRemoteBrowser && this.browser) {
+			const remoteBrowserEnabled = this.context.globalState.get("remoteBrowserEnabled") as boolean | undefined
+			if (remoteBrowserEnabled && this.browser) {
 				await this.browser.disconnect().catch(() => {})
 			} else {
 				await this.browser?.close().catch(() => {})
+				this.resetBrowserState()
 			}
-			this.resetBrowserState()
+
+			// this.resetBrowserState()
 		}
 		return {}
 	}
@@ -212,7 +212,6 @@ export class BrowserSession {
 		this.browser = undefined
 		this.page = undefined
 		this.currentMousePosition = undefined
-		this.isUsingRemoteBrowser = false
 	}
 
 	async doAction(action: (page: Page) => Promise<void>): Promise<BrowserActionResult> {

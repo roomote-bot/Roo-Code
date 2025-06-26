@@ -143,7 +143,7 @@ export function getContextMenuOptions(
 					type: ContextMenuOptionType.Mode,
 					value: mode.slug,
 					label: mode.name,
-					description: (mode.description || mode.whenToUse || mode.roleDefinition).split("\n")[0],
+					description: (mode.whenToUse || mode.roleDefinition).split("\n")[0],
 				}))
 
 		return matchingModes.length > 0 ? matchingModes : [{ type: ContextMenuOptionType.NoResults }]

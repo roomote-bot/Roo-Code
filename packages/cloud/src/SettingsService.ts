@@ -18,21 +18,15 @@ export class SettingsService {
 	private authService: AuthService
 	private settings: OrganizationSettings | undefined = undefined
 	private timer: RefreshTimer
-	private log: (...args: unknown[]) => void
 
-	constructor(
-		context: vscode.ExtensionContext,
-		authService: AuthService,
-		callback: () => void,
-		log?: (...args: unknown[]) => void,
-	) {
+	constructor(context: vscode.ExtensionContext, authService: AuthService, callback: () => void) {
 		this.context = context
 		this.authService = authService
-		this.log = log || console.log
 
 		this.timer = new RefreshTimer({
 			callback: async () => {
-				return await this.fetchSettings(callback)
+				await this.fetchSettings(callback)
+				return true
 			},
 			successInterval: 30000,
 			initialBackoffMs: 1000,
@@ -48,6 +42,10 @@ export class SettingsService {
 			this.removeSettings()
 		}
 
+		this.authService.on("attempting-session", () => {
+			this.timer.start()
+		})
+
 		this.authService.on("active-session", () => {
 			this.timer.start()
 		})
@@ -57,16 +55,16 @@ export class SettingsService {
 			this.removeSettings()
 		})
 
-		if (this.authService.hasActiveSession()) {
+		if (this.authService.hasOrIsAcquiringActiveSession()) {
 			this.timer.start()
 		}
 	}
 
-	private async fetchSettings(callback: () => void): Promise<boolean> {
+	private async fetchSettings(callback: () => void): Promise<void> {
 		const token = this.authService.getSessionToken()
 
 		if (!token) {
-			return false
+			return
 		}
 
 		try {
@@ -77,20 +75,16 @@ export class SettingsService {
 			})
 
 			if (!response.ok) {
-				this.log(
-					"[cloud-settings] Failed to fetch organization settings:",
-					response.status,
-					response.statusText,
-				)
-				return false
+				console.error(`Failed to fetch organization settings: ${response.status} ${response.statusText}`)
+				return
 			}
 
 			const data = await response.json()
 			const result = organizationSettingsSchema.safeParse(data)
 
 			if (!result.success) {
-				this.log("[cloud-settings] Invalid organization settings format:", result.error)
-				return false
+				console.error("Invalid organization settings format:", result.error)
+				return
 			}
 
 			const newSettings = result.data
@@ -100,11 +94,8 @@ export class SettingsService {
 				await this.cacheSettings()
 				callback()
 			}
-
-			return true
 		} catch (error) {
-			this.log("[cloud-settings] Error fetching organization settings:", error)
-			return false
+			console.error("Error fetching organization settings:", error)
 		}
 	}
 

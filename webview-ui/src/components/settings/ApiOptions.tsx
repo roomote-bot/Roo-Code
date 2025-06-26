@@ -13,9 +13,7 @@ import {
 	litellmDefaultModelId,
 	openAiNativeDefaultModelId,
 	anthropicDefaultModelId,
-	claudeCodeDefaultModelId,
 	geminiDefaultModelId,
-	geminiCliDefaultModelId,
 	deepSeekDefaultModelId,
 	mistralDefaultModelId,
 	xaiDefaultModelId,
@@ -38,10 +36,8 @@ import {
 	Anthropic,
 	Bedrock,
 	Chutes,
-	ClaudeCode,
 	DeepSeek,
 	Gemini,
-	GeminiCli,
 	Glama,
 	Groq,
 	LMStudio,
@@ -258,10 +254,8 @@ const ApiOptions = ({
 				requesty: { field: "requestyModelId", default: requestyDefaultModelId },
 				litellm: { field: "litellmModelId", default: litellmDefaultModelId },
 				anthropic: { field: "apiModelId", default: anthropicDefaultModelId },
-				"claude-code": { field: "apiModelId", default: claudeCodeDefaultModelId },
 				"openai-native": { field: "apiModelId", default: openAiNativeDefaultModelId },
 				gemini: { field: "apiModelId", default: geminiDefaultModelId },
-				"gemini-cli": { field: "apiModelId", default: geminiCliDefaultModelId },
 				deepseek: { field: "apiModelId", default: deepSeekDefaultModelId },
 				mistral: { field: "apiModelId", default: mistralDefaultModelId },
 				xai: { field: "apiModelId", default: xaiDefaultModelId },
@@ -389,10 +383,6 @@ const ApiOptions = ({
 				<Anthropic apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
 
-			{selectedProvider === "claude-code" && (
-				<ClaudeCode apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
-			)}
-
 			{selectedProvider === "openai-native" && (
 				<OpenAI apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
@@ -415,10 +405,6 @@ const ApiOptions = ({
 
 			{selectedProvider === "gemini" && (
 				<Gemini apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
-			)}
-
-			{selectedProvider === "gemini-cli" && (
-				<GeminiCli apiConfiguration={apiConfiguration} setApiConfigurationField={setApiConfigurationField} />
 			)}
 
 			{selectedProvider === "openai" && (

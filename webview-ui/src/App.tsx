@@ -20,8 +20,6 @@ import ModesView from "./components/modes/ModesView"
 import { HumanRelayDialog } from "./components/human-relay/HumanRelayDialog"
 import { AccountView } from "./components/account/AccountView"
 import { useAddNonInteractiveClickListener } from "./components/ui/hooks/useNonInteractiveClick"
-import { TooltipProvider } from "./components/ui/tooltip"
-import { STANDARD_TOOLTIP_DELAY } from "./components/ui/standard-tooltip"
 
 type Tab = "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 
@@ -45,7 +43,6 @@ const App = () => {
 		machineId,
 		cloudUserInfo,
 		cloudIsAuthenticated,
-		cloudApiUrl,
 		renderContext,
 		mdmCompliant,
 	} = useExtensionState()
@@ -77,7 +74,6 @@ const App = () => {
 			}
 
 			setCurrentSection(undefined)
-			setCurrentMarketplaceTab(undefined)
 
 			if (settingsRef.current?.checkUnsaveChanges) {
 				settingsRef.current.checkUnsaveChanges(() => setTab(newTab))
@@ -89,7 +85,6 @@ const App = () => {
 	)
 
 	const [currentSection, setCurrentSection] = useState<string | undefined>(undefined)
-	const [currentMarketplaceTab, setCurrentMarketplaceTab] = useState<string | undefined>(undefined)
 
 	const onMessage = useCallback(
 		(e: MessageEvent) => {
@@ -101,17 +96,14 @@ const App = () => {
 					const targetTab = message.tab as Tab
 					switchTab(targetTab)
 					setCurrentSection(undefined)
-					setCurrentMarketplaceTab(undefined)
 				} else {
 					// Handle other actions using the mapping
 					const newTab = tabsByMessageAction[message.action]
 					const section = message.values?.section as string | undefined
-					const marketplaceTab = message.values?.marketplaceTab as string | undefined
 
 					if (newTab) {
 						switchTab(newTab)
 						setCurrentSection(section)
-						setCurrentMarketplaceTab(marketplaceTab)
 					}
 				}
 			}
@@ -179,17 +171,12 @@ const App = () => {
 				<SettingsView ref={settingsRef} onDone={() => setTab("chat")} targetSection={currentSection} />
 			)}
 			{tab === "marketplace" && (
-				<MarketplaceView
-					stateManager={marketplaceStateManager}
-					onDone={() => switchTab("chat")}
-					targetTab={currentMarketplaceTab as "mcp" | "mode" | undefined}
-				/>
+				<MarketplaceView stateManager={marketplaceStateManager} onDone={() => switchTab("chat")} />
 			)}
 			{tab === "account" && (
 				<AccountView
 					userInfo={cloudUserInfo}
 					isAuthenticated={cloudIsAuthenticated}
-					cloudApiUrl={cloudApiUrl}
 					onDone={() => switchTab("chat")}
 				/>
 			)}
@@ -217,9 +204,7 @@ const AppWithProviders = () => (
 	<ExtensionStateContextProvider>
 		<TranslationProvider>
 			<QueryClientProvider client={queryClient}>
-				<TooltipProvider delayDuration={STANDARD_TOOLTIP_DELAY}>
-					<App />
-				</TooltipProvider>
+				<App />
 			</QueryClientProvider>
 		</TranslationProvider>
 	</ExtensionStateContextProvider>

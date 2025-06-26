@@ -9,7 +9,6 @@ import type {
 	ClineMessage,
 	OrganizationAllowList,
 	CloudUserInfo,
-	ShareVisibility,
 } from "@roo-code/types"
 
 import { GitCommit } from "../utils/git"
@@ -98,7 +97,6 @@ export interface ExtensionMessage {
 		| "codebaseIndexConfig"
 		| "marketplaceInstallResult"
 		| "marketplaceData"
-		| "shareTaskSuccess"
 	text?: string
 	payload?: any // Add a generic payload for now, can refine later
 	action?:
@@ -147,7 +145,6 @@ export interface ExtensionMessage {
 	tab?: string
 	marketplaceItems?: MarketplaceItem[]
 	marketplaceInstalledMetadata?: MarketplaceInstalledMetadata
-	visibility?: ShareVisibility
 }
 
 export type ExtensionState = Pick<
@@ -256,7 +253,6 @@ export type ExtensionState = Pick<
 
 	cloudUserInfo: CloudUserInfo | null
 	cloudIsAuthenticated: boolean
-	cloudApiUrl?: string
 	sharingEnabled: boolean
 	organizationAllowList: OrganizationAllowList
 
@@ -265,7 +261,6 @@ export type ExtensionState = Pick<
 	marketplaceItems?: MarketplaceItem[]
 	marketplaceInstalledMetadata?: { project: Record<string, any>; global: Record<string, any> }
 	profileThresholds: Record<string, number>
-	hasOpenedModeSelector: boolean
 }
 
 export interface ClineSayTool {

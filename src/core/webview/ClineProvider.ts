@@ -30,7 +30,7 @@ import {
 	ORGANIZATION_ALLOW_ALL,
 } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
-import { CloudService, getRooCodeApiUrl } from "@roo-code/cloud"
+import { CloudService } from "@roo-code/cloud"
 
 import { t } from "../../i18n"
 import { setPanel } from "../../activate/registerCommands"
@@ -68,7 +68,6 @@ import { webviewMessageHandler } from "./webviewMessageHandler"
 import { WebviewMessage } from "../../shared/WebviewMessage"
 import { EMBEDDING_MODEL_PROFILES } from "../../shared/embeddingModels"
 import { ProfileValidator } from "../../shared/ProfileValidator"
-import { getWorkspaceGitInfo } from "../../utils/git"
 
 /**
  * https://github.com/microsoft/vscode-webview-ui-toolkit-samples/blob/main/default/weather-webview/src/providers/WeatherViewProvider.ts
@@ -1304,38 +1303,6 @@ export class ClineProvider
 		return await fileExistsAtPath(promptFilePath)
 	}
 
-	/**
-	 * Merges allowed commands from global state and workspace configuration
-	 * with proper validation and deduplication
-	 */
-	private mergeAllowedCommands(globalStateCommands?: string[]): string[] {
-		try {
-			// Validate and sanitize global state commands
-			const validGlobalCommands = Array.isArray(globalStateCommands)
-				? globalStateCommands.filter((cmd) => typeof cmd === "string" && cmd.trim().length > 0)
-				: []
-
-			// Get workspace configuration commands
-			const workspaceCommands =
-				vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || []
-
-			// Validate and sanitize workspace commands
-			const validWorkspaceCommands = Array.isArray(workspaceCommands)
-				? workspaceCommands.filter((cmd) => typeof cmd === "string" && cmd.trim().length > 0)
-				: []
-
-			// Combine and deduplicate commands
-			// Global state takes precedence over workspace configuration
-			const mergedCommands = [...new Set([...validGlobalCommands, ...validWorkspaceCommands])]
-
-			return mergedCommands
-		} catch (error) {
-			console.error("Error merging allowed commands:", error)
-			// Return empty array as fallback to prevent crashes
-			return []
-		}
-	}
-
 	async getStateToPostToWebview() {
 		const {
 			apiConfiguration,
@@ -1347,7 +1314,6 @@ export class ClineProvider
 			alwaysAllowWriteOutsideWorkspace,
 			alwaysAllowWriteProtected,
 			alwaysAllowExecute,
-			allowedCommands,
 			alwaysAllowBrowser,
 			alwaysAllowMcp,
 			alwaysAllowModeSwitch,
@@ -1415,7 +1381,7 @@ export class ClineProvider
 
 		const telemetryKey = process.env.POSTHOG_API_KEY
 		const machineId = vscode.env.machineId
-		const mergedAllowedCommands = this.mergeAllowedCommands(allowedCommands)
+		const allowedCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>("allowedCommands") || []
 		const cwd = this.cwd
 
 		// Check if there's a system prompt override for the current mode
@@ -1454,7 +1420,7 @@ export class ClineProvider
 			enableCheckpoints: enableCheckpoints ?? true,
 			shouldShowAnnouncement:
 				telemetrySetting !== "unset" && lastShownAnnouncementId !== this.latestAnnouncementId,
-			allowedCommands: mergedAllowedCommands,
+			allowedCommands,
 			soundVolume: soundVolume ?? 0.5,
 			browserViewportSize: browserViewportSize ?? "900x600",
 			screenshotQuality: screenshotQuality ?? 75,
@@ -1519,8 +1485,6 @@ export class ClineProvider
 			},
 			mdmCompliant: this.checkMdmCompliance(),
 			profileThresholds: profileThresholds ?? {},
-			cloudApiUrl: getRooCodeApiUrl(),
-			hasOpenedModeSelector: this.getGlobalState("hasOpenedModeSelector") ?? false,
 		}
 	}
 
@@ -1786,7 +1750,7 @@ export class ClineProvider
 	/**
 	 * Returns properties to be included in every telemetry event
 	 * This method is called by the telemetry service to get context information
-	 * like the current mode, API provider, git repository information, etc.
+	 * like the current mode, API provider, etc.
 	 */
 	public async getTelemetryProperties(): Promise<TelemetryProperties> {
 		const { mode, apiConfiguration, language } = await this.getState()
@@ -1794,22 +1758,6 @@ export class ClineProvider
 
 		const packageJSON = this.context.extension?.packageJSON
 
-		// Get Roo Code Cloud authentication state
-		let cloudIsAuthenticated: boolean | undefined
-
-		try {
-			if (CloudService.hasInstance()) {
-				cloudIsAuthenticated = CloudService.instance.isAuthenticated()
-			}
-		} catch (error) {
-			// Silently handle errors to avoid breaking telemetry collection
-			this.log(`[getTelemetryProperties] Failed to get cloud auth state: ${error}`)
-		}
-
-		// Get git repository information
-		const gitInfo = await getWorkspaceGitInfo()
-
-		// Return all properties including git info - clients will filter as needed
 		return {
 			appName: packageJSON?.name ?? Package.name,
 			appVersion: packageJSON?.version ?? Package.version,
@@ -1822,8 +1770,6 @@ export class ClineProvider
 			modelId: task?.api?.getModel().id,
 			diffStrategy: task?.diffStrategy?.getName(),
 			isSubtask: task ? !!task.parentTask : undefined,
-			cloudIsAuthenticated,
-			...gitInfo,
 		}
 	}
 }
