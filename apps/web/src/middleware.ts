@@ -7,7 +7,6 @@ const isUnprotectedRoute = createRouteMatcher([
   '/extension/sign-in(.*)',
   '/api/marketplace(.*)',
   '/share(.*)',
-  '/signed-out(.*)',
   '/',
 ]);
 

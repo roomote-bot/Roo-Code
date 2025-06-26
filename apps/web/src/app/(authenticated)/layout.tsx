@@ -17,7 +17,7 @@ export default async function AuthenticatedLayout({
   const authResult = await authorize();
 
   if (!authResult.success) {
-    redirect('/select-org');
+    redirect('/sign-in');
   }
 
   // Set enhanced Sentry context for authenticated users.

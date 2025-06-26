@@ -2,11 +2,13 @@
 
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { useUser } from '@clerk/nextjs';
 import { X } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { Badge, Button } from '@/components/ui';
 import { UsageCard } from '@/components/usage';
+import { Loading } from '@/components/layout';
 
 import { type Filter, type ViewMode, viewModes } from './types';
 import { Developers } from './Developers';
@@ -20,6 +22,7 @@ type UsageProps = {
 };
 
 export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
+  const { isSignedIn } = useUser();
   const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
   const [filter, setFilter] = useState<Filter | null>(null);
@@ -30,15 +33,19 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
     setViewMode('tasks');
   }, []);
 
-  // For members, automatically set filter to their user ID and hide other tabs
+  // For members, automatically set filter to their user ID and hide other tabs.
   const isMember = userRole === 'member';
   const availableViewModes = isMember ? (['tasks'] as const) : viewModes;
 
-  // Auto-apply user filter for members
+  // Auto-apply user filter for members.
   const effectiveFilter =
     isMember && currentUserId
       ? { type: 'userId' as const, value: currentUserId, label: 'Your Tasks' }
       : filter;
+
+  if (!isSignedIn) {
+    return <Loading />;
+  }
 
   return (
     <>
