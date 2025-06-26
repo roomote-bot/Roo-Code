@@ -23,7 +23,7 @@ export const AuthProvider = ({
     <ClerkProvider
       appearance={{ baseTheme }}
       localization={localization}
-      afterSignOutUrl={'/sign-in'}
+      afterSignOutUrl={'/signed-out'}
     >
       <SentryUserContext />
       {children}
