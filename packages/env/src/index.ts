@@ -15,7 +15,7 @@ export const Env = createEnv({
   client: {},
   // You need to destructure all the keys manually.
   runtimeEnv: {
-    NODE_ENV: process.env.NODE_ENV,
+    NODE_ENV: process.env.NODE_ENV || 'development',
     DATABASE_URL: process.env.DATABASE_URL,
     REDIS_URL: process.env.REDIS_URL,
     CLICKHOUSE_URL: process.env.CLICKHOUSE_URL,

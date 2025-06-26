@@ -82,15 +82,6 @@ export const runTask = async <T extends JobType>({
 
   logger.info(codeCommand);
 
-  // Sleep for a random amount of time between 5 and 10 seconds, unless we're
-  // running in a container, in which case there are no issues with flooding
-  // VSCode with new windows.
-  if (!containerized) {
-    await new Promise((resolve) =>
-      setTimeout(resolve, Math.random() * 5_000 + 5_000),
-    );
-  }
-
   const subprocess = execa({
     env,
     shell: '/bin/bash',
@@ -100,8 +91,6 @@ export const runTask = async <T extends JobType>({
   // If debugging, add `--verbose` to `command` and uncomment the following line.
   // subprocess.stdout.pipe(process.stdout)
 
-  // Give VSCode some time to spawn before connecting to its unix socket.
-  await new Promise((resolve) => setTimeout(resolve, 3_000));
   let client: IpcClient | undefined = undefined;
   let attempts = 5;
 
@@ -219,10 +208,10 @@ export const runTask = async <T extends JobType>({
       configuration: {
         ...EVALS_SETTINGS,
         openRouterApiKey: process.env.OPENROUTER_API_KEY,
+        lastShownAnnouncementId: 'jun-17-2025-3-21',
         ...settings,
       },
       text: prompt,
-      newTab: true,
     },
   });
 

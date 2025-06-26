@@ -21,12 +21,6 @@ import {
 import { runTask } from '@/lib/runTask';
 import { Logger } from '@/lib/logger';
 
-const logger = new Logger({
-  logDir: path.resolve(os.tmpdir(), 'logs'),
-  filename: 'cli.log',
-  tag: 'worker',
-});
-
 const fixIssueCommand = command({
   name: 'fix-issue',
   description: 'Fix a GitHub issue',
@@ -76,10 +70,8 @@ const fixIssueCommand = command({
 
       const result = await fixGitHubIssue(payload);
 
-      console.log('✅ Issue fix completed successfully!');
-      console.log(`Repository: ${result.repo}`);
-      console.log(`Issue: #${result.issue}`);
-      console.log('Result:', result.result);
+      console.log('✅ Issue fix completed successfully!', result);
+      process.exit(0);
     } catch (error) {
       console.error('❌ Error fixing issue:', error);
       process.exit(1);
@@ -149,9 +141,8 @@ const respondIssueCommentCommand = command({
       };
 
       const result = await processIssueComment(payload);
-
-      console.log('✅ Issue comment response completed successfully!');
-      console.log('Result:', result);
+      console.log('✅ Issue comment response completed successfully!', result);
+      process.exit(0);
     } catch (error) {
       console.error('❌ Error responding to issue comment:', error);
       process.exit(1);
@@ -248,9 +239,8 @@ const respondPrCommentCommand = command({
       };
 
       const result = await processPullRequestComment(payload);
-
-      console.log('✅ PR comment response completed successfully!');
-      console.log('Result:', result);
+      console.log('✅ PR comment response completed successfully!', result);
+      process.exit(0);
     } catch (error) {
       console.error('❌ Error responding to PR comment:', error);
       process.exit(1);
@@ -283,28 +273,34 @@ const promptCommand = command({
       throw new Error('Invalid mode');
     }
 
-    console.log(`${text} (${mode}) in ${workspacePath}`);
-
     await runTask({
       jobType: 'test.prompt',
       jobPayload: { text },
       prompt: text,
-      logger,
+      logger: new Logger({
+        logDir: path.resolve(os.tmpdir(), 'logs'),
+        filename: 'cli.log',
+        tag: 'worker',
+      }),
       notify: false,
       workspacePath,
       settings: { mode },
     });
+
+    process.exit(0);
   },
 });
 
+// Example:
+// pnpm --filter @roo-code-cloud/roomote cli prompt --text "What time is it?" --mode ask --workspace-path ~/Documents/Roo-Code
 const app = subcommands({
   name: 'roomote-cli',
   description: 'Roomote CLI - Run jobs directly from the command line',
   cmds: {
-    'fix-issue': fixIssueCommand,
-    'respond-issue-comment': respondIssueCommentCommand,
-    'respond-pr-comment': respondPrCommentCommand,
-    prompt: promptCommand,
+    [fixIssueCommand.name]: fixIssueCommand,
+    [respondIssueCommentCommand.name]: respondIssueCommentCommand,
+    [respondPrCommentCommand.name]: respondPrCommentCommand,
+    [promptCommand.name]: promptCommand,
   },
 });
 
