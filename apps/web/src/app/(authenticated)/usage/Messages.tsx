@@ -92,7 +92,7 @@ export const Messages = ({ messages }: MessagesProps) => {
               </div>
             ) : isCommand ? (
               <div className="space-y-3">
-                <div className="bg-black/90 text-green-400 p-3 rounded-md font-mono text-sm">
+                <div className="bg-black/90 text-foreground p-3 rounded-md font-mono text-sm">
                   {message.text}
                 </div>
               </div>
