@@ -106,6 +106,32 @@ export const TaskCard = ({ task, onFilter, onTaskSelected }: TaskCardProps) => {
                     </span>
                   </>
                 )}
+
+                {/* Repository (if present) */}
+                {task.repositoryName && (
+                  <>
+                    <div className="mx-2 text-muted-foreground/30">•</div>
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Only allow filtering if onFilter is provided (disabled for members)
+                        if (onFilter && task.repositoryName) {
+                          onFilter({
+                            type: 'repositoryName',
+                            value: task.repositoryName,
+                            label: task.repositoryName,
+                          });
+                        }
+                      }}
+                      className="px-0 h-auto text-xs font-normal text-muted-foreground hover:text-foreground"
+                      disabled={!onFilter}
+                    >
+                      {task.repositoryName}
+                    </Button>
+                  </>
+                )}
               </div>
 
               {/* Right side: Tokens and Cost with bullet separator */}

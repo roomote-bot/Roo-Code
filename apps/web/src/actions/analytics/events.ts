@@ -159,6 +159,21 @@ export type DeveloperUsage = z.infer<typeof developerUsageSchema> & {
   user: User;
 };
 
+/**
+ * Repository usage schema
+ */
+const repositoryUsageSchema = z.object({
+  repositoryName: z.string(),
+  repositoryUrl: z.string().nullable(),
+  tasksStarted: z.coerce.number(),
+  tasksCompleted: z.coerce.number(),
+  tokens: z.coerce.number(),
+  cost: z.coerce.number(),
+  lastEventTimestamp: z.coerce.number(),
+});
+
+export type RepositoryUsage = z.infer<typeof repositoryUsageSchema>;
+
 export const getDeveloperUsage = async ({
   orgId,
   timePeriod = 90,
@@ -221,6 +236,67 @@ export const getDeveloperUsage = async ({
   return developerUsages
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
     .filter((usage): usage is DeveloperUsage => !!usage.user);
+};
+
+/**
+ * getRepositoryUsage
+ */
+export const getRepositoryUsage = async ({
+  orgId,
+  timePeriod = 90,
+  userId,
+}: {
+  orgId?: string | null;
+  timePeriod?: AnyTimePeriod;
+  userId?: string | null;
+}): Promise<RepositoryUsage[]> => {
+  await authorizeAnalytics({
+    requestedOrgId: orgId,
+    requestedUserId: userId,
+    requireAdmin: true,
+  });
+
+  if (!orgId) {
+    return [];
+  }
+
+  const userFilter = userId ? 'AND userId = {userId: String}' : '';
+  const queryParams: Record<string, string | number | string[]> = {
+    orgId: orgId!,
+    timePeriod,
+    types: [
+      TelemetryEventName.TASK_CREATED,
+      TelemetryEventName.TASK_COMPLETED,
+      TelemetryEventName.LLM_COMPLETION,
+    ],
+  };
+  if (userId) {
+    queryParams.userId = userId;
+  }
+
+  const results = await analytics.query({
+    query: `
+      SELECT
+        repositoryName,
+        any(repositoryUrl) as repositoryUrl,
+        SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasksStarted,
+        SUM(CASE WHEN type = '${TelemetryEventName.TASK_COMPLETED}' THEN 1 ELSE 0 END) AS tasksCompleted,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
+        SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost,
+        MAX(timestamp) AS lastEventTimestamp
+      FROM events
+      WHERE orgId = {orgId: String}
+        AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
+        AND type IN ({types: Array(String)})
+        AND repositoryName IS NOT NULL
+        ${userFilter}
+      GROUP BY repositoryName
+    `,
+    format: 'JSONEachRow',
+    query_params: queryParams,
+  });
+
+  return z.array(repositoryUsageSchema).parse(await results.json());
 };
 
 /**

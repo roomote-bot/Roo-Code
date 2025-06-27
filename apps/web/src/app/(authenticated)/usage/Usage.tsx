@@ -13,6 +13,7 @@ import { Loading } from '@/components/layout';
 import { type Filter, type ViewMode, viewModes } from './types';
 import { Developers } from './Developers';
 import { Models } from './Models';
+import { Repositories } from './Repositories';
 import { Tasks } from './Tasks';
 import { TaskModal } from './TaskModal';
 
@@ -92,6 +93,8 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
           />
         ) : viewMode === 'developers' ? (
           <Developers onFilter={onFilter} />
+        ) : viewMode === 'repositories' ? (
+          <Repositories onFilter={onFilter} />
         ) : (
           <Models onFilter={onFilter} />
         )}

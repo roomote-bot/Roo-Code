@@ -44,11 +44,16 @@ export const Tasks = ({
       return data;
     }
 
-    return data.filter((task) =>
-      filter.type === 'userId'
-        ? task.userId === filter.value
-        : task.model === filter.value,
-    );
+    return data.filter((task) => {
+      if (filter.type === 'userId') {
+        return task.userId === filter.value;
+      } else if (filter.type === 'model') {
+        return task.model === filter.value;
+      } else if (filter.type === 'repositoryName') {
+        return task.repositoryName === filter.value;
+      }
+      return false;
+    });
   }, [filter, data]);
 
   if (isPending) {
