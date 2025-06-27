@@ -2,7 +2,16 @@ import type { TaskWithUser, Message } from '@/actions/analytics';
 import type { SharedByUser } from '@/types/task-sharing';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
 import { generateFallbackTitle } from '@/lib/task-utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui';
 import { Status } from '@/app/(authenticated)/usage/Status';
 import { Messages } from '@/app/(authenticated)/usage/Messages';
 
@@ -53,18 +62,76 @@ export const TaskDetails = ({
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 text-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">Developer</p>
-              <p className="font-mono truncate">{task.user.name}</p>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="font-mono truncate">{task.user.name}</p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{task.user.name}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div>
+              <p className="text-muted-foreground">Mode</p>
+              <p className="font-mono">{task.mode || 'Not available'}</p>
+            </div>
+            <div>
+              <p className="text-muted-foreground">Git Workspace</p>
+              {task.repositoryName ? (
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="font-mono truncate">
+                        {task.repositoryName}
+                      </p>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{task.repositoryName}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              ) : (
+                <p className="text-muted-foreground text-xs italic">
+                  Not available
+                </p>
+              )}
+            </div>
+            <div>
+              <p className="text-muted-foreground">Date</p>
+              <p>{new Date(task.timestamp * 1000).toLocaleString()}</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mt-4 pt-4 border-t">
+            <div>
               <p className="text-muted-foreground">Model</p>
-              <p className="font-mono truncate">{task.model}</p>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="font-mono truncate">{task.model}</p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{task.model}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div>
               <p className="text-muted-foreground">Provider</p>
-              <p className="font-mono truncate">{task.provider}</p>
+              <TooltipProvider delayDuration={150}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <p className="font-mono truncate">{task.provider}</p>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{task.provider}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </div>
             <div>
               <p className="text-muted-foreground">Tokens</p>
@@ -73,31 +140,6 @@ export const TaskDetails = ({
             <div>
               <p className="text-muted-foreground">Cost</p>
               <p className="font-mono">{formatCurrency(task.cost)}</p>
-            </div>
-            <div>
-              <p className="text-muted-foreground">Git Workspace</p>
-
-              {task.repositoryName ? (
-                <p className="font-mono truncate">{task.repositoryName}</p>
-              ) : (
-                <p className="text-muted-foreground text-xs italic">
-                  Not available
-                </p>
-              )}
-            </div>
-          </div>
-          {task.mode && (
-            <div className="mt-4 pt-4 border-t">
-              <div className="flex justify-between items-center text-sm">
-                <span className="text-muted-foreground">Mode</span>
-                <span className="font-mono">{task.mode}</span>
-              </div>
-            </div>
-          )}
-          <div className="mt-4 pt-4 border-t">
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-muted-foreground">Date</span>
-              <span>{new Date(task.timestamp * 1000).toLocaleString()}</span>
             </div>
           </div>
         </CardContent>
