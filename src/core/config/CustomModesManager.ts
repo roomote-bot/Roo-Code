@@ -116,33 +116,82 @@ export class CustomModesManager {
 	/**
 	 * Parse YAML content with enhanced error handling and preprocessing
 	 */
-	private parseYamlSafely(content: string, filePath: string): any {
+	private parseYamlSafely(content: string, filePath: string, options?: { tryJsonFallback?: boolean }): any {
 		// Clean the content
 		let cleanedContent = stripBom(content)
 		cleanedContent = this.cleanInvisibleCharacters(cleanedContent)
 
+		let yamlResult: any
+		let yamlError: Error | null = null
+
 		try {
-			return yaml.parse(cleanedContent)
+			yamlResult = yaml.parse(cleanedContent)
 		} catch (error) {
-			const errorMsg = error instanceof Error ? error.message : String(error)
+			yamlError = error as Error
+		}
+
+		// For .roomodes files with JSON fallback enabled
+		if (options?.tryJsonFallback && filePath.endsWith(ROOMODES_FILENAME)) {
+			// Try JSON if:
+			// 1. YAML parsing failed with an error, OR
+			// 2. YAML parsing succeeded but returned a non-object
+			const needsJsonFallback =
+				yamlError || typeof yamlResult !== "object" || yamlResult === null || Array.isArray(yamlResult)
+
+			if (needsJsonFallback) {
+				try {
+					const result = JSON.parse(content)
+					return result
+				} catch (jsonError) {
+					// JSON also failed
+					if (yamlError) {
+						// YAML had syntax error, show YAML error
+						const errorMsg = yamlError.message
+						console.error(`[CustomModesManager] Failed to parse YAML from ${filePath}:`, errorMsg)
+						const lineMatch = errorMsg.match(/at line (\d+)/)
+						const line = lineMatch ? lineMatch[1] : "unknown"
+						vscode.window.showErrorMessage(t("common:customModes.errors.yamlParseError", { line }))
+						throw yamlError
+					} else {
+						// YAML parsed but not to an object, and JSON failed
+						console.error(`[CustomModesManager] Failed to parse ${filePath} as YAML or JSON`)
+						vscode.window.showErrorMessage("Neither YAML nor JSON format could be parsed")
+						throw new Error("Neither YAML nor JSON format could be parsed")
+					}
+				}
+			}
+		} else if (yamlError) {
+			// For non-.roomodes files or when JSON fallback is not enabled
+			const errorMsg = yamlError.message
 			console.error(`[CustomModesManager] Failed to parse YAML from ${filePath}:`, errorMsg)
 
-			// Show user-friendly error message for .roomodes files
 			if (filePath.endsWith(ROOMODES_FILENAME)) {
 				const lineMatch = errorMsg.match(/at line (\d+)/)
 				const line = lineMatch ? lineMatch[1] : "unknown"
 				vscode.window.showErrorMessage(t("common:customModes.errors.yamlParseError", { line }))
 			}
 
-			// Return empty object to prevent duplicate error handling
-			return {}
+			throw yamlError
 		}
+
+		return yamlResult
 	}
 
 	private async loadModesFromFile(filePath: string): Promise<ModeConfig[]> {
 		try {
 			const content = await fs.readFile(filePath, "utf-8")
-			const settings = this.parseYamlSafely(content, filePath)
+			let settings: any
+
+			// Parse with JSON fallback for .roomodes files
+			try {
+				settings = this.parseYamlSafely(content, filePath, {
+					tryJsonFallback: filePath.endsWith(ROOMODES_FILENAME),
+				})
+			} catch (error) {
+				// Error was already handled and shown in parseYamlSafely
+				return []
+			}
+
 			const result = customModesSettingsSchema.safeParse(settings)
 
 			if (!result.success) {
@@ -238,7 +287,7 @@ export class CustomModesManager {
 				let config: any
 
 				try {
-					config = this.parseYamlSafely(content, settingsPath)
+					config = this.parseYamlSafely(content, settingsPath, { tryJsonFallback: false })
 				} catch (error) {
 					console.error(error)
 					vscode.window.showErrorMessage(errorMessage)
@@ -420,7 +469,7 @@ export class CustomModesManager {
 		let settings
 
 		try {
-			settings = this.parseYamlSafely(content, filePath)
+			settings = this.parseYamlSafely(content, filePath, { tryJsonFallback: false })
 		} catch (error) {
 			// Error already logged in parseYamlSafely
 			settings = { customModes: [] }
