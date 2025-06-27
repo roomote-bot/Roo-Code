@@ -126,6 +126,17 @@ pnpm --filter @roo-code-cloud/web dev
 - 📊 Dashboard with analytics
 - ⚙️ Settings and configuration panels
 
+### Linking with local Roo Code API
+
+Make sure you are added to the Roo Cloud development organization.
+
+To point the Roo VSCode extension at your local cloud database, in the `Roo-Code` repo, add the following to `src/.env`:
+
+```
+CLERK_BASE_URL=https://epic-chamois-85.clerk.accounts.dev
+ROO_CODE_API_URL=http://localhost:3000
+```
+
 ## 🤖 Roomote Services
 
 Roomote provides intelligent automation and workflow management.
