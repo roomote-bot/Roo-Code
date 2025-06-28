@@ -1,8 +1,9 @@
 import { useCallback, useState, memo, useMemo } from "react"
 import { useEvent } from "react-use"
 import { ChevronDown, Skull } from "lucide-react"
+import { VSCodeCheckbox } from "@vscode/webview-ui-toolkit/react"
 
-import { CommandExecutionStatus, commandExecutionStatusSchema } from "@roo-code/types"
+import { CommandExecutionStatus, commandExecutionStatusSchema, ClineMessage } from "@roo-code/types"
 
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import { safeJsonParse } from "@roo/safeJsonParse"
@@ -19,9 +20,24 @@ interface CommandExecutionProps {
 	text?: string
 	icon?: JSX.Element | null
 	title?: JSX.Element | null
+	message?: ClineMessage
+	onAlwaysAllowChange?: (checked: boolean, commandPrefix?: string) => void
+	alwaysAllowChecked?: boolean
+	allowedCommands?: string[]
+	isAskPending?: boolean
 }
 
-export const CommandExecution = ({ executionId, text, icon, title }: CommandExecutionProps) => {
+export const CommandExecution = ({
+	executionId,
+	text,
+	icon,
+	title,
+	message,
+	onAlwaysAllowChange,
+	alwaysAllowChecked = false,
+	allowedCommands = [],
+	isAskPending = false,
+}: CommandExecutionProps) => {
 	const { terminalShellIntegrationDisabled = false } = useExtensionState()
 
 	const { command, output: parsedOutput } = useMemo(() => parseCommandAndOutput(text), [text])
@@ -31,6 +47,8 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 	const [isExpanded, setIsExpanded] = useState(terminalShellIntegrationDisabled)
 	const [streamingOutput, setStreamingOutput] = useState("")
 	const [status, setStatus] = useState<CommandExecutionStatus | null>(null)
+	// Track if the user has clicked "always allow" for this command to optimistically hide the checkbox
+	const [hasClickedAlwaysAllow, setHasClickedAlwaysAllow] = useState(false)
 
 	// The command's output can either come from the text associated with the
 	// task message (this is the case for completed commands) or from the
@@ -82,6 +100,57 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 				</div>
 				<div className="flex flex-row items-center justify-between gap-2 px-1">
 					<div className="flex flex-row items-center gap-1">
+						{message?.commandPrefix &&
+							onAlwaysAllowChange &&
+							isAskPending &&
+							!allowedCommands.includes(message.commandPrefix) &&
+							!hasClickedAlwaysAllow && (
+								<div className="flex items-center gap-2">
+									<VSCodeCheckbox
+										checked={alwaysAllowChecked}
+										onChange={(e) => {
+											const checked = (e.target as HTMLInputElement).checked
+											const commandPrefix = message.commandPrefix
+
+											// Send message immediately when checkbox is toggled
+											if (checked && commandPrefix) {
+												vscode.postMessage({
+													type: "alwaysAllowCommand",
+													text: commandPrefix,
+												})
+												// Optimistically hide the checkbox
+												setHasClickedAlwaysAllow(true)
+											}
+
+											// Also call the callback for UI state management
+											// The callback will handle removal when unchecked
+											onAlwaysAllowChange(checked, commandPrefix)
+										}}
+									/>
+									<label
+										className="text-sm text-vscode-descriptionForeground cursor-pointer"
+										onClick={() => {
+											const newChecked = !alwaysAllowChecked
+											const commandPrefix = message.commandPrefix
+
+											// Send message immediately when label is clicked
+											if (newChecked && commandPrefix) {
+												vscode.postMessage({
+													type: "alwaysAllowCommand",
+													text: commandPrefix,
+												})
+												// Optimistically hide the checkbox
+												setHasClickedAlwaysAllow(true)
+											}
+
+											// Also call the callback for UI state management
+											// The callback will handle removal when unchecked
+											onAlwaysAllowChange(newChecked, commandPrefix)
+										}}>
+										Always allow <code>{message.commandPrefix}</code>
+									</label>
+								</div>
+							)}
 						{status?.status === "started" && (
 							<div className="flex flex-row items-center gap-2 font-mono text-xs">
 								<div className="rounded-full size-1.5 bg-lime-400" />
@@ -120,7 +189,6 @@ export const CommandExecution = ({ executionId, text, icon, title }: CommandExec
 					</div>
 				</div>
 			</div>
-
 			<div className="w-full bg-vscode-editor-background border border-vscode-border rounded-xs p-2">
 				<CodeBlock source={command} language="shell" />
 				<OutputContainer isExpanded={isExpanded} output={output} />

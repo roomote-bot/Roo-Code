@@ -51,7 +51,8 @@ export async function executeCommandTool(
 			cline.consecutiveMistakeCount = 0
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
-			const didApprove = await askApproval("command", command)
+			const prefix = block.params.prefix || ""
+			const didApprove = await askApproval("command", command, undefined, false, { prefix })
 
 			if (!didApprove) {
 				return

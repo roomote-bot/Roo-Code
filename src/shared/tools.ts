@@ -9,6 +9,7 @@ export type AskApproval = (
 	partialMessage?: string,
 	progressStatus?: ToolProgressStatus,
 	forceApproval?: boolean,
+	options?: { prefix?: string },
 ) => Promise<boolean>
 
 export type HandleError = (action: string, error: Error) => Promise<void>
@@ -64,6 +65,7 @@ export const toolParamNames = [
 	"end_line",
 	"query",
 	"args",
+	"prefix",
 ] as const
 
 export type ToolParamName = (typeof toolParamNames)[number]
@@ -79,7 +81,7 @@ export interface ToolUse {
 export interface ExecuteCommandToolUse extends ToolUse {
 	name: "execute_command"
 	// Pick<Record<ToolParamName, string>, "command"> makes "command" required, but Partial<> makes it optional
-	params: Partial<Pick<Record<ToolParamName, string>, "command" | "cwd">>
+	params: Partial<Pick<Record<ToolParamName, string>, "command" | "cwd" | "prefix">>
 }
 
 export interface ReadFileToolUse extends ToolUse {

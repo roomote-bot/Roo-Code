@@ -50,21 +50,55 @@ interface ChatRowProps {
 	onHeightChange: (isTaller: boolean) => void
 	onSuggestionClick?: (answer: string, event?: React.MouseEvent) => void
 	onBatchFileResponse?: (response: { [key: string]: boolean }) => void
+	alwaysAllowChecked?: boolean
+	onAlwaysAllowChange?: (checked: boolean, commandPrefix?: string) => void
+	allowedCommands?: string[]
+	isAskPending?: boolean
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
-interface ChatRowContentProps extends Omit<ChatRowProps, "onHeightChange"> {}
+interface ChatRowContentProps {
+	message: ClineMessage
+	lastModifiedMessage?: ClineMessage
+	isExpanded: boolean
+	isLast: boolean
+	isStreaming: boolean
+	onToggleExpand: (ts: number) => void
+	onSuggestionClick?: (answer: string, event?: React.MouseEvent) => void
+	onBatchFileResponse?: (response: { [key: string]: boolean }) => void
+	commandProps?: {
+		alwaysAllowChecked?: boolean
+		onAlwaysAllowChange?: (checked: boolean, commandPrefix?: string) => void
+		allowedCommands?: string[]
+		isAskPending?: boolean
+	}
+}
 
 const ChatRow = memo(
 	(props: ChatRowProps) => {
-		const { isLast, onHeightChange, message } = props
+		const {
+			isLast,
+			onHeightChange,
+			message,
+			alwaysAllowChecked,
+			onAlwaysAllowChange,
+			allowedCommands,
+			isAskPending,
+		} = props
 		// Store the previous height to compare with the current height
 		// This allows us to detect changes without causing re-renders
 		const prevHeightRef = useRef(0)
 
 		const [chatrow, { height }] = useSize(
 			<div className="px-[15px] py-[10px] pr-[6px]">
-				<ChatRowContent {...props} />
+				<ChatRowContent
+					{...props}
+					commandProps={{
+						alwaysAllowChecked,
+						onAlwaysAllowChange,
+						allowedCommands,
+						isAskPending,
+					}}
+				/>
 			</div>,
 		)
 
@@ -99,6 +133,7 @@ export const ChatRowContent = ({
 	onToggleExpand,
 	onSuggestionClick,
 	onBatchFileResponse,
+	commandProps,
 }: ChatRowContentProps) => {
 	const { t } = useTranslation()
 	const { mcpServers, alwaysAllowMcp, currentCheckpoint } = useExtensionState()
@@ -1120,6 +1155,13 @@ export const ChatRowContent = ({
 							text={message.text}
 							icon={icon}
 							title={title}
+							message={message}
+							alwaysAllowChecked={commandProps?.alwaysAllowChecked}
+							onAlwaysAllowChange={(checked: boolean) =>
+								commandProps?.onAlwaysAllowChange?.(checked, message.commandPrefix)
+							}
+							allowedCommands={commandProps?.allowedCommands}
+							isAskPending={commandProps?.isAskPending}
 						/>
 					)
 				case "use_mcp_server":

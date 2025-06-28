@@ -262,6 +262,7 @@ export async function presentAssistantMessage(cline: Task) {
 				partialMessage?: string,
 				progressStatus?: ToolProgressStatus,
 				isProtected?: boolean,
+				options?: { prefix?: string },
 			) => {
 				const { response, text, images } = await cline.ask(
 					type,
@@ -269,6 +270,7 @@ export async function presentAssistantMessage(cline: Task) {
 					false,
 					progressStatus,
 					isProtected || false,
+					options?.prefix,
 				)
 
 				if (response !== "yesButtonClicked") {

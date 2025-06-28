@@ -576,6 +576,30 @@ export const webviewMessageHandler = async (
 
 			break
 		}
+		case "alwaysAllowCommand": {
+			// Add a command prefix to the allowed commands list
+			const commandPrefix = message.text?.trim()
+			if (commandPrefix) {
+				const currentCommands = getGlobalState("allowedCommands") ?? []
+				const updatedCommands = [...currentCommands]
+
+				// Only add if not already present
+				if (!updatedCommands.includes(commandPrefix)) {
+					updatedCommands.push(commandPrefix)
+
+					await updateGlobalState("allowedCommands", updatedCommands)
+
+					// Also update workspace settings
+					await vscode.workspace
+						.getConfiguration(Package.name)
+						.update("allowedCommands", updatedCommands, vscode.ConfigurationTarget.Global)
+
+					// Update the webview state
+					await provider.postStateToWebview()
+				}
+			}
+			break
+		}
 		case "openCustomModesSettings": {
 			const customModesFilePath = await provider.customModesManager.getCustomModesFilePath()
 

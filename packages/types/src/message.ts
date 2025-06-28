@@ -154,6 +154,7 @@ export const clineMessageSchema = z.object({
 	progressStatus: toolProgressStatusSchema.optional(),
 	contextCondense: contextCondenseSchema.optional(),
 	isProtected: z.boolean().optional(),
+	commandPrefix: z.string().optional(),
 })
 
 export type ClineMessage = z.infer<typeof clineMessageSchema>
