@@ -32,13 +32,26 @@ const parseQuestionData = (text: string): QuestionData | null => {
 };
 
 export const Messages = ({ messages }: MessagesProps) => {
-  const conversation = useMemo(
-    () =>
-      messages
-        .filter(isVisible)
-        .map((message, index) => decorate({ message, index })),
-    [messages],
-  );
+  const conversation = useMemo(() => {
+    const visibleMessages = messages.filter(isVisible);
+
+    // Remove consecutive duplicates based on timestamp and text
+    const deduplicatedMessages = visibleMessages.filter((message, index) => {
+      if (index === 0) return true;
+
+      const prevMessage = visibleMessages[index - 1];
+      if (!prevMessage) return true; // Safety check, though this shouldn't happen
+
+      return !(
+        message.timestamp === prevMessage.timestamp &&
+        message.text === prevMessage.text
+      );
+    });
+
+    return deduplicatedMessages.map((message, index) =>
+      decorate({ message, index }),
+    );
+  }, [messages]);
 
   return (
     <div className="space-y-6">
