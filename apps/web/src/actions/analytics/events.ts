@@ -278,7 +278,8 @@ export const getRepositoryUsage = async ({
     query: `
       SELECT
         repositoryName,
-        any(repositoryUrl) as repositoryUrl,
+        -- Get most recent timestamp to backfill old URL
+        argMax(repositoryUrl, timestamp) as repositoryUrl, 
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasksStarted,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_COMPLETED}' THEN 1 ELSE 0 END) AS tasksCompleted,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
@@ -484,7 +485,7 @@ export const getTasks = async ({
         SUM(CASE WHEN e.type = 'LLM Completion' THEN COALESCE(e.cost, 0) ELSE 0 END) AS cost,
         MIN(e.timestamp) AS timestamp,
         any(fm.title) AS title,
-        any(e.repositoryUrl) AS repositoryUrl,
+        argMax(e.repositoryUrl, e.timestamp) AS repositoryUrl,
         any(e.repositoryName) AS repositoryName,
         any(e.defaultBranch) AS defaultBranch
       FROM events e
