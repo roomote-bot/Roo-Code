@@ -9,9 +9,11 @@ type MessagesProps = {
   messages: Message[];
 };
 
+type SuggestionItem = string | { answer: string };
+
 type QuestionData = {
   question: string;
-  suggestions: string[];
+  suggestions: SuggestionItem[];
 };
 
 const parseQuestionData = (text: string): QuestionData | null => {
@@ -97,7 +99,9 @@ export const Messages = ({ messages }: MessagesProps) => {
                           key={index}
                           className="px-4 py-3 bg-background border border-border rounded-md text-sm hover:bg-muted/50 cursor-pointer transition-colors"
                         >
-                          {suggestion}
+                          {typeof suggestion === 'string'
+                            ? suggestion
+                            : suggestion.answer}
                         </div>
                       ))}
                     </div>
