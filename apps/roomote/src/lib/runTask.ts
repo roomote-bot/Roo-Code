@@ -1,6 +1,7 @@
 import * as path from 'path';
 import * as os from 'node:os';
 import * as crypto from 'node:crypto';
+import * as fs from 'node:fs';
 
 import pWaitFor from 'p-wait-for';
 import { execa } from 'execa';
@@ -17,7 +18,7 @@ import { IpcClient } from '@roo-code-cloud/ipc';
 import type { JobPayload, JobType } from '@roo-code-cloud/db';
 
 import { Logger } from './logger';
-import { isDockerContainer } from './utils';
+import { isFlyMachine, isDockerContainer } from './utils';
 import { SlackNotifier } from './slack';
 
 const TIMEOUT = 30 * 60 * 1_000;
@@ -71,25 +72,35 @@ export const runTask = async <T extends JobType>({
     `${crypto.randomUUID().slice(0, 8)}.sock`,
   );
 
-  const env = { ROO_CODE_IPC_SOCKET_PATH: ipcSocketPath };
   const controller = new AbortController();
   const cancelSignal = controller.signal;
-  const containerized = isDockerContainer();
+  const containerized = isFlyMachine() || isDockerContainer();
 
   const codeCommand = containerized
-    ? `xvfb-run --auto-servernum --server-num=1 code --wait --log trace --disable-workspace-trust --disable-gpu --disable-lcd-text --no-sandbox --user-data-dir /roo/.vscode --password-store="basic" -n ${workspacePath}`
-    : `code --disable-workspace-trust -n ${workspacePath}`;
+    ? `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath} xvfb-run --auto-servernum --server-num=1 code --wait --log trace --disable-workspace-trust --disable-gpu --disable-lcd-text --no-sandbox --user-data-dir /roo/.vscode --password-store="basic" -n ${workspacePath}`
+    : `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath} code --disable-workspace-trust -n ${workspacePath}`;
 
   logger.info(codeCommand);
 
   const subprocess = execa({
-    env,
     shell: '/bin/bash',
     cancelSignal,
   })`${codeCommand}`;
 
   // If debugging, add `--verbose` to `command` and uncomment the following line.
   // subprocess.stdout.pipe(process.stdout)
+
+  try {
+    await pWaitFor(() => fs.existsSync(ipcSocketPath), {
+      interval: 250,
+      timeout: 10_000,
+    });
+  } catch (_error) {
+    logger.error(`IPC socket was not created within timeout: ${ipcSocketPath}`);
+    throw new Error(
+      `IPC socket was not created within timeout -> ${ipcSocketPath}`,
+    );
+  }
 
   let client: IpcClient | undefined = undefined;
   let attempts = 5;

@@ -1,6 +1,10 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+export const isFlyMachine = () => {
+  return !!process.env.FLY_IMAGE_REF;
+};
+
 export const isDockerContainer = () => {
   try {
     return fs.existsSync('/.dockerenv');

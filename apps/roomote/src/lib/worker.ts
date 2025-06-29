@@ -3,14 +3,14 @@ import { Worker } from 'bullmq';
 import { redis } from './redis';
 import { processJob } from './job';
 
-// docker compose build worker
+// docker compose build --build-arg GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.development) roomote-worker
 // docker run \
 //   --name roomote-worker \
-//   --rm \
-//   --interactive \
-//   --tty \
+//   --rm --interactive --tty \
 //   --network roo-code-cloud_default \
-//   -e GH_TOKEN=$GH_TOKEN \
+//   -e APP_ENV=production \
+//   -e GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.production) \
+//   -e DOTENV_PRIVATE_KEY_PRODUCTION=$(npx dotenvx get DOTENV_PRIVATE_KEY_PRODUCTION -f .env.keys) \
 //   -v /var/run/docker.sock:/var/run/docker.sock \
 //   -v /tmp/roomote:/var/log/roomote \
 //   roomote-worker sh -c "bash"

@@ -1,4 +1,4 @@
-# docker compose build roomote-worker && docker compose up roomote-worker
+# docker compose build --build-arg GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.development) roomote-worker
 
 FROM node:20-slim AS base
 
@@ -44,6 +44,18 @@ RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
   && apt update && apt install -y code \
   && rm -rf /var/lib/apt/lists/*
 
+# Install ssh server
+# RUN apt-get update \
+#   && apt-get install -y openssh-server \
+#   && cp /etc/ssh/sshd_config /etc/ssh/sshd_config-original \
+#   && sed -i 's/^#\s*Port.*/Port 2222/' /etc/ssh/sshd_config \
+#   && sed -i 's/^#\s*PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config \
+#   && mkdir -p /root/.ssh \
+#   && chmod 700 /root/.ssh \
+#   && mkdir /var/run/sshd \
+#   && chmod 755 /var/run/sshd \
+#   && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
 WORKDIR /roo
 
 # Install extensions
@@ -56,14 +68,20 @@ RUN mkdir -p /roo/.vscode \
 # Clone repo (requires $GH_TOKEN)
 ARG GH_TOKEN
 ENV GH_TOKEN=${GH_TOKEN}
-WORKDIR /roo/repos
 RUN git config --global user.email "chris@roocode.com"
 RUN git config --global user.name "Roo Code"
 RUN git config --global credential.helper store
 RUN echo "https://oauth2:${GH_TOKEN}@github.com" > ~/.git-credentials
+
+WORKDIR /roo/repos
 RUN gh repo clone RooCodeInc/Roo-Code
 WORKDIR /roo/repos/Roo-Code
 RUN gh repo set-default RooCodeInc/Roo-Code
+RUN pnpm install
+
+WORKDIR /roo/repos
+RUN gh repo clone RooCodeInc/Roo-Code-Cloud
+WORKDIR /roo/repos/Roo-Code-Cloud
 RUN pnpm install
 
 WORKDIR /roo
@@ -87,6 +105,10 @@ COPY apps/roomote ./apps/roomote/
 
 WORKDIR /roo/apps/roomote
 
+# COPY .docker/entrypoints/worker.sh /usr/local/bin/worker.sh
+# RUN chmod +x /usr/local/bin/worker.sh
+
 ENV NODE_ENV=production
 ENV HOST_EXECUTION_METHOD=docker
-CMD ["sh", "-c", "npx dotenvx run -f ../../.env.${APP_ENV:-development} -- tsx src/lib/controller.ts"]
+# ENTRYPOINT ["/usr/local/bin/worker.sh"]
+CMD ["sleep", "infinity"]

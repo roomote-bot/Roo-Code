@@ -47,10 +47,12 @@ export class SlackNotifier {
         this.logger?.error(
           `Slack API failed: ${response.status} ${response.statusText}`,
         );
+
         return null;
       }
 
       const result: SlackResponse = await response.json();
+      console.log('🔗 Slack API Response ->', result);
 
       if (!result.ok) {
         this.logger?.error(`Slack API error: ${result.error}`);
@@ -156,5 +158,9 @@ export class SlackNotifier {
       ],
       thread_ts: threadTs,
     });
+  }
+
+  public async sendMessage(message: SlackMessage): Promise<string | null> {
+    return await this.postMessage(message);
   }
 }

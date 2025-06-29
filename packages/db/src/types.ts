@@ -135,6 +135,7 @@ export type CreateJob = z.infer<typeof createJobSchema>;
 export type JobTypes = {
   [K in CreateJob['type']]: Extract<CreateJob, { type: K }>['payload'];
 };
+
 /**
  * JobType, JobStatus, JobPayload, JobParams
  */

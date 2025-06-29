@@ -1,8 +1,8 @@
 import { spawn } from 'child_process';
-import fs from 'fs';
 import { Queue } from 'bullmq';
 
 import { redis } from './redis';
+import { isFlyMachine, isDockerContainer } from './utils';
 
 export class WorkerController {
   private readonly POLL_INTERVAL_MS = 5000;
@@ -75,22 +75,32 @@ export class WorkerController {
 
     try {
       console.log(`Spawning worker: ${workerId}`);
-      const isRunningInDocker = fs.existsSync('/.dockerenv');
 
-      const dockerArgs = [
-        `--name roomote-${workerId}`,
-        '--rm',
-        '--network roo-code-cloud_default',
-        `-e GH_TOKEN=${process.env.GH_TOKEN}`,
-        '-v /var/run/docker.sock:/var/run/docker.sock',
-        '-v /tmp/roomote:/var/log/roomote',
-      ];
+      const cliCommand =
+        process.env.APP_ENV === 'production'
+          ? 'pnpm worker:production'
+          : 'pnpm worker';
 
-      const cliCommand = 'pnpm worker';
+      let command;
 
-      const command = isRunningInDocker
-        ? `docker run ${dockerArgs.join(' ')} roomote-worker sh -c "${cliCommand}"`
-        : cliCommand;
+      if (isFlyMachine()) {
+        command = `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --rm --shell --command "pnpm worker:production" -a roomote-worker`;
+      } else if (isDockerContainer()) {
+        const dockerArgs = [
+          `--name roomote-${workerId}`,
+          '--rm',
+          '--network roo-code-cloud_default',
+          `-e APP_ENV=${process.env.APP_ENV || 'development'}`,
+          `-e GH_TOKEN=${process.env.GH_TOKEN}`,
+          `-e DOTENV_PRIVATE_KEY_PRODUCTION=${process.env.DOTENV_PRIVATE_KEY_PRODUCTION}`,
+          '-v /var/run/docker.sock:/var/run/docker.sock',
+          '-v /tmp/roomote:/var/log/roomote',
+        ];
+
+        command = `docker run ${dockerArgs.join(' ')} roomote-worker sh -c "${cliCommand}"`;
+      } else {
+        command = cliCommand;
+      }
 
       console.log('Spawning worker with command:', command);
 
