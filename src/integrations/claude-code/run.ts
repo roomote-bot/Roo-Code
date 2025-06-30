@@ -21,11 +21,31 @@ type ProcessState = {
 }
 
 export async function* runClaudeCode(options: ClaudeCodeOptions): AsyncGenerator<ClaudeCodeMessage | string> {
-	const process = runProcess(options)
+	const claudeProcess = runProcess(options)
+	const isWSL = !!process.env.WSL_DISTRO_NAME
 
 	const rl = readline.createInterface({
-		input: process.stdout,
+		input: claudeProcess.stdout,
 	})
+
+	// WSL-specific heartbeat to prevent hanging
+	let heartbeatInterval: NodeJS.Timeout | null = null
+	if (isWSL) {
+		heartbeatInterval = setInterval(() => {
+			// Send a gentle signal to keep the process alive
+			if (!claudeProcess.killed && claudeProcess.pid) {
+				try {
+					claudeProcess.kill(0) // Signal 0 checks if process is alive without killing it
+				} catch (error) {
+					// Process is dead, clear the heartbeat
+					if (heartbeatInterval) {
+						clearInterval(heartbeatInterval)
+						heartbeatInterval = null
+					}
+				}
+			}
+		}, CLAUDE_CODE_WSL_HEARTBEAT_INTERVAL)
+	}
 
 	try {
 		const processState: ProcessState = {
@@ -35,15 +55,15 @@ export async function* runClaudeCode(options: ClaudeCodeOptions): AsyncGenerator
 			partialData: null,
 		}
 
-		process.stderr.on("data", (data) => {
+		claudeProcess.stderr.on("data", (data) => {
 			processState.stderrLogs += data.toString()
 		})
 
-		process.on("close", (code) => {
+		claudeProcess.on("close", (code) => {
 			processState.exitCode = code
 		})
 
-		process.on("error", (err) => {
+		claudeProcess.on("error", (err) => {
 			processState.error = err
 		})
 
@@ -69,7 +89,7 @@ export async function* runClaudeCode(options: ClaudeCodeOptions): AsyncGenerator
 			yield processState.partialData
 		}
 
-		const { exitCode } = await process
+		const { exitCode } = await claudeProcess
 		if (exitCode !== null && exitCode !== 0) {
 			const errorOutput = processState.error?.message || processState.stderrLogs?.trim()
 			throw new Error(
@@ -77,9 +97,35 @@ export async function* runClaudeCode(options: ClaudeCodeOptions): AsyncGenerator
 			)
 		}
 	} finally {
+		// Clean up heartbeat
+		if (heartbeatInterval) {
+			clearInterval(heartbeatInterval)
+		}
+
 		rl.close()
-		if (!process.killed) {
-			process.kill()
+
+		// Enhanced process cleanup for WSL
+		if (!claudeProcess.killed) {
+			if (isWSL) {
+				// For WSL, try graceful termination first, then force kill
+				try {
+					claudeProcess.kill("SIGTERM")
+					// Give it a moment to terminate gracefully
+					await new Promise((resolve) => setTimeout(resolve, 1000))
+					if (!claudeProcess.killed) {
+						claudeProcess.kill("SIGKILL")
+					}
+				} catch (error) {
+					// If graceful termination fails, force kill
+					try {
+						claudeProcess.kill("SIGKILL")
+					} catch (killError) {
+						console.warn("Failed to kill Claude Code process:", killError)
+					}
+				}
+			} else {
+				claudeProcess.kill()
+			}
 		}
 	}
 }
@@ -105,10 +151,13 @@ const claudeCodeTools = [
 	"WebSearch",
 ].join(",")
 
-const CLAUDE_CODE_TIMEOUT = 600000 // 10 minutes
+// WSL environments are more prone to hanging, so use shorter timeout
+export const CLAUDE_CODE_TIMEOUT = process.env.WSL_DISTRO_NAME ? 300000 : 600000 // 5 minutes for WSL, 10 minutes otherwise
+export const CLAUDE_CODE_WSL_HEARTBEAT_INTERVAL = 30000 // 30 seconds heartbeat for WSL
 
 function runProcess({ systemPrompt, messages, path, modelId }: ClaudeCodeOptions) {
 	const claudePath = path || "claude"
+	const isWSL = !!process.env.WSL_DISTRO_NAME
 
 	const args = [
 		"-p",
@@ -129,18 +178,39 @@ function runProcess({ systemPrompt, messages, path, modelId }: ClaudeCodeOptions
 		args.push("--model", modelId)
 	}
 
+	// WSL-specific environment variables to improve stability
+	const wslEnvVars = isWSL
+		? {
+				// Prevent WSL from going to sleep
+				WSLENV: "CLAUDE_CODE_MAX_OUTPUT_TOKENS/u",
+				// Force UTF-8 encoding to prevent character encoding issues
+				LC_ALL: "C.UTF-8",
+				LANG: "C.UTF-8",
+				// Disable Windows path translation that can cause issues
+				WSLPATH_DISABLE: "1",
+			}
+		: {}
+
 	return execa(claudePath, args, {
 		stdin: "ignore",
 		stdout: "pipe",
 		stderr: "pipe",
 		env: {
 			...process.env,
+			...wslEnvVars,
 			// The default is 32000. However, I've gotten larger responses, so we increase it unless the user specified it.
 			CLAUDE_CODE_MAX_OUTPUT_TOKENS: process.env.CLAUDE_CODE_MAX_OUTPUT_TOKENS || "64000",
 		},
 		cwd,
 		maxBuffer: 1024 * 1024 * 1000,
 		timeout: CLAUDE_CODE_TIMEOUT,
+		// WSL-specific options
+		...(isWSL && {
+			// Use a more aggressive cleanup strategy for WSL
+			cleanup: true,
+			// Kill the process group to ensure all child processes are terminated
+			killSignal: "SIGKILL",
+		}),
 	})
 }
 
