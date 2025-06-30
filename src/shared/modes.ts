@@ -122,7 +122,7 @@ export const modes: readonly ModeConfig[] = [
 ] as const
 
 // Export the default mode slug
-export const defaultModeSlug = modes[0].slug
+export const defaultModeSlug = "architect"
 
 // Helper functions
 export function getModeBySlug(slug: string, customModes?: ModeConfig[]): ModeConfig | undefined {
