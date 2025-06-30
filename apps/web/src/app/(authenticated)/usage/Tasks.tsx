@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { getTasks } from '@/actions/analytics';
+import { useRealtimePolling } from '@/hooks/useRealtimePolling';
 import { Skeleton } from '@/components/ui';
 import { TaskCard } from '@/components/usage';
 
@@ -23,6 +24,7 @@ export const Tasks = ({
   currentUserId?: string | null;
 }) => {
   const { orgId } = useAuth();
+  const polling = useRealtimePolling({ enabled: true, interval: 5000 });
 
   const { data = [], isPending } = useQuery({
     queryKey: [
@@ -37,6 +39,7 @@ export const Tasks = ({
         userId: userRole === 'member' ? currentUserId : undefined,
       }),
     enabled: true, // Run for both personal and organization context
+    ...polling,
   });
 
   const tasks = useMemo(() => {

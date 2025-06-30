@@ -5,6 +5,7 @@ import type { TaskWithUser } from '@/actions/analytics';
 import { getMessages } from '@/actions/analytics';
 import { canShareTask } from '@/actions/taskSharing';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
+import { useRealtimePolling } from '@/hooks/useRealtimePolling';
 import { QueryKey } from '@/types/react-query';
 import { Dialog, DialogContentLarge } from '@/components/ui';
 import { ShareButton } from '@/components/task-sharing/ShareButton';
@@ -18,11 +19,14 @@ type TaskModalProps = {
 
 export const TaskModal = ({ task, open, onClose }: TaskModalProps) => {
   const { orgId, userId } = useAuth();
+  const messagePolling = useRealtimePolling({ enabled: open, interval: 2000 });
+  const sharePolling = useRealtimePolling({ enabled: open, interval: 5000 });
 
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', task.taskId, orgId, userId],
     queryFn: () => getMessages(task.taskId, orgId, userId, false),
     enabled: open && !!task.taskId,
+    ...messagePolling,
   });
 
   const { data: orgSettings } = useOrganizationSettings();
@@ -31,6 +35,7 @@ export const TaskModal = ({ task, open, onClose }: TaskModalProps) => {
     queryKey: [QueryKey.CanShareTask, task.taskId],
     queryFn: () => canShareTask(task.taskId),
     enabled: open && !!task.taskId,
+    ...sharePolling,
   });
 
   const isTaskSharingEnabled =

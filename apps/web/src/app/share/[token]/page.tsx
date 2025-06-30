@@ -36,6 +36,7 @@ export default async function SharedTaskPage({ params }: SharedTaskPageProps) {
           messages={messages}
           sharedBy={sharedBy}
           sharedAt={sharedAt}
+          shareToken={token}
         />
       </div>
     );

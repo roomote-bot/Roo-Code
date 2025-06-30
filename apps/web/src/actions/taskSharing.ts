@@ -484,6 +484,78 @@ export async function getTaskShares(taskId: string): Promise<TaskShare[]> {
 }
 
 /**
+ * Get messages for a shared task (used for polling updates)
+ * This function handles authentication internally and should be used instead of getMessages with skipAuth
+ */
+export async function getSharedTaskMessages(
+  shareToken: string,
+): Promise<Message[]> {
+  try {
+    if (!isValidShareToken(shareToken)) {
+      throw new Error('Invalid share token');
+    }
+
+    // Get the share to validate access
+    const [shareWithUser] = await db
+      .select({
+        share: taskShares,
+      })
+      .from(taskShares)
+      .where(eq(taskShares.shareToken, shareToken))
+      .limit(1);
+
+    if (!shareWithUser) {
+      throw new Error('Share not found');
+    }
+
+    const { share } = shareWithUser;
+
+    if (isShareExpired(share.expiresAt)) {
+      throw new Error('Share has expired');
+    }
+
+    // Check visibility and auth requirements
+    if (share.visibility === TaskShareVisibility.ORGANIZATION) {
+      const authResult = await authorize();
+      const userId = authResult.success ? authResult.userId : null;
+      const orgId = authResult.success ? authResult.orgId : null;
+
+      // For organization shares, require auth and matching orgId
+      if (!userId || !orgId || orgId !== share.orgId) {
+        throw new Error('Authentication required for organization shares');
+      }
+    }
+    // For public shares, no auth check needed
+
+    // Get the task to get the userId
+    const tasks = await getTasks({
+      taskId: share.taskId,
+      orgId: share.orgId,
+      allowCrossUserAccess: true,
+      skipAuth: true, // We've already validated access above
+    });
+    const task = tasks[0];
+
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
+    // Get messages with skipAuth since we've already validated access
+    const messages = await getMessages(
+      share.taskId,
+      share.orgId,
+      task.userId,
+      true, // Skip auth since we've already validated access above
+    );
+
+    return messages;
+  } catch (error) {
+    console.error('Error getting shared task messages:', error);
+    throw error;
+  }
+}
+
+/**
  * Clean up expired shares (background job function).
  */
 export async function cleanupExpiredShares(): Promise<{
