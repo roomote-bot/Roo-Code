@@ -60,8 +60,8 @@ export async function canShareTask(taskId: string): Promise<{
     // Handle personal context
     if (!orgId) {
       // Personal users can only share tasks they created
-      const tasks = await getTasks({ taskId, orgId: null, userId });
-      const task = tasks[0];
+      const result = await getTasks({ taskId, orgId: null, userId });
+      const task = result.tasks[0];
 
       if (!task || task.userId !== userId) {
         return {
@@ -77,13 +77,13 @@ export async function canShareTask(taskId: string): Promise<{
     // Organization context - existing logic
     // Admins can share any task in the organization
     if (orgRole === 'org:admin') {
-      const tasks = await getTasks({
+      const result = await getTasks({
         taskId,
         orgId,
         allowCrossUserAccess: true,
       });
 
-      const task = tasks[0];
+      const task = result.tasks[0];
 
       if (!task) {
         return { canShare: false, error: 'Task not found' };
@@ -93,8 +93,8 @@ export async function canShareTask(taskId: string): Promise<{
     }
 
     // Members can only share tasks they created
-    const tasks = await getTasks({ taskId, orgId });
-    const task = tasks[0];
+    const result = await getTasks({ taskId, orgId });
+    const task = result.tasks[0];
 
     // Additional check: ensure the task belongs to the requesting user
     if (task && task.userId !== userId) {
@@ -295,13 +295,13 @@ export async function getTaskByShareToken(token: string): Promise<{
     // Get task data based on visibility
     // For organization shares, we need to skip auth since the viewer might be a different user
     // but they're authorized to view this share within their organization
-    const tasks = await getTasks({
+    const result = await getTasks({
       taskId: share.taskId,
       orgId: share.orgId, // Will be null for personal shares
       allowCrossUserAccess: true,
       skipAuth: true, // Skip auth for both public and organization shares since we've already validated access above
     });
-    const task = tasks[0];
+    const task = result.tasks[0];
 
     if (!task) {
       return null;
@@ -528,13 +528,13 @@ export async function getSharedTaskMessages(
     // For public shares, no auth check needed
 
     // Get the task to get the userId
-    const tasks = await getTasks({
+    const result = await getTasks({
       taskId: share.taskId,
       orgId: share.orgId,
       allowCrossUserAccess: true,
       skipAuth: true, // We've already validated access above
     });
-    const task = tasks[0];
+    const task = result.tasks[0];
 
     if (!task) {
       throw new Error('Task not found');

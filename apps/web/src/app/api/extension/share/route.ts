@@ -53,10 +53,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify user has access to the task
-    const tasks = await getTasks({ orgId, userId });
-    const task = tasks.find((t) => t.taskId === taskId);
+    const tasksResult = await getTasks({ orgId, userId, taskId });
 
-    if (!task) {
+    if (tasksResult.tasks.length === 0) {
       return NextResponse.json(
         { success: false, error: 'Task not found or access denied' },
         { status: 404 },

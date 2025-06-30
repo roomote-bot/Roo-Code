@@ -395,19 +395,29 @@ const taskSchema = z.object({
 
 export type TaskWithUser = z.infer<typeof taskSchema> & { user: User };
 
+export type TasksResult = {
+  tasks: TaskWithUser[];
+  hasMore: boolean;
+  nextCursor?: number;
+};
+
 export const getTasks = async ({
   orgId,
   userId,
   taskId,
   allowCrossUserAccess = false,
   skipAuth = false,
+  limit = 20,
+  cursor,
 }: {
   orgId?: string | null;
   userId?: string | null;
   taskId?: string | null;
   allowCrossUserAccess?: boolean;
   skipAuth?: boolean;
-}): Promise<TaskWithUser[]> => {
+  limit?: number;
+  cursor?: number;
+}): Promise<TasksResult> => {
   let effectiveUserId = userId;
 
   if (!skipAuth) {
@@ -422,7 +432,7 @@ export const getTasks = async ({
   // For personal accounts, query by userId instead of orgId
   // Exception: when skipAuth is true (for public shares), we can query without userId
   if (!orgId && !effectiveUserId && !skipAuth) {
-    return []; // Personal accounts must have a userId unless we're skipping auth
+    return { tasks: [], hasMore: false }; // Personal accounts must have a userId unless we're skipping auth
   }
 
   const userFilter = effectiveUserId ? 'AND e.userId = {userId: String}' : '';
@@ -441,12 +451,13 @@ export const getTasks = async ({
     ? 'orgId IS NULL'
     : 'orgId = {orgId: String}';
 
-  const queryParams: Record<string, string | string[]> = {
+  const queryParams: Record<string, string | string[] | number> = {
     types: [
       TelemetryEventName.TASK_CREATED,
       TelemetryEventName.TASK_COMPLETED,
       TelemetryEventName.LLM_COMPLETION,
     ],
+    limit: limit + 1, // Request one extra to determine hasMore
   };
 
   if (orgId) {
@@ -460,6 +471,18 @@ export const getTasks = async ({
   if (taskId) {
     queryParams.taskId = taskId;
   }
+
+  if (cursor) {
+    queryParams.cursor = cursor;
+  }
+
+  // TODO: Handle same-timestamp edge cases
+  // Currently using only timestamp as cursor, but this can miss/duplicate tasks
+  // if multiple tasks have the same timestamp at page boundaries.
+  // Future improvement: use composite cursor (timestamp, taskId, userId)
+  const havingFilter = cursor
+    ? 'HAVING MIN(e.timestamp) < {cursor: Int32}'
+    : '';
 
   const results = await analytics.query({
     query: `
@@ -497,7 +520,9 @@ export const getTasks = async ({
         ${userFilter}
         ${taskFilter}
       GROUP BY 1, 2
+      ${havingFilter}
       ORDER BY timestamp DESC
+      LIMIT {limit: Int32}
     `,
     format: 'JSONEachRow',
     query_params: queryParams,
@@ -507,9 +532,25 @@ export const getTasks = async ({
 
   const users = await getUsersById(tasks.map(({ userId }) => userId));
 
-  return tasks
+  const taskWithUsers = tasks
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
     .filter((usage): usage is TaskWithUser => !!usage.user);
+
+  // Calculate hasMore and nextCursor using limit + 1 pattern
+  const hasMore = taskWithUsers.length === limit + 1;
+  const nextCursor =
+    hasMore && taskWithUsers.length > 0
+      ? taskWithUsers[limit - 1]?.timestamp // Use the last item we'll return, not the extra one
+      : undefined;
+
+  // Slice down to the requested limit
+  const finalTasks = hasMore ? taskWithUsers.slice(0, limit) : taskWithUsers;
+
+  return {
+    tasks: finalTasks,
+    hasMore,
+    nextCursor,
+  };
 };
 
 /**
