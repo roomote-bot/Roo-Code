@@ -21,6 +21,8 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 	alwaysAllowBrowser?: boolean
 	alwaysApproveResubmit?: boolean
 	requestDelaySeconds: number
+	minRetryDelaySeconds: number
+	maxRetryDelaySeconds: number
 	alwaysAllowMcp?: boolean
 	alwaysAllowModeSwitch?: boolean
 	alwaysAllowSubtasks?: boolean
@@ -36,6 +38,8 @@ type AutoApproveSettingsProps = HTMLAttributes<HTMLDivElement> & {
 		| "alwaysAllowBrowser"
 		| "alwaysApproveResubmit"
 		| "requestDelaySeconds"
+		| "minRetryDelaySeconds"
+		| "maxRetryDelaySeconds"
 		| "alwaysAllowMcp"
 		| "alwaysAllowModeSwitch"
 		| "alwaysAllowSubtasks"
@@ -54,6 +58,8 @@ export const AutoApproveSettings = ({
 	alwaysAllowBrowser,
 	alwaysApproveResubmit,
 	requestDelaySeconds,
+	minRetryDelaySeconds,
+	maxRetryDelaySeconds,
 	alwaysAllowMcp,
 	alwaysAllowModeSwitch,
 	alwaysAllowSubtasks,
@@ -197,6 +203,46 @@ export const AutoApproveSettings = ({
 							</div>
 							<div className="text-vscode-descriptionForeground text-sm mt-1">
 								{t("settings:autoApprove.retry.delayLabel")}
+							</div>
+						</div>
+						<div>
+							<div className="flex items-center gap-2">
+								<Slider
+									min={1}
+									max={60}
+									step={1}
+									value={[minRetryDelaySeconds]}
+									onValueChange={([value]) => {
+										// Ensure min doesn't exceed max
+										const newMin = Math.min(value, maxRetryDelaySeconds)
+										setCachedStateField("minRetryDelaySeconds", newMin)
+									}}
+									data-testid="min-retry-delay-slider"
+								/>
+								<span className="w-20">{minRetryDelaySeconds}s</span>
+							</div>
+							<div className="text-vscode-descriptionForeground text-sm mt-1">
+								{t("settings:autoApprove.retry.minDelayLabel")}
+							</div>
+						</div>
+						<div>
+							<div className="flex items-center gap-2">
+								<Slider
+									min={10}
+									max={600}
+									step={5}
+									value={[maxRetryDelaySeconds]}
+									onValueChange={([value]) => {
+										// Ensure max doesn't go below min
+										const newMax = Math.max(value, minRetryDelaySeconds)
+										setCachedStateField("maxRetryDelaySeconds", newMax)
+									}}
+									data-testid="max-retry-delay-slider"
+								/>
+								<span className="w-20">{maxRetryDelaySeconds}s</span>
+							</div>
+							<div className="text-vscode-descriptionForeground text-sm mt-1">
+								{t("settings:autoApprove.retry.maxDelayLabel")}
 							</div>
 						</div>
 					</div>

@@ -96,7 +96,9 @@
 		"retry": {
 			"label": "Retry",
 			"description": "Automatically retry failed API requests when server returns an error response",
-			"delayLabel": "Delay before retrying the request"
+			"delayLabel": "Delay before retrying the request",
+			"minDelayLabel": "Minimum retry delay (exponential backoff lower bound)",
+			"maxDelayLabel": "Maximum retry delay (exponential backoff upper bound)"
 		},
 		"mcp": {
 			"label": "MCP",

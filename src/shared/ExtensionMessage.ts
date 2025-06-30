@@ -168,6 +168,8 @@ export type ExtensionState = Pick<
 	| "alwaysAllowBrowser"
 	| "alwaysApproveResubmit"
 	// | "requestDelaySeconds" // Optional in GlobalSettings, required here.
+	| "minRetryDelaySeconds"
+	| "maxRetryDelaySeconds"
 	| "alwaysAllowMcp"
 	| "alwaysAllowModeSwitch"
 	| "alwaysAllowSubtasks"
@@ -229,6 +231,8 @@ export type ExtensionState = Pick<
 
 	writeDelayMs: number
 	requestDelaySeconds: number
+	minRetryDelaySeconds: number
+	maxRetryDelaySeconds: number
 
 	enableCheckpoints: boolean
 	maxOpenTabsContext: number // Maximum number of VSCode open tabs to include in context (0-500)
