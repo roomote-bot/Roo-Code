@@ -44,6 +44,7 @@ import AutoApproveMenu from "./AutoApproveMenu"
 import SystemPromptWarning from "./SystemPromptWarning"
 import ProfileViolationWarning from "./ProfileViolationWarning"
 import { CheckpointWarning } from "./CheckpointWarning"
+import VersionIndicator from "../common/VersionIndicator"
 
 export interface ChatViewProps {
 	isHidden: boolean
@@ -1409,7 +1410,14 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						</div>
 					)}
 					<div
-						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && tasks.length > 0 ? "mt-0" : ""} px-3.5 min-[370px]:px-10 pt-5 transition-all duration-300`}>
+						className={` w-full flex flex-col gap-4 m-auto ${isExpanded && tasks.length > 0 ? "mt-0" : ""} px-3.5 min-[370px]:px-10 pt-5 transition-all duration-300 relative`}>
+						<VersionIndicator
+							onClick={() => {
+								// Handle version indicator click - could show announcement modal or version info
+								console.log("Version indicator clicked")
+							}}
+							className="absolute top-2 right-3 z-10"
+						/>
 						<RooHero />
 						{telemetrySetting === "unset" && <TelemetryBanner />}
 						{/* Show the task history preview if expanded and tasks exist */}
