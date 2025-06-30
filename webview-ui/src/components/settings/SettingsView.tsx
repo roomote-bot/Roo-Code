@@ -22,6 +22,7 @@ import {
 	Globe,
 	Info,
 	MessageSquare,
+	Bot,
 	LucideIcon,
 } from "lucide-react"
 
@@ -65,6 +66,7 @@ import { LanguageSettings } from "./LanguageSettings"
 import { About } from "./About"
 import { Section } from "./Section"
 import PromptsSettings from "./PromptsSettings"
+import ModesView from "../modes/ModesView"
 import { cn } from "@/lib/utils"
 
 export const settingsTabsContainer = "flex flex-1 overflow-hidden [&.narrow_.tab-label]:hidden"
@@ -86,6 +88,7 @@ const sectionNames = [
 	"notifications",
 	"contextManagement",
 	"terminal",
+	"modes",
 	"prompts",
 	"experimental",
 	"language",
@@ -394,6 +397,7 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 			{ id: "notifications", icon: Bell },
 			{ id: "contextManagement", icon: Database },
 			{ id: "terminal", icon: SquareTerminal },
+			{ id: "modes", icon: Bot },
 			{ id: "prompts", icon: MessageSquare },
 			{ id: "experimental", icon: FlaskConical },
 			{ id: "language", icon: Globe },
@@ -668,6 +672,22 @@ const SettingsView = forwardRef<SettingsViewRef, SettingsViewProps>(({ onDone, t
 							terminalCompressProgressBar={terminalCompressProgressBar}
 							setCachedStateField={setCachedStateField}
 						/>
+					)}
+
+					{/* Modes Section */}
+					{activeTab === "modes" && (
+						<div>
+							<SectionHeader>
+								<div className="flex items-center gap-2">
+									<Bot className="w-4" />
+									<div>{t("settings:sections.modes")}</div>
+								</div>
+							</SectionHeader>
+
+							<Section>
+								<ModesView onDone={() => {}} />
+							</Section>
+						</div>
 					)}
 
 					{/* Prompts Section */}

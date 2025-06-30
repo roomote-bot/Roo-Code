@@ -28,6 +28,7 @@
 		"notifications": "Notifications",
 		"contextManagement": "Context",
 		"terminal": "Terminal",
+		"modes": "Modes",
 		"prompts": "Prompts",
 		"experimental": "Experimental",
 		"language": "Language",
