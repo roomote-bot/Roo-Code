@@ -101,7 +101,18 @@ export class TerminalProcess extends BaseTerminalProcess {
 
 		// Create promise that resolves when shell execution completes for this terminal
 		const shellExecutionComplete = new Promise<ExitCodeDetails>((resolve) => {
-			this.once("shell_execution_complete", (details: ExitCodeDetails) => resolve(details))
+			const timeoutId = setTimeout(() => {
+				console.warn(
+					"[TerminalProcess] Shell execution complete event not received within timeout, assuming success. This may indicate a VSCode shell integration issue on this platform.",
+				)
+				// Assume success if we don't get the event (common on Mac)
+				resolve({ exitCode: 0 })
+			}, Terminal.getShellIntegrationTimeout())
+
+			this.once("shell_execution_complete", (details: ExitCodeDetails) => {
+				clearTimeout(timeoutId)
+				resolve(details)
+			})
 		})
 
 		// Execute command

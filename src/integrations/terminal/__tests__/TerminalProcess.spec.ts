@@ -165,6 +165,52 @@ describe("TerminalProcess", () => {
 			await completePromise
 			expect(terminalProcess.isHot).toBe(false)
 		})
+
+		it("handles missing shell_execution_complete event with timeout", async () => {
+			// Temporarily suppress the expected console.warn for this test
+			const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {})
+
+			let completedOutput: string | undefined
+
+			terminalProcess.on("completed", (output) => {
+				completedOutput = output
+			})
+
+			// Mock stream data with shell integration sequences but NO shell_execution_complete event
+			mockStream = (async function* () {
+				yield "\x1b]633;C\x07" // Command start sequence
+				yield "Command output\n"
+				yield "More output"
+				yield "\x1b]633;D\x07" // Command end sequence
+				// NOTE: We intentionally do NOT emit "shell_execution_complete" to simulate the Mac issue
+			})()
+
+			mockTerminal.shellIntegration.executeCommand.mockReturnValue({
+				read: vi.fn().mockReturnValue(mockStream),
+			})
+
+			// Set a very short timeout for testing (override the default)
+			vi.spyOn(Terminal, "getShellIntegrationTimeout").mockReturnValue(100)
+
+			const runPromise = terminalProcess.run("test command")
+			terminalProcess.emit("stream_available", mockStream)
+
+			// Wait for the command to complete via timeout
+			await runPromise
+
+			// Verify the command completed successfully despite missing event
+			expect(completedOutput).toBe("Command output\nMore output")
+			expect(terminalProcess.isHot).toBe(false)
+
+			// Verify warning was logged
+			expect(consoleWarnSpy).toHaveBeenCalledWith(
+				"[TerminalProcess] Shell execution complete event not received within timeout, assuming success. This may indicate a VSCode shell integration issue on this platform.",
+			)
+
+			// Restore mocks
+			consoleWarnSpy.mockRestore()
+			vi.restoreAllMocks()
+		})
 	})
 
 	describe("continue", () => {
