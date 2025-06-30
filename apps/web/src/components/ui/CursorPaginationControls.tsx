@@ -6,11 +6,12 @@ interface CursorPaginationControlsProps {
   pagination: CursorPaginationHook;
   className?: string;
   showPageInfo?: boolean;
+  scrollTargetRef?: React.RefObject<HTMLElement | null>;
 }
 
 export const CursorPaginationControls: React.FC<
   CursorPaginationControlsProps
-> = ({ pagination, className = '', showPageInfo = true }) => {
+> = ({ pagination, className = '', showPageInfo = true, scrollTargetRef }) => {
   const {
     hasNextPage,
     hasPreviousPage,
@@ -18,6 +19,29 @@ export const CursorPaginationControls: React.FC<
     previousPage,
     currentPageIndex,
   } = pagination;
+
+  const scrollToTarget = () => {
+    setTimeout(() => {
+      if (scrollTargetRef?.current) {
+        const rect = scrollTargetRef.current.getBoundingClientRect();
+        const scrollTop = window.pageYOffset + rect.top - 20;
+        window.scrollTo({
+          top: scrollTop,
+          behavior: 'smooth',
+        });
+      }
+    }, 100);
+  };
+
+  const handleNextPage = () => {
+    nextPage();
+    scrollToTarget();
+  };
+
+  const handlePreviousPage = () => {
+    previousPage();
+    scrollToTarget();
+  };
 
   // Don't show pagination if we're on the first page and there's no next page
   if (currentPageIndex === 0 && !hasNextPage) {
@@ -29,7 +53,7 @@ export const CursorPaginationControls: React.FC<
       <Button
         variant="outline"
         size="sm"
-        onClick={previousPage}
+        onClick={handlePreviousPage}
         disabled={!hasPreviousPage}
         className="px-3 py-2"
       >
@@ -45,7 +69,7 @@ export const CursorPaginationControls: React.FC<
       <Button
         variant="outline"
         size="sm"
-        onClick={nextPage}
+        onClick={handleNextPage}
         disabled={!hasNextPage}
         className="px-3 py-2"
       >

@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
@@ -27,6 +27,7 @@ export const Tasks = ({
 }) => {
   const { orgId } = useAuth();
   const polling = useRealtimePolling({ enabled: true, interval: 5000 });
+  const tasksListRef = useRef<HTMLDivElement>(null);
 
   // Initialize cursor-based pagination
   const pagination = useCursorPagination(100);
@@ -102,7 +103,7 @@ export const Tasks = ({
 
   return (
     <div className="space-y-4">
-      <div className="space-y-3 sm:space-y-4">
+      <div ref={tasksListRef} className="space-y-3 sm:space-y-4">
         {tasks.map((task) => (
           <TaskCard
             key={task.taskId}
@@ -115,7 +116,10 @@ export const Tasks = ({
 
       {/* Cursor Pagination Controls */}
       <div className="flex justify-center mt-6">
-        <CursorPaginationControls pagination={pagination} />
+        <CursorPaginationControls
+          pagination={pagination}
+          scrollTargetRef={tasksListRef}
+        />
       </div>
     </div>
   );
