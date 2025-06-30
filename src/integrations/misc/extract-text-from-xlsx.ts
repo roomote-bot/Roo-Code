@@ -98,6 +98,8 @@ export async function extractTextFromXLSX(
 		if (!truncated) {
 			excelText += "\n"
 		}
+
+		return true
 	})
 
 	return excelText.trim()
