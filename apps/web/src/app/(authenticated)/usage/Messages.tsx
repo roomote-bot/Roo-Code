@@ -8,6 +8,7 @@ import { useAutoScroll } from '@/hooks/useAutoScroll';
 
 type MessagesProps = {
   messages: Message[];
+  maxHeight?: string;
 };
 
 type SuggestionItem = string | { answer: string };
@@ -34,7 +35,7 @@ const parseQuestionData = (text: string): QuestionData | null => {
   return null;
 };
 
-export const Messages = ({ messages }: MessagesProps) => {
+export const Messages = ({ messages, maxHeight }: MessagesProps) => {
   const { containerRef, scrollToBottom, autoScrollToBottom, userHasScrolled } =
     useAutoScroll<HTMLDivElement>({
       enabled: true,
@@ -73,7 +74,7 @@ export const Messages = ({ messages }: MessagesProps) => {
       {/* Scrollable messages container */}
       <div
         ref={containerRef}
-        className="max-h-[600px] overflow-y-auto space-y-6 pr-2"
+        className={`space-y-6 pr-2 overflow-y-auto ${maxHeight || ''}`}
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'hsl(var(--border)) transparent',

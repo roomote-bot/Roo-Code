@@ -51,6 +51,7 @@ export const SharedTaskView = ({
       sharedBy={sharedBy}
       sharedAt={sharedAt}
       showSharedInfo={true}
+      limitMessagesHeight={false}
     />
   );
 };
