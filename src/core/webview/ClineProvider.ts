@@ -1673,6 +1673,8 @@ export class ClineProvider
 				codebaseIndexEmbedderModelId: "",
 			},
 			profileThresholds: stateValues.profileThresholds ?? {},
+			minRetryDelaySeconds: stateValues.minRetryDelaySeconds ?? 5,
+			maxRetryDelaySeconds: stateValues.maxRetryDelaySeconds ?? 100,
 		}
 	}
 
