@@ -183,7 +183,18 @@ export const webviewMessageHandler = async (
 			await provider.postStateToWebview()
 			break
 		case "askResponse":
-			provider.getCurrentCline()?.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
+			const currentCline = provider.getCurrentCline()
+			if (currentCline) {
+				// Ensure user messages are properly handled and saved even during file edit operations
+				try {
+					await currentCline.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
+				} catch (error) {
+					// If there's an error in handling the response, log it but don't lose the message
+					provider.log(`Error handling askResponse: ${error}`)
+					// Still try to handle the response to prevent message loss
+					currentCline.handleWebviewAskResponse(message.askResponse!, message.text, message.images)
+				}
+			}
 			break
 		case "autoCondenseContext":
 			await updateGlobalState("autoCondenseContext", message.bool)

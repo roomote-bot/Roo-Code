@@ -525,9 +525,22 @@ export class Task extends EventEmitter<ClineEvents> {
 	}
 
 	async handleWebviewAskResponse(askResponse: ClineAskResponse, text?: string, images?: string[]) {
+		// Store the response data
 		this.askResponse = askResponse
 		this.askResponseText = text
 		this.askResponseImages = images
+
+		// If this is a user message response, ensure it gets saved to chat history
+		// This prevents message loss during file edit operations or state transitions
+		if (askResponse === "messageResponse" && text) {
+			try {
+				// Add user feedback message to chat history immediately
+				await this.say("user_feedback", text, images)
+			} catch (error) {
+				// Log error but don't throw to prevent breaking the response flow
+				console.error(`Failed to save user message to chat history: ${error}`)
+			}
+		}
 	}
 
 	async handleTerminalOperation(terminalOperation: "continue" | "abort") {
