@@ -1721,7 +1721,18 @@ export class Task extends EventEmitter<ClineEvents> {
 				customCondensingPrompt,
 				condensingApiHandler,
 				profileThresholds,
-				currentProfileId: state?.currentApiConfigName || "default",
+				currentProfileId: (() => {
+					// Find the profile ID from the current profile name
+					const currentProfileName = state?.currentApiConfigName || "default"
+					const listApiConfigMeta = state?.listApiConfigMeta
+					if (listApiConfigMeta && Array.isArray(listApiConfigMeta)) {
+						const matchingConfig = listApiConfigMeta.find(
+							(config: any) => config.name === currentProfileName,
+						)
+						return matchingConfig?.id || "default"
+					}
+					return "default"
+				})(),
 			})
 			if (truncateResult.messages !== this.apiConversationHistory) {
 				await this.overwriteApiConversationHistory(truncateResult.messages)

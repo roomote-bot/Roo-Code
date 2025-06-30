@@ -1028,6 +1028,76 @@ describe("Sliding Window", () => {
 			// Clean up
 			summarizeSpy.mockRestore()
 		})
+
+		/**
+		 * Test for GitHub issue #5229: Profile Condense Threshold not working
+		 * This test ensures that profile thresholds are correctly looked up by profile ID,
+		 * not by profile name, when the currentProfileId is resolved from currentApiConfigName
+		 */
+		it("should correctly resolve profile ID from profile name for threshold lookup (GitHub issue #5229)", async () => {
+			const modelInfo = createModelInfo(100000, 30000)
+			const profileThresholds = {
+				"profile-id-123": 25, // Profile threshold keyed by ID, not name
+			}
+			// This simulates the scenario where currentApiConfigName contains the profile name
+			// but profileThresholds is keyed by profile ID
+			const currentProfileId = "profile-id-123" // This should be resolved from profile name
+			const contextWindow = modelInfo.contextWindow
+
+			// Set tokens to 30% of context window - above profile threshold (25%) but below global default (100%)
+			const totalTokens = Math.floor(contextWindow * 0.3) // 30000 tokens
+
+			// Create messages with very small content in the last one to avoid token overflow
+			const messagesWithSmallContent = [
+				...messages.slice(0, -1),
+				{ ...messages[messages.length - 1], content: "" },
+			]
+
+			// Mock the summarizeConversation function
+			const mockSummary = "Profile threshold triggered correctly"
+			const mockCost = 0.02
+			const mockSummarizeResponse: condenseModule.SummarizeResponse = {
+				messages: [
+					{ role: "user", content: "First message" },
+					{ role: "assistant", content: mockSummary, isSummary: true },
+					{ role: "user", content: "Last message" },
+				],
+				summary: mockSummary,
+				cost: mockCost,
+				newContextTokens: 80,
+			}
+
+			const summarizeSpy = vi
+				.spyOn(condenseModule, "summarizeConversation")
+				.mockResolvedValue(mockSummarizeResponse)
+
+			const result = await truncateConversationIfNeeded({
+				messages: messagesWithSmallContent,
+				totalTokens,
+				contextWindow,
+				maxTokens: modelInfo.maxTokens,
+				apiHandler: mockApiHandler,
+				autoCondenseContext: true,
+				autoCondenseContextPercent: 100, // Global threshold of 100%
+				systemPrompt: "System prompt",
+				taskId,
+				profileThresholds,
+				currentProfileId,
+			})
+
+			// Should use summarization because 30% > 25% (profile threshold)
+			// This test verifies that the profile threshold is correctly found using the profile ID
+			expect(summarizeSpy).toHaveBeenCalled()
+			expect(result).toMatchObject({
+				messages: mockSummarizeResponse.messages,
+				summary: mockSummary,
+				cost: mockCost,
+				prevContextTokens: totalTokens,
+			})
+
+			// Clean up
+			summarizeSpy.mockRestore()
+		})
 	})
 
 	/**
