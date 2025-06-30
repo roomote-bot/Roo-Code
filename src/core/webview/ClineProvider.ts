@@ -1418,8 +1418,10 @@ export class ClineProvider
 		const mergedAllowedCommands = this.mergeAllowedCommands(allowedCommands)
 		const cwd = this.cwd
 
-		// Check if there's a system prompt override for the current mode
-		const currentMode = mode ?? defaultModeSlug
+		// Determine the appropriate mode: for first-time users (who haven't opened mode selector),
+		// default to "architect" mode, otherwise use the stored mode or fallback to defaultModeSlug
+		const hasOpenedModeSelector = this.getGlobalState("hasOpenedModeSelector") ?? false
+		const currentMode = mode ?? (hasOpenedModeSelector ? defaultModeSlug : "architect")
 		const hasSystemPromptOverride = await this.hasFileBasedSystemPromptOverride(currentMode)
 
 		return {
@@ -1479,7 +1481,7 @@ export class ClineProvider
 			currentApiConfigName: currentApiConfigName ?? "default",
 			listApiConfigMeta: listApiConfigMeta ?? [],
 			pinnedApiConfigs: pinnedApiConfigs ?? {},
-			mode: mode ?? defaultModeSlug,
+			mode: currentMode,
 			customModePrompts: customModePrompts ?? {},
 			customSupportPrompts: customSupportPrompts ?? {},
 			enhancementApiConfigId,
