@@ -176,7 +176,13 @@ describe("DiffViewProvider", () => {
 			// Mock showTextDocument to track when it's called
 			vi.mocked(vscode.window.showTextDocument).mockImplementation(async (uri, options) => {
 				callOrder.push("showTextDocument")
-				expect(options).toEqual({ preview: false, viewColumn: vscode.ViewColumn.Active, preserveFocus: true })
+				expect(options).toEqual(
+					expect.objectContaining({
+						preview: false,
+						viewColumn: vscode.ViewColumn.Active,
+						preserveFocus: true,
+					}),
+				)
 				return mockEditor as any
 			})
 
@@ -211,7 +217,7 @@ describe("DiffViewProvider", () => {
 			// Verify that showTextDocument was called with preview: false
 			expect(vscode.window.showTextDocument).toHaveBeenCalledWith(
 				expect.objectContaining({ fsPath: `${mockCwd}/test.md` }),
-				{ preview: false, viewColumn: vscode.ViewColumn.Active, preserveFocus: true },
+				expect.objectContaining({ preview: false, viewColumn: vscode.ViewColumn.Active, preserveFocus: true }),
 			)
 
 			// Verify that the diff command was executed

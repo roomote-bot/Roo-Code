@@ -503,8 +503,9 @@ export class DiffViewProvider {
 
 			// Pre-open the file as a text document to ensure it doesn't open in preview mode
 			// This fixes issues with files that have custom editor associations (like markdown preview)
+			const showOptions = { preview: false, viewColumn: vscode.ViewColumn.Active, preserveFocus: true }
 			vscode.window
-				.showTextDocument(uri, { preview: false, viewColumn: vscode.ViewColumn.Active, preserveFocus: true })
+				.showTextDocument(uri, showOptions)
 				.then(() => {
 					// Execute the diff command after ensuring the file is open as text
 					return vscode.commands.executeCommand(
