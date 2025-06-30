@@ -97,24 +97,24 @@
 		},
 		"stickyModels": {
 			"title": "Sticky Models",
-			"description": "Each mode remembers your last used model"
+			"description": "Each agent remembers your last used model"
 		},
 		"tools": {
 			"title": "Tools",
 			"description": "Allow the AI to solve problems by browsing the web, running commands, and more"
 		},
 		"customizableModes": {
-			"title": "Customizable Modes",
+			"title": "Customizable Agents",
 			"description": "Specialized personas with their own behaviors and assigned models"
 		}
 	},
-	"selectMode": "Select mode for interaction",
+	"selectMode": "Select agent for interaction",
 	"selectApiConfig": "Select API configuration",
 	"enhancePrompt": "Enhance prompt with additional context",
 	"modeSelector": {
-		"title": "Modes",
-		"marketplace": "Mode Marketplace",
-		"settings": "Mode Settings",
+		"title": "Agents",
+		"marketplace": "Agent Marketplace",
+		"settings": "Agent Settings",
 		"description": "Specialized personas that tailor Roo's behavior."
 	},
 	"enhancePromptDescription": "The 'Enhance Prompt' button helps improve your prompt by providing additional context, clarification, or rephrasing. Try typing a prompt in here and clicking the button again to see how it works.",
@@ -122,14 +122,14 @@
 	"sendMessage": "Send message",
 	"typeMessage": "Type a message...",
 	"typeTask": "Type your task here...",
-	"addContext": "@ to add context, / to switch modes",
+	"addContext": "@ to add context, / to switch agents",
 	"dragFiles": "hold shift to drag in files",
 	"dragFilesImages": "hold shift to drag in files/images",
 	"errorReadingFile": "Error reading file:",
 	"noValidImages": "No valid images were processed",
 	"separator": "Separator",
 	"edit": "Edit...",
-	"forNextMode": "for next mode",
+	"forNextMode": "for next agent",
 	"apiRequest": {
 		"title": "API Request",
 		"failed": "API Request Failed",
@@ -211,13 +211,13 @@
 		"wantsToAccessResource": "Roo wants to access a resource on the {{serverName}} MCP server:"
 	},
 	"modes": {
-		"wantsToSwitch": "Roo wants to switch to {{mode}} mode",
-		"wantsToSwitchWithReason": "Roo wants to switch to {{mode}} mode because: {{reason}}",
-		"didSwitch": "Roo switched to {{mode}} mode",
-		"didSwitchWithReason": "Roo switched to {{mode}} mode because: {{reason}}"
+		"wantsToSwitch": "Roo wants to switch to {{mode}} agent",
+		"wantsToSwitchWithReason": "Roo wants to switch to {{mode}} agent because: {{reason}}",
+		"didSwitch": "Roo switched to {{mode}} agent",
+		"didSwitchWithReason": "Roo switched to {{mode}} agent because: {{reason}}"
 	},
 	"subtasks": {
-		"wantsToCreate": "Roo wants to create a new subtask in {{mode}} mode:",
+		"wantsToCreate": "Roo wants to create a new subtask in {{mode}} agent:",
 		"wantsToFinish": "Roo wants to finish this subtask",
 		"newTaskContent": "Subtask Instructions",
 		"completionContent": "Subtask Completed",
@@ -246,7 +246,7 @@
 		"title": "🎉 Roo Code {{version}} Released",
 		"description": "Roo Code {{version}} brings major new features and improvements based on your feedback.",
 		"whatsNew": "What's New",
-		"feature1": "<bold>Roo Marketplace Launch</bold>: The marketplace is now live! Discover and install modes and MCPs easier than ever before.",
+		"feature1": "<bold>Roo Marketplace Launch</bold>: The marketplace is now live! Discover and install agents and MCPs easier than ever before.",
 		"feature2": "<bold>Gemini 2.5 Models</bold>: Added support for new Gemini 2.5 Pro, Flash, and Flash Lite models.",
 		"feature3": "<bold>Excel File Support & More</bold>: Added Excel (.xlsx) file support and numerous bug fixes and improvements!",
 		"hideButton": "Hide announcement",

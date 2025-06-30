@@ -1,22 +1,22 @@
 {
-	"title": "Modes",
+	"title": "Agents",
 	"done": "Done",
 	"modes": {
-		"title": "Modes",
-		"createNewMode": "Create new mode",
-		"editModesConfig": "Edit modes configuration",
-		"editGlobalModes": "Edit Global Modes",
-		"editProjectModes": "Edit Project Modes (.roomodes)",
-		"createModeHelpText": "Modes are specialized personas that tailor Roo's behavior. <0>Learn about Using Modes</0> or <1>Customizing Modes.</1>",
-		"selectMode": "Search modes"
+		"title": "Agents",
+		"createNewMode": "Create new agent",
+		"editModesConfig": "Edit agents configuration",
+		"editGlobalModes": "Edit Global Agents",
+		"editProjectModes": "Edit Project Agents (.roomodes)",
+		"createModeHelpText": "Agents are specialized personas that tailor Roo's behavior. <0>Learn about Using Agents</0> or <1>Customizing Agents.</1>",
+		"selectMode": "Search agents"
 	},
 	"apiConfiguration": {
 		"title": "API Configuration",
-		"select": "Select which API configuration to use for this mode"
+		"select": "Select which API configuration to use for this agent"
 	},
 	"tools": {
 		"title": "Available Tools",
-		"builtInModesText": "Tools for built-in modes cannot be modified",
+		"builtInModesText": "Tools for built-in agents cannot be modified",
 		"editTools": "Edit tools",
 		"doneEditing": "Done editing",
 		"allowedFiles": "Allowed files:",
@@ -32,33 +32,33 @@
 	"roleDefinition": {
 		"title": "Role Definition",
 		"resetToDefault": "Reset to default",
-		"description": "Define Roo's expertise and personality for this mode. This description shapes how Roo presents itself and approaches tasks."
+		"description": "Define Roo's expertise and personality for this agent. This description shapes how Roo presents itself and approaches tasks."
 	},
 	"description": {
 		"title": "Short description (for humans)",
 		"resetToDefault": "Reset to default description",
-		"description": "A brief description shown in the mode selector dropdown."
+		"description": "A brief description shown in the agent selector dropdown."
 	},
 	"whenToUse": {
 		"title": "When to Use (optional)",
-		"description": "Guidance for Roo for when this mode should be used. This helps the Orchestrator choose the right mode for a task.",
+		"description": "Guidance for Roo for when this agent should be used. This helps the Orchestrator choose the right agent for a task.",
 		"resetToDefault": "Reset to default 'When to Use' description"
 	},
 	"customInstructions": {
-		"title": "Mode-specific Custom Instructions (optional)",
+		"title": "Agent-specific Custom Instructions (optional)",
 		"resetToDefault": "Reset to default",
-		"description": "Add behavioral guidelines specific to {{modeName}} mode.",
-		"loadFromFile": "Custom instructions specific to {{mode}} mode can also be loaded from the <span>.roo/rules-{{slug}}/</span> folder in your workspace (.roorules-{{slug}} and .clinerules-{{slug}} are deprecated and will stop working soon)."
+		"description": "Add behavioral guidelines specific to {{modeName}} agent.",
+		"loadFromFile": "Custom instructions specific to {{mode}} agent can also be loaded from the <span>.roo/rules-{{slug}}/</span> folder in your workspace (.roorules-{{slug}} and .clinerules-{{slug}} are deprecated and will stop working soon)."
 	},
 	"globalCustomInstructions": {
-		"title": "Custom Instructions for All Modes",
-		"description": "These instructions apply to all modes. They provide a base set of behaviors that can be enhanced by mode-specific instructions below. <0>Learn more</0>",
+		"title": "Custom Instructions for All Agents",
+		"description": "These instructions apply to all agents. They provide a base set of behaviors that can be enhanced by agent-specific instructions below. <0>Learn more</0>",
 		"loadFromFile": "Instructions can also be loaded from the <span>.roo/rules/</span> folder in your workspace (.roorules and .clinerules are deprecated and will stop working soon)."
 	},
 	"systemPrompt": {
 		"preview": "Preview System Prompt",
 		"copy": "Copy system prompt to clipboard",
-		"title": "System Prompt ({{modeName}} mode)"
+		"title": "System Prompt ({{modeName}} agent)"
 	},
 	"supportPrompts": {
 		"title": "Support Prompts",
@@ -116,11 +116,11 @@
 		"description": "<2>⚠️ Warning:</2> This advanced feature bypasses safeguards. <1>READ THIS BEFORE USING!</1>Override the default system prompt by creating a file at <span>.roo/system-prompt-{{slug}}</span>."
 	},
 	"createModeDialog": {
-		"title": "Create New Mode",
+		"title": "Create New Agent",
 		"close": "Close",
 		"name": {
 			"label": "Name",
-			"placeholder": "Enter mode name"
+			"placeholder": "Enter agent name"
 		},
 		"slug": {
 			"label": "Slug",
@@ -128,7 +128,7 @@
 		},
 		"saveLocation": {
 			"label": "Save Location",
-			"description": "Choose where to save this mode. Project-specific modes take precedence over global modes.",
+			"description": "Choose where to save this agent. Project-specific agents take precedence over global agents.",
 			"global": {
 				"label": "Global",
 				"description": "Available in all workspaces"
@@ -140,29 +140,29 @@
 		},
 		"roleDefinition": {
 			"label": "Role Definition",
-			"description": "Define Roo's expertise and personality for this mode."
+			"description": "Define Roo's expertise and personality for this agent."
 		},
 		"description": {
 			"label": "Short description (for humans)",
-			"description": "A brief description shown in the mode selector dropdown."
+			"description": "A brief description shown in the agent selector dropdown."
 		},
 		"whenToUse": {
 			"label": "When to Use (optional)",
-			"description": "Guidance for Roo for when this mode should be used. This helps the Orchestrator choose the right mode for a task."
+			"description": "Guidance for Roo for when this agent should be used. This helps the Orchestrator choose the right agent for a task."
 		},
 		"tools": {
 			"label": "Available Tools",
-			"description": "Select which tools this mode can use."
+			"description": "Select which tools this agent can use."
 		},
 		"customInstructions": {
 			"label": "Custom Instructions (optional)",
-			"description": "Add behavioral guidelines specific to this mode."
+			"description": "Add behavioral guidelines specific to this agent."
 		},
 		"buttons": {
 			"cancel": "Cancel",
-			"create": "Create Mode"
+			"create": "Create Agent"
 		},
-		"deleteMode": "Delete mode"
+		"deleteMode": "Delete agent"
 	},
 	"allFiles": "all files"
 }

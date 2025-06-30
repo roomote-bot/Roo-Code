@@ -41,9 +41,9 @@
 - Run terminal commands
 - Automate browser actions
 - Integrate with any OpenAI-compatible or custom API/model
-- Adapt its “personality” and capabilities through **Custom Modes**
+- Adapt its "personality" and capabilities through **Custom Agents**
 
-Whether you’re seeking a flexible coding partner, a system architect, or specialized roles like a QA engineer or product manager, Roo Code can help you build software more efficiently.
+Whether you're seeking a flexible coding partner, a system architect, or specialized roles like a QA engineer or product manager, Roo Code can help you build software more efficiently.
 
 Check out the [CHANGELOG](CHANGELOG.md) for detailed updates and fixes.
 
@@ -53,7 +53,7 @@ Check out the [CHANGELOG](CHANGELOG.md) for detailed updates and fixes.
 
 Roo Code 3.21 brings major new features and improvements based on your feedback!
 
-- **Roo Marketplace Launch** - The marketplace is now live! The marketplace is now live! Discover and install modes and MCPs easier than ever before.
+- **Roo Marketplace Launch** - The marketplace is now live! The marketplace is now live! Discover and install agents and MCPs easier than ever before.
 - **Gemini 2.5 Models** - Added support for new Gemini 2.5 Pro, Flash, and Flash Lite models.
 - **Excel File Support & More** - Added Excel (.xlsx) file support and numerous bug fixes and improvements!
 
@@ -76,15 +76,15 @@ Roo Code 3.21 brings major new features and improvements based on your feedback!
 
 ## Key Features
 
-### Multiple Modes
+### Multiple Agents
 
-Roo Code adapts to your needs with specialized [modes](https://docs.roocode.com/basic-usage/using-modes):
+Roo Code adapts to your needs with specialized [agents](https://docs.roocode.com/basic-usage/using-modes):
 
 - **Code Mode:** For general-purpose coding tasks
 - **Architect Mode:** For planning and technical leadership
 - **Ask Mode:** For answering questions and providing information
 - **Debug Mode:** For systematic problem diagnosis
-- **[Custom Modes](https://docs.roocode.com/advanced-usage/custom-modes):** Create unlimited specialized personas for security auditing, performance optimization, documentation, or any other task
+- **[Custom Agents](https://docs.roocode.com/advanced-usage/custom-modes):** Create unlimited specialized personas for security auditing, performance optimization, documentation, or any other task
 
 ### Smart Tools
 
@@ -102,7 +102,7 @@ MCP extends Roo Code's capabilities by allowing you to add unlimited custom tool
 Make Roo Code work your way with:
 
 - [Custom Instructions](https://docs.roocode.com/advanced-usage/custom-instructions) for personalized behavior
-- [Custom Modes](https://docs.roocode.com/advanced-usage/custom-modes) for specialized tasks
+- [Custom Agents](https://docs.roocode.com/advanced-usage/custom-modes) for specialized tasks
 - [Local Models](https://docs.roocode.com/advanced-usage/local-models) for offline use
 - [Auto-Approval Settings](https://docs.roocode.com/advanced-usage/auto-approving-actions) for faster workflows
 
@@ -220,4 +220,4 @@ Thanks to all our contributors who have helped make Roo Code better!
 
 ---
 
-**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can’t wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/RooCode/) or [Discord](https://discord.gg/roocode). Happy coding!
+**Enjoy Roo Code!** Whether you keep it on a short leash or let it roam autonomously, we can't wait to see what you build. If you have questions or feature ideas, drop by our [Reddit community](https://www.reddit.com/r/RooCode/) or [Discord](https://discord.gg/roocode). Happy coding!
