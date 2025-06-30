@@ -1,6 +1,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 # Deploy with: `fly deploy --config fly.roomote-controller.toml`
+# Connect with: `fly machine run $(fly releases --image -a roomote-controller -j 2>/dev/null | jq -r '.[0].ImageRef') --rm --shell -a roomote-controller`
 
 app = "roomote-controller"
 primary_region = "sjc" # See `fly platform regions`

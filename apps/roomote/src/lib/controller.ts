@@ -1,12 +1,12 @@
-import { spawn } from 'child_process';
 import { Queue } from 'bullmq';
+import { execa } from 'execa';
 
 import { redis } from './redis';
 import { isFlyMachine, isDockerContainer } from './utils';
 
 export class WorkerController {
   private readonly POLL_INTERVAL_MS = 5000;
-  private readonly MAX_WORKERS = 5;
+  private readonly MAX_WORKERS = 2;
 
   private queue: Queue;
   public isRunning = false;
@@ -84,7 +84,7 @@ export class WorkerController {
       let command;
 
       if (isFlyMachine()) {
-        command = `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --rm --shell --command "pnpm worker:production" -a roomote-worker`;
+        command = `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --restart on-fail --rm --shell --command "pnpm worker:production" -a roomote-worker`;
       } else if (isDockerContainer()) {
         const dockerArgs = [
           `--name roomote-${workerId}`,
@@ -103,38 +103,21 @@ export class WorkerController {
       }
 
       console.log('Spawning worker with command:', command);
-
-      const childProcess = spawn('sh', ['-c', command], {
-        detached: true,
-        stdio: ['ignore', 'pipe', 'pipe'],
-      });
-
-      if (childProcess.stdout) {
-        childProcess.stdout.on('data', (data) => {
-          console.log(data.toString());
-        });
-      }
-
-      if (childProcess.stderr) {
-        childProcess.stderr.on('data', (data) => {
-          console.error(data.toString());
-        });
-      }
+      const subprocess = execa({ shell: '/bin/bash' })`${command}`;
+      subprocess.stdout?.pipe(process.stdout);
+      subprocess.stderr?.pipe(process.stderr);
 
       this.activeWorkers.add(workerId);
 
-      childProcess.on('exit', (code) => {
-        console.log(`Worker ${workerId} exited with code ${code}`);
-        this.activeWorkers.delete(workerId);
-      });
-
-      childProcess.on('error', (error) => {
-        console.error(`Worker ${workerId} error:`, error);
-        this.activeWorkers.delete(workerId);
-      });
-
-      // Detach the process so it can run independently.
-      childProcess.unref();
+      subprocess
+        .then((result) => {
+          console.log(`Worker ${workerId} exited with code ${result.exitCode}`);
+          this.activeWorkers.delete(workerId);
+        })
+        .catch((error) => {
+          console.error(`Worker ${workerId} error:`, error);
+          this.activeWorkers.delete(workerId);
+        });
     } catch (error) {
       console.error(`Failed to spawn worker ${workerId}:`, error);
       this.activeWorkers.delete(workerId);
@@ -142,7 +125,6 @@ export class WorkerController {
   }
 }
 
-// Only run if this file is executed directly (not imported).
 if (import.meta.url === `file://${process.argv[1]}`) {
   const controller = new WorkerController();
 

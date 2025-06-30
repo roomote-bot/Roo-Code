@@ -30,6 +30,11 @@ RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /
   && apt update && apt install -y docker-ce-cli \
   && rm -rf /var/lib/apt/lists/*
 
+# Install flyctl
+RUN curl -fsSL https://fly.io/install.sh | sh
+RUN echo 'export FLYCTL_INSTALL="/root/.fly"' >> ~/.bashrc
+RUN echo "export PATH=\"\$FLYCTL_INSTALL/bin:\$PATH\"" >> ~/.bashrc
+
 WORKDIR /roo
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json .env.* ./

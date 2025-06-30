@@ -1,7 +1,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 # Deploy with: `fly deploy --config fly.roomote-worker.toml --build-arg GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.production)`
-# Test with: `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --rm --shell --command "pnpm cli:production prompt --text 'Tell me a pirate joke.' --mode code --workspace-path /roo/repos/Roo-Code-Cloud" -a roomote-worker`
+# Test with: `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --restart on-fail --rm --shell --command "pnpm cli:production prompt --text 'Tell me a pirate joke.' --mode code --workspace-path /roo/repos/Roo-Code-Cloud" -a roomote-worker`
 
 app = "roomote-worker"
 primary_region = "sjc" # See `fly platform regions`
