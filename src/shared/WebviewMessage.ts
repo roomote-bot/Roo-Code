@@ -12,7 +12,12 @@ import { marketplaceItemSchema } from "@roo-code/types"
 
 import { Mode } from "./modes"
 
-export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "messageResponse" | "objectResponse"
+export type ClineAskResponse =
+	| "yesButtonClicked"
+	| "noButtonClicked"
+	| "addAndRunButtonClicked"
+	| "messageResponse"
+	| "objectResponse"
 
 export type PromptMode = Mode | "enhance"
 

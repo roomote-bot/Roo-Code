@@ -51,9 +51,42 @@ export async function executeCommandTool(
 			cline.consecutiveMistakeCount = 0
 
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
-			const didApprove = await askApproval("command", command)
 
-			if (!didApprove) {
+			// We need to capture the actual response to check if "Add & Run" was clicked
+			const { response, text, images } = await cline.ask("command", command)
+
+			if (response === "yesButtonClicked" || response === "addAndRunButtonClicked") {
+				// Handle yesButtonClicked or addAndRunButtonClicked with text.
+				if (text) {
+					await cline.say("user_feedback", text, images)
+				}
+
+				// Check if user selected "Add & Run" to add command to whitelist
+				if (response === "addAndRunButtonClicked") {
+					const clineProvider = await cline.providerRef.deref()
+					if (clineProvider) {
+						const state = await clineProvider.getState()
+						const currentCommands = state.allowedCommands ?? []
+
+						// Add command to whitelist if not already present
+						if (!currentCommands.includes(command)) {
+							const newCommands = [...currentCommands, command]
+							await clineProvider.setValue("allowedCommands", newCommands)
+
+							// Notify webview of the updated commands
+							await clineProvider.postMessageToWebview({
+								type: "invoke",
+								invoke: "setChatBoxMessage",
+								text: `Command "${command}" added to whitelist.`,
+							})
+						}
+					}
+				}
+			} else {
+				// Handle both messageResponse and noButtonClicked with text.
+				if (text) {
+					await cline.say("user_feedback", text, images)
+				}
 				return
 			}
 

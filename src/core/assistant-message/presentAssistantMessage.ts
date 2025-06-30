@@ -271,7 +271,14 @@ export async function presentAssistantMessage(cline: Task) {
 					isProtected || false,
 				)
 
-				if (response !== "yesButtonClicked") {
+				if (response === "yesButtonClicked" || response === "addAndRunButtonClicked") {
+					// Handle yesButtonClicked or addAndRunButtonClicked with text.
+					if (text) {
+						await cline.say("user_feedback", text, images)
+						pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
+					}
+					return true
+				} else {
 					// Handle both messageResponse and noButtonClicked with text.
 					if (text) {
 						await cline.say("user_feedback", text, images)
@@ -282,14 +289,6 @@ export async function presentAssistantMessage(cline: Task) {
 					cline.didRejectTool = true
 					return false
 				}
-
-				// Handle yesButtonClicked with text.
-				if (text) {
-					await cline.say("user_feedback", text, images)
-					pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
-				}
-
-				return true
 			}
 
 			const askFinishSubTaskApproval = async () => {
