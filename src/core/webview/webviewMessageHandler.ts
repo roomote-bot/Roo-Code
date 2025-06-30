@@ -1727,5 +1727,21 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
+		case "addReaction":
+			if (message.messageTs !== undefined && message.emoji) {
+				const currentTask = provider.getCurrentCline()
+				if (currentTask) {
+					await currentTask.addReaction(message.messageTs, message.emoji)
+				}
+			}
+			break
+		case "removeReaction":
+			if (message.messageTs !== undefined && message.emoji) {
+				const currentTask = provider.getCurrentCline()
+				if (currentTask) {
+					await currentTask.removeReaction(message.messageTs, message.emoji)
+				}
+			}
+			break
 	}
 }

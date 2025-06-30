@@ -373,6 +373,34 @@ export class Task extends EventEmitter<ClineEvents> {
 		await this.saveClineMessages()
 	}
 
+	public async addReaction(messageTs: number, emoji: string) {
+		const message = this.clineMessages.find(m => m.ts === messageTs)
+		if (message) {
+			if (!message.reactions) {
+				message.reactions = {}
+			}
+			message.reactions[emoji] = (message.reactions[emoji] || 0) + 1
+			await this.saveClineMessages()
+			
+			const provider = this.providerRef.deref()
+			await provider?.postStateToWebview()
+		}
+	}
+
+	public async removeReaction(messageTs: number, emoji: string) {
+		const message = this.clineMessages.find(m => m.ts === messageTs)
+		if (message && message.reactions && message.reactions[emoji]) {
+			message.reactions[emoji] = Math.max(0, message.reactions[emoji] - 1)
+			if (message.reactions[emoji] === 0) {
+				delete message.reactions[emoji]
+			}
+			await this.saveClineMessages()
+			
+			const provider = this.providerRef.deref()
+			await provider?.postStateToWebview()
+		}
+	}
+
 	private async updateClineMessage(message: ClineMessage) {
 		const provider = this.providerRef.deref()
 		await provider?.postMessageToWebview({ type: "messageUpdated", clineMessage: message })

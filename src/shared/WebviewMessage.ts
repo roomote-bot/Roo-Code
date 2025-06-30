@@ -175,6 +175,8 @@ export interface WebviewMessage {
 		| "switchTab"
 		| "profileThresholds"
 		| "shareTaskSuccess"
+		| "addReaction"
+		| "removeReaction"
 	text?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
@@ -213,6 +215,8 @@ export interface WebviewMessage {
 	mpInstallOptions?: InstallMarketplaceItemOptions
 	config?: Record<string, any> // Add config to the payload
 	visibility?: ShareVisibility // For share visibility
+	messageTs?: number // For reaction messages
+	emoji?: string // For reaction messages
 }
 
 export const checkoutDiffPayloadSchema = z.object({

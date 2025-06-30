@@ -39,6 +39,7 @@ import { CommandExecutionError } from "./CommandExecutionError"
 import { AutoApprovedRequestLimitWarning } from "./AutoApprovedRequestLimitWarning"
 import { CondenseContextErrorRow, CondensingContextRow, ContextCondenseRow } from "./ContextCondenseRow"
 import CodebaseSearchResultsDisplay from "./CodebaseSearchResultsDisplay"
+import EmojiReactions from "./EmojiReactions"
 
 interface ChatRowProps {
 	message: ClineMessage
@@ -111,6 +112,23 @@ export const ChatRowContent = ({
 	const handleToggleExpand = useCallback(() => {
 		onToggleExpand(message.ts)
 	}, [onToggleExpand, message.ts])
+
+	// Emoji reaction handlers
+	const handleAddReaction = useCallback((emoji: string) => {
+		vscode.postMessage({ 
+			type: "addReaction", 
+			messageTs: message.ts, 
+			emoji 
+		})
+	}, [message.ts])
+
+	const handleRemoveReaction = useCallback((emoji: string) => {
+		vscode.postMessage({ 
+			type: "removeReaction", 
+			messageTs: message.ts, 
+			emoji 
+		})
+	}, [message.ts])
 
 	const [cost, apiReqCancelReason, apiReqStreamingFailedMessage] = useMemo(() => {
 		if (message.text !== null && message.text !== undefined && message.say === "api_req_started") {
@@ -975,6 +993,14 @@ export const ChatRowContent = ({
 					return (
 						<div>
 							<Markdown markdown={message.text} partial={message.partial} />
+							{!message.partial && (
+								<EmojiReactions
+									messageTs={message.ts}
+									reactions={message.reactions}
+									onAddReaction={handleAddReaction}
+									onRemoveReaction={handleRemoveReaction}
+								/>
+							)}
 						</div>
 					)
 				case "user_feedback":
@@ -999,6 +1025,13 @@ export const ChatRowContent = ({
 							{message.images && message.images.length > 0 && (
 								<Thumbnails images={message.images} style={{ marginTop: "8px" }} />
 							)}
+							<EmojiReactions
+								messageTs={message.ts}
+								reactions={message.reactions}
+								onAddReaction={handleAddReaction}
+								onRemoveReaction={handleRemoveReaction}
+								className="px-2 pb-1"
+							/>
 						</div>
 					)
 				case "user_feedback_diff":
@@ -1035,6 +1068,12 @@ export const ChatRowContent = ({
 							</div>
 							<div style={{ color: "var(--vscode-charts-green)", paddingTop: 10 }}>
 								<Markdown markdown={message.text} />
+								<EmojiReactions
+									messageTs={message.ts}
+									reactions={message.reactions}
+									onAddReaction={handleAddReaction}
+									onRemoveReaction={handleRemoveReaction}
+								/>
 							</div>
 						</>
 					)
@@ -1191,6 +1230,14 @@ export const ChatRowContent = ({
 								</div>
 								<div style={{ color: "var(--vscode-charts-green)", paddingTop: 10 }}>
 									<Markdown markdown={message.text} partial={message.partial} />
+									{!message.partial && (
+										<EmojiReactions
+											messageTs={message.ts}
+											reactions={message.reactions}
+											onAddReaction={handleAddReaction}
+											onRemoveReaction={handleRemoveReaction}
+										/>
+									)}
 								</div>
 							</div>
 						)

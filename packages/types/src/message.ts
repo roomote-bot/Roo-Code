@@ -154,6 +154,7 @@ export const clineMessageSchema = z.object({
 	progressStatus: toolProgressStatusSchema.optional(),
 	contextCondense: contextCondenseSchema.optional(),
 	isProtected: z.boolean().optional(),
+	reactions: z.record(z.string(), z.number()).optional(), // emoji -> count mapping
 })
 
 export type ClineMessage = z.infer<typeof clineMessageSchema>
