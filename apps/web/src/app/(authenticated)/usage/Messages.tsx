@@ -5,6 +5,7 @@ import type { Message } from '@/actions/analytics';
 import { cn } from '@/lib/utils';
 import { formatTimestamp } from '@/lib/formatters';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
+import { CodeBlock } from '@/components/ui/CodeBlock';
 
 // Custom component to render links as plain text to avoid broken/nonsensical links
 const PlainTextLink = ({ children }: { children?: React.ReactNode }) => {
@@ -146,6 +147,7 @@ export const Messages = ({ messages }: MessagesProps) => {
                   <ReactMarkdown
                     components={{
                       a: PlainTextLink,
+                      code: CodeBlock,
                     }}
                   >
                     {message.text}

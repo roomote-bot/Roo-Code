@@ -274,4 +274,103 @@
       @apply italic;
     }
   }
+
+  .mermaid-diagram {
+    & svg {
+      @apply max-w-full h-auto;
+      pointer-events: none;
+    }
+
+    /* Allow pointer events on interactive elements within the SVG */
+    & svg a,
+    & svg button,
+    & svg [role='button'] {
+      pointer-events: auto;
+    }
+
+    /* Ensure mermaid diagrams respect theme colors */
+    & .node rect,
+    & .node circle,
+    & .node ellipse,
+    & .node polygon {
+      @apply fill-background stroke-border;
+    }
+
+    & .node .label {
+      @apply fill-foreground;
+    }
+
+    & .edgePath .path {
+      @apply stroke-foreground;
+    }
+
+    & .edgeLabel {
+      @apply fill-background;
+    }
+
+    & .cluster rect {
+      @apply fill-muted stroke-border;
+    }
+
+    & .titleText {
+      @apply fill-foreground;
+    }
+
+    /* Sequence diagram specific styles */
+    & .actor {
+      @apply fill-background stroke-border;
+    }
+
+    & .actor-line {
+      @apply stroke-border;
+    }
+
+    & .messageLine0,
+    & .messageLine1 {
+      @apply stroke-foreground;
+    }
+
+    & .messageText {
+      @apply fill-foreground;
+    }
+
+    & .loopText {
+      @apply fill-foreground;
+    }
+
+    /* Flowchart specific styles */
+    & .flowchart-link {
+      @apply stroke-foreground;
+    }
+
+    /* Gantt chart specific styles */
+    & .section0,
+    & .section1,
+    & .section2,
+    & .section3 {
+      @apply fill-muted;
+    }
+
+    & .task0,
+    & .task1,
+    & .task2,
+    & .task3 {
+      @apply fill-primary;
+    }
+
+    & .taskText0,
+    & .taskText1,
+    & .taskText2,
+    & .taskText3 {
+      @apply fill-primary-foreground;
+    }
+
+    & .grid .tick {
+      @apply stroke-border;
+    }
+
+    & .grid .tick text {
+      @apply fill-muted-foreground;
+    }
+  }
 }
