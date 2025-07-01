@@ -44,6 +44,44 @@ const parseQuestionData = (text: string): QuestionData | null => {
   return null;
 };
 
+type DecoratedMessage = Omit<Message, 'timestamp'> & {
+  role: 'user' | 'assistant';
+  name: string;
+  timestamp: string;
+  showHeader?: boolean;
+};
+
+// Determine if a message should show its header based on grouping rules
+const shouldShowHeader = (
+  message: DecoratedMessage,
+  index: number,
+  messages: DecoratedMessage[],
+  groupingWindowMinutes: number,
+): boolean => {
+  // Always show header for first message or user messages
+  if (index === 0 || message.role === 'user') return true;
+
+  const prevMessage = messages[index - 1];
+  if (!prevMessage) return true; // Safety check
+
+  // Show header if previous message was from user
+  if (prevMessage.role === 'user') return true;
+
+  // Show header if mode changed
+  if (message.mode !== prevMessage.mode) return true;
+
+  // Show header if time gap between consecutive messages exceeds threshold
+  // Use the original timestamp (number) for calculation
+  const currentTime = message.ts;
+  const prevTime = prevMessage.ts;
+  const gapMinutes = (currentTime - prevTime) / (1000 * 60);
+
+  return gapMinutes > groupingWindowMinutes;
+};
+
+// Constant for message grouping window (in minutes)
+const GROUPING_WINDOW_MINUTES = 5;
+
 export const Messages = ({
   messages,
   enableMessageLinks = false,
@@ -74,9 +112,25 @@ export const Messages = ({
       );
     });
 
-    return deduplicatedMessages.map((message, index) =>
+    // Decorate messages with role, name, and timestamp
+    const decoratedMessages = deduplicatedMessages.map((message, index) =>
       decorate({ message, index }),
     );
+
+    // Add grouping information to each message
+    return decoratedMessages.map((message, index) => {
+      const showHeader = shouldShowHeader(
+        message,
+        index,
+        decoratedMessages,
+        GROUPING_WINDOW_MINUTES,
+      );
+
+      return {
+        ...message,
+        showHeader,
+      };
+    });
   }, [messages]);
 
   // Handle anchor link clicks
@@ -142,50 +196,75 @@ export const Messages = ({
       {/* Scrollable messages container */}
       <div
         ref={containerRef}
-        className="space-y-6 pr-2 overflow-y-auto"
+        className="pr-2 overflow-y-auto"
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'hsl(var(--border)) transparent',
         }}
       >
-        {conversation.map((message) => {
-          const isQuestion =
-            message.type === 'ask' && message.ask === 'followup';
-          const isCommand = message.type === 'ask' && message.ask === 'command';
-          const questionData =
-            isQuestion && message.text ? parseQuestionData(message.text) : null;
+        <div className="space-y-1">
+          {conversation.map((message, index) => {
+            const isQuestion =
+              message.type === 'ask' && message.ask === 'followup';
+            const isCommand =
+              message.type === 'ask' && message.ask === 'command';
+            const questionData =
+              isQuestion && message.text
+                ? parseQuestionData(message.text)
+                : null;
 
-          const messageId = `message-${message.id}`;
+            const messageId = `message-${message.id}`;
 
-          return (
-            <div
-              key={message.id}
-              id={messageId}
-              className={cn(
-                'flex flex-col gap-3 rounded-lg p-4 relative transition-all duration-200',
-                message.role === 'user' ? 'bg-primary/10' : 'bg-secondary/10',
-                enableMessageLinks && 'hover:shadow-sm hover:bg-opacity-80',
-              )}
-              onMouseEnter={() =>
-                enableMessageLinks && setHoveredMessageId(messageId)
-              }
-              onMouseLeave={() =>
-                enableMessageLinks && setHoveredMessageId(null)
-              }
-            >
-              <div className="flex flex-row items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div>{message.name}</div>
-                  <div>&middot;</div>
-                  <div>{message.timestamp}</div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {/* Anchor Link Button */}
-                  {enableMessageLinks && hoveredMessageId === messageId && (
+            return (
+              <div
+                key={message.id}
+                id={messageId}
+                className={cn(
+                  'flex flex-col relative transition-all duration-200 gap-3 rounded-lg p-4',
+                  message.role === 'user'
+                    ? 'bg-primary/15 border border-primary/20 shadow-sm'
+                    : 'bg-secondary/10',
+                  enableMessageLinks && 'hover:shadow-sm hover:bg-opacity-80',
+                  // Add extra top margin for messages that start a new group
+                  message.showHeader && index > 0 && 'mt-4',
+                )}
+                onMouseEnter={() =>
+                  enableMessageLinks && setHoveredMessageId(messageId)
+                }
+                onMouseLeave={() =>
+                  enableMessageLinks && setHoveredMessageId(null)
+                }
+              >
+                {message.showHeader && (
+                  <div
+                    className={cn(
+                      'flex flex-row items-center justify-between gap-2 text-xs font-medium',
+                      message.role === 'user'
+                        ? 'text-primary font-semibold'
+                        : 'text-muted-foreground',
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div>{message.name}</div>
+                      <div>&middot;</div>
+                      <div>{message.timestamp}</div>
+                      {message.mode && (
+                        <>
+                          <div>&middot;</div>
+                          <div>{message.mode}</div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Anchor Link Button - shown on hover for all messages */}
+                {enableMessageLinks && hoveredMessageId === messageId && (
+                  <div className="absolute top-2 right-2 z-10">
                     <button
                       onClick={() => handleAnchorClick(messageId)}
                       className={cn(
-                        'p-1 rounded hover:bg-muted transition-colors duration-200 cursor-pointer',
+                        'p-1 rounded bg-background/90 backdrop-blur-sm border border-border/50 shadow-sm hover:bg-muted transition-colors duration-200 cursor-pointer',
                         clickedMessageId === messageId && 'bg-primary/10',
                       )}
                       title="Copy link to this message"
@@ -198,59 +277,54 @@ export const Messages = ({
                         )}
                       />
                     </button>
-                  )}
-                  {message.mode && (
-                    <div className="px-2 py-1 bg-muted rounded text-xs font-medium">
-                      {message.mode}
-                    </div>
-                  )}
-                </div>
-              </div>
+                  </div>
+                )}
 
-              {isQuestion && questionData ? (
-                <div className="space-y-4">
-                  {questionData.question && (
-                    <div className="text-sm leading-relaxed">
-                      {questionData.question}
-                    </div>
-                  )}
-                  {questionData.suggestions &&
-                    questionData.suggestions.length > 0 && (
-                      <div className="space-y-2">
-                        {questionData.suggestions.map((suggestion, index) => (
-                          <div
-                            key={index}
-                            className="px-4 py-3 bg-background border border-border rounded-md text-sm hover:bg-muted/50 cursor-pointer transition-colors"
-                          >
-                            {typeof suggestion === 'string'
-                              ? suggestion
-                              : suggestion.answer}
-                          </div>
-                        ))}
+                {isQuestion && questionData ? (
+                  <div className="space-y-4">
+                    {questionData.question && (
+                      <div className="text-sm leading-relaxed">
+                        {questionData.question}
                       </div>
                     )}
-                </div>
-              ) : isCommand ? (
-                <div className="space-y-3">
-                  <div className="bg-black/90 text-foreground p-3 rounded-md font-mono text-sm">
-                    {message.text}
+                    {questionData.suggestions &&
+                      questionData.suggestions.length > 0 && (
+                        <div className="space-y-2">
+                          {questionData.suggestions.map((suggestion, index) => (
+                            <div
+                              key={index}
+                              className="px-4 py-3 bg-background border border-border rounded-md text-sm hover:bg-muted/50 cursor-pointer transition-colors"
+                            >
+                              {typeof suggestion === 'string'
+                                ? suggestion
+                                : suggestion.answer}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                   </div>
-                </div>
-              ) : (
-                <div className="text-sm leading-relaxed markdown-prose">
-                  <ReactMarkdown
-                    components={{
-                      a: PlainTextLink,
-                      code: CodeBlock,
-                    }}
-                  >
-                    {message.text}
-                  </ReactMarkdown>
-                </div>
-              )}
-            </div>
-          );
-        })}
+                ) : isCommand ? (
+                  <div className="space-y-3">
+                    <div className="bg-black/90 text-foreground p-3 rounded-md font-mono text-sm">
+                      {message.text}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-sm leading-relaxed markdown-prose">
+                    <ReactMarkdown
+                      components={{
+                        a: PlainTextLink,
+                        code: CodeBlock,
+                      }}
+                    >
+                      {message.text}
+                    </ReactMarkdown>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Scroll to bottom button - shown when user has scrolled up */}
@@ -282,8 +356,14 @@ export const Messages = ({
   );
 };
 
-const decorate = ({ message, index }: { message: Message; index: number }) => {
-  const role =
+const decorate = ({
+  message,
+  index,
+}: {
+  message: Message;
+  index: number;
+}): DecoratedMessage => {
+  const role: 'user' | 'assistant' =
     index === 0 || message.say === 'user_feedback' ? 'user' : 'assistant';
 
   const name = role === 'user' ? 'User' : 'Roo Code';
