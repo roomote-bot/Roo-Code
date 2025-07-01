@@ -123,6 +123,17 @@ export const createJobSchema = z.discriminatedUnion('type', [
     }),
   }),
   z.object({
+    type: z.literal('slack.app.mention'),
+    payload: z.object({
+      channel: z.string(),
+      user: z.string(),
+      text: z.string(),
+      ts: z.string(),
+      thread_ts: z.string().optional(),
+      workspace: z.string(),
+    }),
+  }),
+  z.object({
     type: z.literal('test.prompt'),
     payload: z.object({
       text: z.string(),

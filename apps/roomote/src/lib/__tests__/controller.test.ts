@@ -1,12 +1,14 @@
 // npx vitest src/lib/__tests__/controller.test.ts
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
 const mockQueue = {
   getWaiting: vi.fn(() => Promise.resolve([])),
   getActive: vi.fn(() => Promise.resolve([])),
   close: vi.fn(() => Promise.resolve()),
   on: vi.fn(),
+};
+
+const mockWorker = {
+  startStalledCheckTimer: vi.fn(),
 };
 
 const mockSpawn = vi.fn(() => ({
@@ -37,8 +39,11 @@ vi.mock('fs', () => ({
 
 const mockQueueConstructor = vi.fn(() => mockQueue);
 
+const mockWorkerConstructor = vi.fn(() => mockWorker);
+
 vi.mock('bullmq', () => ({
   Queue: mockQueueConstructor,
+  Worker: mockWorkerConstructor,
 }));
 
 describe('WorkerController', () => {

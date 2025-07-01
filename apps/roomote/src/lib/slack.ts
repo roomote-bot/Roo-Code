@@ -27,7 +27,7 @@ export class SlackNotifier {
     this.token = token;
   }
 
-  private async postMessage(message: SlackMessage): Promise<string | null> {
+  public async postMessage(message: SlackMessage): Promise<string | null> {
     try {
       const messageWithChannel = {
         ...message,
@@ -120,6 +120,21 @@ export class SlackNotifier {
           ],
         });
       }
+      case 'slack.app.mention': {
+        const payload = jobPayload as JobPayload<'slack.app.mention'>;
+        return await this.postMessage({
+          text: `🚀 Task Started`,
+          blocks: [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `🚀 *Task Started*\nProcessing your Slack mention from <#${payload.channel}>\n*Message:* ${payload.text.slice(0, 100)}${payload.text.length > 100 ? '...' : ''}`,
+              },
+            },
+          ],
+        });
+      }
       default:
         throw new Error(`Unknown job type: ${jobType}`);
     }
@@ -158,9 +173,5 @@ export class SlackNotifier {
       ],
       thread_ts: threadTs,
     });
-  }
-
-  public async sendMessage(message: SlackMessage): Promise<string | null> {
-    return await this.postMessage(message);
   }
 }

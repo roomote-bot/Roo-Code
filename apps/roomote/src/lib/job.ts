@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { Job } from 'bullmq';
 
+import type { ClineMessage } from '@roo-code/types';
 import {
   type JobType,
   type JobStatus,
@@ -14,6 +15,10 @@ import {
 import { fixGitHubIssue } from './jobs/fixGitHubIssue';
 import { processPullRequestComment } from './jobs/processPullRequestComment';
 import { processIssueComment } from './jobs/processIssueComment';
+import { processSlackMention } from './jobs/processSlackMention';
+import { SlackNotifier } from './slack';
+
+const slack = new SlackNotifier();
 
 export async function processJob<T extends JobType>({
   data: { type, payload, jobId },
@@ -31,20 +36,17 @@ export async function processJob<T extends JobType>({
         result = await fixGitHubIssue(
           payload as JobPayload<'github.issue.fix'>,
           {
-            onTaskStarted: async (
+            onTaskStarted: (
               slackThreadTs: string | null | undefined,
               _rooTaskId: string,
-            ) => {
-              if (slackThreadTs) {
-                await updateJobStatus(
-                  jobId,
-                  'processing',
-                  undefined,
-                  undefined,
-                  slackThreadTs,
-                );
-              }
-            },
+            ) =>
+              updateJobStatus(
+                jobId,
+                'processing',
+                undefined,
+                undefined,
+                slackThreadTs,
+              ),
           },
         );
 
@@ -53,20 +55,17 @@ export async function processJob<T extends JobType>({
         result = await processIssueComment(
           payload as JobPayload<'github.issue.comment.respond'>,
           {
-            onTaskStarted: async (
+            onTaskStarted: (
               slackThreadTs: string | null | undefined,
               _rooTaskId: string,
-            ) => {
-              if (slackThreadTs) {
-                await updateJobStatus(
-                  jobId,
-                  'processing',
-                  undefined,
-                  undefined,
-                  slackThreadTs,
-                );
-              }
-            },
+            ) =>
+              updateJobStatus(
+                jobId,
+                'processing',
+                undefined,
+                undefined,
+                slackThreadTs,
+              ),
           },
         );
 
@@ -75,34 +74,60 @@ export async function processJob<T extends JobType>({
         result = await processPullRequestComment(
           payload as JobPayload<'github.pr.comment.respond'>,
           {
-            onTaskStarted: async (
+            onTaskStarted: (
               slackThreadTs: string | null | undefined,
               _rooTaskId: string,
-            ) => {
-              if (slackThreadTs) {
-                await updateJobStatus(
-                  jobId,
-                  'processing',
-                  undefined,
-                  undefined,
-                  slackThreadTs,
-                );
-              }
-            },
+            ) =>
+              updateJobStatus(
+                jobId,
+                'processing',
+                undefined,
+                undefined,
+                slackThreadTs,
+              ),
           },
         );
 
         break;
+      case 'slack.app.mention': {
+        const jobPayload = payload as JobPayload<'slack.app.mention'>;
+        const { channel, thread_ts } = jobPayload;
+
+        result = await processSlackMention(jobPayload, {
+          onTaskStarted: (
+            slackThreadTs: string | null | undefined,
+            _rooTaskId: string,
+          ) =>
+            updateJobStatus(
+              jobId,
+              'processing',
+              undefined,
+              undefined,
+              slackThreadTs,
+            ),
+          onTaskMessage: async (message: ClineMessage) => {
+            console.log(`onTaskMessage (${channel}, ${thread_ts}) ->`, message);
+
+            if (
+              (message.say === 'text' || message.say === 'completion_result') &&
+              message.text &&
+              thread_ts
+            ) {
+              slack.postMessage({ text: message.text, channel, thread_ts });
+            }
+          },
+        });
+
+        break;
+      }
       default:
         throw new Error(`Unknown job type: ${type}`);
     }
 
     await updateJobStatus(jobId, 'completed', result);
-    console.log(
-      `[${job.name} | ${job.id}] Job ${jobId} completed successfully`,
-    );
+    console.log(`[${job.name} | ${job.id}] ✅`);
   } catch (error) {
-    console.error(`[${job.name} | ${job.id}] Job ${jobId} failed:`, error);
+    console.error(`[${job.name} | ${job.id}] ❌`, error);
     const errorMessage = error instanceof Error ? error.message : String(error);
     await updateJobStatus(jobId, 'failed', undefined, errorMessage);
     throw error; // Re-throw to mark job as failed in BullMQ.
@@ -114,7 +139,7 @@ async function updateJobStatus(
   status: JobStatus,
   result?: unknown,
   error?: string,
-  slackThreadTs?: string,
+  slackThreadTs?: string | null,
 ) {
   const values: UpdateCloudJob = { status };
 

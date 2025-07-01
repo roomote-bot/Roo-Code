@@ -8,6 +8,7 @@ import { execa } from 'execa';
 
 import {
   type RooCodeSettings,
+  type ClineMessage,
   TaskCommandName,
   RooCodeEventName,
   IpcMessageType,
@@ -35,6 +36,7 @@ export type RunTaskCallbacks = {
     slackThreadTs: string | null | undefined,
     rooTaskId: string,
   ) => Promise<void>;
+  onTaskMessage?: (message: ClineMessage) => Promise<void>;
   onTaskAborted?: (slackThreadTs: string | null | undefined) => Promise<void>;
   onTaskCompleted?: (
     slackThreadTs: string | null | undefined,
@@ -50,7 +52,7 @@ type RunTaskOptions<T extends JobType> = {
   jobType: T;
   jobPayload: JobPayload<T>;
   prompt: string;
-  logger: Logger;
+  logger?: Logger;
   callbacks?: RunTaskCallbacks;
   notify?: boolean;
   workspacePath?: string;
@@ -79,6 +81,14 @@ export const runTask = async <T extends JobType>({
   const codeCommand = containerized
     ? `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath} xvfb-run --auto-servernum --server-num=1 code --wait --log trace --disable-workspace-trust --disable-gpu --disable-lcd-text --no-sandbox --user-data-dir /roo/.vscode --password-store="basic" -n ${workspacePath}`
     : `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath} code --disable-workspace-trust -n ${workspacePath}`;
+
+  if (!logger) {
+    logger = new Logger({
+      logDir: path.resolve(os.tmpdir(), 'logs'),
+      filename: 'worker.log',
+      tag: 'worker',
+    });
+  }
 
   logger.info(codeCommand);
 
@@ -150,6 +160,14 @@ export const runTask = async <T extends JobType>({
         payload[0].message.partial !== true)
     ) {
       logger.info(`${eventName} ->`, payload);
+    }
+
+    if (
+      eventName === RooCodeEventName.Message &&
+      payload[0].message.partial !== true &&
+      callbacks?.onTaskMessage
+    ) {
+      await callbacks.onTaskMessage(payload[0].message);
     }
 
     if (eventName === RooCodeEventName.TaskStarted) {
@@ -252,11 +270,14 @@ export const runTask = async <T extends JobType>({
 
     if (rooTaskId && !isClientDisconnected) {
       logger.info('cancelling task');
+
       client.sendCommand({
         commandName: TaskCommandName.CancelTask,
         data: rooTaskId,
       });
-      await new Promise((resolve) => setTimeout(resolve, 5_000)); // Allow some time for the task to cancel.
+
+      // Allow some time for the task to cancel.
+      await new Promise((resolve) => setTimeout(resolve, 5_000));
     }
 
     taskFinishedAt = Date.now();
@@ -282,11 +303,14 @@ export const runTask = async <T extends JobType>({
 
   if (rooTaskId && !isClientDisconnected) {
     logger.info('closing task');
+
     client.sendCommand({
       commandName: TaskCommandName.CloseTask,
       data: rooTaskId,
     });
-    await new Promise((resolve) => setTimeout(resolve, 2_000)); // Allow some time for the window to close.
+
+    // Allow some time for the window to close.
+    await new Promise((resolve) => setTimeout(resolve, 2_000));
   }
 
   if (!isClientDisconnected) {

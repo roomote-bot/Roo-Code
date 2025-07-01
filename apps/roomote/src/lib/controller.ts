@@ -1,4 +1,4 @@
-import { Queue } from 'bullmq';
+import { Queue, Worker } from 'bullmq';
 import { execa } from 'execa';
 
 import { redis } from './redis';
@@ -9,28 +9,34 @@ export class WorkerController {
   private readonly MAX_WORKERS = 2;
 
   private queue: Queue;
+  private stalledJobsWorker: Worker;
   public isRunning = false;
   private pollingInterval: NodeJS.Timeout | null = null;
   private activeWorkers = new Set<string>();
 
   constructor() {
     this.queue = new Queue('roomote', { connection: redis });
+
+    this.stalledJobsWorker = new Worker('roomote', undefined, {
+      autorun: false,
+      connection: redis,
+    });
   }
 
   async start() {
     if (this.isRunning) {
-      console.log('Controller is already running');
       return;
     }
 
     this.isRunning = true;
-    console.log('Worker controller started');
 
     await this.checkAndSpawnWorker();
 
     this.pollingInterval = setInterval(async () => {
       await this.checkAndSpawnWorker();
     }, this.POLL_INTERVAL_MS);
+
+    await this.stalledJobsWorker.startStalledCheckTimer();
   }
 
   async stop() {
@@ -92,7 +98,9 @@ export class WorkerController {
           '--network roo-code-cloud_default',
           `-e APP_ENV=${process.env.APP_ENV || 'development'}`,
           `-e GH_TOKEN=${process.env.GH_TOKEN}`,
+          `-e DOTENV_PRIVATE_KEY_DEVELOPMENT=${process.env.DOTENV_PRIVATE_KEY_DEVELOPMENT}`,
           `-e DOTENV_PRIVATE_KEY_PRODUCTION=${process.env.DOTENV_PRIVATE_KEY_PRODUCTION}`,
+          `-e WORKSPACE_ROOT=${process.env.WORKSPACE_ROOT}`,
           '-v /var/run/docker.sock:/var/run/docker.sock',
           '-v /tmp/roomote:/var/log/roomote',
         ];

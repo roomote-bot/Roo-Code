@@ -21,3 +21,6 @@ Thumbs.db
 # docker
 **/.docker/data
 **/.docker/logs
+
+# logs
+*.log

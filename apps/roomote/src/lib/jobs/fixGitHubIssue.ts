@@ -1,10 +1,6 @@
-import * as path from 'path';
-import * as os from 'node:os';
-
 import type { JobType, JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
-import { Logger } from '../logger';
 
 const jobType: JobType = 'github.issue.fix';
 
@@ -31,11 +27,6 @@ Issue #${jobPayload.issue}
     jobType,
     jobPayload,
     prompt,
-    logger: new Logger({
-      logDir: path.resolve(os.tmpdir(), 'logs'),
-      filename: 'worker.log',
-      tag: 'worker',
-    }),
     callbacks,
     settings: {
       mode: 'issue-fixer',

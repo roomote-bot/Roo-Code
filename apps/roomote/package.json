@@ -9,7 +9,7 @@
     "dev": "dotenvx run -f ../../.env.development -- next dev --turbopack --port 3001",
     "build": "dotenvx run -f ../../.env.production -- next build",
     "start": "dotenvx run -f ../../.env.production -- next start --port 3001",
-    "controller": "dotenvx run -f ../../.env.development -- tsx src/lib/controller.ts",
+    "controller": "dotenvx run -f ../../.env.development -f ../../.env.keys -f ../../.env.local -- tsx src/lib/controller.ts",
     "controller:production": "dotenvx run -f ../../.env.production -- tsx src/lib/controller.ts",
     "worker": "dotenvx run -f ../../.env.development -- tsx src/lib/worker.ts",
     "worker:production": "dotenvx run -f ../../.env.production -- tsx src/lib/worker.ts",

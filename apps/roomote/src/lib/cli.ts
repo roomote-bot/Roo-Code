@@ -1,6 +1,3 @@
-import * as path from 'path';
-import * as os from 'node:os';
-
 import {
   command,
   run,
@@ -19,7 +16,6 @@ import {
   processPullRequestComment,
 } from '@/lib/jobs';
 import { runTask } from '@/lib/runTask';
-import { Logger } from '@/lib/logger';
 
 const fixIssueCommand = command({
   name: 'fix-issue',
@@ -277,11 +273,6 @@ const promptCommand = command({
       jobType: 'test.prompt',
       jobPayload: { text },
       prompt: text,
-      logger: new Logger({
-        logDir: path.resolve(os.tmpdir(), 'logs'),
-        filename: 'cli.log',
-        tag: 'worker',
-      }),
       notify: false,
       workspacePath,
       settings: { mode },
