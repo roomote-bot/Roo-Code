@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@clerk/nextjs';
+import { useEffect } from 'react';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { getMessages } from '@/actions/analytics';
@@ -7,7 +8,7 @@ import { canShareTask } from '@/actions/taskSharing';
 import { useOrganizationSettings } from '@/hooks/useOrganizationSettings';
 import { useRealtimePolling } from '@/hooks/useRealtimePolling';
 import { QueryKey } from '@/types/react-query';
-import { Dialog, DialogContentLarge } from '@/components/ui';
+import { Dialog, DialogContentFullScreen } from '@/components/ui';
 import { ShareButton } from '@/components/task-sharing/ShareButton';
 import { TaskDetails } from '@/components/task-sharing/TaskDetails';
 
@@ -51,15 +52,32 @@ export const TaskModal = ({ task, open, onClose }: TaskModalProps) => {
     </>
   );
 
+  // Handle ESC key to close modal
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && open) {
+        onClose();
+      }
+    };
+
+    if (open) {
+      document.addEventListener('keydown', handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open, onClose]);
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContentLarge>
+      <DialogContentFullScreen>
         <TaskDetails
           task={task}
           messages={messages}
           headerActions={headerActions}
         />
-      </DialogContentLarge>
+      </DialogContentFullScreen>
     </Dialog>
   );
 };

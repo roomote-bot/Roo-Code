@@ -13,7 +13,6 @@ const PlainTextLink = ({ children }: { children?: React.ReactNode }) => {
 
 type MessagesProps = {
   messages: Message[];
-  maxHeight?: string;
 };
 
 type SuggestionItem = string | { answer: string };
@@ -40,7 +39,7 @@ const parseQuestionData = (text: string): QuestionData | null => {
   return null;
 };
 
-export const Messages = ({ messages, maxHeight }: MessagesProps) => {
+export const Messages = ({ messages }: MessagesProps) => {
   const { containerRef, scrollToBottom, autoScrollToBottom, userHasScrolled } =
     useAutoScroll<HTMLDivElement>({
       enabled: true,
@@ -79,7 +78,7 @@ export const Messages = ({ messages, maxHeight }: MessagesProps) => {
       {/* Scrollable messages container */}
       <div
         ref={containerRef}
-        className={`space-y-6 pr-2 overflow-y-auto ${maxHeight || ''}`}
+        className="space-y-6 pr-2 overflow-y-auto"
         style={{
           scrollbarWidth: 'thin',
           scrollbarColor: 'hsl(var(--border)) transparent',

@@ -147,11 +147,45 @@ function DialogDescription({
   );
 }
 
+function DialogContentFullScreen({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  return (
+    <DialogPortal data-slot="dialog-portal">
+      <DialogPrimitive.Overlay
+        data-slot="dialog-overlay"
+        className="fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
+      />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          'fixed inset-0 z-50 bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 duration-200',
+          className,
+        )}
+        {...props}
+      >
+        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-6 right-6 z-10 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+          <XIcon />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+        <div className="h-full overflow-y-auto">
+          <div className="container mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            {children}
+          </div>
+        </div>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  );
+}
+
 export {
   Dialog,
   DialogClose,
   DialogContent,
   DialogContentLarge,
+  DialogContentFullScreen,
   DialogDescription,
   DialogFooter,
   DialogHeader,

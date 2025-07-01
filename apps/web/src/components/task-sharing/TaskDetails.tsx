@@ -22,7 +22,6 @@ type TaskDetailsProps = {
   sharedAt?: Date;
   showSharedInfo?: boolean;
   headerActions?: React.ReactNode;
-  limitMessagesHeight?: boolean;
 };
 
 export const TaskDetails = ({
@@ -32,12 +31,11 @@ export const TaskDetails = ({
   sharedAt,
   showSharedInfo = false,
   headerActions,
-  limitMessagesHeight = true,
 }: TaskDetailsProps) => {
   const taskTitle = task.title || generateFallbackTitle(task);
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="space-y-6">
       {/* Task Header */}
       <Card>
         <CardHeader>
@@ -154,10 +152,7 @@ export const TaskDetails = ({
             <CardTitle>Conversation</CardTitle>
           </CardHeader>
           <CardContent>
-            <Messages
-              messages={messages}
-              maxHeight={limitMessagesHeight ? 'max-h-[600px]' : undefined}
-            />
+            <Messages messages={messages} />
           </CardContent>
         </Card>
       ) : (
