@@ -19,13 +19,69 @@ export function extractCommandPattern(command: string): string {
 	const trimmedCommand = command.trim()
 
 	// Check if this is a chained command
-	const chainMatch = trimmedCommand.match(/^(.+?)\s*(&&|\|\||;|\|)\s*(.+)$/)
-	if (chainMatch) {
-		// Handle chained commands by processing each part
-		const [, firstPart, operator, restPart] = chainMatch
-		const firstPattern = extractSingleCommandPattern(firstPart.trim())
-		const restPattern = extractCommandPattern(restPart.trim())
-		return `${firstPattern} ${operator} ${restPattern}`
+	// Use a more robust regex that handles nested quotes properly
+	const operators = ["&&", "||", ";", "|"]
+	let chainOperator: string | null = null
+	let splitIndex = -1
+
+	// Find the first unquoted operator
+	let inSingleQuote = false
+	let inDoubleQuote = false
+	let escapeNext = false
+
+	for (let i = 0; i < trimmedCommand.length; i++) {
+		const char = trimmedCommand[i]
+
+		if (escapeNext) {
+			escapeNext = false
+			continue
+		}
+
+		if (char === "\\") {
+			escapeNext = true
+			continue
+		}
+
+		if (char === "'" && !inDoubleQuote) {
+			inSingleQuote = !inSingleQuote
+			continue
+		}
+
+		if (char === '"' && !inSingleQuote) {
+			inDoubleQuote = !inDoubleQuote
+			continue
+		}
+
+		// Only look for operators outside of quotes
+		if (!inSingleQuote && !inDoubleQuote) {
+			for (const op of operators) {
+				if (trimmedCommand.substring(i, i + op.length) === op) {
+					chainOperator = op
+					splitIndex = i
+					break
+				}
+			}
+			if (chainOperator) break
+		}
+	}
+
+	if (chainOperator && splitIndex > 0) {
+		const firstPart = trimmedCommand.substring(0, splitIndex).trim()
+		const restPart = trimmedCommand.substring(splitIndex + chainOperator.length).trim()
+
+		// Process each part separately
+		const firstPattern = extractSingleCommandPattern(firstPart)
+		const restPattern = extractCommandPattern(restPart)
+
+		// For security, limit the depth of chained commands
+		// Count existing operators in the pattern to prevent deeply nested chains
+		const operatorCount = (restPattern.match(/&&|\|\||;|\|/g) || []).length
+		if (operatorCount >= 3) {
+			// Too many chained commands, return a more restrictive pattern
+			return firstPattern
+		}
+
+		return `${firstPattern} ${chainOperator} ${restPattern}`
 	}
 
 	// Not a chained command, process normally
@@ -95,14 +151,24 @@ function extractSingleCommandPattern(command: string): string {
 	// 1. npm/yarn/pnpm commands - include subcommand with wildcards for scripts
 	if (["npm", "yarn", "pnpm", "bun"].includes(baseCommand) && tokens.length > 1) {
 		const subCommand = tokens[1]
-		// For "run" commands, include "run" with wildcard for script names
+		// For "run" commands, be more specific about patterns
 		if (subCommand === "run" && tokens.length > 2) {
-			// Check if the script name contains special characters like colons
 			const scriptName = tokens[2]
+			// Check if there are additional arguments after the script name
+			const hasDoubleDash = tokens.includes("--")
+			const doubleDashIndex = hasDoubleDash ? tokens.indexOf("--") : -1
+
+			// For scripts with colons or complex names
 			if (scriptName && (scriptName.includes(":") || scriptName.includes("-"))) {
+				// If there's a double dash with additional args, include the full script name
+				if (hasDoubleDash && doubleDashIndex > 2) {
+					return `${baseCommand} run ${scriptName}`
+				}
+				// Otherwise use wildcard for flexibility
 				return `${baseCommand} run *`
 			}
-			return `${baseCommand} run`
+			// For simple script names, include the script name itself
+			return `${baseCommand} run ${scriptName}`
 		}
 		// For direct scripts like "npm test", "npm build", include the script name
 		if (!subCommand.startsWith("-")) {
@@ -139,7 +205,7 @@ function extractSingleCommandPattern(command: string): string {
 		return baseCommand
 	}
 
-	// 6. cd command - include wildcard for paths
+	// 6. cd command - use wildcard for flexibility
 	if (baseCommand === "cd") {
 		return "cd *"
 	}
@@ -158,6 +224,23 @@ function extractSingleCommandPattern(command: string): string {
 		if (!target.startsWith("-")) {
 			return `${baseCommand} ${target}`
 		}
+	}
+
+	// 9. Environment variables - handle with care
+	if (baseCommand.includes("=")) {
+		// This might be an environment variable like NODE_ENV=production
+		const envMatch = baseCommand.match(/^([A-Z_]+)=/)
+		if (envMatch) {
+			// Don't include the value, just the variable name pattern
+			return `${envMatch[1]}=*`
+		}
+	}
+
+	// 10. Commands with suspicious patterns - be restrictive
+	// Check for potential command injection patterns
+	if (baseCommand.includes("$") || baseCommand.includes("`") || baseCommand.includes("(")) {
+		// These could be command substitutions or variables, be very restrictive
+		return baseCommand.split(/[$`(]/)[0].trim() || "echo"
 	}
 
 	// Default: just return the base command

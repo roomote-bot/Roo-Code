@@ -11,11 +11,17 @@ describe("extractCommandPattern", () => {
 
 	describe("npm/yarn/pnpm/bun commands", () => {
 		it("extracts npm run patterns", () => {
-			expect(extractCommandPattern("npm run build")).toBe("npm run")
+			expect(extractCommandPattern("npm run build")).toBe("npm run build")
 			expect(extractCommandPattern("npm run test:unit")).toBe("npm run *")
-			expect(extractCommandPattern("yarn run dev")).toBe("yarn run")
-			expect(extractCommandPattern("pnpm run lint")).toBe("pnpm run")
-			expect(extractCommandPattern("bun run start")).toBe("bun run")
+			expect(extractCommandPattern("yarn run dev")).toBe("yarn run dev")
+			expect(extractCommandPattern("pnpm run lint")).toBe("pnpm run lint")
+			expect(extractCommandPattern("bun run start")).toBe("bun run start")
+		})
+
+		it("handles npm run with additional arguments", () => {
+			expect(extractCommandPattern("npm run build:prod -- --env=production")).toBe("npm run build:prod")
+			expect(extractCommandPattern("npm run test -- --coverage")).toBe("npm run test")
+			expect(extractCommandPattern("npm run build:dev --watch")).toBe("npm run *")
 		})
 
 		it("extracts npm script patterns", () => {
@@ -79,7 +85,7 @@ describe("extractCommandPattern", () => {
 			expect(extractCommandPattern("cd /path && npm install")).toBe("cd * && npm install")
 			expect(extractCommandPattern("npm test || echo 'failed'")).toBe("npm test || echo")
 			expect(extractCommandPattern("git pull; npm install; npm run build")).toBe(
-				"git pull ; npm install ; npm run",
+				"git pull ; npm install ; npm run build",
 			)
 			expect(extractCommandPattern("echo 'start' | grep start")).toBe("echo | grep")
 		})
@@ -137,11 +143,31 @@ describe("extractCommandPattern", () => {
 			expect(extractCommandPattern("cd /home/user/project")).toBe("cd *")
 			expect(extractCommandPattern("cd ..")).toBe("cd *")
 			expect(extractCommandPattern("cd")).toBe("cd *")
+			expect(extractCommandPattern("cd /usr/local/bin")).toBe("cd *")
 		})
 
 		it("handles commands with environment variables", () => {
-			expect(extractCommandPattern("NODE_ENV=production npm start")).toBe("NODE_ENV=production")
-			expect(extractCommandPattern("PORT=3000 node server.js")).toBe("PORT=3000")
+			expect(extractCommandPattern("NODE_ENV=production npm start")).toBe("NODE_ENV=*")
+			expect(extractCommandPattern("PORT=3000 node server.js")).toBe("PORT=*")
+		})
+
+		it("handles dangerous commands more carefully", () => {
+			expect(extractCommandPattern("rm -rf /")).toBe("rm")
+			expect(extractCommandPattern("rm -rf node_modules")).toBe("rm")
+			expect(extractCommandPattern("find . -name '*.log' -delete")).toBe("find")
+		})
+
+		it("handles command injection patterns", () => {
+			expect(extractCommandPattern("echo $(whoami)")).toBe("echo")
+			expect(extractCommandPattern("echo `date`")).toBe("echo")
+			expect(extractCommandPattern("bash -c 'echo hello'")).toBe("bash")
+		})
+
+		it("limits deeply chained commands", () => {
+			const deepChain = "echo 1 && echo 2 && echo 3 && echo 4 && echo 5"
+			const result = extractCommandPattern(deepChain)
+			// Should stop at some point to prevent overly complex patterns
+			expect(result).toBe("echo")
 		})
 	})
 })
