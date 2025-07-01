@@ -46,6 +46,10 @@
 		"title": "सहेजें",
 		"tooltip": "फ़ाइल परिवर्तन सहेजें"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "अस्वीकार करें",
 		"tooltip": "इस क्रिया को अस्वीकार करें"

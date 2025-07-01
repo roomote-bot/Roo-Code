@@ -46,6 +46,10 @@
 		"title": "Lưu",
 		"tooltip": "Lưu các thay đổi tệp"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Từ chối",
 		"tooltip": "Từ chối hành động này"

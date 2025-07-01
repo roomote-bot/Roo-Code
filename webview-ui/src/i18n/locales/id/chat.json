@@ -52,6 +52,10 @@
 		"tokensUsed": "Token digunakan: {{used}} dari {{total}}",
 		"reservedForResponse": "Dicadangkan untuk respons model: {{amount}} token"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Tolak",
 		"tooltip": "Tolak aksi ini"

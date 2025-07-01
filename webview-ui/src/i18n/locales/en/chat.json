@@ -46,6 +46,10 @@
 		"tokensUsed": "Tokens used: {{used}} of {{total}}",
 		"reservedForResponse": "Reserved for model response: {{amount}} tokens"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Reject",
 		"tooltip": "Reject this action"

@@ -15,84 +15,9 @@ import { ExitCodeDetails, RooTerminalCallbacks, RooTerminalProcess } from "../..
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
 import { t } from "../../i18n"
+import { extractCommandPattern } from "../../shared/extract-command-pattern"
 
 class ShellIntegrationError extends Error {}
-
-/**
- * Extract the base command pattern from a full command string.
- * For example: "gh pr checkout 1234" -> "gh pr checkout"
- *
- * @param command The full command string
- * @returns The base command pattern suitable for whitelisting
- */
-function extractCommandPattern(command: string): string {
-	if (!command?.trim()) return ""
-
-	// Split by whitespace, handling quoted strings
-	const parts: string[] = []
-	let current = ""
-	let inQuotes = false
-	let quoteChar = ""
-
-	for (let i = 0; i < command.length; i++) {
-		const char = command[i]
-		const prevChar = i > 0 ? command[i - 1] : ""
-
-		if ((char === '"' || char === "'") && prevChar !== "\\") {
-			if (!inQuotes) {
-				inQuotes = true
-				quoteChar = char
-			} else if (char === quoteChar) {
-				inQuotes = false
-				quoteChar = ""
-			}
-			current += char
-		} else if (char === " " && !inQuotes) {
-			if (current) {
-				parts.push(current)
-				current = ""
-			}
-		} else {
-			current += char
-		}
-	}
-
-	if (current) {
-		parts.push(current)
-	}
-
-	// Extract pattern parts, stopping at arguments
-	const patternParts: string[] = []
-
-	for (const part of parts) {
-		// Remove quotes for analysis
-		const unquoted = part.replace(/^["']|["']$/g, "")
-
-		// Stop at common argument patterns:
-		// - Pure numbers (like PR numbers, PIDs, etc.)
-		// - Flags starting with - or --
-		// - File paths or URLs
-		// - Variable assignments (KEY=VALUE)
-		// - Operators (&&, ||, |, ;, >, <, etc.)
-		if (
-			/^\d+$/.test(unquoted) ||
-			unquoted.startsWith("-") ||
-			unquoted.includes("/") ||
-			unquoted.includes("\\") ||
-			unquoted.includes("=") ||
-			unquoted.startsWith("http") ||
-			unquoted.includes(".") ||
-			["&&", "||", "|", ";", ">", "<", ">>", "<<", "&"].includes(unquoted)
-		) {
-			// Stop collecting pattern parts
-			break
-		}
-		patternParts.push(part)
-	}
-
-	// Return the base command pattern
-	return patternParts.join(" ")
-}
 
 /**
  * Adds a command pattern to the whitelist

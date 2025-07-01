@@ -46,6 +46,10 @@
 		"title": "Salva",
 		"tooltip": "Salva le modifiche al file"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Rifiuta",
 		"tooltip": "Rifiuta questa azione"

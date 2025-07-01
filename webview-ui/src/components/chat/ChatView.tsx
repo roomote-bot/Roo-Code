@@ -313,7 +313,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setClineAsk("command")
 							setEnableButtons(!isPartial)
 							setPrimaryButtonText(t("chat:runCommand.title"))
-							setSecondaryButtonText("Add & Run")
+							setSecondaryButtonText(t("chat:addAndRun.title"))
 							setTertiaryButtonText(t("chat:reject.title"))
 							break
 						case "command_output":

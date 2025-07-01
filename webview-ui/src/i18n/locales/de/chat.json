@@ -46,6 +46,10 @@
 		"title": "Speichern",
 		"tooltip": "Dateiänderungen speichern"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Ablehnen",
 		"tooltip": "Diese Aktion ablehnen"

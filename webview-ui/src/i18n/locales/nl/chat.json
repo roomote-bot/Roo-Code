@@ -46,6 +46,10 @@
 		"tokensUsed": "Gebruikte tokens: {{used}} van {{total}}",
 		"reservedForResponse": "Gereserveerd voor modelantwoord: {{amount}} tokens"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Weigeren",
 		"tooltip": "Deze actie weigeren"

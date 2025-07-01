@@ -46,6 +46,10 @@
 		"title": "Enregistrer",
 		"tooltip": "Sauvegarder les modifications du fichier"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Rejeter",
 		"tooltip": "Rejeter cette action"

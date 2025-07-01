@@ -46,6 +46,10 @@
 		"title": "Zapisz",
 		"tooltip": "Zapisz zmiany w pliku"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Odrzuć",
 		"tooltip": "Odrzuć tę akcję"

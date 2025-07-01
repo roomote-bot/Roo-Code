@@ -46,6 +46,10 @@
 		"title": "저장",
 		"tooltip": "파일 변경사항 저장"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "거부",
 		"tooltip": "이 작업 거부"

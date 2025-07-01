@@ -46,6 +46,10 @@
 		"title": "Desar",
 		"tooltip": "Desa els canvis del fitxer"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Rebutjar",
 		"tooltip": "Rebutja aquesta acció"

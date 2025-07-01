@@ -46,6 +46,10 @@
 		"tokensUsed": "Использовано токенов: {{used}} из {{total}}",
 		"reservedForResponse": "Зарезервировано для ответа модели: {{amount}} токенов"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Отклонить",
 		"tooltip": "Отклонить это действие"

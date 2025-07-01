@@ -46,6 +46,10 @@
 		"title": "保存",
 		"tooltip": "保存文件更改"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "拒绝",
 		"tooltip": "拒绝此操作"

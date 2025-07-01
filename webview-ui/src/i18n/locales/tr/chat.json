@@ -46,6 +46,10 @@
 		"title": "Kaydet",
 		"tooltip": "Dosya değişikliklerini kaydet"
 	},
+	"addAndRun": {
+		"title": "Add & Run",
+		"tooltip": "Add command to whitelist and run it"
+	},
 	"reject": {
 		"title": "Reddet",
 		"tooltip": "Bu eylemi reddet"
