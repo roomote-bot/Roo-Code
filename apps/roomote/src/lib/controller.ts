@@ -6,7 +6,7 @@ import { isFlyMachine, isDockerContainer } from './utils';
 
 export class WorkerController {
   private readonly POLL_INTERVAL_MS = 5000;
-  private readonly MAX_WORKERS = 2;
+  private readonly MAX_WORKERS = 5;
 
   private queue: Queue;
   private stalledJobsWorker: Worker;
