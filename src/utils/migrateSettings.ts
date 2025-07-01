@@ -5,7 +5,7 @@ import { fileExistsAtPath } from "./fs"
 import { GlobalFileNames } from "../shared/globalFileNames"
 import * as yaml from "yaml"
 import type { ContextProxy } from "../core/config/ContextProxy"
-import type { HistoryItem } from "../../packages/types/src"
+import type { HistoryItem } from "@roo-code/types"
 
 const deprecatedCustomModesJSONFilename = "custom_modes.json"
 

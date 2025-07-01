@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import { migrateTaskHistoryWithContextProxy } from "../migrateSettings"
 import type { ContextProxy } from "../../core/config/ContextProxy"
-import type { HistoryItem } from "../../../packages/types/src"
+import type { HistoryItem } from "@roo-code/types"
 
 describe("migrateTaskHistoryWithContextProxy", () => {
 	let mockContextProxy: any
