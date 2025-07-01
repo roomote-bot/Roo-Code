@@ -12,5 +12,8 @@
 		"errors": {
 			"policy_restriction": "Falha ao criar nova tarefa devido a restrições de política."
 		}
+	},
+	"executeCommand": {
+		"patternAddedToWhitelist": "Command pattern \"{{pattern}}\" has been added to the allowed commands list."
 	}
 }

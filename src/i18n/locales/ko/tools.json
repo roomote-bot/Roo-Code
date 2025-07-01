@@ -12,5 +12,8 @@
 		"errors": {
 			"policy_restriction": "정책 제한으로 인해 새 작업을 생성하지 못했습니다."
 		}
+	},
+	"executeCommand": {
+		"patternAddedToWhitelist": "Command pattern \"{{pattern}}\" has been added to the allowed commands list."
 	}
 }
