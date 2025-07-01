@@ -72,18 +72,11 @@ export const TaskModal = ({ task, open, onClose }: TaskModalProps) => {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContentFullScreen>
-        <div className="fixed inset-0 p-8 md:p-16" onClick={onClose}>
-          <div
-            className="container mx-auto bg-background rounded-lg shadow-lg max-h-full overflow-hidden h-full"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <TaskDetails
-              task={task}
-              messages={messages}
-              headerActions={headerActions}
-            />
-          </div>
-        </div>
+        <TaskDetails
+          task={task}
+          messages={messages}
+          headerActions={headerActions}
+        />
       </DialogContentFullScreen>
     </Dialog>
   );
