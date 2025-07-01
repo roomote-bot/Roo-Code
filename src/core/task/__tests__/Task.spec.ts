@@ -191,7 +191,7 @@ describe("Cline", () => {
 
 		mockExtensionContext = {
 			globalState: {
-				get: vi.fn().mockImplementation((key: keyof GlobalState) => {
+				get: vi.fn().mockImplementation((key: string) => {
 					if (key === "taskHistory") {
 						return [
 							{

@@ -7,7 +7,7 @@ import { useExtensionState } from "@/context/ExtensionStateContext"
 type SortOption = "newest" | "oldest" | "mostExpensive" | "mostTokens" | "mostRelevant"
 
 export const useTaskSearch = () => {
-	const { taskHistory, cwd } = useExtensionState()
+	const { taskHistory } = useExtensionState()
 	const [searchQuery, setSearchQuery] = useState("")
 	const [sortOption, setSortOption] = useState<SortOption>("newest")
 	const [lastNonRelevantSort, setLastNonRelevantSort] = useState<SortOption | null>("newest")
@@ -23,10 +23,10 @@ export const useTaskSearch = () => {
 	}, [searchQuery, sortOption, lastNonRelevantSort])
 
 	const presentableTasks = useMemo(() => {
-		// Filter tasks by current workspace and ensure they have required fields
-		const tasks = taskHistory.filter((item) => item.ts && item.task && item.workspace === cwd)
+		// Ensure tasks have required fields (no workspace filtering for global history)
+		const tasks = taskHistory.filter((item) => item.ts && item.task)
 		return tasks
-	}, [taskHistory, cwd])
+	}, [taskHistory])
 
 	const fzf = useMemo(() => {
 		return new Fzf(presentableTasks, {
