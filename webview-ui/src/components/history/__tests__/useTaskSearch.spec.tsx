@@ -75,77 +75,53 @@ describe("useTaskSearch", () => {
 		expect(result.current.tasks.every((task) => task.workspace === "/workspace/project1")).toBe(true)
 	})
 
-	it("shows all workspaces when showAllWorkspaces is true", () => {
-		const { result } = renderHook(() => useTaskSearch())
-
-		act(() => {
-			result.current.setShowAllWorkspaces(true)
-		})
-
-		expect(result.current.tasks).toHaveLength(3)
-		expect(result.current.showAllWorkspaces).toBe(true)
-	})
-
 	it("sorts by newest by default", () => {
 		const { result } = renderHook(() => useTaskSearch())
-
-		act(() => {
-			result.current.setShowAllWorkspaces(true)
-		})
 
 		expect(result.current.sortOption).toBe("newest")
 		expect(result.current.tasks[0].id).toBe("task-2") // Feb 17
 		expect(result.current.tasks[1].id).toBe("task-1") // Feb 16
-		expect(result.current.tasks[2].id).toBe("task-3") // Feb 15
 	})
 
 	it("sorts by oldest", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
 		act(() => {
-			result.current.setShowAllWorkspaces(true)
 			result.current.setSortOption("oldest")
 		})
 
-		expect(result.current.tasks[0].id).toBe("task-3") // Feb 15
-		expect(result.current.tasks[1].id).toBe("task-1") // Feb 16
-		expect(result.current.tasks[2].id).toBe("task-2") // Feb 17
+		expect(result.current.tasks[0].id).toBe("task-1") // Feb 16
+		expect(result.current.tasks[1].id).toBe("task-2") // Feb 17
 	})
 
 	it("sorts by most expensive", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
 		act(() => {
-			result.current.setShowAllWorkspaces(true)
 			result.current.setSortOption("mostExpensive")
 		})
 
-		expect(result.current.tasks[0].id).toBe("task-3") // $0.05
-		expect(result.current.tasks[1].id).toBe("task-2") // $0.02
-		expect(result.current.tasks[2].id).toBe("task-1") // $0.01
+		expect(result.current.tasks[0].id).toBe("task-2") // $0.02
+		expect(result.current.tasks[1].id).toBe("task-1") // $0.01
 	})
 
 	it("sorts by most tokens", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
 		act(() => {
-			result.current.setShowAllWorkspaces(true)
 			result.current.setSortOption("mostTokens")
 		})
 
 		// task-2: 200 + 100 + 25 + 10 = 335 tokens
-		// task-3: 150 + 75 = 225 tokens
 		// task-1: 100 + 50 = 150 tokens
 		expect(result.current.tasks[0].id).toBe("task-2")
-		expect(result.current.tasks[1].id).toBe("task-3")
-		expect(result.current.tasks[2].id).toBe("task-1")
+		expect(result.current.tasks[1].id).toBe("task-1")
 	})
 
 	it("filters tasks by search query", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
 		act(() => {
-			result.current.setShowAllWorkspaces(true)
 			result.current.setSearchQuery("React")
 		})
 
@@ -251,12 +227,8 @@ describe("useTaskSearch", () => {
 
 		const { result } = renderHook(() => useTaskSearch())
 
-		act(() => {
-			result.current.setShowAllWorkspaces(true)
-		})
-
-		// Should only include tasks with both ts and task content
-		expect(result.current.tasks).toHaveLength(3)
+		// Should only include tasks with both ts and task content from current workspace
+		expect(result.current.tasks).toHaveLength(2)
 		expect(result.current.tasks.every((task) => task.ts && task.task)).toBe(true)
 	})
 
@@ -264,7 +236,6 @@ describe("useTaskSearch", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
 		act(() => {
-			result.current.setShowAllWorkspaces(true)
 			result.current.setSearchQuery("nonexistent")
 		})
 
@@ -275,7 +246,6 @@ describe("useTaskSearch", () => {
 		const { result } = renderHook(() => useTaskSearch())
 
 		act(() => {
-			result.current.setShowAllWorkspaces(true)
 			result.current.setSearchQuery("test")
 			result.current.setSortOption("mostRelevant")
 		})

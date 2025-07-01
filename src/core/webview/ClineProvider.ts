@@ -1130,7 +1130,7 @@ export class ClineProvider
 		uiMessagesFilePath: string
 		apiConversationHistory: Anthropic.MessageParam[]
 	}> {
-		const history = this.getGlobalState("taskHistory") ?? []
+		const history = this.contextProxy.getWorkspaceState("taskHistory") ?? []
 		const historyItem = history.find((item) => item.id === id)
 
 		if (historyItem) {
@@ -1240,9 +1240,9 @@ export class ClineProvider
 	}
 
 	async deleteTaskFromState(id: string) {
-		const taskHistory = this.getGlobalState("taskHistory") ?? []
+		const taskHistory = this.contextProxy.getWorkspaceState("taskHistory") ?? []
 		const updatedTaskHistory = taskHistory.filter((task) => task.id !== id)
-		await this.updateGlobalState("taskHistory", updatedTaskHistory)
+		await this.contextProxy.updateWorkspaceState("taskHistory", updatedTaskHistory)
 		await this.postStateToWebview()
 	}
 
@@ -1443,10 +1443,12 @@ export class ClineProvider
 			autoCondenseContextPercent: autoCondenseContextPercent ?? 100,
 			uriScheme: vscode.env.uriScheme,
 			currentTaskItem: this.getCurrentCline()?.taskId
-				? (taskHistory || []).find((item: HistoryItem) => item.id === this.getCurrentCline()?.taskId)
+				? (this.contextProxy.getWorkspaceState("taskHistory") || []).find(
+						(item: HistoryItem) => item.id === this.getCurrentCline()?.taskId,
+					)
 				: undefined,
 			clineMessages: this.getCurrentCline()?.clineMessages || [],
-			taskHistory: (taskHistory || [])
+			taskHistory: (this.contextProxy.getWorkspaceState("taskHistory") || [])
 				.filter((item: HistoryItem) => item.ts && item.task)
 				.sort((a: HistoryItem, b: HistoryItem) => b.ts - a.ts),
 			soundEnabled: soundEnabled ?? false,
@@ -1610,7 +1612,7 @@ export class ClineProvider
 			allowedMaxRequests: stateValues.allowedMaxRequests,
 			autoCondenseContext: stateValues.autoCondenseContext ?? true,
 			autoCondenseContextPercent: stateValues.autoCondenseContextPercent ?? 100,
-			taskHistory: stateValues.taskHistory,
+			taskHistory: this.contextProxy.getWorkspaceState("taskHistory"),
 			allowedCommands: stateValues.allowedCommands,
 			soundEnabled: stateValues.soundEnabled ?? false,
 			ttsEnabled: stateValues.ttsEnabled ?? false,
@@ -1681,7 +1683,7 @@ export class ClineProvider
 	}
 
 	async updateTaskHistory(item: HistoryItem): Promise<HistoryItem[]> {
-		const history = (this.getGlobalState("taskHistory") as HistoryItem[] | undefined) || []
+		const history = this.contextProxy.getWorkspaceState("taskHistory") || []
 		const existingItemIndex = history.findIndex((h) => h.id === item.id)
 
 		if (existingItemIndex !== -1) {
@@ -1690,7 +1692,7 @@ export class ClineProvider
 			history.push(item)
 		}
 
-		await this.updateGlobalState("taskHistory", history)
+		await this.contextProxy.updateWorkspaceState("taskHistory", history)
 		return history
 	}
 

@@ -15,7 +15,6 @@ interface DisplayHistoryItem extends HistoryItem {
 interface TaskItemProps {
 	item: DisplayHistoryItem
 	variant: "compact" | "full"
-	showWorkspace?: boolean
 	isSelectionMode?: boolean
 	isSelected?: boolean
 	onToggleSelection?: (taskId: string, isSelected: boolean) => void
@@ -26,7 +25,6 @@ interface TaskItemProps {
 const TaskItem = ({
 	item,
 	variant,
-	showWorkspace = false,
 	isSelectionMode = false,
 	isSelected = false,
 	onToggleSelection,
@@ -85,14 +83,6 @@ const TaskItem = ({
 
 					{/* Task Item Footer */}
 					<TaskItemFooter item={item} variant={variant} isSelectionMode={isSelectionMode} />
-
-					{/* Workspace info */}
-					{showWorkspace && item.workspace && (
-						<div className="flex flex-row gap-1 text-vscode-descriptionForeground text-xs mt-1">
-							<span className="codicon codicon-folder scale-80" />
-							<span>{item.workspace}</span>
-						</div>
-					)}
 				</div>
 			</div>
 		</div>

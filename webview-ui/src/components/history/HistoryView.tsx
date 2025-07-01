@@ -28,16 +28,7 @@ type HistoryViewProps = {
 type SortOption = "newest" | "oldest" | "mostExpensive" | "mostTokens" | "mostRelevant"
 
 const HistoryView = ({ onDone }: HistoryViewProps) => {
-	const {
-		tasks,
-		searchQuery,
-		setSearchQuery,
-		sortOption,
-		setSortOption,
-		setLastNonRelevantSort,
-		showAllWorkspaces,
-		setShowAllWorkspaces,
-	} = useTaskSearch()
+	const { tasks, searchQuery, setSearchQuery, sortOption, setSortOption, setLastNonRelevantSort } = useTaskSearch()
 	const { t } = useAppTranslation()
 
 	const [deleteTaskId, setDeleteTaskId] = useState<string | null>(null)
@@ -128,32 +119,8 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 						)}
 					</VSCodeTextField>
 					<div className="flex gap-2">
-						<Select
-							value={showAllWorkspaces ? "all" : "current"}
-							onValueChange={(value) => setShowAllWorkspaces(value === "all")}>
-							<SelectTrigger className="flex-1">
-								<SelectValue>
-									{t("history:workspace.prefix")}{" "}
-									{t(`history:workspace.${showAllWorkspaces ? "all" : "current"}`)}
-								</SelectValue>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="current">
-									<div className="flex items-center gap-2">
-										<span className="codicon codicon-folder" />
-										{t("history:workspace.current")}
-									</div>
-								</SelectItem>
-								<SelectItem value="all">
-									<div className="flex items-center gap-2">
-										<span className="codicon codicon-folder-opened" />
-										{t("history:workspace.all")}
-									</div>
-								</SelectItem>
-							</SelectContent>
-						</Select>
 						<Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-							<SelectTrigger className="flex-1">
+							<SelectTrigger className="w-full">
 								<SelectValue>
 									{t("history:sort.prefix")} {t(`history:sort.${sortOption}`)}
 								</SelectValue>
@@ -238,7 +205,6 @@ const HistoryView = ({ onDone }: HistoryViewProps) => {
 							key={item.id}
 							item={item}
 							variant="full"
-							showWorkspace={showAllWorkspaces}
 							isSelectionMode={isSelectionMode}
 							isSelected={selectedTaskIds.includes(item.id)}
 							onToggleSelection={toggleTaskSelection}

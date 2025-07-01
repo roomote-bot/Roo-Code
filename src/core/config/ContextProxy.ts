@@ -14,6 +14,10 @@ import {
 	providerSettingsSchema,
 	globalSettingsSchema,
 	isSecretStateKey,
+	type WorkspaceSettings,
+	type WorkspaceSettingsKey,
+	WORKSPACE_SETTINGS_KEYS,
+	workspaceSettingsSchema,
 } from "@roo-code/types"
 import { TelemetryService } from "@roo-code/telemetry"
 
@@ -23,12 +27,11 @@ type GlobalStateKey = keyof GlobalState
 type SecretStateKey = keyof SecretState
 type RooCodeSettingsKey = keyof RooCodeSettings
 
-const PASS_THROUGH_STATE_KEYS = ["taskHistory"]
+const PASS_THROUGH_STATE_KEYS: string[] = []
 
 export const isPassThroughStateKey = (key: string) => PASS_THROUGH_STATE_KEYS.includes(key)
 
 const globalSettingsExportSchema = globalSettingsSchema.omit({
-	taskHistory: true,
 	listApiConfigMeta: true,
 	currentApiConfigName: true,
 })
@@ -38,12 +41,14 @@ export class ContextProxy {
 
 	private stateCache: GlobalState
 	private secretCache: SecretState
+	private workspaceStateCache: WorkspaceSettings
 	private _isInitialized = false
 
 	constructor(context: vscode.ExtensionContext) {
 		this.originalContext = context
 		this.stateCache = {}
 		this.secretCache = {}
+		this.workspaceStateCache = {}
 		this._isInitialized = false
 	}
 
@@ -70,6 +75,17 @@ export class ContextProxy {
 		})
 
 		await Promise.all(promises)
+
+		// Initialize workspace state cache
+		for (const key of WORKSPACE_SETTINGS_KEYS) {
+			try {
+				this.workspaceStateCache[key] = this.originalContext.workspaceState.get(key)
+			} catch (error) {
+				logger.error(
+					`Error loading workspace ${key}: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			}
+		}
 
 		this._isInitialized = true
 	}
@@ -149,6 +165,51 @@ export class ContextProxy {
 
 	private getAllSecretState(): SecretState {
 		return Object.fromEntries(SECRET_STATE_KEYS.map((key) => [key, this.getSecret(key)]))
+	}
+
+	/**
+	 * ExtensionContext.workspaceState
+	 * https://code.visualstudio.com/api/references/vscode-api#ExtensionContext.workspaceState
+	 */
+
+	getWorkspaceState<K extends WorkspaceSettingsKey>(key: K): WorkspaceSettings[K]
+	getWorkspaceState<K extends WorkspaceSettingsKey>(key: K, defaultValue: WorkspaceSettings[K]): WorkspaceSettings[K]
+	getWorkspaceState<K extends WorkspaceSettingsKey>(
+		key: K,
+		defaultValue?: WorkspaceSettings[K],
+	): WorkspaceSettings[K] {
+		const value = this.workspaceStateCache[key]
+		return value !== undefined ? value : defaultValue
+	}
+
+	updateWorkspaceState<K extends WorkspaceSettingsKey>(key: K, value: WorkspaceSettings[K]) {
+		this.workspaceStateCache[key] = value
+		return this.originalContext.workspaceState.update(key, value)
+	}
+
+	private getAllWorkspaceState(): WorkspaceSettings {
+		return Object.fromEntries(WORKSPACE_SETTINGS_KEYS.map((key) => [key, this.getWorkspaceState(key)]))
+	}
+
+	/**
+	 * WorkspaceSettings
+	 */
+
+	public getWorkspaceSettings(): WorkspaceSettings {
+		const values = this.getAllWorkspaceState()
+
+		try {
+			return workspaceSettingsSchema.parse(values)
+		} catch (error) {
+			if (error instanceof ZodError) {
+				TelemetryService.instance.captureSchemaValidationError({ schemaName: "WorkspaceSettings", error })
+			}
+
+			return WORKSPACE_SETTINGS_KEYS.reduce(
+				(acc, key) => ({ ...acc, [key]: values[key] }),
+				{} as WorkspaceSettings,
+			)
+		}
 	}
 
 	/**
@@ -264,10 +325,12 @@ export class ContextProxy {
 		// Clear in-memory caches
 		this.stateCache = {}
 		this.secretCache = {}
+		this.workspaceStateCache = {}
 
 		await Promise.all([
 			...GLOBAL_STATE_KEYS.map((key) => this.originalContext.globalState.update(key, undefined)),
 			...SECRET_STATE_KEYS.map((key) => this.originalContext.secrets.delete(key)),
+			...WORKSPACE_SETTINGS_KEYS.map((key) => this.originalContext.workspaceState.update(key, undefined)),
 		])
 
 		await this.initialize()

@@ -2,7 +2,7 @@
 
 import * as vscode from "vscode"
 
-import { GLOBAL_STATE_KEYS, SECRET_STATE_KEYS } from "@roo-code/types"
+import { GLOBAL_STATE_KEYS, SECRET_STATE_KEYS, WORKSPACE_SETTINGS_KEYS } from "@roo-code/types"
 
 import { ContextProxy } from "../ContextProxy"
 
@@ -22,6 +22,7 @@ describe("ContextProxy", () => {
 	let mockContext: any
 	let mockGlobalState: any
 	let mockSecrets: any
+	let mockWorkspaceState: any
 
 	beforeEach(async () => {
 		// Reset mocks
@@ -40,10 +41,17 @@ describe("ContextProxy", () => {
 			delete: vi.fn().mockResolvedValue(undefined),
 		}
 
+		// Mock workspaceState
+		mockWorkspaceState = {
+			get: vi.fn(),
+			update: vi.fn().mockResolvedValue(undefined),
+		}
+
 		// Mock the extension context
 		mockContext = {
 			globalState: mockGlobalState,
 			secrets: mockSecrets,
+			workspaceState: mockWorkspaceState,
 			extensionUri: { path: "/test/extension" },
 			extensionPath: "/test/extension",
 			globalStorageUri: { path: "/test/storage" },
@@ -82,6 +90,13 @@ describe("ContextProxy", () => {
 				expect(mockSecrets.get).toHaveBeenCalledWith(key)
 			}
 		})
+
+		it("should initialize workspace state cache with all workspace settings keys", () => {
+			expect(mockWorkspaceState.get).toHaveBeenCalledTimes(WORKSPACE_SETTINGS_KEYS.length)
+			for (const key of WORKSPACE_SETTINGS_KEYS) {
+				expect(mockWorkspaceState.get).toHaveBeenCalledWith(key)
+			}
+		})
 	})
 
 	describe("getGlobalState", () => {
@@ -102,41 +117,6 @@ describe("ContextProxy", () => {
 			const result = proxy.getGlobalState("apiProvider", "deepseek")
 			expect(result).toBe("deepseek")
 		})
-
-		it("should bypass cache for pass-through state keys", async () => {
-			// Setup mock return value
-			mockGlobalState.get.mockReturnValue("pass-through-value")
-
-			// Use a pass-through key (taskHistory)
-			const result = proxy.getGlobalState("taskHistory")
-
-			// Should get value directly from original context
-			expect(result).toBe("pass-through-value")
-			expect(mockGlobalState.get).toHaveBeenCalledWith("taskHistory")
-		})
-
-		it("should respect default values for pass-through state keys", async () => {
-			// Setup mock to return undefined
-			mockGlobalState.get.mockReturnValue(undefined)
-
-			// Use a pass-through key with default value
-			const historyItems = [
-				{
-					id: "1",
-					number: 1,
-					ts: 1,
-					task: "test",
-					tokensIn: 1,
-					tokensOut: 1,
-					totalCost: 1,
-				},
-			]
-
-			const result = proxy.getGlobalState("taskHistory", historyItems)
-
-			// Should return default value when original context returns undefined
-			expect(result).toBe(historyItems)
-		})
 	})
 
 	describe("updateGlobalState", () => {
@@ -149,33 +129,6 @@ describe("ContextProxy", () => {
 			// Should have stored the value in cache
 			const storedValue = await proxy.getGlobalState("apiProvider")
 			expect(storedValue).toBe("deepseek")
-		})
-
-		it("should bypass cache for pass-through state keys", async () => {
-			const historyItems = [
-				{
-					id: "1",
-					number: 1,
-					ts: 1,
-					task: "test",
-					tokensIn: 1,
-					tokensOut: 1,
-					totalCost: 1,
-				},
-			]
-
-			await proxy.updateGlobalState("taskHistory", historyItems)
-
-			// Should update original context
-			expect(mockGlobalState.update).toHaveBeenCalledWith("taskHistory", historyItems)
-
-			// Setup mock for subsequent get
-			mockGlobalState.get.mockReturnValue(historyItems)
-
-			// Should get fresh value from original context
-			const storedValue = proxy.getGlobalState("taskHistory")
-			expect(storedValue).toBe(historyItems)
-			expect(mockGlobalState.get).toHaveBeenCalledWith("taskHistory")
 		})
 	})
 
@@ -389,6 +342,16 @@ describe("ContextProxy", () => {
 			// Total calls should include initial setup + reset operations
 			const expectedUpdateCalls = 2 + GLOBAL_STATE_KEYS.length
 			expect(mockGlobalState.update).toHaveBeenCalledTimes(expectedUpdateCalls)
+		})
+
+		it("should update all workspace state keys to undefined", async () => {
+			// Reset all state
+			await proxy.resetAllState()
+
+			// Should have called update with undefined for each workspace key
+			for (const key of WORKSPACE_SETTINGS_KEYS) {
+				expect(mockWorkspaceState.update).toHaveBeenCalledWith(key, undefined)
+			}
 		})
 
 		it("should delete all secrets", async () => {
