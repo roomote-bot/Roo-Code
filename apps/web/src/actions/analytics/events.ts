@@ -409,6 +409,8 @@ export const getTasks = async ({
   skipAuth = false,
   limit = 20,
   cursor,
+  filterType,
+  filterValue,
 }: {
   orgId?: string | null;
   userId?: string | null;
@@ -417,6 +419,8 @@ export const getTasks = async ({
   skipAuth?: boolean;
   limit?: number;
   cursor?: number;
+  filterType?: 'userId' | 'model' | 'repositoryName';
+  filterValue?: string;
 }): Promise<TasksResult> => {
   let effectiveUserId = userId;
 
@@ -476,6 +480,28 @@ export const getTasks = async ({
     queryParams.cursor = cursor;
   }
 
+  // Add filter parameters
+  if (filterType && filterValue) {
+    if (filterType === 'userId') {
+      queryParams.filterUserId = filterValue;
+    } else if (filterType === 'model') {
+      queryParams.filterModel = filterValue;
+    } else if (filterType === 'repositoryName') {
+      queryParams.filterRepository = filterValue;
+    }
+  }
+
+  // Build filter conditions
+  const filterConditions = [];
+  if (filterType === 'userId' && filterValue) {
+    filterConditions.push('AND e.userId = {filterUserId: String}');
+  } else if (filterType === 'model' && filterValue) {
+    filterConditions.push('AND e.modelId = {filterModel: String}');
+  } else if (filterType === 'repositoryName' && filterValue) {
+    filterConditions.push('AND e.repositoryName = {filterRepository: String}');
+  }
+  const filterClause = filterConditions.join(' ');
+
   // TODO: Handle same-timestamp edge cases
   // Currently using only timestamp as cursor, but this can miss/duplicate tasks
   // if multiple tasks have the same timestamp at page boundaries.
@@ -519,6 +545,7 @@ export const getTasks = async ({
         AND e.modelId IS NOT NULL
         ${userFilter}
         ${taskFilter}
+        ${filterClause}
       GROUP BY 1, 2
       ${havingFilter}
       ORDER BY timestamp DESC

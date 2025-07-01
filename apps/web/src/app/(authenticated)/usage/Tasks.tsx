@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@clerk/nextjs';
 import { useQuery } from '@tanstack/react-query';
 
@@ -40,6 +40,8 @@ export const Tasks = ({
       !orgId,
       pagination.currentCursor,
       pagination.pageSize,
+      filter?.type,
+      filter?.value,
     ],
     queryFn: () =>
       getTasks({
@@ -47,6 +49,8 @@ export const Tasks = ({
         userId: userRole === 'member' ? currentUserId : undefined,
         limit: pagination.pageSize,
         cursor: pagination.currentCursor,
+        filterType: filter?.type,
+        filterValue: filter?.value,
       }),
     enabled: true, // Run for both personal and organization context
     ...polling,
@@ -59,26 +63,22 @@ export const Tasks = ({
     }
   }, [data?.nextCursor, pagination]);
 
-  // Note: The pagination hook automatically handles total updates via the pagination controls
+  // Reset pagination when filter changes
+  const prevFilter = useRef<Filter | null>(null);
+  useEffect(() => {
+    const currentFilter = filter;
+    const hasFilterChanged =
+      prevFilter.current?.type !== currentFilter?.type ||
+      prevFilter.current?.value !== currentFilter?.value;
 
-  const tasks = useMemo(() => {
-    const allTasks = data?.tasks || [];
-
-    if (!filter) {
-      return allTasks;
+    if (hasFilterChanged) {
+      pagination.reset();
+      prevFilter.current = currentFilter;
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter]);
 
-    return allTasks.filter((task) => {
-      if (filter.type === 'userId') {
-        return task.userId === filter.value;
-      } else if (filter.type === 'model') {
-        return task.model === filter.value;
-      } else if (filter.type === 'repositoryName') {
-        return task.repositoryName === filter.value;
-      }
-      return false;
-    });
-  }, [filter, data?.tasks]);
+  const tasks = data?.tasks || [];
 
   if (isPending) {
     return (
