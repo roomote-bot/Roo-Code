@@ -6,6 +6,11 @@ import { cn } from '@/lib/utils';
 import { formatTimestamp } from '@/lib/formatters';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 
+// Custom component to render links as plain text to avoid broken/nonsensical links
+const PlainTextLink = ({ children }: { children?: React.ReactNode }) => {
+  return <span>{children}</span>;
+};
+
 type MessagesProps = {
   messages: Message[];
   maxHeight?: string;
@@ -139,7 +144,13 @@ export const Messages = ({ messages, maxHeight }: MessagesProps) => {
                 </div>
               ) : (
                 <div className="text-sm leading-relaxed markdown-prose">
-                  <ReactMarkdown>{message.text}</ReactMarkdown>
+                  <ReactMarkdown
+                    components={{
+                      a: PlainTextLink,
+                    }}
+                  >
+                    {message.text}
+                  </ReactMarkdown>
                 </div>
               )}
             </div>
