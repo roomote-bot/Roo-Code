@@ -51,6 +51,8 @@ export const SharedTaskView = ({
       sharedBy={sharedBy}
       sharedAt={sharedAt}
       showSharedInfo={true}
+      enableMessageLinks={true}
+      shareToken={shareToken}
     />
   );
 };

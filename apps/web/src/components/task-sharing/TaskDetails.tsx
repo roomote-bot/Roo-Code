@@ -22,6 +22,8 @@ type TaskDetailsProps = {
   sharedAt?: Date;
   showSharedInfo?: boolean;
   headerActions?: React.ReactNode;
+  enableMessageLinks?: boolean;
+  shareToken?: string;
 };
 
 export const TaskDetails = ({
@@ -31,6 +33,8 @@ export const TaskDetails = ({
   sharedAt,
   showSharedInfo = false,
   headerActions,
+  enableMessageLinks = false,
+  shareToken,
 }: TaskDetailsProps) => {
   const taskTitle = task.title || generateFallbackTitle(task);
 
@@ -152,7 +156,11 @@ export const TaskDetails = ({
             <CardTitle>Conversation</CardTitle>
           </CardHeader>
           <CardContent>
-            <Messages messages={messages} />
+            <Messages
+              messages={messages}
+              enableMessageLinks={enableMessageLinks}
+              shareToken={shareToken}
+            />
           </CardContent>
         </Card>
       ) : (
