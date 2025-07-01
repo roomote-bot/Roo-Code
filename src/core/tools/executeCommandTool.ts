@@ -14,8 +14,115 @@ import { unescapeHtmlEntities } from "../../utils/text-normalization"
 import { ExitCodeDetails, RooTerminalCallbacks, RooTerminalProcess } from "../../integrations/terminal/types"
 import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
+import { t } from "../../i18n"
 
 class ShellIntegrationError extends Error {}
+
+/**
+ * Extract the base command pattern from a full command string.
+ * For example: "gh pr checkout 1234" -> "gh pr checkout"
+ *
+ * @param command The full command string
+ * @returns The base command pattern suitable for whitelisting
+ */
+function extractCommandPattern(command: string): string {
+	if (!command?.trim()) return ""
+
+	// Split by whitespace, handling quoted strings
+	const parts: string[] = []
+	let current = ""
+	let inQuotes = false
+	let quoteChar = ""
+
+	for (let i = 0; i < command.length; i++) {
+		const char = command[i]
+		const prevChar = i > 0 ? command[i - 1] : ""
+
+		if ((char === '"' || char === "'") && prevChar !== "\\") {
+			if (!inQuotes) {
+				inQuotes = true
+				quoteChar = char
+			} else if (char === quoteChar) {
+				inQuotes = false
+				quoteChar = ""
+			}
+			current += char
+		} else if (char === " " && !inQuotes) {
+			if (current) {
+				parts.push(current)
+				current = ""
+			}
+		} else {
+			current += char
+		}
+	}
+
+	if (current) {
+		parts.push(current)
+	}
+
+	// Extract pattern parts, stopping at arguments
+	const patternParts: string[] = []
+
+	for (const part of parts) {
+		// Remove quotes for analysis
+		const unquoted = part.replace(/^["']|["']$/g, "")
+
+		// Stop at common argument patterns:
+		// - Pure numbers (like PR numbers, PIDs, etc.)
+		// - Flags starting with - or --
+		// - File paths or URLs
+		// - Variable assignments (KEY=VALUE)
+		// - Operators (&&, ||, |, ;, >, <, etc.)
+		if (
+			/^\d+$/.test(unquoted) ||
+			unquoted.startsWith("-") ||
+			unquoted.includes("/") ||
+			unquoted.includes("\\") ||
+			unquoted.includes("=") ||
+			unquoted.startsWith("http") ||
+			unquoted.includes(".") ||
+			["&&", "||", "|", ";", ">", "<", ">>", "<<", "&"].includes(unquoted)
+		) {
+			// Stop collecting pattern parts
+			break
+		}
+		patternParts.push(part)
+	}
+
+	// Return the base command pattern
+	return patternParts.join(" ")
+}
+
+/**
+ * Adds a command pattern to the whitelist
+ */
+async function addCommandToWhitelist(cline: Task, command: string): Promise<void> {
+	const clineProvider = cline.providerRef.deref()
+	if (!clineProvider) {
+		console.error("Provider reference is undefined, cannot add command to whitelist")
+		return
+	}
+
+	const state = await clineProvider.getState()
+	const currentCommands = state.allowedCommands ?? []
+
+	// Extract the base command pattern for whitelisting
+	const commandPattern = extractCommandPattern(command)
+
+	// Add command pattern to whitelist if not already present
+	if (commandPattern && !currentCommands.includes(commandPattern)) {
+		const newCommands = [...currentCommands, commandPattern]
+		await clineProvider.setValue("allowedCommands", newCommands)
+
+		// Notify webview of the updated commands
+		await clineProvider.postMessageToWebview({
+			type: "invoke",
+			invoke: "setChatBoxMessage",
+			text: t("tools:executeCommand.patternAddedToWhitelist", { pattern: commandPattern }),
+		})
+	}
+}
 
 export async function executeCommandTool(
 	cline: Task,
@@ -53,40 +160,30 @@ export async function executeCommandTool(
 			command = unescapeHtmlEntities(command) // Unescape HTML entities.
 
 			// We need to capture the actual response to check if "Add & Run" was clicked
+			// Note: We cannot use the provided askApproval function here because we need to
+			// differentiate between "yesButtonClicked" and "addAndRunButtonClicked" responses
 			const { response, text, images } = await cline.ask("command", command)
 
 			if (response === "yesButtonClicked" || response === "addAndRunButtonClicked") {
-				// Handle yesButtonClicked or addAndRunButtonClicked with text.
+				// Handle yesButtonClicked or addAndRunButtonClicked with text (following askApproval pattern)
 				if (text) {
 					await cline.say("user_feedback", text, images)
+					pushToolResult(formatResponse.toolResult(formatResponse.toolApprovedWithFeedback(text), images))
 				}
 
 				// Check if user selected "Add & Run" to add command to whitelist
 				if (response === "addAndRunButtonClicked") {
-					const clineProvider = await cline.providerRef.deref()
-					if (clineProvider) {
-						const state = await clineProvider.getState()
-						const currentCommands = state.allowedCommands ?? []
-
-						// Add command to whitelist if not already present
-						if (!currentCommands.includes(command)) {
-							const newCommands = [...currentCommands, command]
-							await clineProvider.setValue("allowedCommands", newCommands)
-
-							// Notify webview of the updated commands
-							await clineProvider.postMessageToWebview({
-								type: "invoke",
-								invoke: "setChatBoxMessage",
-								text: `Command "${command}" added to whitelist.`,
-							})
-						}
-					}
+					await addCommandToWhitelist(cline, command)
 				}
 			} else {
-				// Handle both messageResponse and noButtonClicked with text.
+				// Handle both messageResponse and noButtonClicked with text (following askApproval pattern)
 				if (text) {
 					await cline.say("user_feedback", text, images)
+					pushToolResult(formatResponse.toolResult(formatResponse.toolDeniedWithFeedback(text), images))
+				} else {
+					pushToolResult(formatResponse.toolDenied())
 				}
+				cline.didRejectTool = true
 				return
 			}
 
