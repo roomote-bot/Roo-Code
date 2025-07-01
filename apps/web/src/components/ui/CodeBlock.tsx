@@ -1,30 +1,24 @@
 'use client';
 
 import { MermaidDiagram } from './MermaidDiagram';
-import type { Element } from 'hast';
+import { SyntaxHighlighter } from './SyntaxHighlighter';
 
 interface CodeBlockProps extends React.HTMLAttributes<HTMLElement> {
   children?: React.ReactNode;
   className?: string;
-  inline?: boolean;
-  node?: Element;
 }
 
 export const CodeBlock = ({
   children,
   className,
-  inline,
   ...props
 }: CodeBlockProps) => {
-  // Extract language from className (format: "language-xxx")
   const match = /language-(\w+)/.exec(className || '');
   const language = match ? match[1] : '';
-
-  // Convert children to string
   const code = String(children).replace(/\n$/, '');
 
-  // If it's inline code or not mermaid, render as regular code
-  if (inline || language !== 'mermaid') {
+  // No language = inline code (from `backticks`)
+  if (!match) {
     return (
       <code className={className} {...props}>
         {children}
@@ -32,15 +26,13 @@ export const CodeBlock = ({
     );
   }
 
-  // If it's a mermaid code block, render with MermaidDiagram
+  // Mermaid diagrams
   if (language === 'mermaid') {
-    return <MermaidDiagram chart={code} className="my-4" />;
+    return <MermaidDiagram chart={code} className="my-2" />;
   }
 
-  // Fallback to regular code block
+  // Code blocks with syntax highlighting
   return (
-    <code className={className} {...props}>
-      {children}
-    </code>
+    <SyntaxHighlighter code={code} language={language || ''} className="my-2" />
   );
 };
