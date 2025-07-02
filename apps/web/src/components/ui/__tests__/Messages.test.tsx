@@ -94,4 +94,45 @@ describe('Messages Component - Newline Handling', () => {
     expect(commandContainer).toBeInTheDocument();
     expect(commandContainer.closest('.font-mono')).toBeInTheDocument();
   });
+
+  it('should handle question data with newlines in the question text', () => {
+    const questionMessage: Message = {
+      id: '1',
+      orgId: null,
+      userId: 'test-user',
+      taskId: 'test-task',
+      text: JSON.stringify({
+        question:
+          'What would you like to do?\nPlease choose from the options below:\n\n1. Option A\n2. Option B',
+        suggest: ['Option A', 'Option B'],
+      }),
+      timestamp: Date.now(),
+      ts: Date.now(),
+      type: 'ask',
+      say: null,
+      ask: 'followup',
+      mode: 'code',
+      reasoning: null,
+      partial: null,
+    };
+
+    render(<Messages messages={[questionMessage]} />);
+
+    // Question text should be present and properly formatted
+    expect(screen.getByText(/What would you like to do/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Please choose from the options below/),
+    ).toBeInTheDocument();
+
+    // Should find both the list items and suggestion buttons (multiple instances expected)
+    const optionAElements = screen.getAllByText(/Option A/);
+    const optionBElements = screen.getAllByText(/Option B/);
+
+    // Should have at least 2 instances of each option (one in markdown list, one in suggestion button)
+    expect(optionAElements.length).toBeGreaterThanOrEqual(2);
+    expect(optionBElements.length).toBeGreaterThanOrEqual(2);
+
+    // Verify the markdown rendered the numbered list properly
+    expect(screen.getByRole('list')).toBeInTheDocument();
+  });
 });

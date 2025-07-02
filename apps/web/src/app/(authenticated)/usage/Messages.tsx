@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
+import rehypeSanitize from 'rehype-sanitize';
 import { Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -284,8 +285,17 @@ export const Messages = ({
                 {isQuestion && questionData ? (
                   <div className="space-y-4">
                     {questionData.question && (
-                      <div className="text-sm leading-relaxed">
-                        {questionData.question}
+                      <div className="text-sm leading-relaxed markdown-prose">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkBreaks]}
+                          rehypePlugins={[rehypeSanitize]}
+                          components={{
+                            a: PlainTextLink,
+                            code: CodeBlock,
+                          }}
+                        >
+                          {questionData.question}
+                        </ReactMarkdown>
                       </div>
                     )}
                     {questionData.suggestions &&
@@ -314,6 +324,7 @@ export const Messages = ({
                   <div className="text-sm leading-relaxed markdown-prose">
                     <ReactMarkdown
                       remarkPlugins={[remarkBreaks]}
+                      rehypePlugins={[rehypeSanitize]}
                       components={{
                         a: PlainTextLink,
                         code: CodeBlock,
