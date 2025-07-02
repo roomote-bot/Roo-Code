@@ -10,7 +10,7 @@
     "clean": "rimraf .turbo"
   },
   "dependencies": {
-    "@roo-code/types": "^1.26.0",
+    "@roo-code/types": "^1.30.0",
     "@t3-oss/env-nextjs": "^0.13.6",
     "zod": "^3.25.41"
   },

@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@roo-code-cloud/env": "workspace:^",
-    "@roo-code/types": "^1.29.0",
+    "@roo-code/types": "^1.30.0",
     "drizzle-orm": "^0.44.2",
     "postgres": "^3.4.7",
     "zod": "^3.25.41"

@@ -76,6 +76,7 @@ export const PROVIDERS: Record<
   unbound: { id: 'unbound', label: 'Unbound', models: [] },
   glama: { id: 'glama', label: 'Glama', models: [] },
   'claude-code': { id: 'claude-code', label: 'Claude Code', models: [] },
+  'gemini-cli': { id: 'gemini-cli', label: 'Gemini CLI', models: [] },
 } as Record<
   Exclude<ProviderName, 'fake-ai' | 'human-relay'>,
   { id: ProviderName; label: string; models: string[] }

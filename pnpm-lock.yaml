@@ -49,8 +49,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/ipc
       '@roo-code/types':
-        specifier: ^1.29.0
-        version: 1.29.0
+        specifier: ^1.30.0
+        version: 1.30.0
       bullmq:
         specifier: ^5.37.0
         version: 5.54.3
@@ -210,8 +210,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/env
       '@roo-code/types':
-        specifier: ^1.29.0
-        version: 1.29.0
+        specifier: ^1.30.0
+        version: 1.30.0
       '@sentry/nextjs':
         specifier: ^9.23.0
         version: 9.23.0(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.3.3(@babel/core@7.27.3)(@opentelemetry/api@1.9.0)(@playwright/test@1.52.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(webpack@5.99.9)
@@ -456,8 +456,8 @@ importers:
         specifier: workspace:^
         version: link:../env
       '@roo-code/types':
-        specifier: ^1.29.0
-        version: 1.29.0
+        specifier: ^1.30.0
+        version: 1.30.0
       drizzle-orm:
         specifier: ^0.44.2
         version: 0.44.2(@electric-sql/pglite@0.3.0)(@libsql/client-wasm@0.15.5)(@opentelemetry/api@1.9.0)(@types/pg@8.15.2)(pg@8.15.6)(postgres@3.4.7)
@@ -484,8 +484,8 @@ importers:
   packages/env:
     dependencies:
       '@roo-code/types':
-        specifier: ^1.26.0
-        version: 1.29.0
+        specifier: ^1.30.0
+        version: 1.30.0
       '@t3-oss/env-nextjs':
         specifier: ^0.13.6
         version: 0.13.6(arktype@2.1.20)(typescript@5.8.3)(zod@3.25.41)
@@ -509,8 +509,8 @@ importers:
   packages/ipc:
     dependencies:
       '@roo-code/types':
-        specifier: ^1.29.0
-        version: 1.29.0
+        specifier: ^1.30.0
+        version: 1.30.0
       node-ipc:
         specifier: ^12.0.0
         version: 12.0.0
@@ -2345,8 +2345,8 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@roo-code/types@1.29.0':
-    resolution: {integrity: sha512-bovFOCVQYuWnV2Cvdcx5tWp8aUpF0tEoxN0rS05hzzwdDeDxB6F6q5orKsQqghTS0yqv5pYclQLZRyAV7oBsbw==}
+  '@roo-code/types@1.30.0':
+    resolution: {integrity: sha512-pspDJokLjciJhepKkHy9kR9S/r/k9cu1l+N+HxVjGmyOym1TEZeQzFp4ZWyHs/w3SdzNafU8Xzl3v+3YcHqSpQ==}
 
   '@schummar/icu-type-parser@1.21.5':
     resolution: {integrity: sha512-bXHSaW5jRTmke9Vd0h5P7BtWZG9Znqb8gSDxZnxaGSJnGwPLDPfS+3g0BKzeWqzgZPsIVZkM7m2tbo18cm5HBw==}
@@ -8714,7 +8714,7 @@ snapshots:
   '@rollup/rollup-win32-x64-msvc@4.41.1':
     optional: true
 
-  '@roo-code/types@1.29.0': {}
+  '@roo-code/types@1.30.0': {}
 
   '@schummar/icu-type-parser@1.21.5': {}
 
