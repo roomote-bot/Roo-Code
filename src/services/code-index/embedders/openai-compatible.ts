@@ -276,7 +276,10 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 				const isRateLimitError = httpError?.status === 429
 				const hasMoreAttempts = attempts < MAX_RETRIES - 1
 
-				if (isRateLimitError && hasMoreAttempts) {
+				// Add quota detection
+				const isQuotaError = this.isInsufficientQuotaError(error)
+
+				if (isRateLimitError && !isQuotaError && hasMoreAttempts) {
 					const delayMs = INITIAL_DELAY_MS * Math.pow(2, attempts)
 					console.warn(
 						t("embeddings:rateLimitRetry", {
@@ -287,6 +290,9 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 					)
 					await new Promise((resolve) => setTimeout(resolve, delayMs))
 					continue
+				} else if (isQuotaError) {
+					// Throw specific quota error immediately
+					throw new Error(t("embeddings:insufficientQuota"))
 				}
 
 				// Log the error for debugging
@@ -330,5 +336,32 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 		return {
 			name: "openai-compatible",
 		}
+	}
+
+	/**
+	 * Detects if an error is due to insufficient quota/credits
+	 * @param error The error object to check
+	 * @returns True if the error indicates insufficient quota
+	 */
+	private isInsufficientQuotaError(error: any): boolean {
+		if (error?.status !== 429) return false
+
+		const errorMessage =
+			error?.message?.toLowerCase() ||
+			error?.response?.data?.error?.message?.toLowerCase() ||
+			error?.error?.message?.toLowerCase() ||
+			""
+
+		const quotaKeywords = [
+			"insufficient_quota",
+			"insufficient quota",
+			"quota exceeded",
+			"insufficient funds",
+			"billing",
+			"payment required",
+			"credits",
+		]
+
+		return quotaKeywords.some((keyword) => errorMessage.includes(keyword))
 	}
 }
