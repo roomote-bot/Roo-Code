@@ -21,6 +21,8 @@ import type { JobPayload, JobType } from '@roo-code-cloud/db';
 import { Logger } from './logger';
 import { isFlyMachine, isDockerContainer } from './utils';
 import { SlackNotifier } from './slack';
+import { getRepoConfigByPath, REPO_CONFIGS } from './repoConfig';
+import { gitPullRepoFromConfig, gitPullAllRepos } from './gitUtils';
 
 const TIMEOUT = 30 * 60 * 1_000;
 
@@ -91,6 +93,27 @@ export const runTask = async <T extends JobType>({
   }
 
   logger.info(codeCommand);
+
+  // Pull latest changes from git before opening VSCode
+  try {
+    const repoConfig = getRepoConfigByPath(workspacePath);
+    if (repoConfig) {
+      logger.info(`Pulling latest changes for repository: ${repoConfig.name}`);
+      await gitPullRepoFromConfig(repoConfig, logger);
+    } else {
+      logger.warn(
+        `No repository configuration found for path: ${workspacePath}`,
+      );
+      logger.info('Pulling latest changes for all configured repositories');
+      const allRepoConfigs = Object.values(REPO_CONFIGS);
+      await gitPullAllRepos(allRepoConfigs, logger);
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to pull git changes: ${errorMessage}`);
+    // Continue with task execution even if git pull fails
+    logger.info('Continuing with task execution despite git pull failure');
+  }
 
   const subprocess = execa({
     shell: '/bin/bash',
