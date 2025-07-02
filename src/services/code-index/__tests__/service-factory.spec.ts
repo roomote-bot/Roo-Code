@@ -146,7 +146,9 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("OpenAI configuration missing for embedder creation")
+			expect(() => factory.createEmbedder()).toThrow(
+				"OpenAI API key is required. Please configure it in the settings.",
+			)
 		})
 
 		it("should throw error when Ollama base URL is missing", () => {
@@ -161,7 +163,9 @@ describe("CodeIndexServiceFactory", () => {
 			mockConfigManager.getConfig.mockReturnValue(testConfig as any)
 
 			// Act & Assert
-			expect(() => factory.createEmbedder()).toThrow("Ollama configuration missing for embedder creation")
+			expect(() => factory.createEmbedder()).toThrow(
+				"Ollama base URL is required. Please configure it in the settings.",
+			)
 		})
 
 		it("should pass model ID to OpenAI Compatible embedder when using OpenAI Compatible provider", () => {
@@ -225,7 +229,7 @@ describe("CodeIndexServiceFactory", () => {
 
 			// Act & Assert
 			expect(() => factory.createEmbedder()).toThrow(
-				"OpenAI Compatible configuration missing for embedder creation",
+				"OpenAI-compatible base URL required. Please configure in the settings.",
 			)
 		})
 
@@ -243,7 +247,7 @@ describe("CodeIndexServiceFactory", () => {
 
 			// Act & Assert
 			expect(() => factory.createEmbedder()).toThrow(
-				"OpenAI Compatible configuration missing for embedder creation",
+				"OpenAI-compatible API key required. Please configure in the settings.",
 			)
 		})
 
@@ -258,7 +262,7 @@ describe("CodeIndexServiceFactory", () => {
 
 			// Act & Assert
 			expect(() => factory.createEmbedder()).toThrow(
-				"OpenAI Compatible configuration missing for embedder creation",
+				"OpenAI-compatible base URL and API key required. Please configure in the settings.",
 			)
 		})
 
