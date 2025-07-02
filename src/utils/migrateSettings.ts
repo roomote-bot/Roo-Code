@@ -135,12 +135,16 @@ export async function migrateTaskHistoryWithContextProxy(
 	workspaceFolder: vscode.WorkspaceFolder | undefined,
 ): Promise<void> {
 	try {
-		const alreadyMigrated = context.globalState.get<boolean>(TASK_HISTORY_MIGRATION_KEY)
+		// Use a workspace-specific migration key to prevent race conditions
+		const workspaceId = workspaceFolder?.uri.fsPath || "no-workspace"
+		const migrationKey = `${TASK_HISTORY_MIGRATION_KEY}_${workspaceId}`
+		const alreadyMigrated = context.globalState.get<boolean>(migrationKey)
 		if (alreadyMigrated) {
 			return
 		}
 
 		if (!workspaceFolder) {
+			// Migration skipped: no workspace folder
 			return
 		}
 		// Get the raw global state directly from context
@@ -148,32 +152,55 @@ export async function migrateTaskHistoryWithContextProxy(
 		const taskHistory = rawGlobalState.taskHistory as HistoryItem[] | undefined
 
 		if (!taskHistory || taskHistory.length === 0) {
+			// Set migration flag even if no tasks to migrate
+			await context.globalState.update(migrationKey, true)
 			return
 		}
 
 		const currentWorkspacePath = workspaceFolder.uri.fsPath
 
-		// Filter tasks that belong to the current workspace
+		// Separate tasks into three categories
 		const workspaceTasks = taskHistory.filter((task) => task.workspace === currentWorkspacePath)
+		const otherWorkspaceTasks = taskHistory.filter(
+			(task) => task.workspace && task.workspace !== currentWorkspacePath,
+		)
+		const tasksWithoutWorkspace = taskHistory.filter((task) => !task.workspace)
 
-		// Get tasks that don't belong to current workspace
-		const otherWorkspaceTasks = taskHistory.filter((task) => task.workspace !== currentWorkspacePath)
+		// Log migration statistics for telemetry
+		console.log(
+			`Migrating task history: ${workspaceTasks.length} tasks for current workspace, ${otherWorkspaceTasks.length} for other workspaces, ${tasksWithoutWorkspace.length} without workspace`,
+		)
 
-		if (workspaceTasks.length > 0) {
-			// Get existing workspace settings
-			const workspaceSettings = contextProxy.getWorkspaceSettings()
-			const existingWorkspaceHistory = workspaceSettings.taskHistory || []
+		// Migrate tasks for current workspace and tasks without workspace
+		const tasksToMigrate = [...workspaceTasks, ...tasksWithoutWorkspace]
 
-			// Merge with existing workspace history (avoiding duplicates)
-			const existingIds = new Set(existingWorkspaceHistory.map((t) => t.id))
-			const newTasks = workspaceTasks.filter((t) => !existingIds.has(t.id))
-			const mergedHistory = [...existingWorkspaceHistory, ...newTasks]
+		if (tasksToMigrate.length > 0) {
+			try {
+				// Get existing workspace settings
+				const workspaceSettings = contextProxy.getWorkspaceSettings()
+				const existingWorkspaceHistory = workspaceSettings.taskHistory || []
 
-			// Update workspace state with the merged history
-			await contextProxy.updateWorkspaceState("taskHistory", mergedHistory)
+				// Merge with existing workspace history (avoiding duplicates)
+				const existingIds = new Set(existingWorkspaceHistory.map((t) => t.id))
+				const newTasks = tasksToMigrate.filter((t) => !existingIds.has(t.id))
+				const mergedHistory = [...existingWorkspaceHistory, ...newTasks]
+
+				// Update workspace state with the merged history
+				await contextProxy.updateWorkspaceState("taskHistory", mergedHistory)
+
+				// Update tasks without workspace to include current workspace
+				for (const task of newTasks) {
+					if (!task.workspace) {
+						task.workspace = currentWorkspacePath
+					}
+				}
+			} catch (workspaceError) {
+				console.error("Failed to update workspace state during migration:", workspaceError)
+				// Don't throw - continue with global state update
+			}
 		}
 
-		// Update global state to remove task history (or keep only other workspace tasks)
+		// Update global state to keep only tasks from other workspaces
 		if (otherWorkspaceTasks.length > 0) {
 			// Keep tasks from other workspaces
 			rawGlobalState.taskHistory = otherWorkspaceTasks
@@ -186,8 +213,15 @@ export async function migrateTaskHistoryWithContextProxy(
 		await context.globalState.update("globalSettings", rawGlobalState)
 
 		// Set the migration flag to prevent future migrations
-		await context.globalState.update(TASK_HISTORY_MIGRATION_KEY, true)
+		await context.globalState.update(migrationKey, true)
+
+		// Log successful migration
+		console.log(`Task history migration completed successfully for workspace: ${currentWorkspacePath}`)
 	} catch (error) {
 		console.error("Failed to migrate task history to workspace:", error)
+		// Report error to telemetry if available
+		if ((global as any).outputChannel) {
+			;(global as any).outputChannel.appendLine(`Task history migration error: ${error}`)
+		}
 	}
 }

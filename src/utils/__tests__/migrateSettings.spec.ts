@@ -126,9 +126,12 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		// Act
 		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
 
-		// Assert
+		// Assert - migration flag should be set even with undefined task history
 		expect(mockContextProxy.updateWorkspaceState).not.toHaveBeenCalled()
-		expect(mockContext.globalState.update).not.toHaveBeenCalled()
+		expect(mockContext.globalState.update).toHaveBeenCalledWith(
+			"taskHistoryMigratedToWorkspace_/test/workspace",
+			true,
+		)
 	})
 
 	it("should handle undefined task history in global state", async () => {
@@ -147,9 +150,12 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		// Act
 		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
 
-		// Assert
+		// Assert - migration flag should be set even with empty task history
 		expect(mockContextProxy.updateWorkspaceState).not.toHaveBeenCalled()
-		expect(mockContext.globalState.update).not.toHaveBeenCalled()
+		expect(mockContext.globalState.update).toHaveBeenCalledWith(
+			"taskHistoryMigratedToWorkspace_/test/workspace",
+			true,
+		)
 	})
 
 	it("should merge with existing workspace task history", async () => {
@@ -205,7 +211,7 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		expect(mockContext.globalState.update).toHaveBeenCalledWith("globalSettings", {})
 	})
 
-	it("should handle tasks without workspacePath", async () => {
+	it("should migrate tasks without workspacePath to current workspace", async () => {
 		// Arrange
 		const taskWithoutPath: HistoryItem = {
 			id: "task1",
@@ -224,7 +230,7 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 			if (key === "globalSettings") {
 				return { taskHistory: [taskWithoutPath] }
 			}
-			if (key === "taskHistoryMigratedToWorkspace") {
+			if (key.startsWith("taskHistoryMigratedToWorkspace")) {
 				return false
 			}
 			return undefined
@@ -235,12 +241,10 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
 
 		// Assert
-		// Should not migrate tasks without workspace path
-		expect(mockContextProxy.updateWorkspaceState).not.toHaveBeenCalled()
-		// Should keep the task in global state
-		expect(mockContext.globalState.update).toHaveBeenCalledWith("globalSettings", {
-			taskHistory: [taskWithoutPath],
-		})
+		// Should migrate tasks without workspace path to current workspace
+		expect(mockContextProxy.updateWorkspaceState).toHaveBeenCalledWith("taskHistory", [taskWithoutPath])
+		// Should remove the task from global state
+		expect(mockContext.globalState.update).toHaveBeenCalledWith("globalSettings", {})
 	})
 
 	it("should handle no workspace folder", async () => {
@@ -264,7 +268,7 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 					],
 				}
 			}
-			if (key === "taskHistoryMigratedToWorkspace") {
+			if (key.startsWith("taskHistoryMigratedToWorkspace")) {
 				return false
 			}
 			return undefined
@@ -297,10 +301,10 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		consoleSpy.mockRestore()
 	})
 
-	it("should skip migration if already migrated", async () => {
+	it("should skip migration if already migrated for workspace", async () => {
 		// Arrange
 		vi.mocked(mockContext.globalState.get).mockImplementation((key: string) => {
-			if (key === "taskHistoryMigratedToWorkspace") {
+			if (key === `taskHistoryMigratedToWorkspace_${mockWorkspaceFolder.uri.fsPath}`) {
 				return true // Already migrated
 			}
 			if (key === "globalSettings") {
@@ -354,7 +358,7 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 			if (key === "globalSettings") {
 				return { taskHistory: mockTaskHistory }
 			}
-			if (key === "taskHistoryMigratedToWorkspace") {
+			if (key.startsWith("taskHistoryMigratedToWorkspace")) {
 				return false
 			}
 			return undefined
@@ -365,7 +369,78 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
 
 		// Assert
-		// Should set the migration flag
-		expect(mockContext.globalState.update).toHaveBeenCalledWith("taskHistoryMigratedToWorkspace", true)
+		// Should set the migration flag for the workspace
+		expect(mockContext.globalState.update).toHaveBeenCalledWith(
+			`taskHistoryMigratedToWorkspace_${mockWorkspaceFolder.uri.fsPath}`,
+			true,
+		)
+	})
+
+	it("should handle workspace state update errors gracefully", async () => {
+		// Arrange
+		const mockTaskHistory: HistoryItem[] = [
+			{
+				id: "task1",
+				number: 1,
+				ts: Date.now(),
+				task: "Test task",
+				tokensIn: 100,
+				tokensOut: 50,
+				cacheWrites: 0,
+				cacheReads: 0,
+				totalCost: 0.01,
+				workspace: "/test/workspace",
+			},
+		]
+
+		vi.mocked(mockContext.globalState.get).mockImplementation((key: string) => {
+			if (key === "globalSettings") {
+				return { taskHistory: mockTaskHistory }
+			}
+			if (key.startsWith("taskHistoryMigratedToWorkspace")) {
+				return false
+			}
+			return undefined
+		})
+		vi.mocked(mockContextProxy.getWorkspaceSettings).mockReturnValue({})
+
+		// Mock workspace state update to throw error
+		vi.mocked(mockContextProxy.updateWorkspaceState).mockRejectedValue(new Error("Workspace state update failed"))
+
+		// Act
+		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
+
+		// Assert
+		// Should still update global state even if workspace update fails
+		expect(mockContext.globalState.update).toHaveBeenCalledWith("globalSettings", {})
+		// Should set migration flag
+		expect(mockContext.globalState.update).toHaveBeenCalledWith(
+			`taskHistoryMigratedToWorkspace_${mockWorkspaceFolder.uri.fsPath}`,
+			true,
+		)
+	})
+
+	it("should set migration flag even when no tasks to migrate", async () => {
+		// Arrange
+		vi.mocked(mockContext.globalState.get).mockImplementation((key: string) => {
+			if (key === "globalSettings") {
+				return { taskHistory: [] }
+			}
+			if (key.startsWith("taskHistoryMigratedToWorkspace")) {
+				return false
+			}
+			return undefined
+		})
+
+		// Act
+		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
+
+		// Assert
+		// Should set migration flag even with empty task history
+		expect(mockContext.globalState.update).toHaveBeenCalledWith(
+			`taskHistoryMigratedToWorkspace_${mockWorkspaceFolder.uri.fsPath}`,
+			true,
+		)
+		expect(mockContextProxy.updateWorkspaceState).not.toHaveBeenCalled()
 	})
 })

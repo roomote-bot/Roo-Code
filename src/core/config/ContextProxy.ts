@@ -182,9 +182,18 @@ export class ContextProxy {
 		return value !== undefined ? value : defaultValue
 	}
 
-	updateWorkspaceState<K extends WorkspaceSettingsKey>(key: K, value: WorkspaceSettings[K]) {
-		this.workspaceStateCache[key] = value
-		return this.originalContext.workspaceState.update(key, value)
+	async updateWorkspaceState<K extends WorkspaceSettingsKey>(key: K, value: WorkspaceSettings[K]) {
+		try {
+			this.workspaceStateCache[key] = value
+			await this.originalContext.workspaceState.update(key, value)
+		} catch (error) {
+			logger.error(
+				`Failed to update workspace state for key ${key}: ${error instanceof Error ? error.message : String(error)}`,
+			)
+			// Revert cache on error
+			delete this.workspaceStateCache[key]
+			throw error
+		}
 	}
 
 	private getAllWorkspaceState(): WorkspaceSettings {
