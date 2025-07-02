@@ -100,7 +100,7 @@ export const webviewMessageHandler = async (
 				try {
 					const { historyItem } = await provider.getTaskWithId(currentCline.taskId)
 
-					// Check if user selected the "just this message" option
+					// Check if user selected the "modify just this message" option
 					// For delete: options[0], for edit: options[1]
 					if (
 						(operation === "delete" && answer === options[0]) ||
@@ -146,7 +146,7 @@ export const webviewMessageHandler = async (
 							}
 						}
 					} else if (
-						// Check if user selected the "this and subsequent" option
+						// Check if user selected the "modify this and subsequent" option
 						// For delete: options[1], for edit: options[0]
 						(operation === "delete" && answer === options[1]) ||
 						(operation === "edit" && answer === options[0])

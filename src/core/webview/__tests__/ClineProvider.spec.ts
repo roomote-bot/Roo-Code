@@ -1169,7 +1169,7 @@ describe("ClineProvider", () => {
 
 		test('handles "Just this message" deletion correctly', async () => {
 			// Mock user selecting "Just this message"
-			;(vscode.window.showInformationMessage as any).mockResolvedValue("confirmation.just_this_message")
+			;(vscode.window.showInformationMessage as any).mockResolvedValue("confirmation.delete_just_this_message")
 
 			// Setup mock messages
 			const mockMessages = [
@@ -1224,7 +1224,7 @@ describe("ClineProvider", () => {
 
 		test('handles "This and all subsequent messages" deletion correctly', async () => {
 			// Mock user selecting "This and all subsequent messages"
-			;(vscode.window.showInformationMessage as any).mockResolvedValue("confirmation.this_and_subsequent")
+			;(vscode.window.showInformationMessage as any).mockResolvedValue("confirmation.delete_this_and_subsequent")
 
 			// Setup mock messages
 			const mockMessages = [
@@ -1284,6 +1284,186 @@ describe("ClineProvider", () => {
 			// Verify no messages were deleted
 			expect(mockCline.overwriteClineMessages).not.toHaveBeenCalled()
 			expect(mockCline.overwriteApiConversationHistory).not.toHaveBeenCalled()
+		})
+	})
+
+	describe("editMessage", () => {
+		beforeEach(async () => {
+			// Mock window.showInformationMessage
+			;(vscode.window.showInformationMessage as any) = vi.fn()
+			await provider.resolveWebviewView(mockWebviewView)
+		})
+
+		test('handles "No, just edit this one" edit correctly', async () => {
+			// Mock user selecting "No, just edit this one"
+			;(vscode.window.showInformationMessage as any).mockResolvedValue("confirmation.edit_just_this_message")
+
+			// Setup mock messages
+			const mockMessages = [
+				{ ts: 1000, type: "say", say: "user_feedback" }, // User message 1
+				{ ts: 2000, type: "say", say: "tool" }, // Tool message
+				{ ts: 3000, type: "say", say: "text", value: 4000 }, // Message to edit
+				{ ts: 4000, type: "say", say: "browser_action" }, // Response to edit
+				{ ts: 5000, type: "say", say: "user_feedback" }, // Next user message
+				{ ts: 6000, type: "say", say: "user_feedback" }, // Final message
+			] as ClineMessage[]
+
+			const mockApiHistory = [
+				{ ts: 1000 },
+				{ ts: 2000 },
+				{ ts: 3000 },
+				{ ts: 4000 },
+				{ ts: 5000 },
+				{ ts: 6000 },
+			] as (Anthropic.MessageParam & { ts?: number })[]
+
+			// Setup Task instance with auto-mock from the top of the file
+			const mockCline = new Task(defaultTaskOptions) // Create a new mocked instance
+			mockCline.clineMessages = mockMessages // Set test-specific messages
+			mockCline.apiConversationHistory = mockApiHistory // Set API history
+
+			// Explicitly mock the overwrite methods since they're not being called in the tests
+			mockCline.overwriteClineMessages = vi.fn()
+			mockCline.overwriteApiConversationHistory = vi.fn()
+			mockCline.handleWebviewAskResponse = vi.fn()
+
+			await provider.addClineToStack(mockCline) // Add the mocked instance to the stack
+
+			// Mock getTaskWithId
+			;(provider as any).getTaskWithId = vi.fn().mockResolvedValue({
+				historyItem: { id: "test-task-id" },
+			})
+
+			// Trigger message edit
+			// Get the message handler function that was registered with the webview
+			const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+
+			// Call the message handler with a submitEditedMessage message
+			await messageHandler({
+				type: "submitEditedMessage",
+				value: 4000,
+				editedMessageContent: "Edited message content",
+			})
+
+			// Verify correct messages were kept
+			expect(mockCline.overwriteClineMessages).toHaveBeenCalledWith([
+				mockMessages[0],
+				mockMessages[1],
+				mockMessages[4],
+				mockMessages[5],
+			])
+
+			// Verify correct API messages were kept
+			expect(mockCline.overwriteApiConversationHistory).toHaveBeenCalledWith([
+				mockApiHistory[0],
+				mockApiHistory[1],
+				mockApiHistory[4],
+				mockApiHistory[5],
+			])
+
+			// Verify handleWebviewAskResponse was called with the edited content
+			expect(mockCline.handleWebviewAskResponse).toHaveBeenCalledWith(
+				"messageResponse",
+				"Edited message content",
+				undefined,
+			)
+		})
+
+		test('handles "Yes" (edit and delete subsequent) correctly', async () => {
+			// Mock user selecting "Yes"
+			;(vscode.window.showInformationMessage as any).mockResolvedValue(
+				"confirmation.edit_this_and_delete_subsequent",
+			)
+
+			// Setup mock messages
+			const mockMessages = [
+				{ ts: 1000, type: "say", say: "user_feedback" },
+				{ ts: 2000, type: "say", say: "text", value: 3000 }, // Message to edit
+				{ ts: 3000, type: "say", say: "user_feedback" },
+				{ ts: 4000, type: "say", say: "user_feedback" },
+			] as ClineMessage[]
+
+			const mockApiHistory = [
+				{ ts: 1000 },
+				{ ts: 2000 },
+				{ ts: 3000 },
+				{ ts: 4000 },
+			] as (Anthropic.MessageParam & {
+				ts?: number
+			})[]
+
+			// Setup Cline instance with auto-mock from the top of the file
+			const mockCline = new Task(defaultTaskOptions) // Create a new mocked instance
+			mockCline.clineMessages = mockMessages
+			mockCline.apiConversationHistory = mockApiHistory
+
+			// Explicitly mock the overwrite methods since they're not being called in the tests
+			mockCline.overwriteClineMessages = vi.fn()
+			mockCline.overwriteApiConversationHistory = vi.fn()
+			mockCline.handleWebviewAskResponse = vi.fn()
+
+			await provider.addClineToStack(mockCline)
+
+			// Mock getTaskWithId
+			;(provider as any).getTaskWithId = vi.fn().mockResolvedValue({
+				historyItem: { id: "test-task-id" },
+			})
+
+			// Trigger message edit
+			// Get the message handler function that was registered with the webview
+			const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+
+			// Call the message handler with a submitEditedMessage message
+			await messageHandler({
+				type: "submitEditedMessage",
+				value: 3000,
+				editedMessageContent: "Edited message content",
+			})
+
+			// Verify only messages before the edited message were kept
+			expect(mockCline.overwriteClineMessages).toHaveBeenCalledWith([mockMessages[0]])
+
+			// Verify only API messages before the edited message were kept
+			expect(mockCline.overwriteApiConversationHistory).toHaveBeenCalledWith([mockApiHistory[0]])
+
+			// Verify handleWebviewAskResponse was called with the edited content
+			expect(mockCline.handleWebviewAskResponse).toHaveBeenCalledWith(
+				"messageResponse",
+				"Edited message content",
+				undefined,
+			)
+		})
+
+		test("handles Cancel correctly", async () => {
+			// Mock user selecting "Cancel"
+			;(vscode.window.showInformationMessage as any).mockResolvedValue("Cancel")
+
+			// Setup Cline instance with auto-mock from the top of the file
+			const mockCline = new Task(defaultTaskOptions) // Create a new mocked instance
+			mockCline.clineMessages = [{ ts: 1000 }, { ts: 2000 }] as ClineMessage[]
+			mockCline.apiConversationHistory = [{ ts: 1000 }, { ts: 2000 }] as (Anthropic.MessageParam & {
+				ts?: number
+			})[]
+
+			// Explicitly mock the overwrite methods since they're not being called in the tests
+			mockCline.overwriteClineMessages = vi.fn()
+			mockCline.overwriteApiConversationHistory = vi.fn()
+			mockCline.handleWebviewAskResponse = vi.fn()
+
+			await provider.addClineToStack(mockCline)
+
+			// Trigger message edit
+			const messageHandler = (mockWebviewView.webview.onDidReceiveMessage as any).mock.calls[0][0]
+			await messageHandler({
+				type: "submitEditedMessage",
+				value: 2000,
+				editedMessageContent: "Edited message content",
+			})
+
+			// Verify no messages were edited or deleted
+			expect(mockCline.overwriteClineMessages).not.toHaveBeenCalled()
+			expect(mockCline.overwriteApiConversationHistory).not.toHaveBeenCalled()
+			expect(mockCline.handleWebviewAskResponse).not.toHaveBeenCalled()
 		})
 	})
 
