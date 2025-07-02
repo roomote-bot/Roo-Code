@@ -52,6 +52,7 @@ class IndexingWorker {
 
 				case "clear":
 					await this.clearIndex()
+					this.sendResponse(id, { type: "cleared", success: true })
 					break
 
 				case "search": {
@@ -197,7 +198,6 @@ class IndexingWorker {
 		}
 		await this.orchestrator.clearIndexData()
 		await this.cacheManager.clearCacheFile()
-		this.sendResponse("clear", { type: "cleared", success: true })
 	}
 
 	private async search(query: string, directoryPrefix?: string): Promise<VectorStoreSearchResult[]> {
