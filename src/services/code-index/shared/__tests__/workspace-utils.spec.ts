@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 import * as vscode from "vscode"
+import * as path from "path"
 import {
 	getWorkspaceRootForFile,
 	isFileInWorkspace,
@@ -27,38 +28,46 @@ describe("workspace-utils", () => {
 		})
 
 		it("should return the correct workspace root for a file", () => {
+			const project1Path = path.normalize("/workspace/project1")
+			const project2Path = path.normalize("/workspace/project2")
 			;(vscode.workspace as any).workspaceFolders = [
-				{ uri: { fsPath: "/workspace/project1" } },
-				{ uri: { fsPath: "/workspace/project2" } },
+				{ uri: { fsPath: project1Path } },
+				{ uri: { fsPath: project2Path } },
 			]
 
-			const result = getWorkspaceRootForFile("/workspace/project1/src/file.ts")
-			expect(result).toBe("/workspace/project1")
+			const filePath = path.join(project1Path, "src", "file.ts")
+			const result = getWorkspaceRootForFile(filePath)
+			expect(result).toBe(project1Path)
 		})
 
 		it("should handle nested workspace folders correctly", () => {
+			const parentPath = path.normalize("/workspace/parent")
+			const childPath = path.join(parentPath, "child")
 			;(vscode.workspace as any).workspaceFolders = [
-				{ uri: { fsPath: "/workspace/parent" } },
-				{ uri: { fsPath: "/workspace/parent/child" } },
+				{ uri: { fsPath: parentPath } },
+				{ uri: { fsPath: childPath } },
 			]
 
 			// File in child workspace should return child workspace root
-			const result = getWorkspaceRootForFile("/workspace/parent/child/src/file.ts")
-			expect(result).toBe("/workspace/parent/child")
+			const filePath = path.join(childPath, "src", "file.ts")
+			const result = getWorkspaceRootForFile(filePath)
+			expect(result).toBe(childPath)
 		})
 
 		it("should return undefined for files outside all workspace roots", () => {
-			;(vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: "/workspace/project1" } }]
+			const workspacePath = path.normalize("/workspace/project1")
+			;(vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: workspacePath } }]
 
 			const result = getWorkspaceRootForFile("/other/location/file.ts")
 			expect(result).toBeUndefined()
 		})
 
 		it("should handle exact workspace root path", () => {
-			;(vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: "/workspace/project" } }]
+			const workspacePath = path.normalize("/workspace/project")
+			;(vscode.workspace as any).workspaceFolders = [{ uri: { fsPath: workspacePath } }]
 
-			const result = getWorkspaceRootForFile("/workspace/project")
-			expect(result).toBe("/workspace/project")
+			const result = getWorkspaceRootForFile(workspacePath)
+			expect(result).toBe(workspacePath)
 		})
 	})
 
@@ -92,26 +101,33 @@ describe("workspace-utils", () => {
 		})
 
 		it("should return all workspace root paths", () => {
+			const project1Path = path.normalize("/workspace/project1")
+			const project2Path = path.normalize("/workspace/project2")
+			const project3Path = path.normalize("/workspace/project3")
 			;(vscode.workspace as any).workspaceFolders = [
-				{ uri: { fsPath: "/workspace/project1" } },
-				{ uri: { fsPath: "/workspace/project2" } },
-				{ uri: { fsPath: "/workspace/project3" } },
+				{ uri: { fsPath: project1Path } },
+				{ uri: { fsPath: project2Path } },
+				{ uri: { fsPath: project3Path } },
 			]
 
 			const result = getAllWorkspaceRoots()
-			expect(result).toEqual(["/workspace/project1", "/workspace/project2", "/workspace/project3"])
+			expect(result).toEqual([project1Path, project2Path, project3Path])
 		})
 
 		it("should normalize paths", () => {
+			const project1Path = "/workspace/project1/"
+			const project2Path = "/workspace//project2"
 			;(vscode.workspace as any).workspaceFolders = [
-				{ uri: { fsPath: "/workspace/project1/" } },
-				{ uri: { fsPath: "/workspace//project2" } },
+				{ uri: { fsPath: project1Path } },
+				{ uri: { fsPath: project2Path } },
 			]
 
 			const result = getAllWorkspaceRoots()
-			// path.normalize may keep trailing slashes on some platforms
-			expect(result[0]).toMatch(/^\/workspace\/project1\/?$/)
-			expect(result[1]).toMatch(/^\/workspace\/project2\/?$/)
+			// Normalize the expected paths for comparison
+			const normalized1 = path.normalize(project1Path)
+			const normalized2 = path.normalize(project2Path)
+			expect(result[0]).toBe(normalized1)
+			expect(result[1]).toBe(normalized2)
 		})
 	})
 

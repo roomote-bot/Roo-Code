@@ -50,14 +50,16 @@ describe("get-relative-path", () => {
 		})
 
 		it("should return normalized absolute paths unchanged", () => {
-			const absolutePath = "/some/absolute/path/file.ts"
+			// Use path.resolve to create a proper absolute path for the current platform
+			const absolutePath = path.resolve("/some/absolute/path/file.ts")
 			const result = generateNormalizedAbsolutePath(absolutePath)
-			expect(result).toBe(path.normalize(absolutePath))
+			expect(result).toBe(absolutePath)
 		})
 
 		it("should use custom workspace root when provided", () => {
-			const result = generateNormalizedAbsolutePath("src/file.ts", "/custom/workspace")
-			const expected = path.join("/custom/workspace", "src/file.ts")
+			const customWorkspace = path.normalize("/custom/workspace")
+			const result = generateNormalizedAbsolutePath("src/file.ts", customWorkspace)
+			const expected = path.join(customWorkspace, "src/file.ts")
 			expect(result).toBe(expected)
 		})
 
@@ -71,23 +73,26 @@ describe("get-relative-path", () => {
 
 	describe("generateRelativeFilePath", () => {
 		it("should generate relative path when workspace root is provided", () => {
-			const absolutePath = "/custom/workspace/src/file.ts"
-			const result = generateRelativeFilePath(absolutePath, "/custom/workspace")
-			expect(result).toBe(path.normalize("src/file.ts"))
+			const workspaceRoot = path.normalize("/custom/workspace")
+			const absolutePath = path.join(workspaceRoot, "src", "file.ts")
+			const result = generateRelativeFilePath(absolutePath, workspaceRoot)
+			expect(result).toBe(path.join("src", "file.ts"))
 		})
 
 		it("should return null for paths outside the provided workspace root", () => {
-			const absolutePath = "/other/location/file.ts"
-			const result = generateRelativeFilePath(absolutePath, "/custom/workspace")
+			const absolutePath = path.normalize("/other/location/file.ts")
+			const workspaceRoot = path.normalize("/custom/workspace")
+			const result = generateRelativeFilePath(absolutePath, workspaceRoot)
 			expect(result).toBeNull()
 		})
 
 		it("should auto-detect workspace root in multi-root workspace", () => {
-			const absolutePath = "/workspace/project1/src/file.ts"
-			vi.mocked(workspaceUtils.getWorkspaceRootForFile).mockReturnValue("/workspace/project1")
+			const workspaceRoot = path.normalize("/workspace/project1")
+			const absolutePath = path.join(workspaceRoot, "src", "file.ts")
+			vi.mocked(workspaceUtils.getWorkspaceRootForFile).mockReturnValue(workspaceRoot)
 
 			const result = generateRelativeFilePath(absolutePath)
-			expect(result).toBe(path.normalize("src/file.ts"))
+			expect(result).toBe(path.join("src", "file.ts"))
 			expect(workspaceUtils.getWorkspaceRootForFile).toHaveBeenCalledWith(absolutePath)
 		})
 
@@ -100,23 +105,25 @@ describe("get-relative-path", () => {
 		})
 
 		it("should handle workspace root as the file path", () => {
-			const workspaceRoot = "/workspace/project"
+			const workspaceRoot = path.normalize("/workspace/project")
 			const result = generateRelativeFilePath(workspaceRoot, workspaceRoot)
-			expect(result).toBe(path.normalize("."))
+			expect(result).toBe(".")
 		})
 
 		it("should handle paths with .. when workspace root is provided", () => {
-			const absolutePath = "/workspace/../outside/file.ts"
-			const result = generateRelativeFilePath(absolutePath, "/workspace")
+			const workspaceRoot = path.normalize("/workspace")
+			const absolutePath = path.normalize("/workspace/../outside/file.ts")
+			const result = generateRelativeFilePath(absolutePath, workspaceRoot)
 			expect(result).toBeNull()
 		})
 
 		it("should prioritize provided workspace root over auto-detection", () => {
-			const absolutePath = "/workspace/project1/src/file.ts"
-			vi.mocked(workspaceUtils.getWorkspaceRootForFile).mockReturnValue("/workspace/project2")
+			const workspaceRoot = path.normalize("/workspace/project1")
+			const absolutePath = path.join(workspaceRoot, "src", "file.ts")
+			vi.mocked(workspaceUtils.getWorkspaceRootForFile).mockReturnValue(path.normalize("/workspace/project2"))
 
-			const result = generateRelativeFilePath(absolutePath, "/workspace/project1")
-			expect(result).toBe(path.normalize("src/file.ts"))
+			const result = generateRelativeFilePath(absolutePath, workspaceRoot)
+			expect(result).toBe(path.join("src", "file.ts"))
 			expect(workspaceUtils.getWorkspaceRootForFile).not.toHaveBeenCalled()
 		})
 	})
