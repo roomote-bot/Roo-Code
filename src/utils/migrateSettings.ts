@@ -147,6 +147,14 @@ export async function migrateTaskHistoryWithContextProxy(
 			// Migration skipped: no workspace folder
 			return
 		}
+
+		// Validate workspace path
+		const currentWorkspacePath = workspaceFolder.uri.fsPath
+		if (!currentWorkspacePath || typeof currentWorkspacePath !== "string") {
+			console.error("Invalid workspace path during migration")
+			return
+		}
+
 		// Get the raw global state directly from context
 		const rawGlobalState = context.globalState.get<any>("globalSettings", {})
 		const taskHistory = rawGlobalState.taskHistory as HistoryItem[] | undefined
@@ -156,8 +164,6 @@ export async function migrateTaskHistoryWithContextProxy(
 			await context.globalState.update(migrationKey, true)
 			return
 		}
-
-		const currentWorkspacePath = workspaceFolder.uri.fsPath
 
 		// Separate tasks into three categories
 		const workspaceTasks = taskHistory.filter((task) => task.workspace === currentWorkspacePath)
@@ -181,37 +187,53 @@ export async function migrateTaskHistoryWithContextProxy(
 				// Merge with existing workspace history (avoiding duplicates)
 				const existingIds = new Set(existingWorkspaceHistory.map((t) => t.id))
 				const newTasks = tasksToMigrate.filter((t) => !existingIds.has(t.id))
-				const mergedHistory = [...existingWorkspaceHistory, ...newTasks]
 
-				// Update workspace state with the merged history
-				await contextProxy.updateWorkspaceState("taskHistory", mergedHistory)
-
-				// Update tasks without workspace to include current workspace
+				// Update tasks without workspace to include current workspace BEFORE saving
 				for (const task of newTasks) {
 					if (!task.workspace) {
 						task.workspace = currentWorkspacePath
 					}
 				}
+
+				// Now merge with the updated tasks
+				const mergedHistory = [...existingWorkspaceHistory, ...newTasks]
+
+				// Update workspace state with the properly formatted history
+				await contextProxy.updateWorkspaceState("taskHistory", mergedHistory)
 			} catch (workspaceError) {
 				console.error("Failed to update workspace state during migration:", workspaceError)
 				// Don't throw - continue with global state update
 			}
 		}
 
-		// Update global state to keep only tasks from other workspaces
-		if (otherWorkspaceTasks.length > 0) {
-			// Keep tasks from other workspaces
-			rawGlobalState.taskHistory = otherWorkspaceTasks
-		} else {
-			// Remove taskHistory completely
-			delete rawGlobalState.taskHistory
+		// Only update global state if workspace state was successfully updated
+		// This prevents data loss if workspace update failed
+		let globalStateUpdated = false
+
+		try {
+			// Update global state to keep only tasks from other workspaces
+			if (otherWorkspaceTasks.length > 0) {
+				// Keep tasks from other workspaces
+				rawGlobalState.taskHistory = otherWorkspaceTasks
+			} else {
+				// Remove taskHistory completely
+				delete rawGlobalState.taskHistory
+			}
+
+			// Update the raw global state directly using context
+			await context.globalState.update("globalSettings", rawGlobalState)
+			globalStateUpdated = true
+		} catch (globalUpdateError) {
+			console.error("Failed to update global state during migration:", globalUpdateError)
+			// If we can't update global state, don't set migration flag
+			// This ensures we'll retry the migration next time
+			throw globalUpdateError
 		}
 
-		// Update the raw global state directly using context
-		await context.globalState.update("globalSettings", rawGlobalState)
-
-		// Set the migration flag to prevent future migrations
-		await context.globalState.update(migrationKey, true)
+		// Only set the migration flag if everything succeeded
+		if (globalStateUpdated) {
+			await context.globalState.update(migrationKey, true)
+		}
 
 		// Task history migration completed successfully
 	} catch (error) {

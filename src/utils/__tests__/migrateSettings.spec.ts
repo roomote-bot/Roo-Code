@@ -443,4 +443,48 @@ describe("migrateTaskHistoryWithContextProxy", () => {
 		)
 		expect(mockContextProxy.updateWorkspaceState).not.toHaveBeenCalled()
 	})
+
+	it("should set workspace property on tasks before saving to workspace state", async () => {
+		// Arrange
+		const taskWithoutWorkspace: HistoryItem = {
+			id: "task1",
+			number: 1,
+			ts: Date.now(),
+			task: "Task without workspace",
+			tokensIn: 100,
+			tokensOut: 50,
+			cacheWrites: 0,
+			cacheReads: 0,
+			totalCost: 0.01,
+			// No workspace property
+		} as HistoryItem
+
+		vi.mocked(mockContext.globalState.get).mockImplementation((key: string) => {
+			if (key === "globalSettings") {
+				return { taskHistory: [taskWithoutWorkspace] }
+			}
+			if (key.startsWith("taskHistoryMigratedToWorkspace")) {
+				return false
+			}
+			return undefined
+		})
+		vi.mocked(mockContextProxy.getWorkspaceSettings).mockReturnValue({})
+
+		// Capture the actual data passed to updateWorkspaceState
+		let savedTasks: HistoryItem[] = []
+		vi.mocked(mockContextProxy.updateWorkspaceState).mockImplementation(async (key: string, value: any) => {
+			if (key === "taskHistory") {
+				savedTasks = value as HistoryItem[]
+			}
+		})
+
+		// Act
+		await migrateTaskHistoryWithContextProxy(mockContext, mockContextProxy, mockWorkspaceFolder)
+
+		// Assert
+		expect(mockContextProxy.updateWorkspaceState).toHaveBeenCalledWith("taskHistory", expect.any(Array))
+		expect(savedTasks).toHaveLength(1)
+		expect(savedTasks[0].workspace).toBe(mockWorkspaceFolder.uri.fsPath)
+		expect(savedTasks[0].id).toBe("task1")
+	})
 })
