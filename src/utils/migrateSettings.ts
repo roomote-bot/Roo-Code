@@ -166,10 +166,8 @@ export async function migrateTaskHistoryWithContextProxy(
 		)
 		const tasksWithoutWorkspace = taskHistory.filter((task) => !task.workspace)
 
-		// Log migration statistics for telemetry
-		console.log(
-			`Migrating task history: ${workspaceTasks.length} tasks for current workspace, ${otherWorkspaceTasks.length} for other workspaces, ${tasksWithoutWorkspace.length} without workspace`,
-		)
+		// Migration statistics: workspaceTasks.length tasks for current workspace,
+		// otherWorkspaceTasks.length for other workspaces, tasksWithoutWorkspace.length without workspace
 
 		// Migrate tasks for current workspace and tasks without workspace
 		const tasksToMigrate = [...workspaceTasks, ...tasksWithoutWorkspace]
@@ -215,8 +213,7 @@ export async function migrateTaskHistoryWithContextProxy(
 		// Set the migration flag to prevent future migrations
 		await context.globalState.update(migrationKey, true)
 
-		// Log successful migration
-		console.log(`Task history migration completed successfully for workspace: ${currentWorkspacePath}`)
+		// Task history migration completed successfully
 	} catch (error) {
 		console.error("Failed to migrate task history to workspace:", error)
 		// Report error to telemetry if available
