@@ -18,19 +18,40 @@ interface QueueItem<T> {
 	reject: (reason: any) => void
 }
 
+export interface WorkerPoolOptions {
+	maxWorkers?: number
+	maxQueueSize?: number
+	memoryThresholdMB?: number
+	healthCheckIntervalMs?: number
+}
+
 export class WorkerPool {
 	private workers: Worker[] = []
 	private availableWorkers: Worker[] = []
 	private queue: QueueItem<any>[] = []
 	private activeWorkers = new Map<Worker, QueueItem<any>>()
 	private isShuttingDown = false
+	private maxQueueSize: number
+	private memoryThresholdMB: number
+	private healthCheckInterval?: NodeJS.Timeout
+	private workerLastActivity = new Map<Worker, number>()
 
 	constructor(
 		private workerScript: string,
-		private maxWorkers = Math.max(1, cpus().length - 1),
+		options: WorkerPoolOptions = {},
 	) {
+		this.maxWorkers = options.maxWorkers ?? Math.max(1, cpus().length - 1)
+		this.maxQueueSize = options.maxQueueSize ?? 1000
+		this.memoryThresholdMB = options.memoryThresholdMB ?? 512
+
 		this.initializeWorkers()
+
+		if (options.healthCheckIntervalMs) {
+			this.startHealthChecks(options.healthCheckIntervalMs)
+		}
 	}
+
+	private maxWorkers: number
 
 	private initializeWorkers(): void {
 		for (let i = 0; i < this.maxWorkers; i++) {
@@ -119,6 +140,19 @@ export class WorkerPool {
 			throw new Error("Worker pool is shutting down")
 		}
 
+		// Check queue size limit
+		if (this.queue.length >= this.maxQueueSize) {
+			throw new Error(`Worker pool queue is full (max: ${this.maxQueueSize})`)
+		}
+
+		// Check memory usage
+		const memoryUsageMB = process.memoryUsage().heapUsed / 1024 / 1024
+		if (memoryUsageMB > this.memoryThresholdMB) {
+			throw new Error(
+				`Memory usage too high: ${memoryUsageMB.toFixed(2)}MB (threshold: ${this.memoryThresholdMB}MB)`,
+			)
+		}
+
 		return new Promise((resolve, reject) => {
 			this.queue.push({ task, resolve, reject })
 			this.processQueue()
@@ -131,12 +165,61 @@ export class WorkerPool {
 			const worker = this.availableWorkers.shift()!
 
 			this.activeWorkers.set(worker, queueItem)
+			this.workerLastActivity.set(worker, Date.now())
 			worker.postMessage(queueItem.task)
+		}
+	}
+
+	private startHealthChecks(intervalMs: number): void {
+		this.healthCheckInterval = setInterval(() => {
+			this.performHealthCheck()
+		}, intervalMs)
+	}
+
+	private performHealthCheck(): void {
+		const now = Date.now()
+		const staleThreshold = 60000 // 1 minute
+
+		for (const [worker, lastActivity] of this.workerLastActivity) {
+			if (this.activeWorkers.has(worker) && now - lastActivity > staleThreshold) {
+				console.warn(`[WorkerPool] Worker appears to be stale, replacing...`)
+
+				// Reject the stale task
+				const queueItem = this.activeWorkers.get(worker)
+				if (queueItem) {
+					queueItem.reject(new Error("Worker task timed out"))
+					this.activeWorkers.delete(worker)
+				}
+
+				// Replace the stale worker
+				this.replaceWorker(worker)
+			}
+		}
+
+		// Log pool status
+		console.debug(
+			`[WorkerPool] Status - Active: ${this.activeWorkers.size}, Available: ${this.availableWorkers.length}, Queue: ${this.queue.length}`,
+		)
+	}
+
+	getStatus() {
+		return {
+			activeWorkers: this.activeWorkers.size,
+			availableWorkers: this.availableWorkers.length,
+			queueLength: this.queue.length,
+			maxQueueSize: this.maxQueueSize,
+			memoryUsageMB: process.memoryUsage().heapUsed / 1024 / 1024,
+			memoryThresholdMB: this.memoryThresholdMB,
 		}
 	}
 
 	async shutdown(): Promise<void> {
 		this.isShuttingDown = true
+
+		// Stop health checks
+		if (this.healthCheckInterval) {
+			clearInterval(this.healthCheckInterval)
+		}
 
 		// Clear the queue
 		for (const queueItem of this.queue) {
@@ -167,5 +250,6 @@ export class WorkerPool {
 		this.workers = []
 		this.availableWorkers = []
 		this.activeWorkers.clear()
+		this.workerLastActivity.clear()
 	}
 }

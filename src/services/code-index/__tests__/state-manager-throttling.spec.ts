@@ -4,9 +4,9 @@ import { CodeIndexStateManager, IndexingState } from "../state-manager"
 // Mock vscode module
 vi.mock("vscode", () => ({
 	EventEmitter: class EventEmitter {
-		private listeners: Map<string, Function[]> = new Map()
+		private listeners: Map<string, Array<(...args: any[]) => void>> = new Map()
 
-		event = (listener: Function) => {
+		event = (listener: (...args: any[]) => void) => {
 			if (!this.listeners.has("event")) {
 				this.listeners.set("event", [])
 			}

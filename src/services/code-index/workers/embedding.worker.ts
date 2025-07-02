@@ -1,3 +1,17 @@
+/**
+ * Embedding Worker - Placeholder Implementation
+ *
+ * This worker is designed to handle embedding generation in a separate thread
+ * to prevent blocking the main thread during intensive computation.
+ *
+ * Current status: This is a placeholder implementation that returns dummy embeddings.
+ * Future implementation will integrate with actual embedding providers (OpenAI, Ollama, etc.)
+ * to generate real embeddings for code chunks.
+ *
+ * The worker pool architecture allows for parallel processing of embedding requests,
+ * improving performance for large codebases.
+ */
+
 import { parentPort } from "worker_threads"
 import { WorkerTask, WorkerResult } from "./worker-pool"
 
@@ -11,8 +25,8 @@ interface EmbeddingResult {
 	embeddings: number[][]
 }
 
-// Note: In a real implementation, this would use the actual embedder
-// For now, we'll create a placeholder that demonstrates the structure
+// TODO: Replace with actual embedder implementation
+// This placeholder demonstrates the expected structure and interface
 async function generateEmbeddings(task: EmbeddingTask): Promise<EmbeddingResult> {
 	try {
 		// In production, this would:

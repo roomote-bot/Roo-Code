@@ -13,7 +13,11 @@ export class CodeIndexStateManager {
 	// Throttling properties
 	private _throttleTimer?: NodeJS.Timeout
 	private _pendingUpdate?: ReturnType<typeof this.getCurrentStatus>
-	private readonly THROTTLE_INTERVAL_MS = 500
+	private readonly throttleIntervalMs: number
+
+	constructor(throttleIntervalMs: number = 500) {
+		this.throttleIntervalMs = throttleIntervalMs
+	}
 
 	// --- Public API ---
 
@@ -128,7 +132,7 @@ export class CodeIndexStateManager {
 				this._pendingUpdate = undefined
 			}
 			this._throttleTimer = undefined
-		}, this.THROTTLE_INTERVAL_MS)
+		}, this.throttleIntervalMs)
 	}
 
 	public dispose(): void {

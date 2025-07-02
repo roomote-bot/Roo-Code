@@ -60,7 +60,7 @@ describe("WorkerPool", () => {
 
 	describe("initialization", () => {
 		it("should create workers with specified concurrency", () => {
-			pool = new WorkerPool("/path/to/worker.js", 4)
+			pool = new WorkerPool("/path/to/worker.js", { maxWorkers: 4 })
 			expect(Worker).toHaveBeenCalledTimes(4)
 			expect(Worker).toHaveBeenCalledWith("/path/to/worker.js")
 		})
@@ -82,7 +82,7 @@ describe("WorkerPool", () => {
 
 	describe("task execution", () => {
 		beforeEach(() => {
-			pool = new WorkerPool("/path/to/worker.js", 2)
+			pool = new WorkerPool("/path/to/worker.js", { maxWorkers: 2 })
 		})
 
 		it("should execute tasks and return results", async () => {
@@ -97,7 +97,7 @@ describe("WorkerPool", () => {
 
 			// Simulate worker response
 			const worker = mockWorkers[0]
-			const messageHandler = worker.listeners("message")[0] as Function
+			const messageHandler = worker.listeners("message")[0] as (...args: any[]) => void
 			messageHandler(expectedResult)
 
 			const result = await resultPromise
@@ -142,7 +142,7 @@ describe("WorkerPool", () => {
 			expect(mockWorkers[1].postMessage).toHaveBeenCalledTimes(1)
 
 			// Complete first task
-			const messageHandler0 = mockWorkers[0].listeners("message")[0] as Function
+			const messageHandler0 = mockWorkers[0].listeners("message")[0] as (...args: any[]) => void
 			messageHandler0({ success: true, data: "task1" })
 
 			// Wait for queue processing
@@ -154,7 +154,7 @@ describe("WorkerPool", () => {
 
 			// Complete remaining tasks
 			messageHandler0({ success: true, data: "task3" })
-			const messageHandler1 = mockWorkers[1].listeners("message")[0] as Function
+			const messageHandler1 = mockWorkers[1].listeners("message")[0] as (...args: any[]) => void
 			messageHandler1({ success: true, data: "task2" })
 
 			const results = await Promise.all(promises)
@@ -206,7 +206,7 @@ describe("WorkerPool", () => {
 
 	describe("shutdown", () => {
 		beforeEach(() => {
-			pool = new WorkerPool("/path/to/worker.js", 2)
+			pool = new WorkerPool("/path/to/worker.js", { maxWorkers: 2 })
 		})
 
 		it("should terminate all workers", async () => {
@@ -218,7 +218,7 @@ describe("WorkerPool", () => {
 
 		it("should reject pending tasks on shutdown", async () => {
 			// Create a new pool with limited workers
-			const testPool = new WorkerPool("/path/to/worker.js", 1)
+			const testPool = new WorkerPool("/path/to/worker.js", { maxWorkers: 1 })
 
 			// Wait for workers to be ready
 			await new Promise((resolve) => setTimeout(resolve, 20))
@@ -272,7 +272,7 @@ describe("WorkerPool", () => {
 
 	describe("error handling", () => {
 		beforeEach(() => {
-			pool = new WorkerPool("/path/to/worker.js", 1)
+			pool = new WorkerPool("/path/to/worker.js", { maxWorkers: 1 })
 		})
 
 		it("should handle worker initialization errors", async () => {
@@ -316,7 +316,7 @@ describe("WorkerPool", () => {
 
 	describe("performance", () => {
 		it("should process tasks concurrently", async () => {
-			pool = new WorkerPool("/path/to/worker.js", 3)
+			pool = new WorkerPool("/path/to/worker.js", { maxWorkers: 3 })
 
 			const tasks = Array(6)
 				.fill(null)
@@ -331,7 +331,7 @@ describe("WorkerPool", () => {
 			// Complete first batch of tasks
 			for (let i = 0; i < 3; i++) {
 				const worker = mockWorkers[i]
-				const handler = worker.listeners("message")[0] as Function
+				const handler = worker.listeners("message")[0] as (...args: any[]) => void
 				handler({ success: true, data: `result${i}` })
 			}
 
@@ -341,7 +341,7 @@ describe("WorkerPool", () => {
 			// Complete second batch
 			for (let i = 0; i < 3; i++) {
 				const worker = mockWorkers[i]
-				const handler = worker.listeners("message")[0] as Function
+				const handler = worker.listeners("message")[0] as (...args: any[]) => void
 				handler({ success: true, data: `result${i + 3}` })
 			}
 

@@ -42,10 +42,9 @@ export class DirectoryScanner implements IDirectoryScanner {
 	) {
 		// Initialize worker pool for file processing
 		try {
-			this.workerPool = new WorkerPool(
-				path.join(__dirname, "../workers/file-processor.worker.js"),
-				PARSING_CONCURRENCY,
-			)
+			this.workerPool = new WorkerPool(path.join(__dirname, "../workers/file-processor.worker.js"), {
+				maxWorkers: PARSING_CONCURRENCY,
+			})
 		} catch (error) {
 			console.warn(
 				"[DirectoryScanner] Failed to initialize worker pool, falling back to main thread processing:",

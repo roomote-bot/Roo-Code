@@ -52,6 +52,8 @@ export class CodeIndexManager {
 	private constructor(workspacePath: string, context: vscode.ExtensionContext) {
 		this.workspacePath = workspacePath
 		this.context = context
+		// Create state manager with default throttle interval (500ms)
+		// Can be customized by passing a different value to the constructor
 		this._stateManager = new CodeIndexStateManager()
 	}
 
