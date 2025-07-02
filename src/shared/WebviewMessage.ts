@@ -163,6 +163,7 @@ export interface WebviewMessage {
 		| "indexCleared"
 		| "focusPanelRequest"
 		| "codebaseIndexConfig"
+		| "codebaseIndexTestResult"
 		| "profileThresholds"
 		| "setHistoryPreviewCollapsed"
 		| "openExternal"
@@ -223,6 +224,7 @@ export interface WebviewMessage {
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
 	checkOnly?: boolean // For deleteCustomMode check
+	action?: string // For actions like "test" in codebaseIndexConfig
 }
 
 export const checkoutDiffPayloadSchema = z.object({
@@ -245,6 +247,16 @@ export type CheckpointRestorePayload = z.infer<typeof checkoutRestorePayloadSche
 export interface IndexingStatusPayload {
 	state: "Standby" | "Indexing" | "Indexed" | "Error"
 	message: string
+	processedItems?: number
+	totalItems?: number
+	currentItemUnit?: string
+	errorDetails?: {
+		type: "configuration" | "authentication" | "network" | "validation" | "unknown"
+		message: string
+		suggestion?: string
+		endpoint?: string
+		timestamp: number
+	}
 }
 
 export interface IndexClearedPayload {

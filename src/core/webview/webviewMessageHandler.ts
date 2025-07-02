@@ -1807,6 +1807,43 @@ export const webviewMessageHandler = async (
 			break
 		}
 		case "codebaseIndexConfig": {
+			// Handle test action separately
+			if (message.action === "test") {
+				try {
+					if (!provider.codeIndexManager) {
+						throw new Error("Code index manager not available")
+					}
+
+					// Get the service factory from the manager
+					const serviceFactory = provider.codeIndexManager.getServiceFactory()
+					if (!serviceFactory) {
+						throw new Error("Service factory not available")
+					}
+
+					// Test the configuration
+					const isValid = await serviceFactory.validateEmbedderConfig()
+
+					// Send test result back to webview
+					provider.postMessageToWebview({
+						type: "codebaseIndexTestResult",
+						success: isValid,
+						message: isValid ? "Configuration is valid" : "Configuration test failed",
+					})
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : String(error)
+					provider.log(`[CodeIndexManager] Configuration test error: ${errorMessage}`)
+
+					// Send error result back to webview
+					provider.postMessageToWebview({
+						type: "codebaseIndexTestResult",
+						success: false,
+						message: errorMessage,
+					})
+				}
+				break
+			}
+
+			// Normal configuration update flow
 			const codebaseIndexConfig = message.values ?? {
 				codebaseIndexEnabled: false,
 				codebaseIndexQdrantUrl: "http://localhost:6333",
@@ -1823,16 +1860,42 @@ export const webviewMessageHandler = async (
 					// If now configured and enabled, start indexing automatically
 					if (provider.codeIndexManager.isFeatureEnabled && provider.codeIndexManager.isFeatureConfigured) {
 						if (!provider.codeIndexManager.isInitialized) {
-							await provider.codeIndexManager.initialize(provider.contextProxy)
+							try {
+								await provider.codeIndexManager.initialize(provider.contextProxy)
+							} catch (initError) {
+								// Initialization failed - send error status to webview
+								const errorMessage = initError instanceof Error ? initError.message : String(initError)
+								provider.log(`[CodeIndexManager] Initialization error: ${errorMessage}`)
+
+								// Send error status update to webview
+								const status = provider.codeIndexManager.getCurrentStatus()
+								provider.postMessageToWebview({
+									type: "indexingStatusUpdate",
+									values: status,
+								})
+
+								// Re-throw to prevent indexing attempt
+								throw initError
+							}
 						}
 						// Start indexing in background (no await)
 						provider.codeIndexManager.startIndexing()
 					}
 				}
 			} catch (error) {
+				const errorMessage = error instanceof Error ? error.message : String(error)
 				provider.log(
-					`[CodeIndexManager] Error during background CodeIndexManager configuration/indexing: ${error.message || error}`,
+					`[CodeIndexManager] Error during background CodeIndexManager configuration/indexing: ${errorMessage}`,
 				)
+
+				// Send error notification to webview if manager exists
+				if (provider.codeIndexManager) {
+					const status = provider.codeIndexManager.getCurrentStatus()
+					provider.postMessageToWebview({
+						type: "indexingStatusUpdate",
+						values: status,
+					})
+				}
 			}
 
 			await provider.postStateToWebview()

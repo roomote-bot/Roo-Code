@@ -229,31 +229,66 @@ export class CodeIndexManager {
 			console.error("Unexpected error loading .gitignore:", error)
 		}
 
-		// (Re)Create shared service instances
-		const { embedder, vectorStore, scanner, fileWatcher } = this._serviceFactory.createServices(
-			this.context,
-			this._cacheManager!,
-			ignoreInstance,
-		)
+		try {
+			// (Re)Create shared service instances
+			const { embedder, vectorStore, scanner, fileWatcher } = this._serviceFactory.createServices(
+				this.context,
+				this._cacheManager!,
+				ignoreInstance,
+			)
 
-		// (Re)Initialize orchestrator
-		this._orchestrator = new CodeIndexOrchestrator(
-			this._configManager!,
-			this._stateManager,
-			this.workspacePath,
-			this._cacheManager!,
-			vectorStore,
-			scanner,
-			fileWatcher,
-		)
+			// (Re)Initialize orchestrator
+			this._orchestrator = new CodeIndexOrchestrator(
+				this._configManager!,
+				this._stateManager,
+				this.workspacePath,
+				this._cacheManager!,
+				vectorStore,
+				scanner,
+				fileWatcher,
+			)
 
-		// (Re)Initialize search service
-		this._searchService = new CodeIndexSearchService(
-			this._configManager!,
-			this._stateManager,
-			embedder,
-			vectorStore,
-		)
+			// (Re)Initialize search service
+			this._searchService = new CodeIndexSearchService(
+				this._configManager!,
+				this._stateManager,
+				embedder,
+				vectorStore,
+			)
+		} catch (error) {
+			// Handle service creation errors
+			console.error("Failed to create code index services:", error)
+
+			// Determine error type and create appropriate error details
+			let errorType: "configuration" | "authentication" | "network" | "validation" | "unknown" = "unknown"
+			let errorMessage = error instanceof Error ? error.message : String(error)
+			let suggestion: string | undefined
+
+			if (errorMessage.includes("configuration missing") || errorMessage.includes("missing for")) {
+				errorType = "configuration"
+				suggestion = "Please check your embedder configuration in the settings."
+			} else if (errorMessage.includes("authentication") || errorMessage.includes("API key")) {
+				errorType = "authentication"
+				suggestion = "Please verify your API key is correct and has the necessary permissions."
+			} else if (errorMessage.includes("network") || errorMessage.includes("connect")) {
+				errorType = "network"
+				suggestion = "Please check your network connection and ensure the service endpoints are accessible."
+			} else if (errorMessage.includes("dimension") || errorMessage.includes("model")) {
+				errorType = "validation"
+				suggestion = "Please ensure your model configuration is compatible with the selected provider."
+			}
+
+			// Set error state with details
+			this._stateManager.setSystemState("Error", errorMessage, {
+				type: errorType,
+				message: errorMessage,
+				suggestion,
+				timestamp: Date.now(),
+			})
+
+			// Re-throw to be handled by caller
+			throw error
+		}
 	}
 
 	/**
@@ -278,5 +313,13 @@ export class CodeIndexManager {
 				await this.startIndexing()
 			}
 		}
+	}
+
+	/**
+	 * Gets the service factory instance for testing configurations.
+	 * @returns The service factory instance or undefined if not initialized
+	 */
+	public getServiceFactory(): CodeIndexServiceFactory | undefined {
+		return this._serviceFactory
 	}
 }

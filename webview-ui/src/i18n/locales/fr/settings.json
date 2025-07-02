@@ -71,7 +71,9 @@
 			"description": "Cette action ne peut pas être annulée. Cela supprimera définitivement les données d'index de votre base de code.",
 			"cancelButton": "Annuler",
 			"confirmButton": "Effacer les données"
-		}
+		},
+		"testConfigButton": "Tester la configuration",
+		"testingButton": "Test en cours..."
 	},
 	"autoApprove": {
 		"description": "Permettre à Roo d'effectuer automatiquement des opérations sans requérir d'approbation. Activez ces paramètres uniquement si vous faites entièrement confiance à l'IA et que vous comprenez les risques de sécurité associés.",

@@ -72,6 +72,21 @@ export interface ICodeIndexManager {
 export type IndexingState = "Standby" | "Indexing" | "Indexed" | "Error"
 export type EmbedderProvider = "openai" | "ollama" | "openai-compatible" | "gemini"
 
+export interface IndexingStatus {
+	systemStatus: IndexingState
+	message?: string
+	processedItems?: number
+	totalItems?: number
+	currentItemUnit?: string
+	errorDetails?: {
+		type: "configuration" | "authentication" | "network" | "validation" | "unknown"
+		message: string
+		suggestion?: string
+		endpoint?: string
+		timestamp: number
+	}
+}
+
 export interface IndexProgressUpdate {
 	systemStatus: IndexingState
 	message?: string

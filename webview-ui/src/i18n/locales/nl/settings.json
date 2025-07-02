@@ -71,7 +71,9 @@
 			"description": "Deze actie kan niet ongedaan worden gemaakt. Dit zal je codebase-indexgegevens permanent verwijderen.",
 			"cancelButton": "Annuleren",
 			"confirmButton": "Gegevens wissen"
-		}
+		},
+		"testConfigButton": "Configuratie testen",
+		"testingButton": "Testen..."
 	},
 	"autoApprove": {
 		"description": "Sta Roo toe om automatisch handelingen uit te voeren zonder goedkeuring. Schakel deze instellingen alleen in als je de AI volledig vertrouwt en de bijbehorende beveiligingsrisico's begrijpt.",

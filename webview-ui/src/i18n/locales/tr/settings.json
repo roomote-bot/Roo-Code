@@ -71,7 +71,9 @@
 			"description": "Bu işlem geri alınamaz. Bu, kod tabanı indeks verilerinizi kalıcı olarak silecektir.",
 			"cancelButton": "İptal",
 			"confirmButton": "Verileri Temizle"
-		}
+		},
+		"testConfigButton": "Yapılandırmayı Test Et",
+		"testingButton": "Test ediliyor..."
 	},
 	"autoApprove": {
 		"description": "Roo'nun onay gerektirmeden otomatik olarak işlemler gerçekleştirmesine izin verin. Bu ayarları yalnızca yapay zekaya tamamen güveniyorsanız ve ilgili güvenlik risklerini anlıyorsanız etkinleştirin.",

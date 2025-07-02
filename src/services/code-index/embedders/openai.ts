@@ -193,4 +193,42 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 			name: "openai",
 		}
 	}
+
+	/**
+	 * Validates the OpenAI configuration by attempting to list models.
+	 * @param apiKey - The OpenAI API key
+	 * @param modelId - The model ID to check
+	 * @returns A promise that resolves to true if valid, or throws an error with details
+	 */
+	static async validateEndpoint(apiKey: string, modelId: string): Promise<boolean> {
+		const client = new OpenAI({ apiKey })
+
+		try {
+			// Try to list models to validate the API key
+			const models = await client.models.list()
+			const modelIds = models.data.map((m) => m.id)
+
+			// Check if the specified embedding model exists or is a known model
+			const knownEmbeddingModels = ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"]
+
+			if (!modelIds.includes(modelId) && !knownEmbeddingModels.includes(modelId)) {
+				throw new Error(
+					`Model '${modelId}' not found. Available embedding models: ${knownEmbeddingModels.join(", ")}`,
+				)
+			}
+
+			return true
+		} catch (error: any) {
+			if (error?.status === 401) {
+				throw new Error("Invalid API key. Please check your OpenAI API key.")
+			}
+			if (error?.status === 429) {
+				throw new Error("Rate limit exceeded. Please try again later.")
+			}
+			if (error?.message?.includes("fetch failed") || error?.message?.includes("ECONNREFUSED")) {
+				throw new Error("Network error. Please check your internet connection.")
+			}
+			throw new Error(`Failed to validate OpenAI configuration: ${error?.message || "Unknown error"}`)
+		}
+	}
 }

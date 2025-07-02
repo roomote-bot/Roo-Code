@@ -47,7 +47,7 @@ interface CodeIndexSettingsProps {
 	areSettingsCommitted: boolean
 }
 
-import type { IndexingStatusUpdateMessage } from "@roo/ExtensionMessage"
+import type { IndexingStatusUpdateMessage, ExtensionMessage } from "@roo/ExtensionMessage"
 
 export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 	codebaseIndexModels,
@@ -59,7 +59,20 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 }) => {
 	const { t } = useAppTranslation()
 	const DEFAULT_QDRANT_URL = "http://localhost:6333"
-	const [indexingStatus, setIndexingStatus] = useState({
+	const [indexingStatus, setIndexingStatus] = useState<{
+		systemStatus: string
+		message: string
+		processedItems: number
+		totalItems: number
+		currentItemUnit: string
+		errorDetails?: {
+			type: "configuration" | "authentication" | "network" | "validation" | "unknown"
+			message: string
+			suggestion?: string
+			endpoint?: string
+			timestamp: number
+		}
+	}>({
 		systemStatus: "Standby",
 		message: "",
 		processedItems: 0,
@@ -67,6 +80,8 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 		currentItemUnit: "items",
 	})
 	const [advancedExpanded, setAdvancedExpanded] = useState(false)
+	const [testingConfig, setTestingConfig] = useState(false)
+	const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
 
 	// Safely calculate available models for current provider
 	const currentProvider = codebaseIndexConfig?.codebaseIndexEmbedderProvider
@@ -83,15 +98,25 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 		// Set up interval for periodic status updates
 
 		// Set up message listener for status updates
-		const handleMessage = (event: MessageEvent<IndexingStatusUpdateMessage>) => {
+		const handleMessage = (event: MessageEvent<ExtensionMessage>) => {
 			if (event.data.type === "indexingStatusUpdate") {
+				const data = event.data as IndexingStatusUpdateMessage
 				setIndexingStatus({
-					systemStatus: event.data.values.systemStatus,
-					message: event.data.values.message || "",
-					processedItems: event.data.values.processedItems,
-					totalItems: event.data.values.totalItems,
-					currentItemUnit: event.data.values.currentItemUnit || "items",
+					systemStatus: data.values.systemStatus,
+					message: data.values.message || "",
+					processedItems: data.values.processedItems || 0,
+					totalItems: data.values.totalItems || 0,
+					currentItemUnit: data.values.currentItemUnit || "items",
+					errorDetails: data.values.errorDetails,
 				})
+			} else if (event.data.type === "codebaseIndexTestResult") {
+				setTestingConfig(false)
+				setTestResult({
+					success: event.data.success || false,
+					message: event.data.message || "Test completed",
+				})
+				// Clear test result after 5 seconds
+				setTimeout(() => setTestResult(null), 5000)
 			}
 		}
 
@@ -239,6 +264,39 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 						{indexingStatus.systemStatus}
 						{indexingStatus.message ? ` - ${indexingStatus.message}` : ""}
 					</div>
+
+					{/* Error Details Display */}
+					{indexingStatus.systemStatus === "Error" && indexingStatus.errorDetails && (
+						<div className="bg-vscode-inputValidation-errorBackground border border-vscode-inputValidation-errorBorder rounded p-3 mt-2">
+							<div className="flex items-start gap-2">
+								<span className="codicon codicon-error text-vscode-inputValidation-errorForeground flex-shrink-0 mt-0.5"></span>
+								<div className="flex-1">
+									<div className="text-sm font-medium text-vscode-inputValidation-errorForeground mb-1">
+										{indexingStatus.errorDetails.type === "configuration" && "Configuration Error"}
+										{indexingStatus.errorDetails.type === "authentication" &&
+											"Authentication Error"}
+										{indexingStatus.errorDetails.type === "network" && "Network Error"}
+										{indexingStatus.errorDetails.type === "validation" && "Validation Error"}
+										{indexingStatus.errorDetails.type === "unknown" && "Unknown Error"}
+									</div>
+									<div className="text-sm text-vscode-foreground mb-2">
+										{indexingStatus.errorDetails.message}
+									</div>
+									{indexingStatus.errorDetails.suggestion && (
+										<div className="text-sm text-vscode-descriptionForeground">
+											<span className="codicon codicon-lightbulb mr-1"></span>
+											{indexingStatus.errorDetails.suggestion}
+										</div>
+									)}
+									{indexingStatus.errorDetails.endpoint && (
+										<div className="text-xs text-vscode-descriptionForeground mt-1">
+											Endpoint: {indexingStatus.errorDetails.endpoint}
+										</div>
+									)}
+								</div>
+							</div>
+						</div>
+					)}
 
 					{indexingStatus.systemStatus === "Indexing" && (
 						<div className="space-y-1">
@@ -501,6 +559,45 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 					)}
 
 					<div className="flex gap-2">
+						<VSCodeButton
+							onClick={() => {
+								setTestingConfig(true)
+								setTestResult(null)
+								vscode.postMessage({
+									type: "codebaseIndexConfig",
+									action: "test",
+									values: {
+										...codebaseIndexConfig,
+										// Include API configuration values based on provider
+										...(codebaseIndexConfig?.codebaseIndexEmbedderProvider === "openai" && {
+											codeIndexOpenAiKey: apiConfiguration.codeIndexOpenAiKey,
+										}),
+										...(codebaseIndexConfig?.codebaseIndexEmbedderProvider ===
+											"openai-compatible" && {
+											codebaseIndexOpenAiCompatibleBaseUrl:
+												apiConfiguration.codebaseIndexOpenAiCompatibleBaseUrl,
+											codebaseIndexOpenAiCompatibleApiKey:
+												apiConfiguration.codebaseIndexOpenAiCompatibleApiKey,
+											codebaseIndexOpenAiCompatibleModelDimension:
+												apiConfiguration.codebaseIndexOpenAiCompatibleModelDimension,
+										}),
+										...(codebaseIndexConfig?.codebaseIndexEmbedderProvider === "ollama" && {
+											codebaseIndexEmbedderBaseUrl:
+												codebaseIndexConfig.codebaseIndexEmbedderBaseUrl,
+										}),
+									},
+								})
+							}}
+							disabled={
+								testingConfig ||
+								!areSettingsCommitted ||
+								!validateIndexingConfig(codebaseIndexConfig, apiConfiguration)
+							}
+							appearance="secondary">
+							{testingConfig
+								? t("settings:codeIndex.testingButton")
+								: t("settings:codeIndex.testConfigButton")}
+						</VSCodeButton>
 						{(indexingStatus.systemStatus === "Error" || indexingStatus.systemStatus === "Standby") && (
 							<VSCodeButton
 								onClick={() => vscode.postMessage({ type: "startIndexing" })}
@@ -540,6 +637,26 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 							</AlertDialog>
 						)}
 					</div>
+
+					{/* Test Result Display */}
+					{testResult && (
+						<div
+							className={`p-3 rounded border ${
+								testResult.success
+									? "bg-vscode-testing-iconPassed/10 border-vscode-testing-iconPassed"
+									: "bg-vscode-inputValidation-errorBackground border-vscode-inputValidation-errorBorder"
+							}`}>
+							<div className="flex items-center gap-2">
+								<span
+									className={`codicon ${
+										testResult.success
+											? "codicon-pass text-vscode-testing-iconPassed"
+											: "codicon-error text-vscode-inputValidation-errorForeground"
+									}`}></span>
+								<span className="text-sm">{testResult.message}</span>
+							</div>
+						</div>
+					)}
 
 					{/* Advanced Configuration Section */}
 					<div className="mt-4">

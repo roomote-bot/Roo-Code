@@ -71,7 +71,9 @@
 			"description": "이 작업은 취소할 수 없습니다. 코드베이스 인덱스 데이터가 영구적으로 삭제됩니다.",
 			"cancelButton": "취소",
 			"confirmButton": "데이터 지우기"
-		}
+		},
+		"testConfigButton": "구성 테스트",
+		"testingButton": "테스트 중..."
 	},
 	"autoApprove": {
 		"description": "Roo가 승인 없이 자동으로 작업을 수행할 수 있도록 허용합니다. AI를 완전히 신뢰하고 관련 보안 위험을 이해하는 경우에만 이러한 설정을 활성화하세요.",

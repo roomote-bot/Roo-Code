@@ -71,7 +71,9 @@
 			"description": "Questa azione non può essere annullata. Eliminerà permanentemente i dati di indice del tuo codice.",
 			"cancelButton": "Annulla",
 			"confirmButton": "Cancella dati"
-		}
+		},
+		"testConfigButton": "Testa configurazione",
+		"testingButton": "Test in corso..."
 	},
 	"autoApprove": {
 		"description": "Permetti a Roo di eseguire automaticamente operazioni senza richiedere approvazione. Abilita queste impostazioni solo se ti fidi completamente dell'IA e comprendi i rischi di sicurezza associati.",

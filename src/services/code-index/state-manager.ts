@@ -2,12 +2,21 @@ import * as vscode from "vscode"
 
 export type IndexingState = "Standby" | "Indexing" | "Indexed" | "Error"
 
+export interface ErrorDetails {
+	type: "configuration" | "authentication" | "network" | "validation" | "unknown"
+	message: string
+	suggestion?: string
+	endpoint?: string
+	timestamp: number
+}
+
 export class CodeIndexStateManager {
 	private _systemStatus: IndexingState = "Standby"
 	private _statusMessage: string = ""
 	private _processedItems: number = 0
 	private _totalItems: number = 0
 	private _currentItemUnit: string = "blocks"
+	private _errorDetails: ErrorDetails | undefined = undefined
 	private _progressEmitter = new vscode.EventEmitter<ReturnType<typeof this.getCurrentStatus>>()
 
 	// --- Public API ---
@@ -25,19 +34,30 @@ export class CodeIndexStateManager {
 			processedItems: this._processedItems,
 			totalItems: this._totalItems,
 			currentItemUnit: this._currentItemUnit,
+			errorDetails: this._errorDetails,
 		}
 	}
 
 	// --- State Management ---
 
-	public setSystemState(newState: IndexingState, message?: string): void {
+	public setSystemState(newState: IndexingState, message?: string, errorDetails?: ErrorDetails): void {
 		const stateChanged =
-			newState !== this._systemStatus || (message !== undefined && message !== this._statusMessage)
+			newState !== this._systemStatus ||
+			(message !== undefined && message !== this._statusMessage) ||
+			(errorDetails !== undefined && errorDetails !== this._errorDetails)
 
 		if (stateChanged) {
 			this._systemStatus = newState
 			if (message !== undefined) {
 				this._statusMessage = message
+			}
+
+			// Handle error details
+			if (newState === "Error" && errorDetails) {
+				this._errorDetails = errorDetails
+			} else if (newState !== "Error") {
+				// Clear error details when transitioning to non-error states
+				this._errorDetails = undefined
 			}
 
 			// Reset progress counters if moving to a non-indexing state or starting fresh

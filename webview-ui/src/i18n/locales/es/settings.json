@@ -71,7 +71,9 @@
 			"description": "Esta acción no se puede deshacer. Esto eliminará permanentemente los datos de índice de tu base de código.",
 			"cancelButton": "Cancelar",
 			"confirmButton": "Borrar datos"
-		}
+		},
+		"testConfigButton": "Probar configuración",
+		"testingButton": "Probando..."
 	},
 	"autoApprove": {
 		"description": "Permitir que Roo realice operaciones automáticamente sin requerir aprobación. Habilite esta configuración solo si confía plenamente en la IA y comprende los riesgos de seguridad asociados.",

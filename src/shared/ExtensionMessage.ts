@@ -32,6 +32,13 @@ export interface IndexingStatus {
 	processedItems: number
 	totalItems: number
 	currentItemUnit?: string
+	errorDetails?: {
+		type: "configuration" | "authentication" | "network" | "validation" | "unknown"
+		message: string
+		suggestion?: string
+		endpoint?: string
+		timestamp: number
+	}
 }
 
 export interface IndexingStatusUpdateMessage {
@@ -100,6 +107,7 @@ export interface ExtensionMessage {
 		| "indexingStatusUpdate"
 		| "indexCleared"
 		| "codebaseIndexConfig"
+		| "codebaseIndexTestResult"
 		| "marketplaceInstallResult"
 		| "marketplaceData"
 		| "shareTaskSuccess"
@@ -154,6 +162,7 @@ export interface ExtensionMessage {
 	marketplaceInstalledMetadata?: MarketplaceInstalledMetadata
 	visibility?: ShareVisibility
 	rulesFolderPath?: string
+	message?: string // For test results and other messages
 }
 
 export type ExtensionState = Pick<

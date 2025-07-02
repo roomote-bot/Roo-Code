@@ -71,7 +71,9 @@
 			"description": "この操作は元に戻せません。コードベースのインデックスデータが完全に削除されます。",
 			"cancelButton": "キャンセル",
 			"confirmButton": "データをクリア"
-		}
+		},
+		"testConfigButton": "設定をテスト",
+		"testingButton": "テスト中..."
 	},
 	"autoApprove": {
 		"description": "Rooが承認なしで自動的に操作を実行できるようにします。AIを完全に信頼し、関連するセキュリティリスクを理解している場合にのみ、これらの設定を有効にしてください。",

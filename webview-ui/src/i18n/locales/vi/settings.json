@@ -71,7 +71,9 @@
 			"description": "Hành động này không thể hoàn tác. Điều này sẽ xóa vĩnh viễn dữ liệu chỉ mục mã nguồn của bạn.",
 			"cancelButton": "Hủy",
 			"confirmButton": "Xóa dữ liệu"
-		}
+		},
+		"testConfigButton": "Kiểm tra cấu hình",
+		"testingButton": "Đang kiểm tra..."
 	},
 	"autoApprove": {
 		"description": "Cho phép Roo tự động thực hiện các hoạt động mà không cần phê duyệt. Chỉ bật những cài đặt này nếu bạn hoàn toàn tin tưởng AI và hiểu rõ các rủi ro bảo mật liên quan.",

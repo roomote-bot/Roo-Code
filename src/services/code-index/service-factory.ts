@@ -31,7 +31,7 @@ export class CodeIndexServiceFactory {
 
 		if (provider === "openai") {
 			if (!config.openAiOptions?.openAiNativeApiKey) {
-				throw new Error("OpenAI configuration missing for embedder creation")
+				throw new Error("OpenAI API key is required. Please configure it in the settings.")
 			}
 			return new OpenAiEmbedder({
 				...config.openAiOptions,
@@ -39,7 +39,7 @@ export class CodeIndexServiceFactory {
 			})
 		} else if (provider === "ollama") {
 			if (!config.ollamaOptions?.ollamaBaseUrl) {
-				throw new Error("Ollama configuration missing for embedder creation")
+				throw new Error("Ollama base URL is required. Please configure it in the settings.")
 			}
 			return new CodeIndexOllamaEmbedder({
 				...config.ollamaOptions,
@@ -47,7 +47,12 @@ export class CodeIndexServiceFactory {
 			})
 		} else if (provider === "openai-compatible") {
 			if (!config.openAiCompatibleOptions?.baseUrl || !config.openAiCompatibleOptions?.apiKey) {
-				throw new Error("OpenAI Compatible configuration missing for embedder creation")
+				const missing = []
+				if (!config.openAiCompatibleOptions?.baseUrl) missing.push("base URL")
+				if (!config.openAiCompatibleOptions?.apiKey) missing.push("API key")
+				throw new Error(
+					`OpenAI-compatible ${missing.join(" and ")} required. Please configure in the settings.`,
+				)
 			}
 			return new OpenAICompatibleEmbedder(
 				config.openAiCompatibleOptions.baseUrl,
@@ -62,6 +67,45 @@ export class CodeIndexServiceFactory {
 		}
 
 		throw new Error(`Invalid embedder type configured: ${config.embedderProvider}`)
+	}
+
+	/**
+	 * Validates the embedder configuration by testing the connection.
+	 * @returns A promise that resolves to true if valid, or throws an error with details
+	 */
+	public async validateEmbedderConfig(): Promise<boolean> {
+		const config = this.configManager.getConfig()
+		const provider = config.embedderProvider as EmbedderProvider
+
+		try {
+			if (provider === "openai") {
+				if (!config.openAiOptions?.openAiNativeApiKey) {
+					throw new Error("OpenAI API key is required")
+				}
+				const modelId = config.modelId || "text-embedding-3-small"
+				return await OpenAiEmbedder.validateEndpoint(config.openAiOptions.openAiNativeApiKey, modelId)
+			} else if (provider === "ollama") {
+				if (!config.ollamaOptions?.ollamaBaseUrl) {
+					throw new Error("Ollama base URL is required")
+				}
+				const modelId = config.modelId || "nomic-embed-text:latest"
+				return await CodeIndexOllamaEmbedder.validateEndpoint(config.ollamaOptions.ollamaBaseUrl, modelId)
+			} else if (provider === "openai-compatible") {
+				if (!config.openAiCompatibleOptions?.baseUrl || !config.openAiCompatibleOptions?.apiKey) {
+					throw new Error("OpenAI-compatible base URL and API key are required")
+				}
+				const modelId = config.modelId || "text-embedding-3-small"
+				return await OpenAICompatibleEmbedder.validateEndpoint(
+					config.openAiCompatibleOptions.baseUrl,
+					config.openAiCompatibleOptions.apiKey,
+					modelId,
+				)
+			}
+			throw new Error(`Invalid embedder type: ${provider}`)
+		} catch (error: any) {
+			// Re-throw with more context
+			throw new Error(`${provider} validation failed: ${error.message}`)
+		}
 	}
 
 	/**

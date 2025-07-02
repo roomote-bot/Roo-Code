@@ -69,6 +69,47 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 	}
 
 	/**
+	 * Validates the endpoint by attempting a minimal embedding request
+	 * @param baseUrl The base URL to validate
+	 * @param apiKey The API key to use for validation
+	 * @param modelId Optional model ID to test with
+	 * @returns Promise resolving to true if valid
+	 * @throws Error with descriptive message if validation fails
+	 */
+	static async validateEndpoint(baseUrl: string, apiKey: string, modelId?: string): Promise<boolean> {
+		try {
+			const client = new OpenAI({
+				baseURL: baseUrl,
+				apiKey: apiKey,
+			})
+
+			const testModel = modelId || getDefaultModelId("openai-compatible")
+
+			// Try a minimal embedding request
+			await client.embeddings.create({
+				input: "test",
+				model: testModel,
+			})
+
+			return true
+		} catch (error: any) {
+			let errorMessage = t("embeddings:unknownError")
+
+			if (error?.status === 401) {
+				errorMessage = t("embeddings:authenticationFailed")
+			} else if (error?.status === 404) {
+				errorMessage = `Endpoint not found: ${baseUrl}`
+			} else if (error?.code === "ECONNREFUSED" || error?.code === "ENOTFOUND") {
+				errorMessage = `Cannot connect to ${baseUrl}`
+			} else if (error?.message) {
+				errorMessage = error.message
+			}
+
+			throw new Error(errorMessage)
+		}
+	}
+
+	/**
 	 * Creates embeddings for the given texts with batching and rate limiting
 	 * @param texts Array of text strings to embed
 	 * @param model Optional model identifier

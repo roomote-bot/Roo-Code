@@ -71,7 +71,9 @@
 			"description": "Tej akcji nie można cofnąć. Spowoduje to trwałe usunięcie danych indeksu Twojego kodu.",
 			"cancelButton": "Anuluj",
 			"confirmButton": "Wyczyść dane"
-		}
+		},
+		"testConfigButton": "Testuj konfigurację",
+		"testingButton": "Testowanie..."
 	},
 	"autoApprove": {
 		"description": "Pozwól Roo na automatyczne wykonywanie operacji bez wymagania zatwierdzenia. Włącz te ustawienia tylko jeśli w pełni ufasz AI i rozumiesz związane z tym zagrożenia bezpieczeństwa.",

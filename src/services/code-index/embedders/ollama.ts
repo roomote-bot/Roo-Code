@@ -106,4 +106,46 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 			name: "ollama",
 		}
 	}
+
+	/**
+	 * Validates the Ollama configuration by attempting to connect to the endpoint.
+	 * @param baseUrl - The base URL of the Ollama instance
+	 * @param modelId - The model ID to check
+	 * @returns A promise that resolves to true if valid, or throws an error with details
+	 */
+	static async validateEndpoint(baseUrl: string, modelId: string): Promise<boolean> {
+		const url = `${baseUrl}/api/tags`
+
+		try {
+			const response = await fetch(url, {
+				method: "GET",
+				headers: {
+					"Content-Type": "application/json",
+				},
+			})
+
+			if (!response.ok) {
+				if (response.status === 404) {
+					throw new Error(`Ollama API not found at ${baseUrl}. Is Ollama running?`)
+				}
+				throw new Error(`Failed to connect to Ollama: ${response.status} ${response.statusText}`)
+			}
+
+			const data = await response.json()
+			const models = data.models || []
+			const modelNames = models.map((m: any) => m.name)
+
+			// Check if the specified model exists
+			if (!modelNames.includes(modelId)) {
+				throw new Error(`Model '${modelId}' not found. Available models: ${modelNames.join(", ") || "none"}`)
+			}
+
+			return true
+		} catch (error: any) {
+			if (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED")) {
+				throw new Error(`Cannot connect to Ollama at ${baseUrl}. Please ensure Ollama is running.`)
+			}
+			throw error
+		}
+	}
 }

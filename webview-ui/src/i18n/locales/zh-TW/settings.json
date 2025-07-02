@@ -71,7 +71,9 @@
 			"description": "此操作無法復原。這將永久刪除您的程式碼庫索引資料。",
 			"cancelButton": "取消",
 			"confirmButton": "清除資料"
-		}
+		},
+		"testConfigButton": "測試配置",
+		"testingButton": "測試中..."
 	},
 	"autoApprove": {
 		"description": "允許 Roo 無需核准即執行操作。僅在您完全信任 AI 並了解相關安全風險時啟用這些設定。",

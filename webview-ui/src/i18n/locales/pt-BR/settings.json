@@ -71,7 +71,9 @@
 			"description": "Esta ação não pode ser desfeita. Isso excluirá permanentemente os dados de índice da sua base de código.",
 			"cancelButton": "Cancelar",
 			"confirmButton": "Limpar Dados"
-		}
+		},
+		"testConfigButton": "Testar Configuração",
+		"testingButton": "Testando..."
 	},
 	"autoApprove": {
 		"description": "Permitir que o Roo realize operações automaticamente sem exigir aprovação. Ative essas configurações apenas se confiar totalmente na IA e compreender os riscos de segurança associados.",

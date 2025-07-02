@@ -71,7 +71,9 @@
 			"description": "Aquesta acció no es pot desfer. Eliminarà permanentment les dades d'índex de la vostra base de codi.",
 			"cancelButton": "Cancel·lar",
 			"confirmButton": "Esborrar dades"
-		}
+		},
+		"testConfigButton": "Prova la configuració",
+		"testingButton": "Provant..."
 	},
 	"autoApprove": {
 		"description": "Permet que Roo realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",
