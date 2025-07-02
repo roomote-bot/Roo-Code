@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import type { JobPayload } from '@roo-code-cloud/db';
 
-import { createAndEnqueueJob } from './utils';
+import { createAndEnqueueJob, fetchGitHubAPI } from './utils';
 
 const githubIssueCommentWebhookSchema = z.object({
   action: z.string(),
@@ -48,9 +48,14 @@ export async function handleIssueCommentEvent(body: string) {
 
   // Handle PR comments (when comment is on a pull request)
   if (issue.pull_request) {
-    const response = await fetch(issue.pull_request.url);
+    const response = await fetchGitHubAPI(issue.pull_request.url);
 
     if (!response.ok) {
+      console.error(
+        `🔴 Failed to fetch pull request -> ${issue.pull_request.url}`,
+        `Status: ${response.status}`,
+      );
+
       return NextResponse.json({ message: 'failed_to_fetch_pull_request' });
     }
 
@@ -59,6 +64,7 @@ export async function handleIssueCommentEvent(body: string) {
     const pull_request = githubPullRequestWebhookSchema.parse(
       await response.json(),
     );
+
     console.log(`🗄️ Pull Request -> ${issue.pull_request.url}`, pull_request);
 
     const payload: JobPayload<'github.pr.comment.respond'> = {
@@ -79,6 +85,7 @@ export async function handleIssueCommentEvent(body: string) {
       'github.pr.comment.respond',
       payload,
     );
+
     return NextResponse.json({
       message: 'pr_comment_job_enqueued',
       jobId,
@@ -101,6 +108,7 @@ export async function handleIssueCommentEvent(body: string) {
   };
 
   const { jobId, enqueuedJobId } = await createAndEnqueueJob(type, payload);
+
   return NextResponse.json({
     message: 'issue_comment_job_enqueued',
     jobId,

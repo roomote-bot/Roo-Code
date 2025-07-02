@@ -43,3 +43,17 @@ export async function createAndEnqueueJob<T extends JobType>(
 
   return { jobId: job.id, enqueuedJobId: enqueuedJob.id };
 }
+
+export async function fetchGitHubAPI(url: string, options: RequestInit = {}) {
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github.v3+json',
+    'User-Agent': 'Roomote-Webhook-Handler',
+    ...((options.headers as Record<string, string>) || {}),
+  };
+
+  if (process.env.GH_TOKEN) {
+    headers['Authorization'] = `Bearer ${process.env.GH_TOKEN}`;
+  }
+
+  return fetch(url, { ...options, headers });
+}
