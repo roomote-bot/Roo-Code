@@ -40,7 +40,7 @@ export async function handleIssueCommentEvent(body: string) {
     return NextResponse.json({ message: 'action_ignored' });
   }
 
-  if (!comment.body.includes('@roomote')) {
+  if (!comment.body.includes('@roomote') && comment.user.login !== 'roomote') {
     return NextResponse.json({ message: 'no_roomote_mention' });
   }
 
