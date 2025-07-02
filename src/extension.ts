@@ -215,6 +215,7 @@ export async function activate(context: vscode.ExtensionContext) {
 export async function deactivate() {
 	outputChannel.appendLine(`${Package.name} extension deactivated`)
 	await McpServerManager.cleanup(extensionContext)
+	CodeIndexManager.disposeAll()
 	TelemetryService.instance.shutdown()
 	TerminalRegistry.cleanup()
 }
