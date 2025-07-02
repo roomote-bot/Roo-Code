@@ -134,16 +134,15 @@ export async function migrateTaskHistoryWithContextProxy(
 	contextProxy: ContextProxy,
 	workspaceFolder: vscode.WorkspaceFolder | undefined,
 ): Promise<void> {
-	const alreadyMigrated = context.globalState.get<boolean>(TASK_HISTORY_MIGRATION_KEY)
-	if (alreadyMigrated) {
-		return
-	}
-
-	if (!workspaceFolder) {
-		return
-	}
-
 	try {
+		const alreadyMigrated = context.globalState.get<boolean>(TASK_HISTORY_MIGRATION_KEY)
+		if (alreadyMigrated) {
+			return
+		}
+
+		if (!workspaceFolder) {
+			return
+		}
 		// Get the raw global state directly from context
 		const rawGlobalState = context.globalState.get<any>("globalSettings", {})
 		const taskHistory = rawGlobalState.taskHistory as HistoryItem[] | undefined
