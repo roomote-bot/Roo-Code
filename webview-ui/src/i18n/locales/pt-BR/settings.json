@@ -73,7 +73,12 @@
 			"confirmButton": "Limpar Dados"
 		},
 		"testConfigButton": "Testar Configuração",
-		"testingButton": "Testando..."
+		"testingButton": "Testando...",
+		"configurationError": "Erro de Configuração",
+		"authenticationError": "Erro de Autenticação",
+		"networkError": "Erro de Rede",
+		"validationError": "Erro de Validação",
+		"unknownError": "Erro Desconhecido"
 	},
 	"autoApprove": {
 		"description": "Permitir que o Roo realize operações automaticamente sem exigir aprovação. Ative essas configurações apenas se confiar totalmente na IA e compreender os riscos de segurança associados.",

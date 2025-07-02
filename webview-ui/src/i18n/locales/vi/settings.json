@@ -73,7 +73,12 @@
 			"confirmButton": "Xóa dữ liệu"
 		},
 		"testConfigButton": "Kiểm tra cấu hình",
-		"testingButton": "Đang kiểm tra..."
+		"testingButton": "Đang kiểm tra...",
+		"configurationError": "Lỗi cấu hình",
+		"authenticationError": "Lỗi xác thực",
+		"networkError": "Lỗi mạng",
+		"validationError": "Lỗi xác thực",
+		"unknownError": "Lỗi không xác định"
 	},
 	"autoApprove": {
 		"description": "Cho phép Roo tự động thực hiện các hoạt động mà không cần phê duyệt. Chỉ bật những cài đặt này nếu bạn hoàn toàn tin tưởng AI và hiểu rõ các rủi ro bảo mật liên quan.",

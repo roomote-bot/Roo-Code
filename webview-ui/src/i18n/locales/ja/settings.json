@@ -73,7 +73,12 @@
 			"confirmButton": "データをクリア"
 		},
 		"testConfigButton": "設定をテスト",
-		"testingButton": "テスト中..."
+		"testingButton": "テスト中...",
+		"configurationError": "設定エラー",
+		"authenticationError": "認証エラー",
+		"networkError": "ネットワークエラー",
+		"validationError": "検証エラー",
+		"unknownError": "不明なエラー"
 	},
 	"autoApprove": {
 		"description": "Rooが承認なしで自動的に操作を実行できるようにします。AIを完全に信頼し、関連するセキュリティリスクを理解している場合にのみ、これらの設定を有効にしてください。",

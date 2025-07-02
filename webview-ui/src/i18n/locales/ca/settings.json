@@ -73,7 +73,12 @@
 			"confirmButton": "Esborrar dades"
 		},
 		"testConfigButton": "Prova la configuració",
-		"testingButton": "Provant..."
+		"testingButton": "Provant...",
+		"configurationError": "Error de configuració",
+		"authenticationError": "Error d'autenticació",
+		"networkError": "Error de xarxa",
+		"validationError": "Error de validació",
+		"unknownError": "Error desconegut"
 	},
 	"autoApprove": {
 		"description": "Permet que Roo realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",

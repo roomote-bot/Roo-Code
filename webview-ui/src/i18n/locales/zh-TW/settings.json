@@ -73,7 +73,12 @@
 			"confirmButton": "清除資料"
 		},
 		"testConfigButton": "測試配置",
-		"testingButton": "測試中..."
+		"testingButton": "測試中...",
+		"configurationError": "設定錯誤",
+		"authenticationError": "驗證錯誤",
+		"networkError": "網路錯誤",
+		"validationError": "驗證錯誤",
+		"unknownError": "未知錯誤"
 	},
 	"autoApprove": {
 		"description": "允許 Roo 無需核准即執行操作。僅在您完全信任 AI 並了解相關安全風險時啟用這些設定。",

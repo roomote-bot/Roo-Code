@@ -73,7 +73,12 @@
 			"description": "This action cannot be undone. This will permanently delete your codebase index data.",
 			"cancelButton": "Cancel",
 			"confirmButton": "Clear Data"
-		}
+		},
+		"configurationError": "Configuration Error",
+		"authenticationError": "Authentication Error",
+		"networkError": "Network Error",
+		"validationError": "Validation Error",
+		"unknownError": "Unknown Error"
 	},
 	"autoApprove": {
 		"description": "Allow Roo to automatically perform operations without requiring approval. Enable these settings only if you fully trust the AI and understand the associated security risks.",

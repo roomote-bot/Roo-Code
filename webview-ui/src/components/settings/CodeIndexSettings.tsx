@@ -272,12 +272,16 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 								<span className="codicon codicon-error text-vscode-inputValidation-errorForeground flex-shrink-0 mt-0.5"></span>
 								<div className="flex-1">
 									<div className="text-sm font-medium text-vscode-inputValidation-errorForeground mb-1">
-										{indexingStatus.errorDetails.type === "configuration" && "Configuration Error"}
+										{indexingStatus.errorDetails.type === "configuration" &&
+											t("settings:codeIndex.configurationError")}
 										{indexingStatus.errorDetails.type === "authentication" &&
-											"Authentication Error"}
-										{indexingStatus.errorDetails.type === "network" && "Network Error"}
-										{indexingStatus.errorDetails.type === "validation" && "Validation Error"}
-										{indexingStatus.errorDetails.type === "unknown" && "Unknown Error"}
+											t("settings:codeIndex.authenticationError")}
+										{indexingStatus.errorDetails.type === "network" &&
+											t("settings:codeIndex.networkError")}
+										{indexingStatus.errorDetails.type === "validation" &&
+											t("settings:codeIndex.validationError")}
+										{indexingStatus.errorDetails.type === "unknown" &&
+											t("settings:codeIndex.unknownError")}
 									</div>
 									<div className="text-sm text-vscode-foreground mb-2">
 										{indexingStatus.errorDetails.message}

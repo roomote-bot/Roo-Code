@@ -73,7 +73,12 @@
 			"confirmButton": "Verileri Temizle"
 		},
 		"testConfigButton": "Yapılandırmayı Test Et",
-		"testingButton": "Test ediliyor..."
+		"testingButton": "Test ediliyor...",
+		"configurationError": "Yapılandırma Hatası",
+		"authenticationError": "Kimlik Doğrulama Hatası",
+		"networkError": "Ağ Hatası",
+		"validationError": "Doğrulama Hatası",
+		"unknownError": "Bilinmeyen Hata"
 	},
 	"autoApprove": {
 		"description": "Roo'nun onay gerektirmeden otomatik olarak işlemler gerçekleştirmesine izin verin. Bu ayarları yalnızca yapay zekaya tamamen güveniyorsanız ve ilgili güvenlik risklerini anlıyorsanız etkinleştirin.",

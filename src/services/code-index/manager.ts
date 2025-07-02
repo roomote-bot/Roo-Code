@@ -264,7 +264,11 @@ export class CodeIndexManager {
 			let errorMessage = error instanceof Error ? error.message : String(error)
 			let suggestion: string | undefined
 
-			if (errorMessage.includes("configuration missing") || errorMessage.includes("missing for")) {
+			if (
+				errorMessage.includes("configuration missing") ||
+				errorMessage.includes("missing for") ||
+				errorMessage.includes("required")
+			) {
 				errorType = "configuration"
 				suggestion = "Please check your embedder configuration in the settings."
 			} else if (errorMessage.includes("authentication") || errorMessage.includes("API key")) {

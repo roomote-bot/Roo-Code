@@ -73,7 +73,12 @@
 			"confirmButton": "Cancella dati"
 		},
 		"testConfigButton": "Testa configurazione",
-		"testingButton": "Test in corso..."
+		"testingButton": "Test in corso...",
+		"configurationError": "Errore di configurazione",
+		"authenticationError": "Errore di autenticazione",
+		"networkError": "Errore di rete",
+		"validationError": "Errore di validazione",
+		"unknownError": "Errore sconosciuto"
 	},
 	"autoApprove": {
 		"description": "Permetti a Roo di eseguire automaticamente operazioni senza richiedere approvazione. Abilita queste impostazioni solo se ti fidi completamente dell'IA e comprendi i rischi di sicurezza associati.",

@@ -73,7 +73,12 @@
 			"confirmButton": "Daten löschen"
 		},
 		"testConfigButton": "Konfiguration testen",
-		"testingButton": "Testen..."
+		"testingButton": "Testen...",
+		"configurationError": "Konfigurationsfehler",
+		"authenticationError": "Authentifizierungsfehler",
+		"networkError": "Netzwerkfehler",
+		"validationError": "Validierungsfehler",
+		"unknownError": "Unbekannter Fehler"
 	},
 	"autoApprove": {
 		"description": "Erlaubt Roo, Operationen automatisch ohne Genehmigung durchzuführen. Aktiviere diese Einstellungen nur, wenn du der KI vollständig vertraust und die damit verbundenen Sicherheitsrisiken verstehst.",

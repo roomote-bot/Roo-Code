@@ -73,7 +73,12 @@
 			"confirmButton": "Borrar datos"
 		},
 		"testConfigButton": "Probar configuración",
-		"testingButton": "Probando..."
+		"testingButton": "Probando...",
+		"configurationError": "Error de configuración",
+		"authenticationError": "Error de autenticación",
+		"networkError": "Error de red",
+		"validationError": "Error de validación",
+		"unknownError": "Error desconocido"
 	},
 	"autoApprove": {
 		"description": "Permitir que Roo realice operaciones automáticamente sin requerir aprobación. Habilite esta configuración solo si confía plenamente en la IA y comprende los riesgos de seguridad asociados.",
