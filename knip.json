@@ -7,6 +7,8 @@
 		"src/activate/**",
 		"src/workers/countTokens.ts",
 		"src/workers/indexing-worker.ts",
+		"src/services/code-index/orchestrator.ts",
+		"src/services/code-index/search-service.ts",
 		"src/extension.ts",
 		"scripts/**"
 	],
