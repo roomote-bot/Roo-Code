@@ -4,6 +4,7 @@ import * as fs from "fs/promises"
 import { fileExistsAtPath } from "../utils/fs"
 import { GlobalFileNames } from "../shared/globalFileNames"
 import { migrateSettings } from "../utils/migrateSettings"
+import type { ContextProxy } from "../core/config/ContextProxy"
 
 // Mock dependencies
 vitest.mock("vscode")
@@ -20,6 +21,7 @@ vitest.mock("../utils/fs")
 describe("Settings Migration", () => {
 	let mockContext: vscode.ExtensionContext
 	let mockOutputChannel: vscode.OutputChannel
+	let mockContextProxy: ContextProxy
 	const mockStoragePath = "/mock/storage"
 	const mockSettingsDir = path.join(mockStoragePath, "settings")
 
@@ -48,7 +50,17 @@ describe("Settings Migration", () => {
 		// Mock extension context
 		mockContext = {
 			globalStorageUri: { fsPath: mockStoragePath },
+			globalState: {
+				get: vitest.fn().mockReturnValue(undefined),
+				update: vitest.fn().mockResolvedValue(undefined),
+			},
 		} as unknown as vscode.ExtensionContext
+
+		// Mock ContextProxy
+		mockContextProxy = {
+			getWorkspaceSettings: vitest.fn().mockReturnValue({ taskHistory: [] }),
+			updateWorkspaceState: vitest.fn().mockResolvedValue(undefined),
+		} as unknown as ContextProxy
 
 		// Set global outputChannel for all tests
 		;(global as any).outputChannel = mockOutputChannel
@@ -69,7 +81,7 @@ describe("Settings Migration", () => {
 		})
 
 		// Run the migration
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify expected rename call - cline_custom_modes.json should be renamed to custom_modes.json
 		expect(mockRename).toHaveBeenCalledWith(legacyClineCustomModesPath, legacyCustomModesJson)
@@ -92,7 +104,7 @@ describe("Settings Migration", () => {
 		})
 
 		// Run the migration
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify expected rename call
 		expect(mockRename).toHaveBeenCalledWith(legacyMcpSettingsPath, newMcpSettingsPath)
@@ -115,7 +127,7 @@ describe("Settings Migration", () => {
 			return false
 		})
 
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify rename was not called since destination files exist
 		expect(mockRename).not.toHaveBeenCalled()
@@ -128,7 +140,7 @@ describe("Settings Migration", () => {
 		// Mock file existence to throw error
 		vitest.mocked(fileExistsAtPath).mockRejectedValue(new Error("Test error"))
 
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify error was logged
 		expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
@@ -163,7 +175,7 @@ describe("Settings Migration", () => {
 			return false
 		})
 
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify file operations
 		expect(mockWrite).toHaveBeenCalledWith(newCustomModesYaml, expect.any(String), "utf-8")
@@ -201,7 +213,7 @@ describe("Settings Migration", () => {
 			return false
 		})
 
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify error was logged
 		expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
@@ -239,7 +251,7 @@ describe("Settings Migration", () => {
 			return false
 		})
 
-		await migrateSettings(mockContext, mockOutputChannel)
+		await migrateSettings(mockContext, mockOutputChannel, mockContextProxy)
 
 		// Verify skip message was logged
 		expect(mockOutputChannel.appendLine).toHaveBeenCalledWith(
