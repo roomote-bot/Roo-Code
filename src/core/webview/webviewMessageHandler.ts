@@ -55,6 +55,122 @@ export const webviewMessageHandler = async (
 	const updateGlobalState = async <K extends keyof GlobalState>(key: K, value: GlobalState[K]) =>
 		await provider.contextProxy.setValue(key, value)
 
+	/**
+	 * Handles message modification operations (delete or edit) with confirmation dialog
+	 * @param messageTs Timestamp of the message to operate on
+	 * @param operation Type of operation ('delete' or 'edit')
+	 * @param editedContent New content for edit operations
+	 * @returns Promise<void>
+	 */
+	const handleMessageModificationsOperation = async (
+		messageTs: number,
+		operation: "delete" | "edit",
+		editedContent?: string,
+	): Promise<void> => {
+		const answer = await vscode.window.showInformationMessage(
+			t("common:confirmation.delete_message"),
+			{ modal: true },
+			t("common:confirmation.just_this_message"),
+			t("common:confirmation.this_and_subsequent"),
+		)
+
+		if (
+			(answer === t("common:confirmation.just_this_message") ||
+				answer === t("common:confirmation.this_and_subsequent")) &&
+			provider.getCurrentCline()
+		) {
+			const timeCutoff = messageTs - 1000 // 1 second buffer before the message
+			const currentCline = provider.getCurrentCline()!
+
+			const messageIndex = currentCline.clineMessages.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
+
+			const apiConversationHistoryIndex = currentCline.apiConversationHistory.findIndex(
+				(msg) => msg.ts && msg.ts >= timeCutoff,
+			)
+
+			if (messageIndex !== -1) {
+				try {
+					const { historyItem } = await provider.getTaskWithId(currentCline.taskId)
+
+					if (answer === t("common:confirmation.just_this_message")) {
+						// Find the next user message first
+						const nextUserMessage = currentCline.clineMessages
+							.slice(messageIndex + 1)
+							.find((msg) => msg.type === "say" && msg.say === "user_feedback")
+
+						// Handle UI messages
+						if (nextUserMessage) {
+							// Find absolute index of next user message
+							const nextUserMessageIndex = currentCline.clineMessages.findIndex(
+								(msg) => msg === nextUserMessage,
+							)
+
+							// Keep messages before current message and after next user message
+							await currentCline.overwriteClineMessages([
+								...currentCline.clineMessages.slice(0, messageIndex),
+								...currentCline.clineMessages.slice(nextUserMessageIndex),
+							])
+						} else {
+							// If no next user message, keep only messages before current message
+							await currentCline.overwriteClineMessages(currentCline.clineMessages.slice(0, messageIndex))
+						}
+
+						// Handle API messages
+						if (apiConversationHistoryIndex !== -1) {
+							if (nextUserMessage && nextUserMessage.ts) {
+								// Keep messages before current API message and after next user message
+								await currentCline.overwriteApiConversationHistory([
+									...currentCline.apiConversationHistory.slice(0, apiConversationHistoryIndex),
+									...currentCline.apiConversationHistory.filter(
+										(msg) => msg.ts && msg.ts >= nextUserMessage.ts,
+									),
+								])
+							} else {
+								// If no next user message, keep only messages before current API message
+								await currentCline.overwriteApiConversationHistory(
+									currentCline.apiConversationHistory.slice(0, apiConversationHistoryIndex),
+								)
+							}
+						}
+					} else if (answer === t("common:confirmation.this_and_subsequent")) {
+						// Delete this message and all that follow
+						await currentCline.overwriteClineMessages(currentCline.clineMessages.slice(0, messageIndex))
+
+						if (apiConversationHistoryIndex !== -1) {
+							await currentCline.overwriteApiConversationHistory(
+								currentCline.apiConversationHistory.slice(0, apiConversationHistoryIndex),
+							)
+						}
+					}
+
+					// Initialize with history item first for delete operations
+					if (operation === "delete") {
+						await provider.initClineWithHistoryItem(historyItem)
+					}
+
+					// For edit operations, process the edited message
+					if (operation === "edit" && editedContent) {
+						// Process the edited message as a regular user message
+						// This will add it to the conversation and trigger an AI response
+						webviewMessageHandler(provider, {
+							type: "askResponse",
+							askResponse: "messageResponse",
+							text: editedContent,
+						})
+
+						// Don't initialize with history item for edit operations
+						// The webviewMessageHandler will handle the conversation state
+					}
+				} catch (error) {
+					console.error(`Error in ${operation} message:`, error)
+					vscode.window.showErrorMessage(
+						`Error ${operation === "edit" ? "editing" : "deleting"} message: ${error instanceof Error ? error.message : String(error)}`,
+					)
+				}
+			}
+		}
+	}
+
 	switch (message.type) {
 		case "webviewDidLaunch":
 			// Load custom modes first
@@ -982,108 +1098,8 @@ export const webviewMessageHandler = async (
 			}
 			break
 		case "deleteMessage": {
-			const answer = await vscode.window.showInformationMessage(
-				t("common:confirmation.delete_message"),
-				{ modal: true },
-				t("common:confirmation.just_this_message"),
-				t("common:confirmation.this_and_subsequent"),
-			)
-
-			if (
-				(answer === t("common:confirmation.just_this_message") ||
-					answer === t("common:confirmation.this_and_subsequent")) &&
-				provider.getCurrentCline() &&
-				typeof message.value === "number" &&
-				message.value
-			) {
-				const timeCutoff = message.value - 1000 // 1 second buffer before the message to delete
-
-				const messageIndex = provider
-					.getCurrentCline()!
-					.clineMessages.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
-
-				const apiConversationHistoryIndex = provider
-					.getCurrentCline()
-					?.apiConversationHistory.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
-
-				if (messageIndex !== -1) {
-					const { historyItem } = await provider.getTaskWithId(provider.getCurrentCline()!.taskId)
-
-					if (answer === t("common:confirmation.just_this_message")) {
-						// Find the next user message first
-						const nextUserMessage = provider
-							.getCurrentCline()!
-							.clineMessages.slice(messageIndex + 1)
-							.find((msg) => msg.type === "say" && msg.say === "user_feedback")
-
-						// Handle UI messages
-						if (nextUserMessage) {
-							// Find absolute index of next user message
-							const nextUserMessageIndex = provider
-								.getCurrentCline()!
-								.clineMessages.findIndex((msg) => msg === nextUserMessage)
-
-							// Keep messages before current message and after next user message
-							await provider
-								.getCurrentCline()!
-								.overwriteClineMessages([
-									...provider.getCurrentCline()!.clineMessages.slice(0, messageIndex),
-									...provider.getCurrentCline()!.clineMessages.slice(nextUserMessageIndex),
-								])
-						} else {
-							// If no next user message, keep only messages before current message
-							await provider
-								.getCurrentCline()!
-								.overwriteClineMessages(
-									provider.getCurrentCline()!.clineMessages.slice(0, messageIndex),
-								)
-						}
-
-						// Handle API messages
-						if (apiConversationHistoryIndex !== -1) {
-							if (nextUserMessage && nextUserMessage.ts) {
-								// Keep messages before current API message and after next user message
-								await provider
-									.getCurrentCline()!
-									.overwriteApiConversationHistory([
-										...provider
-											.getCurrentCline()!
-											.apiConversationHistory.slice(0, apiConversationHistoryIndex),
-										...provider
-											.getCurrentCline()!
-											.apiConversationHistory.filter(
-												(msg) => msg.ts && msg.ts >= nextUserMessage.ts,
-											),
-									])
-							} else {
-								// If no next user message, keep only messages before current API message
-								await provider
-									.getCurrentCline()!
-									.overwriteApiConversationHistory(
-										provider
-											.getCurrentCline()!
-											.apiConversationHistory.slice(0, apiConversationHistoryIndex),
-									)
-							}
-						}
-					} else if (answer === t("common:confirmation.this_and_subsequent")) {
-						// Delete this message and all that follow
-						await provider
-							.getCurrentCline()!
-							.overwriteClineMessages(provider.getCurrentCline()!.clineMessages.slice(0, messageIndex))
-						if (apiConversationHistoryIndex !== -1) {
-							await provider
-								.getCurrentCline()!
-								.overwriteApiConversationHistory(
-									provider
-										.getCurrentCline()!
-										.apiConversationHistory.slice(0, apiConversationHistoryIndex),
-								)
-						}
-					}
-
-					await provider.initClineWithHistoryItem(historyItem)
-				}
+			if (provider.getCurrentCline() && typeof message.value === "number" && message.value) {
+				await handleMessageModificationsOperation(message.value, "delete")
 			}
 			break
 		}
@@ -1094,44 +1110,7 @@ export const webviewMessageHandler = async (
 				message.value &&
 				message.editedMessageContent
 			) {
-				const timeCutoff = message.value - 1000 // 1 second buffer before the message to edit
-
-				const messageIndex = provider
-					.getCurrentCline()!
-					.clineMessages.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
-
-				const apiConversationHistoryIndex = provider
-					.getCurrentCline()
-					?.apiConversationHistory.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
-
-				if (messageIndex !== -1) {
-					try {
-						const currentCline = provider.getCurrentCline()!
-
-						// Delete the original message and all subsequent messages
-						await currentCline.overwriteClineMessages(currentCline.clineMessages.slice(0, messageIndex))
-
-						// Delete the original message and all subsequent messages in API history
-						if (apiConversationHistoryIndex !== undefined && apiConversationHistoryIndex !== -1) {
-							await currentCline.overwriteApiConversationHistory(
-								currentCline.apiConversationHistory.slice(0, apiConversationHistoryIndex),
-							)
-						}
-
-						// Process the edited message as a regular user message
-						// This will add it to the conversation and trigger an AI response
-						webviewMessageHandler(provider, {
-							type: "askResponse",
-							askResponse: "messageResponse",
-							text: message.editedMessageContent,
-						})
-					} catch (error) {
-						console.error("Error in submitEditedMessage:", error)
-						vscode.window.showErrorMessage(
-							`Error editing message: ${error instanceof Error ? error.message : String(error)}`,
-						)
-					}
-				}
+				await handleMessageModificationsOperation(message.value, "edit", message.editedMessageContent)
 			}
 			break
 		}
