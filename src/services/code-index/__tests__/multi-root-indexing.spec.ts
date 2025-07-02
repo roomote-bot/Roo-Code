@@ -7,9 +7,15 @@ import * as workspaceUtils from "../shared/workspace-utils"
 
 // Mock dependencies
 vi.mock("vscode")
-vi.mock("../../glob/list-files")
-vi.mock("../../../core/ignore/RooIgnoreController")
-vi.mock("fs/promises")
+vi.mock("../../glob/list-files", () => ({
+	listFiles: vi.fn(),
+}))
+vi.mock("../../../core/ignore/RooIgnoreController", () => ({
+	RooIgnoreController: vi.fn(),
+}))
+vi.mock("fs/promises", () => ({
+	stat: vi.fn(),
+}))
 vi.mock("../shared/workspace-utils")
 
 describe("Multi-root workspace indexing", () => {
@@ -115,8 +121,8 @@ describe("Multi-root workspace indexing", () => {
 			])
 
 			// Mock file listing for each workspace
-			const listFiles = await import("../../glob/list-files")
-			vi.mocked(listFiles.listFiles)
+			const { listFiles } = await import("../../glob/list-files")
+			vi.mocked(listFiles)
 				.mockResolvedValueOnce([["/workspace/project1/src/file1.ts"], true])
 				.mockResolvedValueOnce([["/workspace/project2/src/file2.ts"], true])
 
@@ -128,8 +134,8 @@ describe("Multi-root workspace indexing", () => {
 			})
 
 			// Mock file stats
-			const fs = await import("fs/promises")
-			vi.mocked(fs.stat).mockResolvedValue({ size: 1000 } as any)
+			const { stat } = await import("fs/promises")
+			vi.mocked(stat).mockResolvedValue({ size: 1000 } as any)
 
 			// Mock file reading
 			vi.mocked(vscode.workspace.fs.readFile).mockResolvedValue(Buffer.from("function test() {}"))
@@ -149,9 +155,9 @@ describe("Multi-root workspace indexing", () => {
 			const result = await scanner.scanDirectory("/workspace/project1")
 
 			// Verify both workspace roots were processed
-			expect(listFiles.listFiles).toHaveBeenCalledTimes(2)
-			expect(listFiles.listFiles).toHaveBeenCalledWith("/workspace/project1", true, expect.any(Number))
-			expect(listFiles.listFiles).toHaveBeenCalledWith("/workspace/project2", true, expect.any(Number))
+			expect(listFiles).toHaveBeenCalledTimes(2)
+			expect(listFiles).toHaveBeenCalledWith("/workspace/project1", true, expect.any(Number))
+			expect(listFiles).toHaveBeenCalledWith("/workspace/project2", true, expect.any(Number))
 
 			// Verify files were parsed
 			expect(mockCodeParser.parseFile).toHaveBeenCalledTimes(2)
@@ -164,8 +170,8 @@ describe("Multi-root workspace indexing", () => {
 			vi.mocked(workspaceUtils.getAllWorkspaceRoots).mockReturnValue(["/workspace/project1"])
 
 			// Mock file listing
-			const listFiles = await import("../../glob/list-files")
-			vi.mocked(listFiles.listFiles).mockResolvedValue([
+			const { listFiles } = await import("../../glob/list-files")
+			vi.mocked(listFiles).mockResolvedValue([
 				["/workspace/project1/src/file1.ts", "/outside/workspace/file2.ts"],
 				true,
 			])
@@ -177,8 +183,8 @@ describe("Multi-root workspace indexing", () => {
 			})
 
 			// Mock file stats
-			const fs = await import("fs/promises")
-			vi.mocked(fs.stat).mockResolvedValue({ size: 1000 } as any)
+			const { stat } = await import("fs/promises")
+			vi.mocked(stat).mockResolvedValue({ size: 1000 } as any)
 
 			// Mock file reading
 			vi.mocked(vscode.workspace.fs.readFile).mockResolvedValue(Buffer.from("function test() {}"))
@@ -218,8 +224,8 @@ describe("Multi-root workspace indexing", () => {
 			])
 
 			// Mock file listing
-			const listFiles = await import("../../glob/list-files")
-			vi.mocked(listFiles.listFiles).mockResolvedValue([[], false])
+			const { listFiles } = await import("../../glob/list-files")
+			vi.mocked(listFiles).mockResolvedValue([[], false])
 
 			// Mock RooIgnoreController
 			const { RooIgnoreController } = await import("../../../core/ignore/RooIgnoreController")

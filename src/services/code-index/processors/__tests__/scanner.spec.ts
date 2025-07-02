@@ -2,6 +2,7 @@
 
 import { DirectoryScanner } from "../scanner"
 import { stat } from "fs/promises"
+import { RooIgnoreController } from "../../../../core/ignore/RooIgnoreController"
 
 vi.mock("fs/promises", () => ({
 	default: {
@@ -21,13 +22,13 @@ vi.mock("vscode", () => ({
 		workspaceFolders: [
 			{
 				uri: {
-					fsPath: "/mock/workspace",
+					fsPath: "/test",
 				},
 			},
 		],
 		getWorkspaceFolder: vi.fn().mockReturnValue({
 			uri: {
-				fsPath: "/mock/workspace",
+				fsPath: "/test",
 			},
 		}),
 		fs: {
@@ -35,25 +36,59 @@ vi.mock("vscode", () => ({
 		},
 	},
 	Uri: {
-		file: vi.fn().mockImplementation((path) => path),
+		file: vi.fn().mockImplementation((path) => ({ fsPath: path })),
 	},
 	window: {
 		activeTextEditor: {
 			document: {
 				uri: {
-					fsPath: "/mock/workspace",
+					fsPath: "/test",
 				},
 			},
 		},
 	},
 }))
 
-vi.mock("../../../../core/ignore/RooIgnoreController")
+vi.mock("../../../../core/ignore/RooIgnoreController", () => ({
+	RooIgnoreController: vi.fn().mockImplementation(() => ({
+		initialize: vi.fn().mockResolvedValue(undefined),
+		filterPaths: vi.fn().mockImplementation((paths) => paths),
+	})),
+}))
+
 vi.mock("ignore")
 
 // Override the Jest-based mock with a vitest-compatible version
 vi.mock("../../../glob/list-files", () => ({
 	listFiles: vi.fn(),
+}))
+
+// Mock workspace utils to return consistent values
+vi.mock("../shared/workspace-utils", () => ({
+	getWorkspaceRootForFile: vi.fn().mockImplementation((filePath) => {
+		if (filePath.startsWith("/test")) {
+			return "/test"
+		}
+		return undefined
+	}),
+	getAllWorkspaceRoots: vi.fn().mockReturnValue(["/test"]),
+	isMultiRootWorkspace: vi.fn().mockReturnValue(false),
+	isFileInWorkspace: vi.fn().mockReturnValue(true),
+}))
+
+// Mock get-relative-path functions
+vi.mock("../shared/get-relative-path", () => ({
+	generateNormalizedAbsolutePath: vi.fn().mockImplementation((path) => {
+		if (path.startsWith("/")) return path
+		return `/test/${path}`
+	}),
+	generateRelativeFilePath: vi.fn().mockImplementation((absolutePath, workspaceRoot) => {
+		const root = workspaceRoot || "/test"
+		if (absolutePath.startsWith(root)) {
+			return absolutePath.slice(root.length + 1)
+		}
+		return null
+	}),
 }))
 
 describe("DirectoryScanner", () => {
@@ -145,7 +180,7 @@ describe("DirectoryScanner", () => {
 	describe("scanDirectory", () => {
 		it("should skip files larger than MAX_FILE_SIZE_BYTES", async () => {
 			const { listFiles } = await import("../../../glob/list-files")
-			vi.mocked(listFiles).mockResolvedValue([["test/file1.js"], false])
+			vi.mocked(listFiles).mockResolvedValue([["/test/file1.js"], false])
 
 			// Create large file mock stats
 			const largeFileStats = {
@@ -161,7 +196,7 @@ describe("DirectoryScanner", () => {
 
 		it("should parse changed files and return code blocks", async () => {
 			const { listFiles } = await import("../../../glob/list-files")
-			vi.mocked(listFiles).mockResolvedValue([["test/file1.js"], false])
+			vi.mocked(listFiles).mockResolvedValue([["/test/file1.js"], false])
 			const mockBlocks: any[] = [
 				{
 					file_path: "test/file1.js",
@@ -182,6 +217,8 @@ describe("DirectoryScanner", () => {
 		})
 
 		it("should process embeddings for new/changed files", async () => {
+			const { listFiles } = await import("../../../glob/list-files")
+			vi.mocked(listFiles).mockResolvedValue([["/test/file1.js"], false])
 			const mockBlocks: any[] = [
 				{
 					file_path: "test/file1.js",
@@ -214,11 +251,11 @@ describe("DirectoryScanner", () => {
 			// Mock listFiles to return files including some in hidden directories
 			vi.mocked(listFiles).mockResolvedValue([
 				[
-					"test/file1.js",
-					"test/.hidden/file2.js",
-					".git/config",
-					"src/.next/static/file3.js",
-					"normal/file4.js",
+					"/test/file1.js",
+					"/test/.hidden/file2.js",
+					"/test/.git/config",
+					"/test/src/.next/static/file3.js",
+					"/test/normal/file4.js",
 				],
 				false,
 			])
@@ -233,9 +270,9 @@ describe("DirectoryScanner", () => {
 			await scanner.scanDirectory("/test")
 
 			// Verify that only non-hidden files were processed
-			expect(processedFiles).toEqual(["test/file1.js", "normal/file4.js"])
-			expect(processedFiles).not.toContain("test/.hidden/file2.js")
-			expect(processedFiles).not.toContain(".git/config")
+			expect(processedFiles).toEqual(["/test/file1.js", "/test/normal/file4.js"])
+			expect(processedFiles).not.toContain("/test/.hidden/file2.js")
+			expect(processedFiles).not.toContain("/test/.git/config")
 			expect(processedFiles).not.toContain("src/.next/static/file3.js")
 
 			// Verify the stats

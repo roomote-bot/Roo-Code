@@ -37,7 +37,8 @@ export function getWorkspaceRootForFile(filePath: string): string | undefined {
  */
 export function isFileInWorkspace(filePath: string, workspaceRoot: string): boolean {
 	const normalizedFilePath = path.normalize(filePath)
-	const normalizedWorkspaceRoot = path.normalize(workspaceRoot)
+	// Remove trailing slashes from workspace root for consistent comparison
+	const normalizedWorkspaceRoot = path.normalize(workspaceRoot).replace(/[\/\\]+$/, "")
 
 	return (
 		normalizedFilePath.startsWith(normalizedWorkspaceRoot + path.sep) ||
