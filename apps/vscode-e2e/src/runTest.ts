@@ -30,6 +30,7 @@ async function main() {
 			...process.env,
 			...(testGrep && { TEST_GREP: testGrep }),
 			...(testFile && { TEST_FILE: testFile }),
+			VSCODE_E2E_TESTING: "true", // Flag to indicate E2E testing environment
 		}
 
 		// Download VS Code, unzip it and run the integration test

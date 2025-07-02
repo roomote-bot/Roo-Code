@@ -54,7 +54,9 @@ export class CodeIndexManager {
 		this.context = context
 		// Create state manager with default throttle interval (500ms)
 		// Can be customized by passing a different value to the constructor
-		this._stateManager = new CodeIndexStateManager()
+		// In test environments, disable throttling to prevent timeouts
+		const throttleInterval = process.env.VSCODE_E2E_TESTING === "true" ? 0 : undefined
+		this._stateManager = new CodeIndexStateManager(throttleInterval)
 	}
 
 	// --- Public API ---
