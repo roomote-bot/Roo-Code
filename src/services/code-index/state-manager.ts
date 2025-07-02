@@ -10,6 +10,11 @@ export class CodeIndexStateManager {
 	private _currentItemUnit: string = "blocks"
 	private _progressEmitter = new vscode.EventEmitter<ReturnType<typeof this.getCurrentStatus>>()
 
+	// Throttling properties
+	private _throttleTimer?: NodeJS.Timeout
+	private _pendingUpdate?: ReturnType<typeof this.getCurrentStatus>
+	private readonly THROTTLE_INTERVAL_MS = 500
+
 	// --- Public API ---
 
 	public readonly onProgressUpdate = this._progressEmitter.event
@@ -51,7 +56,7 @@ export class CodeIndexStateManager {
 				if (newState === "Error" && message === undefined) this._statusMessage = "An error occurred."
 			}
 
-			this._progressEmitter.fire(this.getCurrentStatus())
+			this.throttledEmit()
 		}
 	}
 
@@ -73,7 +78,7 @@ export class CodeIndexStateManager {
 
 			// Only fire update if status, message or progress actually changed
 			if (oldStatus !== this._systemStatus || oldMessage !== this._statusMessage || progressChanged) {
-				this._progressEmitter.fire(this.getCurrentStatus())
+				this.throttledEmit()
 			}
 		}
 	}
@@ -104,12 +109,33 @@ export class CodeIndexStateManager {
 			this._statusMessage = message
 
 			if (oldStatus !== this._systemStatus || oldMessage !== this._statusMessage || progressChanged) {
-				this._progressEmitter.fire(this.getCurrentStatus())
+				this.throttledEmit()
 			}
 		}
 	}
 
+	private throttledEmit(): void {
+		if (this._throttleTimer) {
+			this._pendingUpdate = this.getCurrentStatus()
+			return
+		}
+
+		this._progressEmitter.fire(this.getCurrentStatus())
+
+		this._throttleTimer = setTimeout(() => {
+			if (this._pendingUpdate) {
+				this._progressEmitter.fire(this._pendingUpdate)
+				this._pendingUpdate = undefined
+			}
+			this._throttleTimer = undefined
+		}, this.THROTTLE_INTERVAL_MS)
+	}
+
 	public dispose(): void {
+		if (this._throttleTimer) {
+			clearTimeout(this._throttleTimer)
+			this._throttleTimer = undefined
+		}
 		this._progressEmitter.dispose()
 	}
 }

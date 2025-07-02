@@ -70,6 +70,41 @@
 			"confirmButton": "Limpar Dados"
 		}
 	},
+	"codeIndex": {
+		"title": "Indexação da base de código",
+		"enableLabel": "Habilitar a indexação da base de código",
+		"enableDescription": "<0>A indexação da base de código</0> é um recurso experimental que cria um índice de pesquisa semântica do seu projeto usando embeddings de IA. Isso permite que o Roo Code entenda e navegue melhor em grandes bases de código, encontrando código relevante com base no significado, em vez de apenas palavras-chave.",
+		"providerLabel": "Provedor de embeddings",
+		"selectProviderPlaceholder": "Selecionar provedor",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "Compatível com OpenAI",
+		"openaiKeyLabel": "Chave da OpenAI:",
+		"openaiCompatibleBaseUrlLabel": "URL base:",
+		"openaiCompatibleApiKeyLabel": "Chave de API:",
+		"openaiCompatibleModelDimensionLabel": "Dimensão do embedding:",
+		"openaiCompatibleModelDimensionPlaceholder": "ex: 1536",
+		"openaiCompatibleModelDimensionDescription": "A dimensão do embedding (tamanho da saída) para o seu modelo. Verifique a documentação do seu provedor para este valor. Valores comuns: 384, 768, 1536, 3072.",
+		"modelLabel": "Modelo",
+		"selectModelPlaceholder": "Selecionar modelo",
+		"ollamaUrlLabel": "URL do Ollama:",
+		"qdrantUrlLabel": "URL do Qdrant",
+		"qdrantKeyLabel": "Chave do Qdrant:",
+		"advancedConfigLabel": "Configuração avançada",
+		"searchMinScoreLabel": "Limite de pontuação da pesquisa",
+		"searchMinScoreDescription": "Pontuação mínima de similaridade (0,0-1,0) necessária para os resultados da pesquisa. Valores mais baixos retornam mais resultados, mas podem ser menos relevantes. Valores mais altos retornam menos resultados, mas mais relevantes.",
+		"searchMinScoreResetTooltip": "Redefinir para o valor padrão (0.4)",
+		"startIndexingButton": "Iniciar indexação",
+		"stopIndexingButton": "Parar indexação",
+		"clearIndexDataButton": "Limpar dados do índice",
+		"unsavedSettingsMessage": "Salve suas configurações antes de iniciar o processo de indexação.",
+		"clearDataDialog": {
+			"title": "Você tem certeza?",
+			"description": "Esta ação não pode ser desfeita. Isso excluirá permanentemente os dados do índice da sua base de código.",
+			"cancelButton": "Cancelar",
+			"confirmButton": "Limpar dados"
+		}
+	},
 	"autoApprove": {
 		"description": "Permitir que o Roo realize operações automaticamente sem exigir aprovação. Ative essas configurações apenas se confiar totalmente na IA e compreender os riscos de segurança associados.",
 		"readOnly": {

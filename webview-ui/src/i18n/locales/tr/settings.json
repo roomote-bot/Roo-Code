@@ -70,6 +70,41 @@
 			"confirmButton": "Verileri Temizle"
 		}
 	},
+	"codeIndex": {
+		"title": "Kod Tabanı İndeksleme",
+		"enableLabel": "Kod Tabanı İndekslemeyi Etkinleştir",
+		"enableDescription": "<0>Kod Tabanı İndeksleme</0>, projenizin anlamsal bir arama dizinini yapay zeka gömülerini kullanarak oluşturan deneysel bir özelliktir. Bu, Roo Code'un sadece anahtar kelimelere göre değil, anlama dayalı olarak ilgili kodu bularak büyük kod tabanlarını daha iyi anlamasını ve gezinmesini sağlar.",
+		"providerLabel": "Gömü Sağlayıcı",
+		"selectProviderPlaceholder": "Sağlayıcı seçin",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "OpenAI Uyumlu",
+		"openaiKeyLabel": "OpenAI Anahtarı:",
+		"openaiCompatibleBaseUrlLabel": "Temel URL:",
+		"openaiCompatibleApiKeyLabel": "API Anahtarı:",
+		"openaiCompatibleModelDimensionLabel": "Gömme Boyutu:",
+		"openaiCompatibleModelDimensionPlaceholder": "ör. 1536",
+		"openaiCompatibleModelDimensionDescription": "Modeliniz için gömme boyutu (çıktı boyutu). Bu değer için sağlayıcınızın belgelerini kontrol edin. Yaygın değerler: 384, 768, 1536, 3072.",
+		"modelLabel": "Model",
+		"selectModelPlaceholder": "Model seçin",
+		"ollamaUrlLabel": "Ollama URL'si:",
+		"qdrantUrlLabel": "Qdrant URL'si",
+		"qdrantKeyLabel": "Qdrant Anahtarı:",
+		"advancedConfigLabel": "Gelişmiş Yapılandırma",
+		"searchMinScoreLabel": "Arama Puanı Eşiği",
+		"searchMinScoreDescription": "Arama sonuçları için gereken minimum benzerlik puanı (0.0-1.0). Daha düşük değerler daha fazla sonuç döndürür ancak daha az alakalı olabilir. Daha yüksek değerler daha az ancak daha alakalı sonuçlar döndürür.",
+		"searchMinScoreResetTooltip": "Varsayılan değere (0.4) sıfırla",
+		"startIndexingButton": "İndekslemeyi Başlat",
+		"stopIndexingButton": "İndekslemeyi Durdur",
+		"clearIndexDataButton": "Dizin Verilerini Temizle",
+		"unsavedSettingsMessage": "İndeksleme işlemine başlamadan önce lütfen ayarlarınızı kaydedin.",
+		"clearDataDialog": {
+			"title": "Emin misiniz?",
+			"description": "Bu işlem geri alınamaz. Bu, kod tabanı dizin verilerinizi kalıcı olarak silecektir.",
+			"cancelButton": "İptal",
+			"confirmButton": "Verileri Temizle"
+		}
+	},
 	"autoApprove": {
 		"description": "Roo'nun onay gerektirmeden otomatik olarak işlemler gerçekleştirmesine izin verin. Bu ayarları yalnızca yapay zekaya tamamen güveniyorsanız ve ilgili güvenlik risklerini anlıyorsanız etkinleştirin.",
 		"readOnly": {

@@ -1810,6 +1810,17 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
+		case "cancelIndexing": {
+			try {
+				const manager = provider.codeIndexManager!
+				if (manager.isFeatureEnabled) {
+					await manager.cancelIndexing()
+				}
+			} catch (error) {
+				provider.log(`Error cancelling indexing: ${error instanceof Error ? error.message : String(error)}`)
+			}
+			break
+		}
 		case "clearIndexData": {
 			try {
 				const manager = provider.codeIndexManager!

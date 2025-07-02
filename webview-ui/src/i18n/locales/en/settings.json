@@ -61,6 +61,7 @@
 		"searchMinScoreDescription": "Minimum similarity score (0.0-1.0) required for search results. Lower values return more results but may be less relevant. Higher values return fewer but more relevant results.",
 		"searchMinScoreResetTooltip": "Reset to default value (0.4)",
 		"startIndexingButton": "Start Indexing",
+		"stopIndexingButton": "Stop Indexing",
 		"clearIndexDataButton": "Clear Index Data",
 		"unsavedSettingsMessage": "Please save your settings before starting the indexing process.",
 		"clearDataDialog": {

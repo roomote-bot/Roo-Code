@@ -12,6 +12,7 @@ import { CacheManager } from "./cache-manager"
 export class CodeIndexOrchestrator {
 	private _fileWatcherSubscriptions: vscode.Disposable[] = []
 	private _isProcessing: boolean = false
+	private abortController?: AbortController
 
 	constructor(
 		private readonly configManager: CodeIndexConfigManager,
@@ -106,6 +107,7 @@ export class CodeIndexOrchestrator {
 		}
 
 		this._isProcessing = true
+		this.abortController = new AbortController()
 		this.stateManager.setSystemState("Indexing", "Initializing services...")
 
 		try {
@@ -142,6 +144,7 @@ export class CodeIndexOrchestrator {
 				},
 				handleBlocksIndexed,
 				handleFileParsed,
+				{ signal: this.abortController.signal },
 			)
 
 			if (!result) {
@@ -169,18 +172,39 @@ export class CodeIndexOrchestrator {
 			this.stateManager.setSystemState("Indexed", "File watcher started.")
 		} catch (error: any) {
 			console.error("[CodeIndexOrchestrator] Error during indexing:", error)
-			try {
-				await this.vectorStore.clearCollection()
-			} catch (cleanupError) {
-				console.error("[CodeIndexOrchestrator] Failed to clean up after error:", cleanupError)
+
+			// Check if error was due to cancellation
+			if (error.name === "AbortError" || error.message === "Indexing cancelled") {
+				this.stateManager.setSystemState("Standby", "Indexing cancelled by user")
+			} else {
+				try {
+					await this.vectorStore.clearCollection()
+				} catch (cleanupError) {
+					console.error("[CodeIndexOrchestrator] Failed to clean up after error:", cleanupError)
+				}
+
+				await this.cacheManager.clearCacheFile()
+
+				this.stateManager.setSystemState(
+					"Error",
+					`Failed during initial scan: ${error.message || "Unknown error"}`,
+				)
 			}
 
-			await this.cacheManager.clearCacheFile()
-
-			this.stateManager.setSystemState("Error", `Failed during initial scan: ${error.message || "Unknown error"}`)
 			this.stopWatcher()
 		} finally {
 			this._isProcessing = false
+			this.abortController = undefined
+		}
+	}
+
+	/**
+	 * Cancels the current indexing operation.
+	 */
+	public cancelIndexing(): void {
+		if (this.abortController) {
+			this.abortController.abort()
+			this.abortController = undefined
 		}
 	}
 
@@ -234,5 +258,16 @@ export class CodeIndexOrchestrator {
 	 */
 	public get state(): IndexingState {
 		return this.stateManager.state
+	}
+
+	/**
+	 * Disposes of resources used by the orchestrator.
+	 */
+	public async dispose(): Promise<void> {
+		this.cancelIndexing()
+		this.stopWatcher()
+		if (this.scanner && "dispose" in this.scanner) {
+			await (this.scanner as any).dispose()
+		}
 	}
 }

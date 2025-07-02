@@ -70,6 +70,41 @@
 			"confirmButton": "Cancella dati"
 		}
 	},
+	"codeIndex": {
+		"title": "Indicizzazione della base di codice",
+		"enableLabel": "Abilita l'indicizzazione della base di codice",
+		"enableDescription": "<0>L'indicizzazione della base di codice</0> è una funzionalità sperimentale che crea un indice di ricerca semantica del tuo progetto utilizzando gli embedding dell'IA. Ciò consente a Roo Code di comprendere e navigare meglio in basi di codice di grandi dimensioni trovando il codice pertinente in base al significato anziché solo alle parole chiave.",
+		"providerLabel": "Provider di embedding",
+		"selectProviderPlaceholder": "Seleziona provider",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "Compatibile con OpenAI",
+		"openaiKeyLabel": "Chiave OpenAI:",
+		"openaiCompatibleBaseUrlLabel": "URL di base:",
+		"openaiCompatibleApiKeyLabel": "Chiave API:",
+		"openaiCompatibleModelDimensionLabel": "Dimensione dell'embedding:",
+		"openaiCompatibleModelDimensionPlaceholder": "es. 1536",
+		"openaiCompatibleModelDimensionDescription": "La dimensione dell'embedding (dimensione dell'output) per il tuo modello. Controlla la documentazione del tuo provider per questo valore. Valori comuni: 384, 768, 1536, 3072.",
+		"modelLabel": "Modello",
+		"selectModelPlaceholder": "Seleziona modello",
+		"ollamaUrlLabel": "URL di Ollama:",
+		"qdrantUrlLabel": "URL di Qdrant",
+		"qdrantKeyLabel": "Chiave di Qdrant:",
+		"advancedConfigLabel": "Configurazione avanzata",
+		"searchMinScoreLabel": "Soglia punteggio di ricerca",
+		"searchMinScoreDescription": "Punteggio di somiglianza minimo (0.0-1.0) richiesto per i risultati della ricerca. Valori più bassi restituiscono più risultati ma potrebbero essere meno pertinenti. Valori più alti restituiscono meno risultati ma più pertinenti.",
+		"searchMinScoreResetTooltip": "Ripristina al valore predefinito (0.4)",
+		"startIndexingButton": "Avvia indicizzazione",
+		"stopIndexingButton": "Interrompi indicizzazione",
+		"clearIndexDataButton": "Cancella dati indice",
+		"unsavedSettingsMessage": "Salva le impostazioni prima di avviare il processo di indicizzazione.",
+		"clearDataDialog": {
+			"title": "Sei sicuro?",
+			"description": "Questa azione non può essere annullata. Eliminerà permanentemente i dati dell'indice della tua base di codice.",
+			"cancelButton": "Annulla",
+			"confirmButton": "Cancella dati"
+		}
+	},
 	"autoApprove": {
 		"description": "Permetti a Roo di eseguire automaticamente operazioni senza richiedere approvazione. Abilita queste impostazioni solo se ti fidi completamente dell'IA e comprendi i rischi di sicurezza associati.",
 		"readOnly": {

@@ -70,6 +70,41 @@
 			"confirmButton": "Daten löschen"
 		}
 	},
+	"codeIndex": {
+		"title": "Codebasis-Indizierung",
+		"enableLabel": "Codebasis-Indizierung aktivieren",
+		"enableDescription": "<0>Codebasis-Indizierung</0> ist eine experimentelle Funktion, die einen semantischen Suchindex deines Projekts mithilfe von KI-Embeddings erstellt. Dies ermöglicht es Roo Code, große Codebasen besser zu verstehen und zu navigieren, indem relevanter Code basierend auf der Bedeutung anstatt nur auf Schlüsselwörtern gefunden wird.",
+		"providerLabel": "Embeddings-Anbieter",
+		"selectProviderPlaceholder": "Anbieter auswählen",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "OpenAI-kompatibel",
+		"openaiKeyLabel": "OpenAI-Schlüssel:",
+		"openaiCompatibleBaseUrlLabel": "Basis-URL:",
+		"openaiCompatibleApiKeyLabel": "API-Schlüssel:",
+		"openaiCompatibleModelDimensionLabel": "Embedding-Dimension:",
+		"openaiCompatibleModelDimensionPlaceholder": "z. B. 1536",
+		"openaiCompatibleModelDimensionDescription": "Die Embedding-Dimension (Ausgabegröße) für dein Modell. Überprüfe die Dokumentation deines Anbieters für diesen Wert. Gängige Werte: 384, 768, 1536, 3072.",
+		"modelLabel": "Modell",
+		"selectModelPlaceholder": "Modell auswählen",
+		"ollamaUrlLabel": "Ollama-URL:",
+		"qdrantUrlLabel": "Qdrant-URL",
+		"qdrantKeyLabel": "Qdrant-Schlüssel:",
+		"advancedConfigLabel": "Erweiterte Konfiguration",
+		"searchMinScoreLabel": "Mindest-Suchbewertung",
+		"searchMinScoreDescription": "Mindest-Ähnlichkeitsbewertung (0,0-1,0), die für Suchergebnisse erforderlich ist. Niedrigere Werte geben mehr Ergebnisse zurück, sind aber möglicherweise weniger relevant. Höhere Werte geben weniger, aber relevantere Ergebnisse zurück.",
+		"searchMinScoreResetTooltip": "Auf Standardwert (0.4) zurücksetzen",
+		"startIndexingButton": "Indizierung starten",
+		"stopIndexingButton": "Indizierung stoppen",
+		"clearIndexDataButton": "Indexdaten löschen",
+		"unsavedSettingsMessage": "Bitte speichere deine Einstellungen, bevor du den Indizierungsprozess startest.",
+		"clearDataDialog": {
+			"title": "Bist du sicher?",
+			"description": "Diese Aktion kann nicht rückgängig gemacht werden. Dadurch werden deine Codebasis-Indexdaten dauerhaft gelöscht.",
+			"cancelButton": "Abbrechen",
+			"confirmButton": "Daten löschen"
+		}
+	},
 	"autoApprove": {
 		"description": "Erlaubt Roo, Operationen automatisch ohne Genehmigung durchzuführen. Aktiviere diese Einstellungen nur, wenn du der KI vollständig vertraust und die damit verbundenen Sicherheitsrisiken verstehst.",
 		"readOnly": {

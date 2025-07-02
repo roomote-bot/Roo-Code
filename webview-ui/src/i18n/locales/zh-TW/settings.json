@@ -70,6 +70,41 @@
 			"confirmButton": "清除資料"
 		}
 	},
+	"codeIndex": {
+		"title": "程式碼庫索引",
+		"enableLabel": "啟用程式碼庫索引",
+		"enableDescription": "<0>程式碼庫索引</0>是一項實驗性功能，它使用 AI 嵌入為您的專案建立一個語意搜尋索引。這使 Roo Code 能夠透過基於意義而不僅僅是關鍵字尋找相關程式碼，從而更好地理解和瀏覽大型程式碼庫。",
+		"providerLabel": "嵌入服務提供者",
+		"selectProviderPlaceholder": "選取提供者",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "OpenAI 相容",
+		"openaiKeyLabel": "OpenAI 金鑰：",
+		"openaiCompatibleBaseUrlLabel": "基礎 URL：",
+		"openaiCompatibleApiKeyLabel": "API 金鑰：",
+		"openaiCompatibleModelDimensionLabel": "嵌入維度：",
+		"openaiCompatibleModelDimensionPlaceholder": "例如 1536",
+		"openaiCompatibleModelDimensionDescription": "模型的嵌入維度（輸出大小）。請查閱您的提供者的文件以取得此值。常見值：384、768、1536、3072。",
+		"modelLabel": "模型",
+		"selectModelPlaceholder": "選取模型",
+		"ollamaUrlLabel": "Ollama URL：",
+		"qdrantUrlLabel": "Qdrant URL",
+		"qdrantKeyLabel": "Qdrant 金鑰：",
+		"advancedConfigLabel": "進階設定",
+		"searchMinScoreLabel": "搜尋分數閾值",
+		"searchMinScoreDescription": "搜尋結果所需的最低相似度分數（0.0-1.0）。較低的值會傳回更多結果，但可能相關性較低。較高的值會傳回較少但更相關的結果。",
+		"searchMinScoreResetTooltip": "重設為預設值 (0.4)",
+		"startIndexingButton": "開始索引",
+		"stopIndexingButton": "停止索引",
+		"clearIndexDataButton": "清除索引資料",
+		"unsavedSettingsMessage": "在開始索引程序之前，請儲存您的設定。",
+		"clearDataDialog": {
+			"title": "您確定嗎？",
+			"description": "此操作無法復原。這將永久刪除您的程式碼庫索引資料。",
+			"cancelButton": "取消",
+			"confirmButton": "清除資料"
+		}
+	},
 	"autoApprove": {
 		"description": "允許 Roo 無需核准即執行操作。僅在您完全信任 AI 並了解相關安全風險時啟用這些設定。",
 		"readOnly": {

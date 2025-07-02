@@ -485,6 +485,13 @@ export const CodeIndexSettings: React.FC<CodeIndexSettingsProps> = ({
 								{t("settings:codeIndex.startIndexingButton")}
 							</VSCodeButton>
 						)}
+						{indexingStatus.systemStatus === "Indexing" && (
+							<VSCodeButton
+								onClick={() => vscode.postMessage({ type: "cancelIndexing" })}
+								appearance="secondary">
+								{t("settings:codeIndex.stopIndexingButton")}
+							</VSCodeButton>
+						)}
 						{(indexingStatus.systemStatus === "Indexed" || indexingStatus.systemStatus === "Error") && (
 							<AlertDialog>
 								<AlertDialogTrigger asChild>

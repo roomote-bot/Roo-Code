@@ -70,6 +70,41 @@
 			"confirmButton": "Esborrar dades"
 		}
 	},
+	"codeIndex": {
+		"title": "Indexació de la base de codi",
+		"enableLabel": "Activa la indexació de la base de codi",
+		"enableDescription": "<0>La indexació de la base de codi</0> és una funció experimental que crea un índex de cerca semàntica del vostre projecte mitjançant incrustacions d'IA. Això permet que Roo Code comprengui i navegui millor per grans bases de codi trobant codi rellevant basat en el significat en lloc de només paraules clau.",
+		"providerLabel": "Proveïdor d'incrustacions",
+		"selectProviderPlaceholder": "Selecciona el proveïdor",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "Compatible amb OpenAI",
+		"openaiKeyLabel": "Clau d'OpenAI:",
+		"openaiCompatibleBaseUrlLabel": "URL base:",
+		"openaiCompatibleApiKeyLabel": "Clau de l'API:",
+		"openaiCompatibleModelDimensionLabel": "Dimensió de la incrustació:",
+		"openaiCompatibleModelDimensionPlaceholder": "p. ex., 1536",
+		"openaiCompatibleModelDimensionDescription": "La dimensió de la incrustació (mida de sortida) per al vostre model. Consulteu la documentació del vostre proveïdor per a aquest valor. Valors comuns: 384, 768, 1536, 3072.",
+		"modelLabel": "Model",
+		"selectModelPlaceholder": "Selecciona el model",
+		"ollamaUrlLabel": "URL d'Ollama:",
+		"qdrantUrlLabel": "URL de Qdrant",
+		"qdrantKeyLabel": "Clau de Qdrant:",
+		"advancedConfigLabel": "Configuració avançada",
+		"searchMinScoreLabel": "Llindar de puntuació de la cerca",
+		"searchMinScoreDescription": "Puntuació de similitud mínima (0.0-1.0) requerida per als resultats de la cerca. Els valors més baixos retornen més resultats però poden ser menys rellevants. Els valors més alts retornen menys resultats però més rellevants.",
+		"searchMinScoreResetTooltip": "Restableix al valor per defecte (0.4)",
+		"startIndexingButton": "Inicia la indexació",
+		"stopIndexingButton": "Atura la indexació",
+		"clearIndexDataButton": "Esborra les dades de l'índex",
+		"unsavedSettingsMessage": "Deseu la configuració abans d'iniciar el procés d'indexació.",
+		"clearDataDialog": {
+			"title": "N'estàs segur?",
+			"description": "Aquesta acció no es pot desfer. Això suprimirà permanentment les dades de l'índex de la vostra base de codi.",
+			"cancelButton": "Cancel·la",
+			"confirmButton": "Esborra les dades"
+		}
+	},
 	"autoApprove": {
 		"description": "Permet que Roo realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",
 		"readOnly": {

@@ -70,6 +70,41 @@
 			"confirmButton": "データをクリア"
 		}
 	},
+	"codeIndex": {
+		"title": "コードベースのインデックス作成",
+		"enableLabel": "コードベースのインデックス作成を有効にする",
+		"enableDescription": "<0>コードベースのインデックス作成</0>は、AI埋め込みを使用してプロジェクトのセマンティック検索インデックスを作成する実験的な機能です。これにより、Roo Codeはキーワードだけでなく意味に基づいて関連コードを検索することで、大規模なコードベースをよりよく理解し、ナビゲートできるようになります。",
+		"providerLabel": "埋め込みプロバイダー",
+		"selectProviderPlaceholder": "プロバイダーを選択",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "OpenAI互換",
+		"openaiKeyLabel": "OpenAIキー：",
+		"openaiCompatibleBaseUrlLabel": "ベースURL：",
+		"openaiCompatibleApiKeyLabel": "APIキー：",
+		"openaiCompatibleModelDimensionLabel": "埋め込みディメンション：",
+		"openaiCompatibleModelDimensionPlaceholder": "例：1536",
+		"openaiCompatibleModelDimensionDescription": "モデルの埋め込みディメンション（出力サイズ）。この値については、プロバイダーのドキュメントを確認してください。一般的な値：384、768、1536, 3072。",
+		"modelLabel": "モデル",
+		"selectModelPlaceholder": "モデルを選択",
+		"ollamaUrlLabel": "Ollama URL：",
+		"qdrantUrlLabel": "Qdrant URL",
+		"qdrantKeyLabel": "Qdrantキー：",
+		"advancedConfigLabel": "詳細設定",
+		"searchMinScoreLabel": "検索スコアのしきい値",
+		"searchMinScoreDescription": "検索結果に必要な最小類似度スコア（0.0〜1.0）。値を低くするとより多くの結果が返されますが、関連性が低くなる可能性があります。値を高くするとより少ないがより関連性の高い結果が返されます。",
+		"searchMinScoreResetTooltip": "デフォルト値（0.4）にリセット",
+		"startIndexingButton": "インデックス作成を開始",
+		"stopIndexingButton": "インデックス作成を停止",
+		"clearIndexDataButton": "インデックスデータを消去",
+		"unsavedSettingsMessage": "インデックス作成プロセスを開始する前に設定を保存してください。",
+		"clearDataDialog": {
+			"title": "よろしいですか？",
+			"description": "この操作は元に戻せません。コードベースのインデックスデータが完全に削除されます。",
+			"cancelButton": "キャンセル",
+			"confirmButton": "データを消去"
+		}
+	},
 	"autoApprove": {
 		"description": "Rooが承認なしで自動的に操作を実行できるようにします。AIを完全に信頼し、関連するセキュリティリスクを理解している場合にのみ、これらの設定を有効にしてください。",
 		"readOnly": {

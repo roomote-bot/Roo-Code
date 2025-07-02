@@ -70,6 +70,41 @@
 			"confirmButton": "Effacer les données"
 		}
 	},
+	"codeIndex": {
+		"title": "Indexation de la base de code",
+		"enableLabel": "Activer l'indexation de la base de code",
+		"enableDescription": "<0>L'indexation de la base de code</0> est une fonctionnalité expérimentale qui crée un index de recherche sémantique de votre projet à l'aide d'embeddings d'IA. Cela permet à Roo Code de mieux comprendre et de naviguer dans les grandes bases de code en trouvant du code pertinent basé sur le sens plutôt que sur de simples mots-clés.",
+		"providerLabel": "Fournisseur d'embeddings",
+		"selectProviderPlaceholder": "Sélectionner le fournisseur",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "Compatible OpenAI",
+		"openaiKeyLabel": "Clé OpenAI :",
+		"openaiCompatibleBaseUrlLabel": "URL de base :",
+		"openaiCompatibleApiKeyLabel": "Clé API :",
+		"openaiCompatibleModelDimensionLabel": "Dimension de l'embedding :",
+		"openaiCompatibleModelDimensionPlaceholder": "ex: 1536",
+		"openaiCompatibleModelDimensionDescription": "La dimension de l'embedding (taille de sortie) pour votre modèle. Consultez la documentation de votre fournisseur pour cette valeur. Valeurs courantes : 384, 768, 1536, 3072.",
+		"modelLabel": "Modèle",
+		"selectModelPlaceholder": "Sélectionner le modèle",
+		"ollamaUrlLabel": "URL d'Ollama :",
+		"qdrantUrlLabel": "URL de Qdrant",
+		"qdrantKeyLabel": "Clé Qdrant :",
+		"advancedConfigLabel": "Configuration avancée",
+		"searchMinScoreLabel": "Seuil de score de recherche",
+		"searchMinScoreDescription": "Score de similarité minimum (0,0-1,0) requis pour les résultats de recherche. Des valeurs plus faibles renvoient plus de résultats mais peuvent être moins pertinentes. Des valeurs plus élevées renvoient moins de résultats mais plus pertinents.",
+		"searchMinScoreResetTooltip": "Réinitialiser à la valeur par défaut (0.4)",
+		"startIndexingButton": "Démarrer l'indexation",
+		"stopIndexingButton": "Arrêter l'indexation",
+		"clearIndexDataButton": "Effacer les données de l'index",
+		"unsavedSettingsMessage": "Veuillez enregistrer vos paramètres avant de démarrer le processus d'indexation.",
+		"clearDataDialog": {
+			"title": "Êtes-vous sûr ?",
+			"description": "Cette action est irréversible. Cela supprimera définitivement les données d'index de votre base de code.",
+			"cancelButton": "Annuler",
+			"confirmButton": "Effacer les données"
+		}
+	},
 	"autoApprove": {
 		"description": "Permettre à Roo d'effectuer automatiquement des opérations sans requérir d'approbation. Activez ces paramètres uniquement si vous faites entièrement confiance à l'IA et que vous comprenez les risques de sécurité associés.",
 		"readOnly": {

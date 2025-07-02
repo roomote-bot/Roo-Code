@@ -70,6 +70,41 @@
 			"confirmButton": "Очистить данные"
 		}
 	},
+	"codeIndex": {
+		"title": "Индексирование кодовой базы",
+		"enableLabel": "Включить индексирование кодовой базы",
+		"enableDescription": "<0>Индексирование кодовой базы</0> — это экспериментальная функция, которая создает семантический поисковый индекс вашего проекта с использованием вложений ИИ. Это позволяет Roo Code лучше понимать и перемещаться по большим кодовым базам, находя релевантный код на основе значения, а не только по ключевым словам.",
+		"providerLabel": "Поставщик вложений",
+		"selectProviderPlaceholder": "Выберите поставщика",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "Совместимый с OpenAI",
+		"openaiKeyLabel": "Ключ OpenAI:",
+		"openaiCompatibleBaseUrlLabel": "Базовый URL:",
+		"openaiCompatibleApiKeyLabel": "Ключ API:",
+		"openaiCompatibleModelDimensionLabel": "Размерность вложения:",
+		"openaiCompatibleModelDimensionPlaceholder": "например, 1536",
+		"openaiCompatibleModelDimensionDescription": "Размерность вложения (размер вывода) для вашей модели. Проверьте документацию вашего поставщика для этого значения. Общие значения: 384, 768, 1536, 3072.",
+		"modelLabel": "Модель",
+		"selectModelPlaceholder": "Выберите модель",
+		"ollamaUrlLabel": "URL-адрес Ollama:",
+		"qdrantUrlLabel": "URL-адрес Qdrant",
+		"qdrantKeyLabel": "Ключ Qdrant:",
+		"advancedConfigLabel": "Расширенная конфигурация",
+		"searchMinScoreLabel": "Порог оценки поиска",
+		"searchMinScoreDescription": "Минимальная оценка сходства (0,0-1,0), необходимая для результатов поиска. Более низкие значения возвращают больше результатов, но могут быть менее релевантными. Более высокие значения возвращают меньше, но более релевантных результатов.",
+		"searchMinScoreResetTooltip": "Сбросить до значения по умолчанию (0.4)",
+		"startIndexingButton": "Начать индексирование",
+		"stopIndexingButton": "Остановить индексирование",
+		"clearIndexDataButton": "Очистить данные индекса",
+		"unsavedSettingsMessage": "Сохраните настройки перед началом процесса индексирования.",
+		"clearDataDialog": {
+			"title": "Вы уверены?",
+			"description": "Это действие нельзя отменить. Это приведет к безвозвратному удалению данных индекса вашей кодовой базы.",
+			"cancelButton": "Отмена",
+			"confirmButton": "Очистить данные"
+		}
+	},
 	"autoApprove": {
 		"description": "Разрешить Roo автоматически выполнять операции без необходимости одобрения. Включайте эти параметры только если полностью доверяете ИИ и понимаете связанные с этим риски безопасности.",
 		"readOnly": {

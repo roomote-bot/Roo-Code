@@ -24,15 +24,35 @@ import {
 	BATCH_PROCESSING_CONCURRENCY,
 } from "../constants"
 import { isPathInIgnoredDirectory } from "../../glob/ignore-utils"
+import { WorkerPool } from "../workers/worker-pool"
+
+export interface ScanOptions {
+	signal?: AbortSignal
+}
 
 export class DirectoryScanner implements IDirectoryScanner {
+	private workerPool?: WorkerPool
+
 	constructor(
 		private readonly embedder: IEmbedder,
 		private readonly qdrantClient: IVectorStore,
 		private readonly codeParser: ICodeParser,
 		private readonly cacheManager: CacheManager,
 		private readonly ignoreInstance: Ignore,
-	) {}
+	) {
+		// Initialize worker pool for file processing
+		try {
+			this.workerPool = new WorkerPool(
+				path.join(__dirname, "../workers/file-processor.worker.js"),
+				PARSING_CONCURRENCY,
+			)
+		} catch (error) {
+			console.warn(
+				"[DirectoryScanner] Failed to initialize worker pool, falling back to main thread processing:",
+				error,
+			)
+		}
+	}
 
 	/**
 	 * Recursively scans a directory for code blocks in supported files.
@@ -47,6 +67,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		onError?: (error: Error) => void,
 		onBlocksIndexed?: (indexedCount: number) => void,
 		onFileParsed?: (fileBlockCount: number) => void,
+		options?: ScanOptions,
 	): Promise<{ codeBlocks: CodeBlock[]; stats: { processed: number; skipped: number }; totalBlockCount: number }> {
 		const directoryPath = directory
 		// Get all files recursively (handles .gitignore automatically)
@@ -99,6 +120,11 @@ export class DirectoryScanner implements IDirectoryScanner {
 		// Process all files in parallel with concurrency control
 		const parsePromises = supportedPaths.map((filePath) =>
 			parseLimiter(async () => {
+				// Check for cancellation
+				if (options?.signal?.aborted) {
+					throw new Error("Indexing cancelled")
+				}
+
 				try {
 					// Check file size
 					const stats = await stat(filePath)
@@ -107,13 +133,52 @@ export class DirectoryScanner implements IDirectoryScanner {
 						return
 					}
 
-					// Read file content
-					const content = await vscode.workspace.fs
-						.readFile(vscode.Uri.file(filePath))
-						.then((buffer) => Buffer.from(buffer).toString("utf-8"))
+					let content: string
+					let currentFileHash: string
 
-					// Calculate current hash
-					const currentFileHash = createHash("sha256").update(content).digest("hex")
+					// Check for cancellation before processing
+					if (options?.signal?.aborted) {
+						throw new Error("Indexing cancelled")
+					}
+
+					// Try to use worker pool if available
+					if (this.workerPool) {
+						try {
+							const result = await this.workerPool.execute<{ content: string; hash: string }>({
+								type: "processFile",
+								filePath,
+								workspacePath: directory,
+							})
+							content = result.content
+							currentFileHash = result.hash
+						} catch (workerError) {
+							// Check if cancelled
+							if (options?.signal?.aborted) {
+								throw new Error("Indexing cancelled")
+							}
+							// Fallback to main thread processing
+							console.warn(
+								`[DirectoryScanner] Worker failed for ${filePath}, using main thread:`,
+								workerError,
+							)
+							content = await vscode.workspace.fs
+								.readFile(vscode.Uri.file(filePath))
+								.then((buffer) => Buffer.from(buffer).toString("utf-8"))
+							currentFileHash = createHash("sha256").update(content).digest("hex")
+						}
+					} else {
+						// No worker pool, use main thread
+						content = await vscode.workspace.fs
+							.readFile(vscode.Uri.file(filePath))
+							.then((buffer) => Buffer.from(buffer).toString("utf-8"))
+						currentFileHash = createHash("sha256").update(content).digest("hex")
+					}
+
+					// Check for cancellation after file read
+					if (options?.signal?.aborted) {
+						throw new Error("Indexing cancelled")
+					}
+
 					processedFiles.add(filePath)
 
 					// Check against cache
@@ -126,6 +191,12 @@ export class DirectoryScanner implements IDirectoryScanner {
 
 					// File is new or changed - parse it using the injected parser function
 					const blocks = await this.codeParser.parseFile(filePath, { content, fileHash: currentFileHash })
+
+					// Check for cancellation after parsing
+					if (options?.signal?.aborted) {
+						throw new Error("Indexing cancelled")
+					}
+
 					const fileBlockCount = blocks.length
 					onFileParsed?.(fileBlockCount)
 					codeBlocks.push(...blocks)
@@ -171,6 +242,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 												batchFileInfos,
 												onError,
 												onBlocksIndexed,
+												options?.signal,
 											),
 										)
 										activeBatchPromises.push(batchPromise)
@@ -185,6 +257,11 @@ export class DirectoryScanner implements IDirectoryScanner {
 						await this.cacheManager.updateHash(filePath, currentFileHash)
 					}
 				} catch (error) {
+					// Re-throw cancellation errors
+					if (error instanceof Error && error.message === "Indexing cancelled") {
+						throw error
+					}
+
 					console.error(`Error processing file ${filePath}:`, error)
 					if (onError) {
 						onError(
@@ -198,7 +275,16 @@ export class DirectoryScanner implements IDirectoryScanner {
 		)
 
 		// Wait for all parsing to complete
-		await Promise.all(parsePromises)
+		try {
+			await Promise.all(parsePromises)
+		} catch (error) {
+			// If it's a cancellation error, propagate it
+			if (error instanceof Error && error.message === "Indexing cancelled") {
+				throw error
+			}
+			// For other errors, log and continue
+			console.error("[DirectoryScanner] Error during file parsing:", error)
+		}
 
 		// Process any remaining items in batch
 		if (currentBatchBlocks.length > 0) {
@@ -214,7 +300,14 @@ export class DirectoryScanner implements IDirectoryScanner {
 
 				// Queue final batch processing
 				const batchPromise = batchLimiter(() =>
-					this.processBatch(batchBlocks, batchTexts, batchFileInfos, onError, onBlocksIndexed),
+					this.processBatch(
+						batchBlocks,
+						batchTexts,
+						batchFileInfos,
+						onError,
+						onBlocksIndexed,
+						options?.signal,
+					),
 				)
 				activeBatchPromises.push(batchPromise)
 			} finally {
@@ -269,6 +362,7 @@ export class DirectoryScanner implements IDirectoryScanner {
 		batchFileInfos: { filePath: string; fileHash: string; isNew: boolean }[],
 		onError?: (error: Error) => void,
 		onBlocksIndexed?: (indexedCount: number) => void,
+		signal?: AbortSignal,
 	): Promise<void> {
 		if (batchBlocks.length === 0) return
 
@@ -279,6 +373,10 @@ export class DirectoryScanner implements IDirectoryScanner {
 		while (attempts < MAX_BATCH_RETRIES && !success) {
 			attempts++
 			try {
+				// Check for cancellation
+				if (signal?.aborted) {
+					throw new Error("Indexing cancelled")
+				}
 				// --- Deletion Step ---
 				const uniqueFilePaths = [
 					...new Set(
@@ -359,6 +457,13 @@ export class DirectoryScanner implements IDirectoryScanner {
 					),
 				)
 			}
+		}
+	}
+
+	public async dispose(): Promise<void> {
+		if (this.workerPool) {
+			await this.workerPool.shutdown()
+			this.workerPool = undefined
 		}
 	}
 }

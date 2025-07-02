@@ -165,11 +165,24 @@ export class CodeIndexManager {
 	}
 
 	/**
+	 * Cancels the current indexing operation.
+	 */
+	public async cancelIndexing(): Promise<void> {
+		if (!this.isFeatureEnabled) {
+			return
+		}
+		if (this._orchestrator) {
+			this._orchestrator.cancelIndexing()
+		}
+	}
+
+	/**
 	 * Cleans up the manager instance.
 	 */
-	public dispose(): void {
+	public async dispose(): Promise<void> {
 		if (this._orchestrator) {
 			this.stopWatcher()
+			await this._orchestrator.dispose()
 		}
 		this._stateManager.dispose()
 	}

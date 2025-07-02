@@ -70,6 +70,41 @@
 			"confirmButton": "清除数据"
 		}
 	},
+	"codeIndex": {
+		"title": "代码库索引",
+		"enableLabel": "启用代码库索引",
+		"enableDescription": "<0>代码库索引</0>是一项实验性功能，它使用 AI 嵌入为你的项目创建一个语义搜索索引。这使 Roo Code 能够通过基于含义而不仅仅是关键字查找相关代码，从而更好地理解和浏览大型代码库。",
+		"providerLabel": "嵌入服务提供商",
+		"selectProviderPlaceholder": "选择提供商",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "OpenAI 兼容",
+		"openaiKeyLabel": "OpenAI 密钥：",
+		"openaiCompatibleBaseUrlLabel": "基本 URL：",
+		"openaiCompatibleApiKeyLabel": "API 密钥：",
+		"openaiCompatibleModelDimensionLabel": "嵌入维度：",
+		"openaiCompatibleModelDimensionPlaceholder": "例如 1536",
+		"openaiCompatibleModelDimensionDescription": "模型的嵌入维度（输出大小）。请查阅提供商的文档以获取此值。常见值：384、768、1536、3072。",
+		"modelLabel": "模型",
+		"selectModelPlaceholder": "选择模型",
+		"ollamaUrlLabel": "Ollama URL：",
+		"qdrantUrlLabel": "Qdrant URL",
+		"qdrantKeyLabel": "Qdrant 密钥：",
+		"advancedConfigLabel": "高级配置",
+		"searchMinScoreLabel": "搜索分数阈值",
+		"searchMinScoreDescription": "搜索结果所需的最低相似度分数（0.0-1.0）。较低的值会返回更多结果，但可能相关性较低。较高的值会返回较少但更相关的结果。",
+		"searchMinScoreResetTooltip": "重置为默认值 (0.4)",
+		"startIndexingButton": "开始索引",
+		"stopIndexingButton": "停止索引",
+		"clearIndexDataButton": "清除索引数据",
+		"unsavedSettingsMessage": "在开始索引过程之前，请保存你的设置。",
+		"clearDataDialog": {
+			"title": "你确定吗？",
+			"description": "此操作无法撤销。这将永久删除你的代码库索引数据。",
+			"cancelButton": "取消",
+			"confirmButton": "清除数据"
+		}
+	},
 	"autoApprove": {
 		"description": "允许 Roo 自动执行操作而无需批准。只有在您完全信任 AI 并了解相关安全风险的情况下才启用这些设置。",
 		"readOnly": {

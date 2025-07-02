@@ -70,6 +70,41 @@
 			"confirmButton": "Hapus Data"
 		}
 	},
+	"codeIndex": {
+		"title": "Pengindeksan Basis Kode",
+		"enableLabel": "Aktifkan Pengindeksan Basis Kode",
+		"enableDescription": "<0>Pengindeksan Basis Kode</0> adalah fitur eksperimental yang membuat indeks pencarian semantik proyek Anda menggunakan penyematan AI. Ini memungkinkan Roo Code untuk lebih memahami dan menavigasi basis kode besar dengan menemukan kode yang relevan berdasarkan makna daripada hanya kata kunci.",
+		"providerLabel": "Penyedia Penyematan",
+		"selectProviderPlaceholder": "Pilih penyedia",
+		"openaiProvider": "OpenAI",
+		"ollamaProvider": "Ollama",
+		"openaiCompatibleProvider": "Kompatibel dengan OpenAI",
+		"openaiKeyLabel": "Kunci OpenAI:",
+		"openaiCompatibleBaseUrlLabel": "URL Dasar:",
+		"openaiCompatibleApiKeyLabel": "Kunci API:",
+		"openaiCompatibleModelDimensionLabel": "Dimensi Penyematan:",
+		"openaiCompatibleModelDimensionPlaceholder": "misalnya, 1536",
+		"openaiCompatibleModelDimensionDescription": "Dimensi penyematan (ukuran keluaran) untuk model Anda. Periksa dokumentasi penyedia Anda untuk nilai ini. Nilai umum: 384, 768, 1536, 3072.",
+		"modelLabel": "Model",
+		"selectModelPlaceholder": "Pilih model",
+		"ollamaUrlLabel": "URL Ollama:",
+		"qdrantUrlLabel": "URL Qdrant",
+		"qdrantKeyLabel": "Kunci Qdrant:",
+		"advancedConfigLabel": "Konfigurasi Lanjutan",
+		"searchMinScoreLabel": "Ambang Batas Skor Pencarian",
+		"searchMinScoreDescription": "Skor kesamaan minimum (0.0-1.0) yang diperlukan untuk hasil pencarian. Nilai yang lebih rendah mengembalikan lebih banyak hasil tetapi mungkin kurang relevan. Nilai yang lebih tinggi mengembalikan lebih sedikit tetapi hasil yang lebih relevan.",
+		"searchMinScoreResetTooltip": "Setel ulang ke nilai default (0.4)",
+		"startIndexingButton": "Mulai Pengindeksan",
+		"stopIndexingButton": "Hentikan Pengindeksan",
+		"clearIndexDataButton": "Hapus Data Indeks",
+		"unsavedSettingsMessage": "Harap simpan pengaturan Anda sebelum memulai proses pengindeksan.",
+		"clearDataDialog": {
+			"title": "Apakah Anda yakin?",
+			"description": "Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data indeks basis kode Anda secara permanen.",
+			"cancelButton": "Batal",
+			"confirmButton": "Hapus Data"
+		}
+	},
 	"autoApprove": {
 		"description": "Izinkan Roo untuk secara otomatis melakukan operasi tanpa memerlukan persetujuan. Aktifkan pengaturan ini hanya jika kamu sepenuhnya mempercayai AI dan memahami risiko keamanan yang terkait.",
 		"readOnly": {
