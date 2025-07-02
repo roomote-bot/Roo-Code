@@ -103,6 +103,7 @@ export interface WebviewMessage {
 		| "enhancedPrompt"
 		| "draggedImages"
 		| "deleteMessage"
+		| "submitEditedMessage"
 		| "terminalOutputLineLimit"
 		| "terminalShellIntegrationTimeout"
 		| "terminalShellIntegrationDisabled"
@@ -184,6 +185,7 @@ export interface WebviewMessage {
 		| "checkRulesDirectory"
 		| "checkRulesDirectoryResult"
 	text?: string
+	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
 	dataUri?: string

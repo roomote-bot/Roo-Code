@@ -1087,6 +1087,54 @@ export const webviewMessageHandler = async (
 			}
 			break
 		}
+		case "submitEditedMessage": {
+			if (
+				provider.getCurrentCline() &&
+				typeof message.value === "number" &&
+				message.value &&
+				message.editedMessageContent
+			) {
+				const timeCutoff = message.value - 1000 // 1 second buffer before the message to edit
+
+				const messageIndex = provider
+					.getCurrentCline()!
+					.clineMessages.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
+
+				const apiConversationHistoryIndex = provider
+					.getCurrentCline()
+					?.apiConversationHistory.findIndex((msg) => msg.ts && msg.ts >= timeCutoff)
+
+				if (messageIndex !== -1) {
+					try {
+						const currentCline = provider.getCurrentCline()!
+
+						// Delete the original message and all subsequent messages
+						await currentCline.overwriteClineMessages(currentCline.clineMessages.slice(0, messageIndex))
+
+						// Delete the original message and all subsequent messages in API history
+						if (apiConversationHistoryIndex !== undefined && apiConversationHistoryIndex !== -1) {
+							await currentCline.overwriteApiConversationHistory(
+								currentCline.apiConversationHistory.slice(0, apiConversationHistoryIndex),
+							)
+						}
+
+						// Process the edited message as a regular user message
+						// This will add it to the conversation and trigger an AI response
+						webviewMessageHandler(provider, {
+							type: "askResponse",
+							askResponse: "messageResponse",
+							text: message.editedMessageContent,
+						})
+					} catch (error) {
+						console.error("Error in submitEditedMessage:", error)
+						vscode.window.showErrorMessage(
+							`Error editing message: ${error instanceof Error ? error.message : String(error)}`,
+						)
+					}
+				}
+			}
+			break
+		}
 		case "screenshotQuality":
 			await updateGlobalState("screenshotQuality", message.value)
 			await provider.postStateToWebview()

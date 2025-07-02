@@ -107,6 +107,11 @@
 		"remove": "Remove",
 		"keep": "Keep"
 	},
+	"buttons": {
+		"save": "Save",
+		"cancel": "Cancel",
+		"edit": "Edit"
+	},
 	"tasks": {
 		"canceled": "Task error: It was stopped and canceled by the user.",
 		"deleted": "Task failure: It was stopped and deleted by the user.",
