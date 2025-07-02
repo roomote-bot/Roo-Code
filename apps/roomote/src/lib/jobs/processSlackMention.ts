@@ -20,13 +20,17 @@ export async function processSlackMention(
   // workspace root that our containers use.
   const workspaceRoot = process.env.WORKSPACE_ROOT || '/roo/repos';
 
+  const workspacePath = jobPayload.workspace.startsWith('/')
+    ? jobPayload.workspace
+    : `${workspaceRoot}/${jobPayload.workspace}`;
+
   const result = await runTask({
     jobType,
     jobPayload,
     prompt,
     callbacks,
     notify: false,
-    workspacePath: `${workspaceRoot}/${jobPayload.workspace}`,
+    workspacePath,
   });
 
   return { channel, user, result };

@@ -21,10 +21,11 @@
     "env:decrypt:development": "dotenvx decrypt -f .env.development --stdout",
     "env:decrypt:preview": "dotenvx decrypt -f .env.preview --stdout",
     "env:decrypt:production": "dotenvx decrypt -f .env.production --stdout",
+    "deploy:roomote": "pnpm deploy:roomote-api && pnpm deploy:roomote-controller && pnpm deploy:roomote-worker",
     "deploy:roomote-dashboard": "fly deploy --config fly.roomote-dashboard.toml",
     "deploy:roomote-api": "fly deploy --config fly.roomote-api.toml",
     "deploy:roomote-controller": "fly deploy --config fly.roomote-controller.toml",
-    "deploy:roomote-worker": "fly deploy --config fly.roomote-worker.toml --build-arg GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.production) && fly scale count 0 -a roomote-worker -y"
+    "deploy:roomote-worker": "fly deploy --config fly.roomote-worker.toml --build-arg GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.production) --ha=false && fly scale count 0 -a roomote-worker -y"
   },
   "devDependencies": {
     "@dotenvx/dotenvx": "^1.44.2",

@@ -181,6 +181,8 @@ async function handleAppMention(event: SlackEvent) {
   try {
     pendingWorkspaceSelections.set(threadId, event);
 
+    const workspaceRoot = process.env.WORKSPACE_ROOT || '/roo/repos';
+
     const result = await slack.postMessage({
       text: '👋 Which workspace would you like me to work in?',
       channel: event.channel,
@@ -200,13 +202,13 @@ async function handleAppMention(event: SlackEvent) {
               type: 'button',
               text: { type: 'plain_text', text: 'Roo-Code-Cloud', emoji: true },
               action_id: 'select_roo_code_cloud',
-              value: 'roo-code-cloud',
+              value: `${workspaceRoot}/Roo-Code-Cloud`,
             },
             {
               type: 'button',
               text: { type: 'plain_text', text: 'Roo-Code', emoji: true },
               action_id: 'select_roo_code',
-              value: 'roo-code',
+              value: `${workspaceRoot}/Roo-Code`,
             },
           ],
         },

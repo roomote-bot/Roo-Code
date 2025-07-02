@@ -111,4 +111,5 @@ WORKDIR /roo/apps/roomote
 ENV NODE_ENV=production
 ENV HOST_EXECUTION_METHOD=docker
 # ENTRYPOINT ["/usr/local/bin/worker.sh"]
-CMD ["sleep", "infinity"]
+# CMD ["sleep", "infinity"]
+CMD ["pnpm", "worker:production"]

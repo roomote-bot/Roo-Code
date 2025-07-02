@@ -90,7 +90,7 @@ export class WorkerController {
       let command;
 
       if (isFlyMachine()) {
-        command = `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --restart on-fail --rm --shell --command "pnpm worker:production" -a roomote-worker`;
+        command = `fly machine run $(fly releases --image -a roomote-worker -j 2>/dev/null | jq -r '.[0].ImageRef') --vm-size performance-16x --restart on-fail --rm -a roomote-worker`;
       } else if (isDockerContainer()) {
         const dockerArgs = [
           `--name roomote-${workerId}`,

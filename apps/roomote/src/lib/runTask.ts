@@ -94,6 +94,7 @@ export const runTask = async <T extends JobType>({
 
   const subprocess = execa({
     shell: '/bin/bash',
+    cwd: workspacePath,
     cancelSignal,
   })`${codeCommand}`;
 
@@ -141,26 +142,28 @@ export const runTask = async <T extends JobType>({
   const slackNotifier = notify ? new SlackNotifier(logger) : undefined;
   let slackThreadTs: string | null | undefined = null;
 
-  const ignoreEvents: Record<'broadcast' | 'log', RooCodeEventName[]> = {
-    broadcast: [RooCodeEventName.Message],
-    log: [
-      RooCodeEventName.TaskTokenUsageUpdated,
-      RooCodeEventName.TaskAskResponded,
-    ],
-  };
+  // const ignoreEvents: Record<'broadcast' | 'log', RooCodeEventName[]> = {
+  //   broadcast: [RooCodeEventName.Message],
+  //   log: [
+  //     RooCodeEventName.TaskTokenUsageUpdated,
+  //     RooCodeEventName.TaskAskResponded,
+  //   ],
+  // };
 
   client.on(IpcMessageType.TaskEvent, async (taskEvent) => {
     const { eventName, payload } = taskEvent;
 
     // Log all events except for these.
     // For message events we only log non-partial messages.
-    if (
-      !ignoreEvents.log.includes(eventName) &&
-      (eventName !== RooCodeEventName.Message ||
-        payload[0].message.partial !== true)
-    ) {
-      logger.info(`${eventName} ->`, payload);
-    }
+    // if (
+    //   !ignoreEvents.log.includes(eventName) &&
+    //   (eventName !== RooCodeEventName.Message ||
+    //     payload[0].message.partial !== true)
+    // ) {
+    //   logger.info(`${eventName} ->`, payload);
+    // }
+
+    logger.info(`${eventName} ->`, payload);
 
     if (
       eventName === RooCodeEventName.Message &&
@@ -236,6 +239,9 @@ export const runTask = async <T extends JobType>({
     data: {
       configuration: {
         ...EVALS_SETTINGS,
+        alwaysAllowReadOnlyOutsideWorkspace: true,
+        alwaysAllowWriteOutsideWorkspace: true,
+        alwaysAllowWriteProtected: true,
         openRouterApiKey: process.env.OPENROUTER_API_KEY,
         lastShownAnnouncementId: 'jun-17-2025-3-21',
         ...settings,
