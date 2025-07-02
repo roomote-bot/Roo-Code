@@ -122,9 +122,18 @@ export class DiffViewProvider {
 		}
 
 		// Place cursor at the beginning of the diff editor to keep it out of
-		// the way of the stream animation.
+		// the way of the stream animation, but do this without stealing focus
 		const beginningOfDocument = new vscode.Position(0, 0)
+		const currentActiveEditor = vscode.window.activeTextEditor
 		diffEditor.selection = new vscode.Selection(beginningOfDocument, beginningOfDocument)
+
+		// Restore focus to the previously active editor if it changed
+		if (currentActiveEditor && vscode.window.activeTextEditor !== currentActiveEditor) {
+			await vscode.window.showTextDocument(currentActiveEditor.document, {
+				preserveFocus: false,
+				viewColumn: currentActiveEditor.viewColumn,
+			})
+		}
 
 		const endLine = accumulatedLines.length
 		// Replace all content up to the current line with accumulated lines.
@@ -137,10 +146,19 @@ export class DiffViewProvider {
 		// Update decorations.
 		this.activeLineController.setActiveLine(endLine)
 		this.fadedOverlayController.updateOverlayAfterLine(endLine, document.lineCount)
-		// Scroll to the current line.
+		// Scroll to the current line without stealing focus.
 		const ranges = this.activeDiffEditor?.visibleRanges
 		if (ranges && ranges.length > 0 && ranges[0].start.line < endLine && ranges[0].end.line > endLine) {
+			const currentActiveEditor = vscode.window.activeTextEditor
 			this.scrollEditorToLine(endLine)
+
+			// Restore focus if scrolling stole it
+			if (currentActiveEditor && vscode.window.activeTextEditor !== currentActiveEditor) {
+				await vscode.window.showTextDocument(currentActiveEditor.document, {
+					preserveFocus: false,
+					viewColumn: currentActiveEditor.viewColumn,
+				})
+			}
 		}
 
 		// Update the streamedLines with the new accumulated content.
@@ -504,7 +522,7 @@ export class DiffViewProvider {
 			// Pre-open the file as a text document to ensure it doesn't open in preview mode
 			// This fixes issues with files that have custom editor associations (like markdown preview)
 			vscode.window
-				.showTextDocument(uri, { preview: false, viewColumn: vscode.ViewColumn.Active })
+				.showTextDocument(uri, { preview: false, viewColumn: vscode.ViewColumn.Active, preserveFocus: true })
 				.then(() => {
 					// Execute the diff command after ensuring the file is open as text
 					return vscode.commands.executeCommand(
@@ -540,7 +558,7 @@ export class DiffViewProvider {
 		}
 	}
 
-	scrollToFirstDiff() {
+	async scrollToFirstDiff() {
 		if (!this.activeDiffEditor) {
 			return
 		}
@@ -552,11 +570,20 @@ export class DiffViewProvider {
 
 		for (const part of diffs) {
 			if (part.added || part.removed) {
-				// Found the first diff, scroll to it.
+				// Found the first diff, scroll to it without stealing focus.
+				const currentActiveEditor = vscode.window.activeTextEditor
 				this.activeDiffEditor.revealRange(
 					new vscode.Range(lineCount, 0, lineCount, 0),
 					vscode.TextEditorRevealType.InCenter,
 				)
+
+				// Restore focus if scrolling stole it
+				if (currentActiveEditor && vscode.window.activeTextEditor !== currentActiveEditor) {
+					await vscode.window.showTextDocument(currentActiveEditor.document, {
+						preserveFocus: false,
+						viewColumn: currentActiveEditor.viewColumn,
+					})
+				}
 
 				return
 			}
