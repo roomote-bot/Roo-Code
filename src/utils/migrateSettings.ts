@@ -8,6 +8,7 @@ import type { ContextProxy } from "../core/config/ContextProxy"
 import type { HistoryItem } from "@roo-code/types"
 
 const deprecatedCustomModesJSONFilename = "custom_modes.json"
+const TASK_HISTORY_MIGRATION_KEY = "taskHistoryMigratedToWorkspace"
 
 /**
  * Migrates old settings files to new file names
@@ -61,7 +62,7 @@ export async function migrateSettings(
 
 			// Migrate task history from global state to workspace state using ContextProxy
 			const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
-			await migrateTaskHistoryWithContextProxy(contextProxy, workspaceFolder)
+			await migrateTaskHistoryWithContextProxy(context, contextProxy, workspaceFolder)
 		} catch (error) {
 			outputChannel.appendLine(`Error in file migrations: ${error}`)
 		}
@@ -124,22 +125,26 @@ async function migrateCustomModesToYaml(settingsDir: string, outputChannel: vsco
 /**
  * Migrates task history from global state to workspace state using ContextProxy
  * This is used for the new architecture with ContextProxy
+ * @param context The original vscode.ExtensionContext for raw state access
  * @param contextProxy The context proxy instance
  * @param workspaceFolder The current workspace folder
  */
 export async function migrateTaskHistoryWithContextProxy(
+	context: vscode.ExtensionContext,
 	contextProxy: ContextProxy,
 	workspaceFolder: vscode.WorkspaceFolder | undefined,
 ): Promise<void> {
+	const alreadyMigrated = context.globalState.get<boolean>(TASK_HISTORY_MIGRATION_KEY)
+	if (alreadyMigrated) {
+		return
+	}
+
 	if (!workspaceFolder) {
 		return
 	}
 
 	try {
-		// Access the raw context to get the global state directly
-		const context = (contextProxy as any).context as vscode.ExtensionContext
-
-		// Get the raw global state
+		// Get the raw global state directly from context
 		const rawGlobalState = context.globalState.get<any>("globalSettings", {})
 		const taskHistory = rawGlobalState.taskHistory as HistoryItem[] | undefined
 
@@ -178,8 +183,11 @@ export async function migrateTaskHistoryWithContextProxy(
 			delete rawGlobalState.taskHistory
 		}
 
-		// Update the raw global state directly
+		// Update the raw global state directly using context
 		await context.globalState.update("globalSettings", rawGlobalState)
+
+		// Set the migration flag to prevent future migrations
+		await context.globalState.update(TASK_HISTORY_MIGRATION_KEY, true)
 	} catch (error) {
 		console.error("Failed to migrate task history to workspace:", error)
 	}
