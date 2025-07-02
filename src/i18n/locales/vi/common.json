@@ -107,6 +107,11 @@
 		"remove": "Xóa",
 		"keep": "Giữ"
 	},
+	"buttons": {
+		"save": "Lưu",
+		"cancel": "Hủy",
+		"edit": "Chỉnh sửa"
+	},
 	"tasks": {
 		"canceled": "Lỗi nhiệm vụ: Nó đã bị dừng và hủy bởi người dùng.",
 		"deleted": "Nhiệm vụ thất bại: Nó đã bị dừng và xóa bởi người dùng.",

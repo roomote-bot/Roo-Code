@@ -107,6 +107,11 @@
 		"remove": "Eliminar",
 		"keep": "Mantener"
 	},
+	"buttons": {
+		"save": "Guardar",
+		"cancel": "Cancelar",
+		"edit": "Editar"
+	},
 	"tasks": {
 		"canceled": "Error de tarea: Fue detenida y cancelada por el usuario.",
 		"deleted": "Fallo de tarea: Fue detenida y eliminada por el usuario.",

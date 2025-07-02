@@ -107,6 +107,11 @@
 		"remove": "Rimuovi",
 		"keep": "Mantieni"
 	},
+	"buttons": {
+		"save": "Salva",
+		"cancel": "Annulla",
+		"edit": "Modifica"
+	},
 	"tasks": {
 		"canceled": "Errore attività: È stata interrotta e annullata dall'utente.",
 		"deleted": "Fallimento attività: È stata interrotta ed eliminata dall'utente.",

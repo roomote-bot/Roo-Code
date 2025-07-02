@@ -107,6 +107,11 @@
 		"remove": "Entfernen",
 		"keep": "Behalten"
 	},
+	"buttons": {
+		"save": "Speichern",
+		"cancel": "Abbrechen",
+		"edit": "Bearbeiten"
+	},
 	"tasks": {
 		"canceled": "Aufgabenfehler: Die Aufgabe wurde vom Benutzer gestoppt und abgebrochen.",
 		"deleted": "Aufgabenfehler: Die Aufgabe wurde vom Benutzer gestoppt und gelöscht.",

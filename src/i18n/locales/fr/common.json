@@ -107,6 +107,11 @@
 		"remove": "Supprimer",
 		"keep": "Conserver"
 	},
+	"buttons": {
+		"save": "Enregistrer",
+		"cancel": "Annuler",
+		"edit": "Modifier"
+	},
 	"tasks": {
 		"canceled": "Erreur de tâche : Elle a été arrêtée et annulée par l'utilisateur.",
 		"deleted": "Échec de la tâche : Elle a été arrêtée et supprimée par l'utilisateur.",

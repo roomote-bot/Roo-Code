@@ -107,6 +107,11 @@
 		"remove": "Kaldır",
 		"keep": "Koru"
 	},
+	"buttons": {
+		"save": "Kaydet",
+		"cancel": "İptal",
+		"edit": "Düzenle"
+	},
 	"tasks": {
 		"canceled": "Görev hatası: Kullanıcı tarafından durduruldu ve iptal edildi.",
 		"deleted": "Görev başarısız: Kullanıcı tarafından durduruldu ve silindi.",

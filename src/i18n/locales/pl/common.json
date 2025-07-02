@@ -107,6 +107,11 @@
 		"remove": "Usuń",
 		"keep": "Zachowaj"
 	},
+	"buttons": {
+		"save": "Zapisz",
+		"cancel": "Anuluj",
+		"edit": "Edytuj"
+	},
 	"tasks": {
 		"canceled": "Błąd zadania: Zostało zatrzymane i anulowane przez użytkownika.",
 		"deleted": "Niepowodzenie zadania: Zostało zatrzymane i usunięte przez użytkownika.",

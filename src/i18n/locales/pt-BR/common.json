@@ -111,6 +111,11 @@
 		"remove": "Remover",
 		"keep": "Manter"
 	},
+	"buttons": {
+		"save": "Salvar",
+		"cancel": "Cancelar",
+		"edit": "Editar"
+	},
 	"tasks": {
 		"canceled": "Erro na tarefa: Foi interrompida e cancelada pelo usuário.",
 		"deleted": "Falha na tarefa: Foi interrompida e excluída pelo usuário.",

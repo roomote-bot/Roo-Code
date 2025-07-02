@@ -107,6 +107,11 @@
 		"remove": "Hapus",
 		"keep": "Simpan"
 	},
+	"buttons": {
+		"save": "Simpan",
+		"cancel": "Batal",
+		"edit": "Edit"
+	},
 	"tasks": {
 		"canceled": "Error tugas: Dihentikan dan dibatalkan oleh pengguna.",
 		"deleted": "Kegagalan tugas: Dihentikan dan dihapus oleh pengguna.",

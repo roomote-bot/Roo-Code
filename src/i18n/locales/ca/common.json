@@ -111,6 +111,11 @@
 		"remove": "Eliminar",
 		"keep": "Mantenir"
 	},
+	"buttons": {
+		"save": "Desar",
+		"cancel": "Cancel·lar",
+		"edit": "Editar"
+	},
 	"tasks": {
 		"canceled": "Error de tasca: Ha estat aturada i cancel·lada per l'usuari.",
 		"deleted": "Fallada de tasca: Ha estat aturada i eliminada per l'usuari.",

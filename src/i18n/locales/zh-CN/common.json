@@ -112,6 +112,11 @@
 		"remove": "删除",
 		"keep": "保留"
 	},
+	"buttons": {
+		"save": "保存",
+		"cancel": "取消",
+		"edit": "编辑"
+	},
 	"tasks": {
 		"canceled": "任务错误：它已被用户停止并取消。",
 		"deleted": "任务失败：它已被用户停止并删除。",

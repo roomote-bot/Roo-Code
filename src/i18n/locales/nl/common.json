@@ -107,6 +107,11 @@
 		"remove": "Verwijderen",
 		"keep": "Behouden"
 	},
+	"buttons": {
+		"save": "Opslaan",
+		"cancel": "Annuleren",
+		"edit": "Bewerken"
+	},
 	"tasks": {
 		"canceled": "Taakfout: gestopt en geannuleerd door gebruiker.",
 		"deleted": "Taakfout: gestopt en verwijderd door gebruiker.",
