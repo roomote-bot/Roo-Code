@@ -233,7 +233,8 @@ describe("DirectoryScanner", () => {
 			await scanner.scanDirectory("/test")
 
 			// Verify that only non-hidden files were processed
-			expect(processedFiles).toEqual(["test/file1.js", "normal/file4.js"])
+			// Sort the array to ensure consistent order across platforms
+			expect(processedFiles.sort()).toEqual(["normal/file4.js", "test/file1.js"])
 			expect(processedFiles).not.toContain("test/.hidden/file2.js")
 			expect(processedFiles).not.toContain(".git/config")
 			expect(processedFiles).not.toContain("src/.next/static/file3.js")
