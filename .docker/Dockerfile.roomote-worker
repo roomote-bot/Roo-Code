@@ -1,0 +1,98 @@
+# Multi-stage build for optimized worker container
+FROM node:18-alpine AS base
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    ca-certificates
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy package files for dependency installation
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
+
+# Install pnpm
+RUN npm install -g pnpm
+
+# Install dependencies with frozen lockfile for reproducible builds
+RUN pnpm install --frozen-lockfile
+
+# Production stage
+FROM node:18-alpine AS production
+
+# Install system dependencies and VS Code
+RUN apk add --no-cache \
+    git \
+    curl \
+    bash \
+    ca-certificates \
+    wget \
+    && wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > packages.microsoft.gpg \
+    && install -o root -g root -m 644 packages.microsoft.gpg /etc/apt/trusted.gpg.d/ \
+    && echo "deb [arch=amd64,arm64,armhf signed-by=/etc/apt/trusted.gpg.d/packages.microsoft.gpg] https://packages.microsoft.com/repos/code stable main" > /etc/apt/sources.list.d/vscode.list
+
+# Set working directory
+WORKDIR /workspace
+
+# Copy dependencies from base stage
+COPY --from=base /workspace/node_modules ./node_modules
+COPY --from=base /workspace/package*.json ./
+COPY --from=base /workspace/pnpm-lock.yaml ./
+
+# Copy application code
+COPY . .
+
+# Enhanced Extension Management with retry logic and verification
+RUN set -e; \
+    EXTENSION_ID="RooVeterinaryInc.roo-code-nightly"; \
+    MAX_ATTEMPTS=3; \
+    DELAY=5; \
+    \
+    echo "🚀 Installing ${EXTENSION_ID} extension with enhanced reliability..."; \
+    \
+    for attempt in $(seq 1 $MAX_ATTEMPTS); do \
+        echo "📦 Attempt ${attempt}/${MAX_ATTEMPTS}: Installing ${EXTENSION_ID}..."; \
+        \
+        if code --install-extension "${EXTENSION_ID}" --force; then \
+            echo "✅ Extension ${EXTENSION_ID} installed successfully on attempt ${attempt}"; \
+            \
+            # Enhanced verification with detailed logging
+            if code --list-extensions | grep -q "${EXTENSION_ID}"; then \
+                INSTALLED_VERSION=$(code --list-extensions --show-versions | grep "${EXTENSION_ID}" | cut -d'@' -f2); \
+                echo "🔍 Verification successful: ${EXTENSION_ID}@${INSTALLED_VERSION} is installed"; \
+                break; \
+            else \
+                echo "❌ Verification failed: Extension not found in installed list"; \
+                if [ $attempt -eq $MAX_ATTEMPTS ]; then \
+                    echo "💥 Failed to install ${EXTENSION_ID} after ${MAX_ATTEMPTS} attempts"; \
+                    exit 1; \
+                fi; \
+            fi; \
+        else \
+            echo "⚠️  Installation failed on attempt ${attempt}"; \
+            if [ $attempt -eq $MAX_ATTEMPTS ]; then \
+                echo "💥 Failed to install ${EXTENSION_ID} after ${MAX_ATTEMPTS} attempts"; \
+                exit 1; \
+            fi; \
+            echo "⏳ Waiting ${DELAY} seconds before retry..."; \
+            sleep $DELAY; \
+        fi; \
+    done
+
+# Health check with timeout protection
+HEALTHCHECK --interval=30s --timeout=15s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:3000/health || exit 1
+
+# Set environment variables for production
+ENV NODE_ENV=production
+ENV EXTENSION_ID=RooVeterinaryInc.roo-code-nightly
+
+# Expose port
+EXPOSE 3000
+
+# Start command
+CMD ["pnpm", "start"]
