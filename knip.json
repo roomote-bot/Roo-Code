@@ -7,7 +7,9 @@
 		"src/activate/**",
 		"src/workers/countTokens.ts",
 		"src/extension.ts",
-		"scripts/**"
+		"scripts/**",
+		"src/services/code-index/workers/embedding.worker.ts",
+		"src/services/code-index/workers/file-processor.worker.ts"
 	],
 	"workspaces": {
 		"src": {

@@ -81,7 +81,10 @@ describe("CodeIndexManager - handleExternalSettingsChange regression", () => {
 			;(manager as any)._configManager = mockConfigManager
 
 			// Simulate an initialized manager by setting the required properties
-			;(manager as any)._orchestrator = { stopWatcher: vitest.fn() }
+			;(manager as any)._orchestrator = {
+				stopWatcher: vitest.fn(),
+				dispose: vitest.fn().mockResolvedValue(undefined),
+			}
 			;(manager as any)._searchService = {}
 			;(manager as any)._cacheManager = {}
 
