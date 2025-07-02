@@ -19,8 +19,11 @@
 		"delete_config_profile": "您确定要删除此配置文件吗？",
 		"delete_custom_mode": "您确定要删除此自定义模式吗？",
 		"delete_message": "您想删除什么？",
-		"just_this_message": "仅此消息",
-		"this_and_subsequent": "此消息及所有后续消息"
+		"edit_message": "删除此消息后的所有消息？",
+		"delete_just_this_message": "仅此消息",
+		"edit_just_this_message": "不，仅编辑此消息",
+		"delete_this_and_subsequent": "此消息及所有后续消息",
+		"edit_this_and_delete_subsequent": "是"
 	},
 	"errors": {
 		"invalid_mcp_config": "项目MCP配置格式无效",

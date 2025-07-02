@@ -20,7 +20,11 @@
 		"delete_custom_mode": "Вы уверены, что хотите удалить этот пользовательский режим?",
 		"delete_message": "Что вы хотите удалить?",
 		"just_this_message": "Только это сообщение",
-		"this_and_subsequent": "Это и все последующие сообщения"
+		"delete_just_this_message": "Только это сообщение",
+		"delete_this_and_subsequent": "Это и все последующие сообщения",
+		"edit_message": "Удалить все сообщения после этого?",
+		"edit_just_this_message": "Нет, только редактировать это",
+		"edit_this_and_delete_subsequent": "Да"
 	},
 	"errors": {
 		"invalid_data_uri": "Неверный формат URI данных",

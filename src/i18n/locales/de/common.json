@@ -19,8 +19,11 @@
 		"delete_config_profile": "Möchtest du dieses Konfigurationsprofil wirklich löschen?",
 		"delete_custom_mode": "Möchtest du diesen benutzerdefinierten Modus wirklich löschen?",
 		"delete_message": "Was möchtest du löschen?",
-		"just_this_message": "Nur diese Nachricht",
-		"this_and_subsequent": "Diese und alle nachfolgenden Nachrichten"
+		"edit_message": "Alle Nachrichten nach dieser löschen?",
+		"delete_just_this_message": "Nur diese Nachricht",
+		"edit_just_this_message": "Nein, nur diese bearbeiten",
+		"delete_this_and_subsequent": "Diese und alle nachfolgenden Nachrichten",
+		"edit_this_and_delete_subsequent": "Ja"
 	},
 	"errors": {
 		"invalid_data_uri": "Ungültiges Daten-URI-Format",

@@ -19,8 +19,11 @@
 		"delete_config_profile": "이 구성 프로필을 삭제하시겠습니까?",
 		"delete_custom_mode": "이 사용자 지정 모드를 삭제하시겠습니까?",
 		"delete_message": "무엇을 삭제하시겠습니까?",
-		"just_this_message": "이 메시지만",
-		"this_and_subsequent": "이 메시지와 모든 후속 메시지"
+		"edit_message": "이 메시지 이후의 모든 메시지를 삭제하시겠습니까?",
+		"delete_just_this_message": "이 메시지만",
+		"edit_just_this_message": "아니요, 이것만 편집",
+		"delete_this_and_subsequent": "이 메시지와 모든 후속 메시지",
+		"edit_this_and_delete_subsequent": "예"
 	},
 	"errors": {
 		"invalid_data_uri": "잘못된 데이터 URI 형식",

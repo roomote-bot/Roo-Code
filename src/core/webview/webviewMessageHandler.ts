@@ -67,18 +67,26 @@ export const webviewMessageHandler = async (
 		operation: "delete" | "edit",
 		editedContent?: string,
 	): Promise<void> => {
+		// Different visual order of options based on operation type
+		const options =
+			operation === "edit"
+				? [
+						t("common:confirmation.edit_this_and_delete_subsequent"),
+						t("common:confirmation.edit_just_this_message"),
+					]
+				: [
+						t("common:confirmation.delete_just_this_message"),
+						t("common:confirmation.delete_this_and_subsequent"),
+					]
+
 		const answer = await vscode.window.showInformationMessage(
-			t("common:confirmation.delete_message"),
+			operation === "edit" ? t("common:confirmation.edit_message") : t("common:confirmation.delete_message"),
 			{ modal: true },
-			t("common:confirmation.just_this_message"),
-			t("common:confirmation.this_and_subsequent"),
+			...options,
 		)
 
-		if (
-			(answer === t("common:confirmation.just_this_message") ||
-				answer === t("common:confirmation.this_and_subsequent")) &&
-			provider.getCurrentCline()
-		) {
+		// Only proceed if user selected one of the options and we have a current cline
+		if (answer && options.includes(answer) && provider.getCurrentCline()) {
 			const timeCutoff = messageTs - 1000 // 1 second buffer before the message
 			const currentCline = provider.getCurrentCline()!
 
@@ -92,7 +100,12 @@ export const webviewMessageHandler = async (
 				try {
 					const { historyItem } = await provider.getTaskWithId(currentCline.taskId)
 
-					if (answer === t("common:confirmation.just_this_message")) {
+					// Check if user selected the "just this message" option
+					// For delete: options[0], for edit: options[1]
+					if (
+						(operation === "delete" && answer === options[0]) ||
+						(operation === "edit" && answer === options[1])
+					) {
 						// Find the next user message first
 						const nextUserMessage = currentCline.clineMessages
 							.slice(messageIndex + 1)
@@ -132,7 +145,12 @@ export const webviewMessageHandler = async (
 								)
 							}
 						}
-					} else if (answer === t("common:confirmation.this_and_subsequent")) {
+					} else if (
+						// Check if user selected the "this and subsequent" option
+						// For delete: options[1], for edit: options[0]
+						(operation === "delete" && answer === options[1]) ||
+						(operation === "edit" && answer === options[0])
+					) {
 						// Delete this message and all that follow
 						await currentCline.overwriteClineMessages(currentCline.clineMessages.slice(0, messageIndex))
 
