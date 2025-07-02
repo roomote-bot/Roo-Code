@@ -59,8 +59,11 @@ export async function activate(context: vscode.ExtensionContext) {
 	context.subscriptions.push(outputChannel)
 	outputChannel.appendLine(`${Package.name} extension activated - ${JSON.stringify(Package)}`)
 
+	// Create contextProxy instance before migrations
+	const contextProxy = await ContextProxy.getInstance(context)
+
 	// Migrate old settings to new
-	await migrateSettings(context, outputChannel)
+	await migrateSettings(context, outputChannel, contextProxy)
 
 	// Initialize telemetry service.
 	const telemetryService = TelemetryService.createInstance()
@@ -96,8 +99,6 @@ export async function activate(context: vscode.ExtensionContext) {
 	if (!context.globalState.get("allowedCommands")) {
 		context.globalState.update("allowedCommands", defaultCommands)
 	}
-
-	const contextProxy = await ContextProxy.getInstance(context)
 	const codeIndexManager = CodeIndexManager.getInstance(context)
 
 	try {

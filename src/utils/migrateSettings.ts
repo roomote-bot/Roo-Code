@@ -17,6 +17,7 @@ const deprecatedCustomModesJSONFilename = "custom_modes.json"
 export async function migrateSettings(
 	context: vscode.ExtensionContext,
 	outputChannel: vscode.OutputChannel,
+	contextProxy: ContextProxy,
 ): Promise<void> {
 	// Legacy file names that need to be migrated to the new names in GlobalFileNames
 	const fileMigrations = [
@@ -58,8 +59,9 @@ export async function migrateSettings(
 			// Special migration for custom_modes.json to custom_modes.yaml with content transformation
 			await migrateCustomModesToYaml(settingsDir, outputChannel)
 
-			// Migrate task history from global state to workspace state
-			await migrateTaskHistoryToWorkspace(context, outputChannel)
+			// Migrate task history from global state to workspace state using ContextProxy
+			const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+			await migrateTaskHistoryWithContextProxy(contextProxy, workspaceFolder)
 		} catch (error) {
 			outputChannel.appendLine(`Error in file migrations: ${error}`)
 		}
@@ -116,76 +118,6 @@ async function migrateCustomModesToYaml(settingsDir: string, outputChannel: vsco
 		}
 	} catch (fileError) {
 		outputChannel.appendLine(`Error reading custom_modes.json: ${fileError}. Skipping migration.`)
-	}
-}
-
-/**
- * Migrates task history from global state to workspace state
- * This ensures each workspace has its own isolated task history
- *
- * TODO: Remove this migration code in September 2025 (6 months after implementation)
- */
-async function migrateTaskHistoryToWorkspace(
-	context: vscode.ExtensionContext,
-	outputChannel: vscode.OutputChannel,
-): Promise<void> {
-	try {
-		// Check if we've already performed this migration
-		const migrationKey = "taskHistoryMigratedToWorkspace"
-		const alreadyMigrated = context.globalState.get<boolean>(migrationKey, false)
-
-		if (alreadyMigrated) {
-			outputChannel.appendLine("Task history migration already completed, skipping")
-			return
-		}
-
-		// Get the current workspace folder
-		const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
-		if (!workspaceFolder) {
-			outputChannel.appendLine("No workspace folder found, skipping task history migration")
-			return
-		}
-
-		// Get task history from global state
-		const globalSettings = context.globalState.get<any>("globalSettings")
-		if (!globalSettings?.taskHistory || globalSettings.taskHistory.length === 0) {
-			outputChannel.appendLine("No task history found in global state, skipping migration")
-			// Mark as migrated even if there's no data to prevent future checks
-			await context.globalState.update(migrationKey, true)
-			return
-		}
-
-		const taskHistory = globalSettings.taskHistory
-		const currentWorkspacePath = workspaceFolder.uri.fsPath
-
-		// Filter tasks that belong to the current workspace
-		const workspaceTasks = taskHistory.filter((task: any) => task.workspace === currentWorkspacePath)
-
-		if (workspaceTasks.length > 0) {
-			// Get current workspace settings
-			const workspaceSettings = context.workspaceState.get<any>("workspaceSettings", {})
-
-			// Add the filtered task history to workspace settings
-			workspaceSettings.taskHistory = workspaceTasks
-
-			// Save to workspace state
-			await context.workspaceState.update("workspaceSettings", workspaceSettings)
-
-			outputChannel.appendLine(`Successfully migrated ${workspaceTasks.length} tasks to workspace state`)
-		} else {
-			outputChannel.appendLine("No tasks found for current workspace, nothing to migrate")
-		}
-
-		// Remove taskHistory from global settings
-		delete globalSettings.taskHistory
-		await context.globalState.update("globalSettings", globalSettings)
-
-		// Mark migration as complete
-		await context.globalState.update(migrationKey, true)
-
-		outputChannel.appendLine("Task history migration completed successfully")
-	} catch (error) {
-		outputChannel.appendLine(`Error migrating task history: ${error}`)
 	}
 }
 
