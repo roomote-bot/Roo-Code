@@ -1,5 +1,6 @@
 import { useMemo, useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
+import remarkBreaks from 'remark-breaks';
 import { Link2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -312,6 +313,7 @@ export const Messages = ({
                 ) : (
                   <div className="text-sm leading-relaxed markdown-prose">
                     <ReactMarkdown
+                      remarkPlugins={[remarkBreaks]}
                       components={{
                         a: PlainTextLink,
                         code: CodeBlock,
