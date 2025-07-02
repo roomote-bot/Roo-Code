@@ -4,6 +4,7 @@ import { RooIgnoreController } from "../../../core/ignore/RooIgnoreController"
 import { stat } from "fs/promises"
 import * as path from "path"
 import { generateNormalizedAbsolutePath, generateRelativeFilePath } from "../shared/get-relative-path"
+import { getWorkspaceRootForFile, getAllWorkspaceRoots, isMultiRootWorkspace } from "../shared/workspace-utils"
 import { scannerExtensions } from "../shared/supported-extensions"
 import * as vscode from "vscode"
 import { CodeBlock, ICodeParser, IEmbedder, IVectorStore, IDirectoryScanner } from "../interfaces"
@@ -26,6 +27,8 @@ import {
 import { isPathInIgnoredDirectory } from "../../glob/ignore-utils"
 
 export class DirectoryScanner implements IDirectoryScanner {
+	private workspaceIgnoreMap: Map<string, Ignore> = new Map()
+
 	constructor(
 		private readonly embedder: IEmbedder,
 		private readonly qdrantClient: IVectorStore,
@@ -48,32 +51,62 @@ export class DirectoryScanner implements IDirectoryScanner {
 		onBlocksIndexed?: (indexedCount: number) => void,
 		onFileParsed?: (fileBlockCount: number) => void,
 	): Promise<{ codeBlocks: CodeBlock[]; stats: { processed: number; skipped: number }; totalBlockCount: number }> {
-		const directoryPath = directory
-		// Get all files recursively (handles .gitignore automatically)
-		const [allPaths, _] = await listFiles(directoryPath, true, MAX_LIST_FILES_LIMIT)
+		// In multi-root workspaces, scan all workspace folders
+		const workspaceRoots = isMultiRootWorkspace() ? getAllWorkspaceRoots() : [directory]
 
-		// Filter out directories (marked with trailing '/')
-		const filePaths = allPaths.filter((p) => !p.endsWith("/"))
+		// Initialize ignore instances for each workspace root
+		this.workspaceIgnoreMap.clear()
+		for (const root of workspaceRoots) {
+			// Each workspace root gets its own ignore instance
+			const ignoreController = new RooIgnoreController(root)
+			await ignoreController.initialize()
+			// Create a new Ignore instance for this workspace root
+			const ignore = this.ignoreInstance // For now, reuse the same ignore instance
+			this.workspaceIgnoreMap.set(root, ignore)
+		}
 
-		// Initialize RooIgnoreController if not provided
-		const ignoreController = new RooIgnoreController(directoryPath)
+		// Collect all files from all workspace roots
+		let allFilePaths: string[] = []
 
-		await ignoreController.initialize()
+		for (const workspaceRoot of workspaceRoots) {
+			const [paths, _] = await listFiles(workspaceRoot, true, MAX_LIST_FILES_LIMIT)
+			const filePaths = paths.filter((p) => !p.endsWith("/"))
 
-		// Filter paths using .rooignore
-		const allowedPaths = ignoreController.filterPaths(filePaths)
+			// Initialize RooIgnoreController for this workspace root
+			const ignoreController = new RooIgnoreController(workspaceRoot)
+			await ignoreController.initialize()
+
+			// Filter paths using .rooignore
+			const allowedPaths = ignoreController.filterPaths(filePaths)
+			allFilePaths.push(...allowedPaths)
+		}
 
 		// Filter by supported extensions, ignore patterns, and excluded directories
-		const supportedPaths = allowedPaths.filter((filePath) => {
+		const supportedPaths = allFilePaths.filter((filePath) => {
 			const ext = path.extname(filePath).toLowerCase()
-			const relativeFilePath = generateRelativeFilePath(filePath)
 
 			// Check if file is in an ignored directory using the shared helper
 			if (isPathInIgnoredDirectory(filePath)) {
 				return false
 			}
 
-			return scannerExtensions.includes(ext) && !this.ignoreInstance.ignores(relativeFilePath)
+			// Get the workspace root for this file
+			const workspaceRoot = getWorkspaceRootForFile(filePath)
+			if (!workspaceRoot) {
+				// File is outside all workspace roots
+				return false
+			}
+
+			// Get the relative path relative to its workspace root
+			const relativeFilePath = generateRelativeFilePath(filePath, workspaceRoot)
+			if (!relativeFilePath) {
+				// This shouldn't happen if getWorkspaceRootForFile worked correctly
+				return false
+			}
+
+			// Use the ignore instance for this workspace root
+			const ignoreInstance = this.workspaceIgnoreMap.get(workspaceRoot) || this.ignoreInstance
+			return scannerExtensions.includes(ext) && !ignoreInstance.ignores(relativeFilePath)
 		})
 
 		// Initialize tracking variables
@@ -305,23 +338,39 @@ export class DirectoryScanner implements IDirectoryScanner {
 				const { embeddings } = await this.embedder.createEmbeddings(batchTexts)
 
 				// Prepare points for Qdrant
-				const points = batchBlocks.map((block, index) => {
-					const normalizedAbsolutePath = generateNormalizedAbsolutePath(block.file_path)
+				const points = batchBlocks
+					.map((block, index) => {
+						const normalizedAbsolutePath = generateNormalizedAbsolutePath(block.file_path)
 
-					const stableName = `${normalizedAbsolutePath}:${block.start_line}`
-					const pointId = uuidv5(stableName, QDRANT_CODE_BLOCK_NAMESPACE)
+						// Get the workspace root for this file
+						const workspaceRoot = getWorkspaceRootForFile(normalizedAbsolutePath)
+						const relativeFilePath = workspaceRoot
+							? generateRelativeFilePath(normalizedAbsolutePath, workspaceRoot)
+							: generateRelativeFilePath(normalizedAbsolutePath)
 
-					return {
-						id: pointId,
-						vector: embeddings[index],
-						payload: {
-							filePath: generateRelativeFilePath(normalizedAbsolutePath),
-							codeChunk: block.content,
-							startLine: block.start_line,
-							endLine: block.end_line,
-						},
-					}
-				})
+						if (!relativeFilePath) {
+							console.error(
+								`[DirectoryScanner] Failed to generate relative path for ${normalizedAbsolutePath}`,
+							)
+							// Skip this block
+							return null
+						}
+
+						const stableName = `${normalizedAbsolutePath}:${block.start_line}`
+						const pointId = uuidv5(stableName, QDRANT_CODE_BLOCK_NAMESPACE)
+
+						return {
+							id: pointId,
+							vector: embeddings[index],
+							payload: {
+								filePath: relativeFilePath,
+								codeChunk: block.content,
+								startLine: block.start_line,
+								endLine: block.end_line,
+							},
+						}
+					})
+					.filter((point) => point !== null) as any[]
 
 				// Upsert points to Qdrant
 				await this.qdrantClient.upsertPoints(points)

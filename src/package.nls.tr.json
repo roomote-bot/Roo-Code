@@ -32,5 +32,6 @@
 	"settings.vsCodeLmModelSelector.family.description": "Dil modelinin ailesi (örn: gpt-4)",
 	"settings.customStoragePath.description": "Özel depolama yolu. Varsayılan konumu kullanmak için boş bırakın. Mutlak yolları destekler (örn: 'D:\\RooCodeStorage')",
 	"settings.enableCodeActions.description": "Roo Code hızlı düzeltmeleri etkinleştir.",
-	"settings.autoImportSettingsPath.description": "Uzantı başlangıcında otomatik olarak içe aktarılacak bir RooCode yapılandırma dosyasının yolu. Mutlak yolları ve ana dizine göreli yolları destekler (ör. '~/Documents/roo-code-settings.json'). Otomatik içe aktarmayı devre dışı bırakmak için boş bırakın."
+	"settings.autoImportSettingsPath.description": "Uzantı başlangıcında otomatik olarak içe aktarılacak bir RooCode yapılandırma dosyasının yolu. Mutlak yolları ve ana dizine göreli yolları destekler (ör. '~/Documents/roo-code-settings.json'). Otomatik içe aktarmayı devre dışı bırakmak için boş bırakın.",
+	"settings.codebaseIndexing.multiRootBehavior.description": "Çok köklü çalışma alanlarında kod tabanı dizinlemesinin nasıl işleneceği. 'separate' her çalışma alanı kökünü bağımsız olarak dizinler, 'unified' tüm kökleri tek bir kod tabanı olarak ele alır."
 }

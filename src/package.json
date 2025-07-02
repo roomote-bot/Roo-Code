@@ -338,6 +338,15 @@
 					"type": "string",
 					"default": "",
 					"description": "%settings.autoImportSettingsPath.description%"
+				},
+				"roo-cline.codebaseIndexing.multiRootBehavior": {
+					"type": "string",
+					"enum": [
+						"separate",
+						"unified"
+					],
+					"default": "separate",
+					"description": "%settings.codebaseIndexing.multiRootBehavior.description%"
 				}
 			}
 		}

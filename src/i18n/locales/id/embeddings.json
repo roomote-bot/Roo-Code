@@ -15,7 +15,9 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Error tidak dikenal saat memproses file {{filePath}}",
 		"unknownErrorDeletingPoints": "Error tidak dikenal saat menghapus points untuk {{filePath}}",
-		"failedToProcessBatchWithError": "Gagal memproses batch setelah {{maxRetries}} percobaan: {{errorMessage}}"
+		"failedToProcessBatchWithError": "Gagal memproses batch setelah {{maxRetries}} percobaan: {{errorMessage}}",
+		"multiRootPathError": "Tidak dapat memproses file '{{filePath}}' karena berada di luar semua root ruang kerja",
+		"workspaceRootDetectionError": "Gagal menentukan root ruang kerja untuk file '{{filePath}}'"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Gagal terhubung ke database vektor Qdrant. Pastikan Qdrant berjalan dan dapat diakses di {{qdrantUrl}}. Error: {{errorMessage}}"

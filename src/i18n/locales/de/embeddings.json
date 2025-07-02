@@ -15,7 +15,9 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Unbekannter Fehler beim Verarbeiten der Datei {{filePath}}",
 		"unknownErrorDeletingPoints": "Unbekannter Fehler beim Löschen der Punkte für {{filePath}}",
-		"failedToProcessBatchWithError": "Verarbeitung des Batches nach {{maxRetries}} Versuchen fehlgeschlagen: {{errorMessage}}"
+		"failedToProcessBatchWithError": "Verarbeitung des Batches nach {{maxRetries}} Versuchen fehlgeschlagen: {{errorMessage}}",
+		"multiRootPathError": "Datei '{{filePath}}' kann nicht verarbeitet werden, da sie außerhalb aller Arbeitsbereichs-Roots liegt",
+		"workspaceRootDetectionError": "Arbeitsbereichs-Root für Datei '{{filePath}}' konnte nicht bestimmt werden"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Verbindung zur Qdrant-Vektordatenbank fehlgeschlagen. Stelle sicher, dass Qdrant läuft und unter {{qdrantUrl}} erreichbar ist. Fehler: {{errorMessage}}"

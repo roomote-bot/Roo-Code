@@ -15,7 +15,9 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "處理檔案 {{filePath}} 時發生未知錯誤",
 		"unknownErrorDeletingPoints": "刪除 {{filePath}} 的資料點時發生未知錯誤",
-		"failedToProcessBatchWithError": "嘗試 {{maxRetries}} 次後批次處理失敗：{{errorMessage}}"
+		"failedToProcessBatchWithError": "嘗試 {{maxRetries}} 次後批次處理失敗：{{errorMessage}}",
+		"multiRootPathError": "無法處理檔案 '{{filePath}}'，因為它在所有工作區根目錄之外",
+		"workspaceRootDetectionError": "無法確定檔案 '{{filePath}}' 的工作區根目錄"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "連接 Qdrant 向量資料庫失敗。請確保 Qdrant 正在執行並可在 {{qdrantUrl}} 存取。錯誤：{{errorMessage}}"

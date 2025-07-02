@@ -465,6 +465,14 @@ export class FileWatcher implements IFileWatcher {
 
 			// Check if file should be ignored
 			const relativeFilePath = generateRelativeFilePath(filePath)
+			if (!relativeFilePath) {
+				return {
+					path: filePath,
+					status: "skipped" as const,
+					reason: "File is outside all workspace roots",
+				}
+			}
+
 			if (
 				!this.ignoreController.validateAccess(filePath) ||
 				(this.ignoreInstance && this.ignoreInstance.ignores(relativeFilePath))
@@ -511,22 +519,33 @@ export class FileWatcher implements IFileWatcher {
 				const texts = blocks.map((block) => block.content)
 				const { embeddings } = await this.embedder.createEmbeddings(texts)
 
-				pointsToUpsert = blocks.map((block, index) => {
-					const normalizedAbsolutePath = generateNormalizedAbsolutePath(block.file_path)
-					const stableName = `${normalizedAbsolutePath}:${block.start_line}`
-					const pointId = uuidv5(stableName, QDRANT_CODE_BLOCK_NAMESPACE)
+				pointsToUpsert = blocks
+					.map((block, index) => {
+						const normalizedAbsolutePath = generateNormalizedAbsolutePath(block.file_path)
+						const relativeFilePath = generateRelativeFilePath(normalizedAbsolutePath)
 
-					return {
-						id: pointId,
-						vector: embeddings[index],
-						payload: {
-							filePath: generateRelativeFilePath(normalizedAbsolutePath),
-							codeChunk: block.content,
-							startLine: block.start_line,
-							endLine: block.end_line,
-						},
-					}
-				})
+						if (!relativeFilePath) {
+							console.error(
+								`[FileWatcher] Failed to generate relative path for ${normalizedAbsolutePath}`,
+							)
+							return null
+						}
+
+						const stableName = `${normalizedAbsolutePath}:${block.start_line}`
+						const pointId = uuidv5(stableName, QDRANT_CODE_BLOCK_NAMESPACE)
+
+						return {
+							id: pointId,
+							vector: embeddings[index],
+							payload: {
+								filePath: relativeFilePath,
+								codeChunk: block.content,
+								startLine: block.start_line,
+								endLine: block.end_line,
+							},
+						}
+					})
+					.filter((point) => point !== null) as PointStruct[]
 			}
 
 			return {

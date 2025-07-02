@@ -15,7 +15,9 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Lỗi không xác định khi xử lý tệp {{filePath}}",
 		"unknownErrorDeletingPoints": "Lỗi không xác định khi xóa điểm cho {{filePath}}",
-		"failedToProcessBatchWithError": "Không thể xử lý lô sau {{maxRetries}} lần thử: {{errorMessage}}"
+		"failedToProcessBatchWithError": "Không thể xử lý lô sau {{maxRetries}} lần thử: {{errorMessage}}",
+		"multiRootPathError": "Không thể xử lý tệp '{{filePath}}' vì nó nằm ngoài tất cả các thư mục gốc của không gian làm việc",
+		"workspaceRootDetectionError": "Không thể xác định thư mục gốc của không gian làm việc cho tệp '{{filePath}}'"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Không thể kết nối với cơ sở dữ liệu vector Qdrant. Vui lòng đảm bảo Qdrant đang chạy và có thể truy cập tại {{qdrantUrl}}. Lỗi: {{errorMessage}}"

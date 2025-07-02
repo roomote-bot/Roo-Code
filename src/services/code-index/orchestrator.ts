@@ -5,6 +5,7 @@ import { CodeIndexStateManager, IndexingState } from "./state-manager"
 import { IFileWatcher, IVectorStore, BatchProcessingSummary } from "./interfaces"
 import { DirectoryScanner } from "./processors"
 import { CacheManager } from "./cache-manager"
+import { getAllWorkspaceRoots, isMultiRootWorkspace } from "./shared/workspace-utils"
 
 /**
  * Manages the code indexing workflow, coordinating between different services and managers.
@@ -115,7 +116,18 @@ export class CodeIndexOrchestrator {
 				await this.cacheManager.clearCacheFile()
 			}
 
-			this.stateManager.setSystemState("Indexing", "Services ready. Starting workspace scan...")
+			// Determine if we're in a multi-root workspace
+			const isMultiRoot = isMultiRootWorkspace()
+			const workspaceRoots = getAllWorkspaceRoots()
+
+			if (isMultiRoot) {
+				this.stateManager.setSystemState(
+					"Indexing",
+					`Services ready. Starting scan of ${workspaceRoots.length} workspace folders...`,
+				)
+			} else {
+				this.stateManager.setSystemState("Indexing", "Services ready. Starting workspace scan...")
+			}
 
 			let cumulativeBlocksIndexed = 0
 			let cumulativeBlocksFoundSoFar = 0
@@ -131,6 +143,7 @@ export class CodeIndexOrchestrator {
 				this.stateManager.reportBlockIndexingProgress(cumulativeBlocksIndexed, cumulativeBlocksFoundSoFar)
 			}
 
+			// The scanner will handle multi-root workspaces internally
 			const result = await this.scanner.scanDirectory(
 				this.workspacePath,
 				(batchError: Error) => {
@@ -166,7 +179,14 @@ export class CodeIndexOrchestrator {
 
 			await this._startWatcher()
 
-			this.stateManager.setSystemState("Indexed", "File watcher started.")
+			if (isMultiRoot) {
+				this.stateManager.setSystemState(
+					"Indexed",
+					`File watcher started for ${workspaceRoots.length} workspace folders.`,
+				)
+			} else {
+				this.stateManager.setSystemState("Indexed", "File watcher started.")
+			}
 		} catch (error: any) {
 			console.error("[CodeIndexOrchestrator] Error during indexing:", error)
 			try {

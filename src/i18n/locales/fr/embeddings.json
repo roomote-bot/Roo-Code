@@ -15,7 +15,9 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Erreur inconnue lors du traitement du fichier {{filePath}}",
 		"unknownErrorDeletingPoints": "Erreur inconnue lors de la suppression des points pour {{filePath}}",
-		"failedToProcessBatchWithError": "Échec du traitement du lot après {{maxRetries}} tentatives : {{errorMessage}}"
+		"failedToProcessBatchWithError": "Échec du traitement du lot après {{maxRetries}} tentatives : {{errorMessage}}",
+		"multiRootPathError": "Impossible de traiter le fichier '{{filePath}}' car il se trouve en dehors de toutes les racines de l'espace de travail",
+		"workspaceRootDetectionError": "Échec de la détermination de la racine de l'espace de travail pour le fichier '{{filePath}}'"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Échec de la connexion à la base de données vectorielle Qdrant. Veuillez vous assurer que Qdrant fonctionne et est accessible à {{qdrantUrl}}. Erreur : {{errorMessage}}"

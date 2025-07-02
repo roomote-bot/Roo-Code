@@ -15,7 +15,9 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Nieznany błąd podczas przetwarzania pliku {{filePath}}",
 		"unknownErrorDeletingPoints": "Nieznany błąd podczas usuwania punktów dla {{filePath}}",
-		"failedToProcessBatchWithError": "Nie udało się przetworzyć partii po {{maxRetries}} próbach: {{errorMessage}}"
+		"failedToProcessBatchWithError": "Nie udało się przetworzyć partii po {{maxRetries}} próbach: {{errorMessage}}",
+		"multiRootPathError": "Nie można przetworzyć pliku '{{filePath}}', ponieważ znajduje się poza wszystkimi katalogami głównymi obszaru roboczego",
+		"workspaceRootDetectionError": "Nie udało się ustalić katalogu głównego obszaru roboczego dla pliku '{{filePath}}'"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Nie udało się połączyć z bazą danych wektorowych Qdrant. Upewnij się, że Qdrant jest uruchomiony i dostępny pod adresem {{qdrantUrl}}. Błąd: {{errorMessage}}"
