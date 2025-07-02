@@ -15,9 +15,7 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "ファイル{{filePath}}の処理中に不明なエラーが発生しました",
 		"unknownErrorDeletingPoints": "{{filePath}}のポイント削除中に不明なエラーが発生しました",
-		"failedToProcessBatchWithError": "{{maxRetries}}回の試行後、バッチ処理に失敗しました：{{errorMessage}}",
-		"multiRootPathError": "ファイル '{{filePath}}' はすべてのワークスペースルートの外にあるため処理できません",
-		"workspaceRootDetectionError": "ファイル '{{filePath}}' のワークスペースルートを特定できませんでした"
+		"failedToProcessBatchWithError": "{{maxRetries}}回の試行後、バッチ処理に失敗しました：{{errorMessage}}"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Qdrantベクターデータベースへの接続に失敗しました。Qdrantが実行中で{{qdrantUrl}}でアクセス可能であることを確認してください。エラー：{{errorMessage}}"

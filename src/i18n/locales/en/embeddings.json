@@ -15,9 +15,7 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Unknown error processing file {{filePath}}",
 		"unknownErrorDeletingPoints": "Unknown error deleting points for {{filePath}}",
-		"failedToProcessBatchWithError": "Failed to process batch after {{maxRetries}} attempts: {{errorMessage}}",
-		"multiRootPathError": "Cannot process file '{{filePath}}' as it's outside all workspace roots",
-		"workspaceRootDetectionError": "Failed to determine workspace root for file '{{filePath}}'"
+		"failedToProcessBatchWithError": "Failed to process batch after {{maxRetries}} attempts: {{errorMessage}}"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Failed to connect to Qdrant vector database. Please ensure Qdrant is running and accessible at {{qdrantUrl}}. Error: {{errorMessage}}"

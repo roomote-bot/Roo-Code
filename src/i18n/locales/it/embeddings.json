@@ -15,9 +15,7 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Errore sconosciuto nell'elaborazione del file {{filePath}}",
 		"unknownErrorDeletingPoints": "Errore sconosciuto nell'eliminazione dei punti per {{filePath}}",
-		"failedToProcessBatchWithError": "Elaborazione del batch fallita dopo {{maxRetries}} tentativi: {{errorMessage}}",
-		"multiRootPathError": "Impossibile elaborare il file '{{filePath}}' poiché si trova al di fuori di tutte le radici dell'area di lavoro",
-		"workspaceRootDetectionError": "Impossibile determinare la radice dell'area di lavoro per il file '{{filePath}}'"
+		"failedToProcessBatchWithError": "Elaborazione del batch fallita dopo {{maxRetries}} tentativi: {{errorMessage}}"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Impossibile connettersi al database vettoriale Qdrant. Assicurati che Qdrant sia in esecuzione e accessibile su {{qdrantUrl}}. Errore: {{errorMessage}}"

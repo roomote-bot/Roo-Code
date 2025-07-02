@@ -15,9 +15,7 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "फ़ाइल {{filePath}} प्रसंस्करण में अज्ञात त्रुटि",
 		"unknownErrorDeletingPoints": "{{filePath}} के लिए बिंदु हटाने में अज्ञात त्रुटि",
-		"failedToProcessBatchWithError": "{{maxRetries}} प्रयासों के बाद बैच प्रसंस्करण विफल: {{errorMessage}}",
-		"multiRootPathError": "फ़ाइल '{{filePath}}' को संसाधित नहीं किया जा सकता क्योंकि यह सभी कार्यक्षेत्र जड़ों के बाहर है",
-		"workspaceRootDetectionError": "फ़ाइल '{{filePath}}' के लिए कार्यक्षेत्र रूट निर्धारित करने में विफल"
+		"failedToProcessBatchWithError": "{{maxRetries}} प्रयासों के बाद बैच प्रसंस्करण विफल: {{errorMessage}}"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Qdrant वेक्टर डेटाबेस से कनेक्ट करने में विफल। कृपया सुनिश्चित करें कि Qdrant चल रहा है और {{qdrantUrl}} पर पहुंच योग्य है। त्रुटि: {{errorMessage}}"

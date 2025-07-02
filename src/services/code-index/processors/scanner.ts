@@ -56,13 +56,15 @@ export class DirectoryScanner implements IDirectoryScanner {
 
 		// Initialize ignore instances for each workspace root
 		this.workspaceIgnoreMap.clear()
+		const ignoreControllerMap = new Map<string, RooIgnoreController>()
+
 		for (const root of workspaceRoots) {
-			// Each workspace root gets its own ignore instance
+			// Each workspace root gets its own ignore controller
 			const ignoreController = new RooIgnoreController(root)
 			await ignoreController.initialize()
-			// Create a new Ignore instance for this workspace root
-			const ignore = this.ignoreInstance // For now, reuse the same ignore instance
-			this.workspaceIgnoreMap.set(root, ignore)
+			ignoreControllerMap.set(root, ignoreController)
+			// Reuse the same ignore instance for all workspace roots
+			this.workspaceIgnoreMap.set(root, this.ignoreInstance)
 		}
 
 		// Collect all files from all workspace roots
@@ -72,9 +74,8 @@ export class DirectoryScanner implements IDirectoryScanner {
 			const [paths, _] = await listFiles(workspaceRoot, true, MAX_LIST_FILES_LIMIT)
 			const filePaths = paths.filter((p) => !p.endsWith("/"))
 
-			// Initialize RooIgnoreController for this workspace root
-			const ignoreController = new RooIgnoreController(workspaceRoot)
-			await ignoreController.initialize()
+			// Use the already initialized RooIgnoreController for this workspace root
+			const ignoreController = ignoreControllerMap.get(workspaceRoot)!
 
 			// Filter paths using .rooignore
 			const allowedPaths = ignoreController.filterPaths(filePaths)

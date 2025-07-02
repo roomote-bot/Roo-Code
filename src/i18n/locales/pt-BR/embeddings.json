@@ -15,9 +15,7 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Erro desconhecido ao processar arquivo {{filePath}}",
 		"unknownErrorDeletingPoints": "Erro desconhecido ao deletar pontos para {{filePath}}",
-		"failedToProcessBatchWithError": "Falha ao processar lote após {{maxRetries}} tentativas: {{errorMessage}}",
-		"multiRootPathError": "Não é possível processar o arquivo '{{filePath}}', pois ele está fora de todas as raízes do espaço de trabalho",
-		"workspaceRootDetectionError": "Falha ao determinar a raiz do espaço de trabalho para o arquivo '{{filePath}}'"
+		"failedToProcessBatchWithError": "Falha ao processar lote após {{maxRetries}} tentativas: {{errorMessage}}"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Falha ao conectar com o banco de dados vetorial Qdrant. Certifique-se de que o Qdrant esteja rodando e acessível em {{qdrantUrl}}. Erro: {{errorMessage}}"

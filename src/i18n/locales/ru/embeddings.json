@@ -15,9 +15,7 @@
 	"scanner": {
 		"unknownErrorProcessingFile": "Неизвестная ошибка при обработке файла {{filePath}}",
 		"unknownErrorDeletingPoints": "Неизвестная ошибка при удалении точек для {{filePath}}",
-		"failedToProcessBatchWithError": "Не удалось обработать пакет после {{maxRetries}} попыток: {{errorMessage}}",
-		"multiRootPathError": "Невозможно обработать файл '{{filePath}}', так как он находится вне всех корневых каталогов рабочего пространства",
-		"workspaceRootDetectionError": "Не удалось определить корневой каталог рабочего пространства для файла '{{filePath}}'"
+		"failedToProcessBatchWithError": "Не удалось обработать пакет после {{maxRetries}} попыток: {{errorMessage}}"
 	},
 	"vectorStore": {
 		"qdrantConnectionFailed": "Не удалось подключиться к векторной базе данных Qdrant. Убедитесь, что Qdrant запущен и доступен по адресу {{qdrantUrl}}. Ошибка: {{errorMessage}}"

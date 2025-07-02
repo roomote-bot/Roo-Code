@@ -32,6 +32,5 @@
 	"settings.vsCodeLmModelSelector.family.description": "Семейство языковой модели (например, gpt-4)",
 	"settings.customStoragePath.description": "Пользовательский путь хранения. Оставьте пустым для использования пути по умолчанию. Поддерживает абсолютные пути (например, 'D:\\RooCodeStorage')",
 	"settings.enableCodeActions.description": "Включить быстрые исправления Roo Code.",
-	"settings.autoImportSettingsPath.description": "Путь к файлу конфигурации RooCode для автоматического импорта при запуске расширения. Поддерживает абсолютные пути и пути относительно домашнего каталога (например, '~/Documents/roo-code-settings.json'). Оставьте пустым, чтобы отключить автоматический импорт.",
-	"settings.codebaseIndexing.multiRootBehavior.description": "Как обрабатывать индексацию кодовой базы в многокорневых рабочих пространствах. 'separate' индексирует каждый корень рабочего пространства независимо, 'unified' рассматривает все корни как единую кодовую базу."
+	"settings.autoImportSettingsPath.description": "Путь к файлу конфигурации RooCode для автоматического импорта при запуске расширения. Поддерживает абсолютные пути и пути относительно домашнего каталога (например, '~/Documents/roo-code-settings.json'). Оставьте пустым, чтобы отключить автоматический импорт."
 }
