@@ -57,7 +57,8 @@ describe("get-relative-path", () => {
 		})
 
 		it("should use custom workspace root when provided", () => {
-			const customWorkspace = path.normalize("/custom/workspace")
+			// Use path.resolve to ensure we get a proper absolute path for the platform
+			const customWorkspace = path.resolve("/custom/workspace")
 			const result = generateNormalizedAbsolutePath("src/file.ts", customWorkspace)
 			const expected = path.join(customWorkspace, "src/file.ts")
 			expect(result).toBe(expected)
