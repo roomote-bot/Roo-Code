@@ -6,6 +6,7 @@
 		"src/extension/api.ts",
 		"src/activate/**",
 		"src/workers/countTokens.ts",
+		"src/workers/indexing-worker.ts",
 		"src/extension.ts",
 		"scripts/**"
 	],

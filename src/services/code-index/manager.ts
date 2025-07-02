@@ -36,9 +36,9 @@ export class CodeIndexManager {
 		return CodeIndexManager.instances.get(workspacePath)!
 	}
 
-	public static disposeAll(): void {
+	public static async disposeAll(): Promise<void> {
 		for (const instance of CodeIndexManager.instances.values()) {
-			instance.dispose()
+			await instance.dispose()
 		}
 		CodeIndexManager.instances.clear()
 	}
