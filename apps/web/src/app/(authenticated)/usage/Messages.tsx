@@ -304,7 +304,7 @@ export const Messages = ({
                           {questionData.suggestions.map((suggestion, index) => (
                             <div
                               key={index}
-                              className="px-4 py-3 bg-background border border-border rounded-md text-sm hover:bg-muted/50 cursor-pointer transition-colors"
+                              className="px-4 py-3 bg-background border border-border rounded-md text-sm"
                             >
                               {typeof suggestion === 'string'
                                 ? suggestion
