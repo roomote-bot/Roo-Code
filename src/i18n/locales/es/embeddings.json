@@ -5,7 +5,22 @@
 	"failedWithError": "No se pudieron crear las incrustaciones después de {{attempts}} intentos: {{errorMessage}}",
 	"failedMaxAttempts": "No se pudieron crear las incrustaciones después de {{attempts}} intentos",
 	"textExceedsTokenLimit": "El texto en el índice {{index}} supera el límite máximo de tokens ({{itemTokens}} > {{maxTokens}}). Omitiendo.",
+	"textWithPrefixExceedsTokenLimit": "El texto en el índice {{index}} con prefijo supera el límite máximo de tokens ({{estimatedTokens}} > {{maxTokens}}). Usando texto original sin prefijo.",
 	"rateLimitRetry": "Límite de velocidad alcanzado, reintentando en {{delayMs}}ms (intento {{attempt}}/{{maxRetries}})",
+	"genericError": "Error de {{provider}}: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Modelo '{{modelId}}' no encontrado. Modelos disponibles: {{availableModels}}",
+		"invalidApiKey": "Clave API inválida. Verifica tu clave API de {{provider}}.",
+		"rateLimitExceeded": "Límite de velocidad excedido. Intenta de nuevo más tarde.",
+		"networkError": "Error de red. Verifica tu conexión a Internet.",
+		"configurationFailed": "Falló la validación de configuración de {{provider}}",
+		"baseUrlRequired": "Se requiere URL base para el embedder {{provider}}",
+		"apiKeyRequired": "Se requiere clave API para el embedder {{provider}}",
+		"endpointNotFound": "Punto final no encontrado: {{baseUrl}}",
+		"cannotConnect": "No se puede conectar a {{provider}} en {{baseUrl}}. Asegúrate de que {{provider}} esté ejecutándose.",
+		"apiNotFound": "API de {{provider}} no encontrada en {{baseUrl}}. ¿Está ejecutándose {{provider}}?",
+		"connectionFailed": "Falló la conexión a {{provider}}: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "No se pudo leer el cuerpo del error",
 		"requestFailed": "La solicitud de la API de Ollama falló con estado {{status}} {{statusText}}: {{errorBody}}",

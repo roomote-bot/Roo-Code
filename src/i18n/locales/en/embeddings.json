@@ -5,7 +5,22 @@
 	"failedWithError": "Failed to create embeddings after {{attempts}} attempts: {{errorMessage}}",
 	"failedMaxAttempts": "Failed to create embeddings after {{attempts}} attempts",
 	"textExceedsTokenLimit": "Text at index {{index}} exceeds maximum token limit ({{itemTokens}} > {{maxTokens}}). Skipping.",
+	"textWithPrefixExceedsTokenLimit": "Text at index {{index}} with prefix exceeds maximum token limit ({{estimatedTokens}} > {{maxTokens}}). Using original text without prefix.",
 	"rateLimitRetry": "Rate limit hit, retrying in {{delayMs}}ms (attempt {{attempt}}/{{maxRetries}})",
+	"genericError": "{{provider}} error: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Model '{{modelId}}' not found. Available models: {{availableModels}}",
+		"invalidApiKey": "Invalid API key. Please check your {{provider}} API key.",
+		"rateLimitExceeded": "Rate limit exceeded. Please try again later.",
+		"networkError": "Network error. Please check your internet connection.",
+		"configurationFailed": "Failed to validate {{provider}} configuration",
+		"baseUrlRequired": "Base URL is required for {{provider}} embedder",
+		"apiKeyRequired": "API key is required for {{provider}} embedder",
+		"endpointNotFound": "Endpoint not found: {{baseUrl}}",
+		"cannotConnect": "Cannot connect to {{provider}} at {{baseUrl}}. Please ensure {{provider}} is running.",
+		"apiNotFound": "{{provider}} API not found at {{baseUrl}}. Is {{provider}} running?",
+		"connectionFailed": "Failed to connect to {{provider}}: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Could not read error body",
 		"requestFailed": "Ollama API request failed with status {{status}} {{statusText}}: {{errorBody}}",

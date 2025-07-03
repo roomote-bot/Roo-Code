@@ -12,6 +12,7 @@ import { CacheManager } from "./cache-manager"
 import fs from "fs/promises"
 import ignore from "ignore"
 import path from "path"
+import { serializeError } from "serialize-error"
 
 export class CodeIndexManager {
 	// --- Singleton Implementation ---
@@ -259,36 +260,12 @@ export class CodeIndexManager {
 			// Handle service creation errors
 			console.error("Failed to create code index services:", error)
 
-			// Determine error type and create appropriate error details
-			let errorType: "configuration" | "authentication" | "network" | "validation" | "unknown" = "unknown"
-			let errorMessage = error instanceof Error ? error.message : String(error)
-			let suggestion: string | undefined
+			// Serialize the error for consistent handling
+			const serializedError = serializeError(error)
+			const errorMessage = serializedError.message || "Unknown error"
 
-			if (
-				errorMessage.includes("configuration missing") ||
-				errorMessage.includes("missing for") ||
-				errorMessage.includes("required")
-			) {
-				errorType = "configuration"
-				suggestion = "Please check your embedder configuration in the settings."
-			} else if (errorMessage.includes("authentication") || errorMessage.includes("API key")) {
-				errorType = "authentication"
-				suggestion = "Please verify your API key is correct and has the necessary permissions."
-			} else if (errorMessage.includes("network") || errorMessage.includes("connect")) {
-				errorType = "network"
-				suggestion = "Please check your network connection and ensure the service endpoints are accessible."
-			} else if (errorMessage.includes("dimension") || errorMessage.includes("model")) {
-				errorType = "validation"
-				suggestion = "Please ensure your model configuration is compatible with the selected provider."
-			}
-
-			// Set error state with details
-			this._stateManager.setSystemState("Error", errorMessage, {
-				type: errorType,
-				message: errorMessage,
-				suggestion,
-				timestamp: Date.now(),
-			})
+			// Set error state with serialized error details
+			this._stateManager.setSystemState("Error", errorMessage, serializedError)
 
 			// Re-throw to be handled by caller
 			throw error

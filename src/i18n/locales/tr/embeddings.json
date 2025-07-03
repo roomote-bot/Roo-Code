@@ -5,7 +5,22 @@
 	"failedWithError": "{{attempts}} denemeden sonra gömülmeler oluşturulamadı: {{errorMessage}}",
 	"failedMaxAttempts": "{{attempts}} denemeden sonra gömülmeler oluşturulamadı",
 	"textExceedsTokenLimit": "{{index}} dizinindeki metin maksimum jeton sınırını aşıyor ({{itemTokens}} > {{maxTokens}}). Atlanıyor.",
+	"textWithPrefixExceedsTokenLimit": "Ön ekli {{index}} dizinindeki metin maksimum jeton sınırını aşıyor ({{estimatedTokens}} > {{maxTokens}}). Ön eksiz orijinal metin kullanılıyor.",
 	"rateLimitRetry": "Hız sınırına ulaşıldı, {{delayMs}}ms içinde yeniden deneniyor (deneme {{attempt}}/{{maxRetries}})",
+	"genericError": "{{provider}} hatası: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "'{{modelId}}' modeli bulunamadı. Mevcut modeller: {{availableModels}}",
+		"invalidApiKey": "Geçersiz API anahtarı. {{provider}} API anahtarını kontrol et.",
+		"rateLimitExceeded": "Hız sınırı aşıldı. Daha sonra tekrar dene.",
+		"networkError": "Ağ hatası. İnternet bağlantını kontrol et.",
+		"configurationFailed": "{{provider}} yapılandırma doğrulaması başarısız",
+		"baseUrlRequired": "{{provider}} gömücü için temel URL gerekli",
+		"apiKeyRequired": "{{provider}} gömücü için API anahtarı gerekli",
+		"endpointNotFound": "Uç nokta bulunamadı: {{baseUrl}}",
+		"cannotConnect": "{{baseUrl}} adresindeki {{provider}}'a bağlanılamıyor. {{provider}}'ın çalıştığından emin ol.",
+		"apiNotFound": "{{baseUrl}} adresinde {{provider}} API'si bulunamadı. {{provider}} çalışıyor mu?",
+		"connectionFailed": "{{provider}} bağlantısı başarısız: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Hata gövdesi okunamadı",
 		"requestFailed": "Ollama API isteği {{status}} {{statusText}} durumuyla başarısız oldu: {{errorBody}}",

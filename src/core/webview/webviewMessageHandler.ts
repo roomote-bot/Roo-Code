@@ -5,6 +5,7 @@ import * as fs from "fs/promises"
 import pWaitFor from "p-wait-for"
 import * as vscode from "vscode"
 import * as yaml from "yaml"
+import { serializeError } from "serialize-error"
 
 import { type Language, type ProviderSettings, type GlobalState, TelemetryEventName } from "@roo-code/types"
 import { CloudService } from "@roo-code/cloud"
@@ -1820,8 +1821,8 @@ export const webviewMessageHandler = async (
 						throw new Error("Service factory not available")
 					}
 
-					// Test the configuration
-					const isValid = await serviceFactory.validateEmbedderConfig()
+					// Test the configuration with the UI values
+					const isValid = await serviceFactory.validateEmbedderConfig(message.values)
 
 					// Send test result back to webview
 					provider.postMessageToWebview({
@@ -1830,14 +1831,14 @@ export const webviewMessageHandler = async (
 						message: isValid ? "Configuration is valid" : "Configuration test failed",
 					})
 				} catch (error) {
-					const errorMessage = error instanceof Error ? error.message : String(error)
-					provider.log(`[CodeIndexManager] Configuration test error: ${errorMessage}`)
+					const serializedError = serializeError(error)
+					provider.log(`[CodeIndexManager] Configuration test error: ${serializedError.message}`)
 
-					// Send error result back to webview
+					// Send error result back to webview with serialized error
 					provider.postMessageToWebview({
 						type: "codebaseIndexTestResult",
 						success: false,
-						message: errorMessage,
+						message: serializedError.message || "Configuration test failed",
 					})
 				}
 				break
@@ -1864,14 +1865,17 @@ export const webviewMessageHandler = async (
 								await provider.codeIndexManager.initialize(provider.contextProxy)
 							} catch (initError) {
 								// Initialization failed - send error status to webview
-								const errorMessage = initError instanceof Error ? initError.message : String(initError)
-								provider.log(`[CodeIndexManager] Initialization error: ${errorMessage}`)
+								const serializedError = serializeError(initError)
+								provider.log(`[CodeIndexManager] Initialization error: ${serializedError.message}`)
 
-								// Send error status update to webview
+								// Send error status update to webview with serialized error details
 								const status = provider.codeIndexManager.getCurrentStatus()
 								provider.postMessageToWebview({
 									type: "indexingStatusUpdate",
-									values: status,
+									values: {
+										...status,
+										errorDetails: serializedError,
+									},
 								})
 
 								// Re-throw to prevent indexing attempt

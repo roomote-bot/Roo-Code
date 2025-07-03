@@ -5,7 +5,22 @@
 	"failedWithError": "Gagal membuat embeddings setelah {{attempts}} percobaan: {{errorMessage}}",
 	"failedMaxAttempts": "Gagal membuat embeddings setelah {{attempts}} percobaan",
 	"textExceedsTokenLimit": "Teks pada indeks {{index}} melebihi batas maksimum token ({{itemTokens}} > {{maxTokens}}). Dilewati.",
+	"textWithPrefixExceedsTokenLimit": "Teks pada indeks {{index}} dengan prefix melebihi batas maksimum token ({{estimatedTokens}} > {{maxTokens}}). Menggunakan teks asli tanpa prefix.",
 	"rateLimitRetry": "Batas rate tercapai, mencoba lagi dalam {{delayMs}}ms (percobaan {{attempt}}/{{maxRetries}})",
+	"genericError": "Error {{provider}}: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Model '{{modelId}}' tidak ditemukan. Model yang tersedia: {{availableModels}}",
+		"invalidApiKey": "Kunci API tidak valid. Periksa kunci API {{provider}} kamu.",
+		"rateLimitExceeded": "Batas rate terlampaui. Coba lagi nanti.",
+		"networkError": "Error jaringan. Periksa koneksi internet kamu.",
+		"configurationFailed": "Validasi konfigurasi {{provider}} gagal",
+		"baseUrlRequired": "URL dasar diperlukan untuk embedder {{provider}}",
+		"apiKeyRequired": "Kunci API diperlukan untuk embedder {{provider}}",
+		"endpointNotFound": "Endpoint tidak ditemukan: {{baseUrl}}",
+		"cannotConnect": "Tidak dapat terhubung ke {{provider}} di {{baseUrl}}. Pastikan {{provider}} sedang berjalan.",
+		"apiNotFound": "API {{provider}} tidak ditemukan di {{baseUrl}}. Apakah {{provider}} sedang berjalan?",
+		"connectionFailed": "Koneksi ke {{provider}} gagal: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Tidak dapat membaca body error",
 		"requestFailed": "Permintaan API Ollama gagal dengan status {{status}} {{statusText}}: {{errorBody}}",

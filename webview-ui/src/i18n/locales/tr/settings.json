@@ -78,7 +78,20 @@
 		"authenticationError": "Kimlik Doğrulama Hatası",
 		"networkError": "Ağ Hatası",
 		"validationError": "Doğrulama Hatası",
-		"unknownError": "Bilinmeyen Hata"
+		"unknownError": "Bilinmeyen Hata",
+		"embedderValidationFailed": "Embedder doğrulaması başarısız: {{error}}",
+		"openAiApiKeyRequired": "OpenAI API anahtarı gerekli. Lütfen ayarlarda yapılandırın.",
+		"ollamaBaseUrlRequired": "Ollama temel URL'si gerekli. Lütfen ayarlarda yapılandırın.",
+		"openAiCompatibleConfigRequired": "OpenAI uyumlu {{missing}} gerekli. Lütfen ayarlarda yapılandırın.",
+		"invalidEmbedderType": "Geçersiz embedder türü yapılandırıldı: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI API anahtarı gerekli",
+		"ollamaBaseUrlRequiredValidation": "Ollama temel URL'si gerekli",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI uyumlu temel URL ve API anahtarı gerekli",
+		"invalidEmbedderTypeValidation": "Geçersiz embedder türü: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "'{{provider}}' sağlayıcısı ile '{{modelId}}' modeli için vektör boyutu belirlenemedi. OpenAI uyumlu sağlayıcı ayarlarında 'Embedding Boyutu'nun doğru şekilde ayarlandığından emin olun.",
+		"vectorDimensionErrorGeneral": "'{{provider}}' sağlayıcısı ile '{{modelId}}' modeli için vektör boyutu belirlenemedi. Model profillerini veya yapılandırmayı kontrol edin.",
+		"qdrantUrlMissing": "Vektör deposu oluşturma için Qdrant URL'si eksik",
+		"servicesNotConfigured": "Hizmetler oluşturulamıyor: Kod indeksleme düzgün şekilde yapılandırılmamış"
 	},
 	"autoApprove": {
 		"description": "Roo'nun onay gerektirmeden otomatik olarak işlemler gerçekleştirmesine izin verin. Bu ayarları yalnızca yapay zekaya tamamen güveniyorsanız ve ilgili güvenlik risklerini anlıyorsanız etkinleştirin.",

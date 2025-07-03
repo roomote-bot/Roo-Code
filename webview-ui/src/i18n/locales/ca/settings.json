@@ -78,7 +78,20 @@
 		"authenticationError": "Error d'autenticació",
 		"networkError": "Error de xarxa",
 		"validationError": "Error de validació",
-		"unknownError": "Error desconegut"
+		"unknownError": "Error desconegut",
+		"embedderValidationFailed": "Ha fallat la validació de l'embedder: {{error}}",
+		"openAiApiKeyRequired": "Es requereix la clau API d'OpenAI. Si us plau, configura-la a la configuració.",
+		"ollamaBaseUrlRequired": "Es requereix l'URL base d'Ollama. Si us plau, configura-la a la configuració.",
+		"openAiCompatibleConfigRequired": "Es requereix {{missing}} compatible amb OpenAI. Si us plau, configura-ho a la configuració.",
+		"invalidEmbedderType": "Tipus d'embedder configurat no vàlid: {{provider}}",
+		"openAiApiKeyRequiredValidation": "Es requereix la clau API d'OpenAI",
+		"ollamaBaseUrlRequiredValidation": "Es requereix l'URL base d'Ollama",
+		"openAiCompatibleConfigRequiredValidation": "Es requereixen l'URL base i la clau API compatibles amb OpenAI",
+		"invalidEmbedderTypeValidation": "Tipus d'embedder no vàlid: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "No s'ha pogut determinar la dimensió del vector per al model '{{modelId}}' amb el proveïdor '{{provider}}'. Si us plau, assegura't que la 'Dimensió d'Embedding' estigui configurada correctament a la configuració del proveïdor compatible amb OpenAI.",
+		"vectorDimensionErrorGeneral": "No s'ha pogut determinar la dimensió del vector per al model '{{modelId}}' amb el proveïdor '{{provider}}'. Comprova els perfils del model o la configuració.",
+		"qdrantUrlMissing": "Falta l'URL de Qdrant per a la creació del magatzem de vectors",
+		"servicesNotConfigured": "No es poden crear els serveis: La indexació de codi no està configurada correctament"
 	},
 	"autoApprove": {
 		"description": "Permet que Roo realitzi operacions automàticament sense requerir aprovació. Activeu aquesta configuració només si confieu plenament en la IA i enteneu els riscos de seguretat associats.",

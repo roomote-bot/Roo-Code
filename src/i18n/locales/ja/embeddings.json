@@ -5,7 +5,22 @@
 	"failedWithError": "{{attempts}}回試行しましたが、埋め込みの作成に失敗しました：{{errorMessage}}",
 	"failedMaxAttempts": "{{attempts}}回試行しましたが、埋め込みの作成に失敗しました",
 	"textExceedsTokenLimit": "インデックス{{index}}のテキストが最大トークン制限を超えています（{{itemTokens}}> {{maxTokens}}）。スキップします。",
+	"textWithPrefixExceedsTokenLimit": "プレフィックス付きのインデックス{{index}}のテキストが最大トークン制限を超えています（{{estimatedTokens}} > {{maxTokens}}）。プレフィックスなしの元のテキストを使用します。",
 	"rateLimitRetry": "レート制限に達しました。{{delayMs}}ミリ秒後に再試行します（試行{{attempt}}/{{maxRetries}}）",
+	"genericError": "{{provider}}エラー: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "モデル '{{modelId}}' が見つかりません。利用可能なモデル: {{availableModels}}",
+		"invalidApiKey": "無効なAPIキー。{{provider}}のAPIキーを確認してください。",
+		"rateLimitExceeded": "レート制限を超えました。後でもう一度お試しください。",
+		"networkError": "ネットワークエラー。インターネット接続を確認してください。",
+		"configurationFailed": "{{provider}}の設定検証に失敗しました",
+		"baseUrlRequired": "{{provider}}エンベッダーにはベースURLが必要です",
+		"apiKeyRequired": "{{provider}}エンベッダーにはAPIキーが必要です",
+		"endpointNotFound": "エンドポイントが見つかりません: {{baseUrl}}",
+		"cannotConnect": "{{baseUrl}}の{{provider}}に接続できません。{{provider}}が実行されていることを確認してください。",
+		"apiNotFound": "{{baseUrl}}で{{provider}} APIが見つかりません。{{provider}}は実行されていますか？",
+		"connectionFailed": "{{provider}}への接続に失敗しました: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "エラー本文を読み取れませんでした",
 		"requestFailed": "Ollama APIリクエストが失敗しました。ステータス {{status}} {{statusText}}: {{errorBody}}",

@@ -5,7 +5,22 @@
 	"failedWithError": "Не удалось создать вложения после {{attempts}} попыток: {{errorMessage}}",
 	"failedMaxAttempts": "Не удалось создать вложения после {{attempts}} попыток",
 	"textExceedsTokenLimit": "Текст в индексе {{index}} превышает максимальный лимит токенов ({{itemTokens}} > {{maxTokens}}). Пропускается.",
+	"textWithPrefixExceedsTokenLimit": "Текст в индексе {{index}} с префиксом превышает максимальный лимит токенов ({{estimatedTokens}} > {{maxTokens}}). Используется оригинальный текст без префикса.",
 	"rateLimitRetry": "Достигнут лимит скорости, повторная попытка через {{delayMs}} мс (попытка {{attempt}}/{{maxRetries}})",
+	"genericError": "Ошибка {{provider}}: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Модель '{{modelId}}' не найдена. Доступные модели: {{availableModels}}",
+		"invalidApiKey": "Недействительный API-ключ. Проверь свой API-ключ {{provider}}.",
+		"rateLimitExceeded": "Превышен лимит скорости. Попробуй позже.",
+		"networkError": "Ошибка сети. Проверь подключение к интернету.",
+		"configurationFailed": "Ошибка проверки конфигурации {{provider}}",
+		"baseUrlRequired": "Требуется базовый URL для эмбеддера {{provider}}",
+		"apiKeyRequired": "Требуется API-ключ для эмбеддера {{provider}}",
+		"endpointNotFound": "Конечная точка не найдена: {{baseUrl}}",
+		"cannotConnect": "Не удается подключиться к {{provider}} по адресу {{baseUrl}}. Убедись, что {{provider}} запущен.",
+		"apiNotFound": "API {{provider}} не найден по адресу {{baseUrl}}. {{provider}} запущен?",
+		"connectionFailed": "Не удалось подключиться к {{provider}}: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Не удалось прочитать тело ошибки",
 		"requestFailed": "Запрос к API Ollama не удался со статусом {{status}} {{statusText}}: {{errorBody}}",

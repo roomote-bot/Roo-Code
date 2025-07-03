@@ -78,7 +78,20 @@
 		"authenticationError": "Erreur d'authentification",
 		"networkError": "Erreur réseau",
 		"validationError": "Erreur de validation",
-		"unknownError": "Erreur inconnue"
+		"unknownError": "Erreur inconnue",
+		"embedderValidationFailed": "Échec de la validation de l'embedder : {{error}}",
+		"openAiApiKeyRequired": "La clé API OpenAI est requise. Veuillez la configurer dans les paramètres.",
+		"ollamaBaseUrlRequired": "L'URL de base Ollama est requise. Veuillez la configurer dans les paramètres.",
+		"openAiCompatibleConfigRequired": "{{missing}} compatible OpenAI requis. Veuillez le configurer dans les paramètres.",
+		"invalidEmbedderType": "Type d'embedder configuré non valide : {{provider}}",
+		"openAiApiKeyRequiredValidation": "La clé API OpenAI est requise",
+		"ollamaBaseUrlRequiredValidation": "L'URL de base Ollama est requise",
+		"openAiCompatibleConfigRequiredValidation": "L'URL de base et la clé API compatibles OpenAI sont requises",
+		"invalidEmbedderTypeValidation": "Type d'embedder non valide : {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Impossible de déterminer la dimension du vecteur pour le modèle '{{modelId}}' avec le fournisseur '{{provider}}'. Veuillez vous assurer que la 'Dimension d'Embedding' est correctement définie dans les paramètres du fournisseur compatible OpenAI.",
+		"vectorDimensionErrorGeneral": "Impossible de déterminer la dimension du vecteur pour le modèle '{{modelId}}' avec le fournisseur '{{provider}}'. Vérifiez les profils de modèle ou la configuration.",
+		"qdrantUrlMissing": "URL Qdrant manquante pour la création du magasin de vecteurs",
+		"servicesNotConfigured": "Impossible de créer les services : L'indexation de code n'est pas correctement configurée"
 	},
 	"autoApprove": {
 		"description": "Permettre à Roo d'effectuer automatiquement des opérations sans requérir d'approbation. Activez ces paramètres uniquement si vous faites entièrement confiance à l'IA et que vous comprenez les risques de sécurité associés.",

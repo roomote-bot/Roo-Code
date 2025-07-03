@@ -78,7 +78,20 @@
 		"authenticationError": "Authentication Error",
 		"networkError": "Network Error",
 		"validationError": "Validation Error",
-		"unknownError": "Unknown Error"
+		"unknownError": "Unknown Error",
+		"embedderValidationFailed": "Embedder validation failed: {{error}}",
+		"openAiApiKeyRequired": "OpenAI API key is required. Please configure it in the settings.",
+		"ollamaBaseUrlRequired": "Ollama base URL is required. Please configure it in the settings.",
+		"openAiCompatibleConfigRequired": "OpenAI-compatible {{missing}} required. Please configure in the settings.",
+		"invalidEmbedderType": "Invalid embedder type configured: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI API key is required",
+		"ollamaBaseUrlRequiredValidation": "Ollama base URL is required",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI-compatible base URL and API key are required",
+		"invalidEmbedderTypeValidation": "Invalid embedder type: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Could not determine vector dimension for model '{{modelId}}' with provider '{{provider}}'. Please ensure the 'Embedding Dimension' is correctly set in the OpenAI-Compatible provider settings.",
+		"vectorDimensionErrorGeneral": "Could not determine vector dimension for model '{{modelId}}' with provider '{{provider}}'. Check model profiles or configuration.",
+		"qdrantUrlMissing": "Qdrant URL missing for vector store creation",
+		"servicesNotConfigured": "Cannot create services: Code indexing is not properly configured"
 	},
 	"autoApprove": {
 		"description": "Allow Roo to automatically perform operations without requiring approval. Enable these settings only if you fully trust the AI and understand the associated security risks.",

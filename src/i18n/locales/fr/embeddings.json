@@ -5,7 +5,22 @@
 	"failedWithError": "Échec de la création des embeddings après {{attempts}} tentatives : {{errorMessage}}",
 	"failedMaxAttempts": "Échec de la création des embeddings après {{attempts}} tentatives",
 	"textExceedsTokenLimit": "Le texte à l'index {{index}} dépasse la limite maximale de tokens ({{itemTokens}} > {{maxTokens}}). Ignoré.",
+	"textWithPrefixExceedsTokenLimit": "Le texte à l'index {{index}} avec préfixe dépasse la limite maximale de tokens ({{estimatedTokens}} > {{maxTokens}}). Utilisation du texte original sans préfixe.",
 	"rateLimitRetry": "Limite de débit atteinte, nouvelle tentative dans {{delayMs}}ms (tentative {{attempt}}/{{maxRetries}})",
+	"genericError": "Erreur {{provider}} : {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Modèle '{{modelId}}' introuvable. Modèles disponibles : {{availableModels}}",
+		"invalidApiKey": "Clé API invalide. Vérifie ta clé API {{provider}}.",
+		"rateLimitExceeded": "Limite de débit dépassée. Réessaye plus tard.",
+		"networkError": "Erreur réseau. Vérifie ta connexion Internet.",
+		"configurationFailed": "Échec de la validation de la configuration {{provider}}",
+		"baseUrlRequired": "URL de base requise pour l'embedder {{provider}}",
+		"apiKeyRequired": "Clé API requise pour l'embedder {{provider}}",
+		"endpointNotFound": "Point de terminaison introuvable : {{baseUrl}}",
+		"cannotConnect": "Impossible de se connecter à {{provider}} à {{baseUrl}}. Assure-toi que {{provider}} est en cours d'exécution.",
+		"apiNotFound": "API {{provider}} introuvable à {{baseUrl}}. {{provider}} est-il en cours d'exécution ?",
+		"connectionFailed": "Échec de la connexion à {{provider}} : {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Impossible de lire le corps de l'erreur",
 		"requestFailed": "Échec de la requête API Ollama avec le statut {{status}} {{statusText}} : {{errorBody}}",

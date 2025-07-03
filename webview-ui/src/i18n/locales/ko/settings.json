@@ -78,7 +78,20 @@
 		"authenticationError": "인증 오류",
 		"networkError": "네트워크 오류",
 		"validationError": "유효성 검사 오류",
-		"unknownError": "알 수 없는 오류"
+		"unknownError": "알 수 없는 오류",
+		"embedderValidationFailed": "임베더 검증 실패: {{error}}",
+		"openAiApiKeyRequired": "OpenAI API 키가 필요합니다. 설정에서 구성해 주세요.",
+		"ollamaBaseUrlRequired": "Ollama 기본 URL이 필요합니다. 설정에서 구성해 주세요.",
+		"openAiCompatibleConfigRequired": "OpenAI 호환 {{missing}}이 필요합니다. 설정에서 구성해 주세요.",
+		"invalidEmbedderType": "잘못된 임베더 유형이 구성됨: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI API 키가 필요합니다",
+		"ollamaBaseUrlRequiredValidation": "Ollama 기본 URL이 필요합니다",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI 호환 기본 URL과 API 키가 필요합니다",
+		"invalidEmbedderTypeValidation": "잘못된 임베더 유형: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "제공자 '{{provider}}'로 모델 '{{modelId}}'의 벡터 차원을 결정할 수 없습니다. OpenAI 호환 제공자 설정에서 '임베딩 차원'이 올바르게 설정되어 있는지 확인해 주세요.",
+		"vectorDimensionErrorGeneral": "제공자 '{{provider}}'로 모델 '{{modelId}}'의 벡터 차원을 결정할 수 없습니다. 모델 프로필이나 구성을 확인해 주세요.",
+		"qdrantUrlMissing": "벡터 저장소 생성을 위한 Qdrant URL이 누락됨",
+		"servicesNotConfigured": "서비스를 생성할 수 없음: 코드 인덱싱이 올바르게 구성되지 않았습니다"
 	},
 	"autoApprove": {
 		"description": "Roo가 승인 없이 자동으로 작업을 수행할 수 있도록 허용합니다. AI를 완전히 신뢰하고 관련 보안 위험을 이해하는 경우에만 이러한 설정을 활성화하세요.",

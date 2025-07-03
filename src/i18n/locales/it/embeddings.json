@@ -5,7 +5,22 @@
 	"failedWithError": "Creazione degli embedding non riuscita dopo {{attempts}} tentativi: {{errorMessage}}",
 	"failedMaxAttempts": "Creazione degli embedding non riuscita dopo {{attempts}} tentativi",
 	"textExceedsTokenLimit": "Il testo all'indice {{index}} supera il limite massimo di token ({{itemTokens}} > {{maxTokens}}). Saltato.",
+	"textWithPrefixExceedsTokenLimit": "Il testo all'indice {{index}} con prefisso supera il limite massimo di token ({{estimatedTokens}} > {{maxTokens}}). Utilizzo del testo originale senza prefisso.",
 	"rateLimitRetry": "Limite di velocità raggiunto, nuovo tentativo tra {{delayMs}}ms (tentativo {{attempt}}/{{maxRetries}})",
+	"genericError": "Errore {{provider}}: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Modello '{{modelId}}' non trovato. Modelli disponibili: {{availableModels}}",
+		"invalidApiKey": "Chiave API non valida. Controlla la tua chiave API {{provider}}.",
+		"rateLimitExceeded": "Limite di velocità superato. Riprova più tardi.",
+		"networkError": "Errore di rete. Controlla la tua connessione Internet.",
+		"configurationFailed": "Validazione della configurazione {{provider}} fallita",
+		"baseUrlRequired": "URL di base richiesto per l'embedder {{provider}}",
+		"apiKeyRequired": "Chiave API richiesta per l'embedder {{provider}}",
+		"endpointNotFound": "Endpoint non trovato: {{baseUrl}}",
+		"cannotConnect": "Impossibile connettersi a {{provider}} su {{baseUrl}}. Assicurati che {{provider}} sia in esecuzione.",
+		"apiNotFound": "API {{provider}} non trovata su {{baseUrl}}. {{provider}} è in esecuzione?",
+		"connectionFailed": "Connessione a {{provider}} fallita: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Impossibile leggere il corpo dell'errore",
 		"requestFailed": "Richiesta API Ollama fallita con stato {{status}} {{statusText}}: {{errorBody}}",

@@ -78,7 +78,20 @@
 		"authenticationError": "Ошибка аутентификации",
 		"networkError": "Сетевая ошибка",
 		"validationError": "Ошибка валидации",
-		"unknownError": "Неизвестная ошибка"
+		"unknownError": "Неизвестная ошибка",
+		"embedderValidationFailed": "Ошибка валидации эмбеддера: {{error}}",
+		"openAiApiKeyRequired": "Требуется API-ключ OpenAI. Настройте его в настройках.",
+		"ollamaBaseUrlRequired": "Требуется базовый URL Ollama. Настройте его в настройках.",
+		"openAiCompatibleConfigRequired": "Требуется совместимый с OpenAI {{missing}}. Настройте его в настройках.",
+		"invalidEmbedderType": "Настроен недопустимый тип эмбеддера: {{provider}}",
+		"openAiApiKeyRequiredValidation": "Требуется API-ключ OpenAI",
+		"ollamaBaseUrlRequiredValidation": "Требуется базовый URL Ollama",
+		"openAiCompatibleConfigRequiredValidation": "Требуются совместимые с OpenAI базовый URL и API-ключ",
+		"invalidEmbedderTypeValidation": "Недопустимый тип эмбеддера: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Не удалось определить размерность вектора для модели '{{modelId}}' с провайдером '{{provider}}'. Убедитесь, что 'Размерность эмбеддинга' правильно настроена в настройках провайдера, совместимого с OpenAI.",
+		"vectorDimensionErrorGeneral": "Не удалось определить размерность вектора для модели '{{modelId}}' с провайдером '{{provider}}'. Проверьте профили модели или конфигурацию.",
+		"qdrantUrlMissing": "Отсутствует URL Qdrant для создания векторного хранилища",
+		"servicesNotConfigured": "Невозможно создать сервисы: Индексирование кода не настроено должным образом"
 	},
 	"autoApprove": {
 		"description": "Разрешить Roo автоматически выполнять операции без необходимости одобрения. Включайте эти параметры только если полностью доверяете ИИ и понимаете связанные с этим риски безопасности.",

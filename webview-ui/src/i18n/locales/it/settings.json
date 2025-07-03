@@ -78,7 +78,20 @@
 		"authenticationError": "Errore di autenticazione",
 		"networkError": "Errore di rete",
 		"validationError": "Errore di validazione",
-		"unknownError": "Errore sconosciuto"
+		"unknownError": "Errore sconosciuto",
+		"embedderValidationFailed": "Validazione embedder fallita: {{error}}",
+		"openAiApiKeyRequired": "È richiesta la chiave API OpenAI. Configurala nelle impostazioni.",
+		"ollamaBaseUrlRequired": "È richiesto l'URL base di Ollama. Configuralo nelle impostazioni.",
+		"openAiCompatibleConfigRequired": "È richiesto {{missing}} compatibile con OpenAI. Configuralo nelle impostazioni.",
+		"invalidEmbedderType": "Tipo di embedder configurato non valido: {{provider}}",
+		"openAiApiKeyRequiredValidation": "È richiesta la chiave API OpenAI",
+		"ollamaBaseUrlRequiredValidation": "È richiesto l'URL base di Ollama",
+		"openAiCompatibleConfigRequiredValidation": "Sono richiesti l'URL base e la chiave API compatibili con OpenAI",
+		"invalidEmbedderTypeValidation": "Tipo di embedder non valido: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Impossibile determinare la dimensione del vettore per il modello '{{modelId}}' con il provider '{{provider}}'. Assicurati che la 'Dimensione Embedding' sia impostata correttamente nelle impostazioni del provider compatibile con OpenAI.",
+		"vectorDimensionErrorGeneral": "Impossibile determinare la dimensione del vettore per il modello '{{modelId}}' con il provider '{{provider}}'. Controlla i profili del modello o la configurazione.",
+		"qdrantUrlMissing": "URL Qdrant mancante per la creazione del vector store",
+		"servicesNotConfigured": "Impossibile creare i servizi: L'indicizzazione del codice non è configurata correttamente"
 	},
 	"autoApprove": {
 		"description": "Permetti a Roo di eseguire automaticamente operazioni senza richiedere approvazione. Abilita queste impostazioni solo se ti fidi completamente dell'IA e comprendi i rischi di sicurezza associati.",

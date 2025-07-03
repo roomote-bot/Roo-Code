@@ -5,7 +5,22 @@
 	"failedWithError": "Nie udało się utworzyć osadzeń po {{attempts}} próbach: {{errorMessage}}",
 	"failedMaxAttempts": "Nie udało się utworzyć osadzeń po {{attempts}} próbach",
 	"textExceedsTokenLimit": "Tekst w indeksie {{index}} przekracza maksymalny limit tokenów ({{itemTokens}} > {{maxTokens}}). Pomijanie.",
+	"textWithPrefixExceedsTokenLimit": "Tekst w indeksie {{index}} z prefiksem przekracza maksymalny limit tokenów ({{estimatedTokens}} > {{maxTokens}}). Używanie oryginalnego tekstu bez prefiksu.",
 	"rateLimitRetry": "Osiągnięto limit szybkości, ponawianie za {{delayMs}}ms (próba {{attempt}}/{{maxRetries}})",
+	"genericError": "Błąd {{provider}}: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Nie znaleziono modelu '{{modelId}}'. Dostępne modele: {{availableModels}}",
+		"invalidApiKey": "Nieprawidłowy klucz API. Sprawdź swój klucz API {{provider}}.",
+		"rateLimitExceeded": "Przekroczono limit szybkości. Spróbuj ponownie później.",
+		"networkError": "Błąd sieci. Sprawdź połączenie internetowe.",
+		"configurationFailed": "Walidacja konfiguracji {{provider}} nie powiodła się",
+		"baseUrlRequired": "Wymagany jest bazowy URL dla embeddera {{provider}}",
+		"apiKeyRequired": "Wymagany jest klucz API dla embeddera {{provider}}",
+		"endpointNotFound": "Nie znaleziono punktu końcowego: {{baseUrl}}",
+		"cannotConnect": "Nie można połączyć się z {{provider}} pod adresem {{baseUrl}}. Upewnij się, że {{provider}} jest uruchomiony.",
+		"apiNotFound": "Nie znaleziono API {{provider}} pod adresem {{baseUrl}}. Czy {{provider}} jest uruchomiony?",
+		"connectionFailed": "Połączenie z {{provider}} nie powiodło się: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Nie można odczytać treści błędu",
 		"requestFailed": "Żądanie API Ollama nie powiodło się ze statusem {{status}} {{statusText}}: {{errorBody}}",

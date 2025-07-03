@@ -5,7 +5,22 @@
 	"failedWithError": "Insluitingen maken mislukt na {{attempts}} pogingen: {{errorMessage}}",
 	"failedMaxAttempts": "Insluitingen maken mislukt na {{attempts}} pogingen",
 	"textExceedsTokenLimit": "Tekst op index {{index}} overschrijdt de maximale tokenlimiet ({{itemTokens}} > {{maxTokens}}). Wordt overgeslagen.",
+	"textWithPrefixExceedsTokenLimit": "Tekst op index {{index}} met prefix overschrijdt de maximale tokenlimiet ({{estimatedTokens}} > {{maxTokens}}). Originele tekst zonder prefix wordt gebruikt.",
 	"rateLimitRetry": "Snelheidslimiet bereikt, opnieuw proberen over {{delayMs}}ms (poging {{attempt}}/{{maxRetries}})",
+	"genericError": "{{provider}}-fout: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Model '{{modelId}}' niet gevonden. Beschikbare modellen: {{availableModels}}",
+		"invalidApiKey": "Ongeldige API-sleutel. Controleer je {{provider}} API-sleutel.",
+		"rateLimitExceeded": "Snelheidslimiet overschreden. Probeer het later opnieuw.",
+		"networkError": "Netwerkfout. Controleer je internetverbinding.",
+		"configurationFailed": "{{provider}}-configuratievalidatie mislukt",
+		"baseUrlRequired": "Basis-URL vereist voor {{provider}}-embedder",
+		"apiKeyRequired": "API-sleutel vereist voor {{provider}}-embedder",
+		"endpointNotFound": "Eindpunt niet gevonden: {{baseUrl}}",
+		"cannotConnect": "Kan geen verbinding maken met {{provider}} op {{baseUrl}}. Zorg ervoor dat {{provider}} actief is.",
+		"apiNotFound": "{{provider}} API niet gevonden op {{baseUrl}}. Is {{provider}} actief?",
+		"connectionFailed": "Verbinding met {{provider}} mislukt: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Kon foutinhoud niet lezen",
 		"requestFailed": "Ollama API-verzoek mislukt met status {{status}} {{statusText}}: {{errorBody}}",

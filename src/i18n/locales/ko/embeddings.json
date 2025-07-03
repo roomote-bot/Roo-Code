@@ -5,7 +5,22 @@
 	"failedWithError": "{{attempts}}번 시도 후 임베딩 생성 실패: {{errorMessage}}",
 	"failedMaxAttempts": "{{attempts}}번 시도 후 임베딩 생성 실패",
 	"textExceedsTokenLimit": "인덱스 {{index}}의 텍스트가 최대 토큰 제한({{itemTokens}} > {{maxTokens}})을 초과했습니다. 건너뜁니다.",
+	"textWithPrefixExceedsTokenLimit": "접두사가 있는 인덱스 {{index}}의 텍스트가 최대 토큰 제한({{estimatedTokens}} > {{maxTokens}})을 초과했습니다. 접두사 없이 원본 텍스트를 사용합니다.",
 	"rateLimitRetry": "속도 제한에 도달했습니다. {{delayMs}}ms 후에 다시 시도합니다(시도 {{attempt}}/{{maxRetries}}).",
+	"genericError": "{{provider}} 오류: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "'{{modelId}}' 모델을 찾을 수 없습니다. 사용 가능한 모델: {{availableModels}}",
+		"invalidApiKey": "잘못된 API 키입니다. {{provider}} API 키를 확인하세요.",
+		"rateLimitExceeded": "속도 제한을 초과했습니다. 나중에 다시 시도하세요.",
+		"networkError": "네트워크 오류입니다. 인터넷 연결을 확인하세요.",
+		"configurationFailed": "{{provider}} 구성 검증 실패",
+		"baseUrlRequired": "{{provider}} 임베더에 기본 URL이 필요합니다",
+		"apiKeyRequired": "{{provider}} 임베더에 API 키가 필요합니다",
+		"endpointNotFound": "엔드포인트를 찾을 수 없습니다: {{baseUrl}}",
+		"cannotConnect": "{{baseUrl}}의 {{provider}}에 연결할 수 없습니다. {{provider}}가 실행 중인지 확인하세요.",
+		"apiNotFound": "{{baseUrl}}에서 {{provider}} API를 찾을 수 없습니다. {{provider}}가 실행 중인가요?",
+		"connectionFailed": "{{provider}} 연결 실패: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "오류 본문을 읽을 수 없습니다",
 		"requestFailed": "Ollama API 요청이 실패했습니다. 상태 {{status}} {{statusText}}: {{errorBody}}",

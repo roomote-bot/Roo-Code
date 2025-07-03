@@ -5,7 +5,22 @@
 	"failedWithError": "Erstellung von Einbettungen nach {{attempts}} Versuchen fehlgeschlagen: {{errorMessage}}",
 	"failedMaxAttempts": "Erstellung von Einbettungen nach {{attempts}} Versuchen fehlgeschlagen",
 	"textExceedsTokenLimit": "Text bei Index {{index}} überschreitet das maximale Token-Limit ({{itemTokens}} > {{maxTokens}}). Wird übersprungen.",
+	"textWithPrefixExceedsTokenLimit": "Text bei Index {{index}} mit Präfix überschreitet das maximale Token-Limit ({{estimatedTokens}} > {{maxTokens}}). Verwende Originaltext ohne Präfix.",
 	"rateLimitRetry": "Ratenlimit erreicht, Wiederholung in {{delayMs}}ms (Versuch {{attempt}}/{{maxRetries}})",
+	"genericError": "{{provider}}-Fehler: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "Modell '{{modelId}}' nicht gefunden. Verfügbare Modelle: {{availableModels}}",
+		"invalidApiKey": "Ungültiger API-Schlüssel. Überprüfe deinen {{provider}} API-Schlüssel.",
+		"rateLimitExceeded": "Ratenlimit überschritten. Versuche es später erneut.",
+		"networkError": "Netzwerkfehler. Überprüfe deine Internetverbindung.",
+		"configurationFailed": "{{provider}}-Konfigurationsvalidierung fehlgeschlagen",
+		"baseUrlRequired": "Basis-URL für {{provider}}-Embedder erforderlich",
+		"apiKeyRequired": "API-Schlüssel für {{provider}}-Embedder erforderlich",
+		"endpointNotFound": "Endpunkt nicht gefunden: {{baseUrl}}",
+		"cannotConnect": "Kann keine Verbindung zu {{provider}} unter {{baseUrl}} herstellen. Stelle sicher, dass {{provider}} läuft.",
+		"apiNotFound": "{{provider}} API nicht gefunden unter {{baseUrl}}. Läuft {{provider}}?",
+		"connectionFailed": "Verbindung zu {{provider}} fehlgeschlagen: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "Fehlerinhalt konnte nicht gelesen werden",
 		"requestFailed": "Ollama API-Anfrage fehlgeschlagen mit Status {{status}} {{statusText}}: {{errorBody}}",

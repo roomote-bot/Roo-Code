@@ -78,7 +78,20 @@
 		"authenticationError": "प्रमाणीकरण त्रुटि",
 		"networkError": "नेटवर्क त्रुटि",
 		"validationError": "सत्यापन त्रुटि",
-		"unknownError": "अज्ञात त्रुटि"
+		"unknownError": "अज्ञात त्रुटि",
+		"embedderValidationFailed": "एम्बेडर सत्यापन विफल: {{error}}",
+		"openAiApiKeyRequired": "OpenAI API की आवश्यकता है। कृपया इसे सेटिंग्स में कॉन्फ़िगर करें।",
+		"ollamaBaseUrlRequired": "Ollama बेस URL की आवश्यकता है। कृपया इसे सेटिंग्स में कॉन्फ़िगर करें।",
+		"openAiCompatibleConfigRequired": "OpenAI-संगत {{missing}} आवश्यक है। कृपया इसे सेटिंग्स में कॉन्फ़िगर करें।",
+		"invalidEmbedderType": "अमान्य एम्बेडर प्रकार कॉन्फ़िगर किया गया: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI API की आवश्यकता है",
+		"ollamaBaseUrlRequiredValidation": "Ollama बेस URL की आवश्यकता है",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI-संगत बेस URL और API की आवश्यकता है",
+		"invalidEmbedderTypeValidation": "अमान्य एम्बेडर प्रकार: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "मॉडल '{{modelId}}' के लिए प्रदाता '{{provider}}' के साथ वेक्टर आयाम निर्धारित नहीं कर सका। कृपया सुनिश्चित करें कि OpenAI-संगत प्रदाता सेटिंग्स में 'एम्बेडिंग आयाम' सही तरीके से सेट है।",
+		"vectorDimensionErrorGeneral": "मॉडल '{{modelId}}' के लिए प्रदाता '{{provider}}' के साथ वेक्टर आयाम निर्धारित नहीं कर सका। मॉडल प्रोफाइल या कॉन्फ़िगरेशन जांचें।",
+		"qdrantUrlMissing": "वेक्टर स्टोर निर्माण के लिए Qdrant URL गुम है",
+		"servicesNotConfigured": "सेवाएं नहीं बना सकते: कोड इंडेक्सिंग ठीक से कॉन्फ़िगर नहीं है"
 	},
 	"autoApprove": {
 		"description": "Roo को अनुमोदन की आवश्यकता के बिना स्वचालित रूप से ऑपरेशन करने की अनुमति दें। इन सेटिंग्स को केवल तभी सक्षम करें जब आप AI पर पूरी तरह से भरोसा करते हों और संबंधित सुरक्षा जोखिमों को समझते हों।",

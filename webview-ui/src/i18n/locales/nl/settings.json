@@ -78,7 +78,20 @@
 		"authenticationError": "Authenticatiefout",
 		"networkError": "Netwerkfout",
 		"validationError": "Validatiefout",
-		"unknownError": "Onbekende fout"
+		"unknownError": "Onbekende fout",
+		"embedderValidationFailed": "Embedder-validatie mislukt: {{error}}",
+		"openAiApiKeyRequired": "OpenAI API-sleutel is vereist. Configureer deze in de instellingen.",
+		"ollamaBaseUrlRequired": "Ollama basis-URL is vereist. Configureer deze in de instellingen.",
+		"openAiCompatibleConfigRequired": "OpenAI-compatibele {{missing}} vereist. Configureer dit in de instellingen.",
+		"invalidEmbedderType": "Ongeldig embedder-type geconfigureerd: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI API-sleutel is vereist",
+		"ollamaBaseUrlRequiredValidation": "Ollama basis-URL is vereist",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI-compatibele basis-URL en API-sleutel zijn vereist",
+		"invalidEmbedderTypeValidation": "Ongeldig embedder-type: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Kon vectordimensie voor model '{{modelId}}' met provider '{{provider}}' niet bepalen. Zorg ervoor dat de 'Embedding Dimensie' correct is ingesteld in de OpenAI-compatibele provider-instellingen.",
+		"vectorDimensionErrorGeneral": "Kon vectordimensie voor model '{{modelId}}' met provider '{{provider}}' niet bepalen. Controleer modelprofielen of configuratie.",
+		"qdrantUrlMissing": "Qdrant-URL ontbreekt voor het maken van vectoropslag",
+		"servicesNotConfigured": "Kan services niet maken: Code-indexering is niet correct geconfigureerd"
 	},
 	"autoApprove": {
 		"description": "Sta Roo toe om automatisch handelingen uit te voeren zonder goedkeuring. Schakel deze instellingen alleen in als je de AI volledig vertrouwt en de bijbehorende beveiligingsrisico's begrijpt.",

@@ -78,7 +78,20 @@
 		"authenticationError": "Authentifizierungsfehler",
 		"networkError": "Netzwerkfehler",
 		"validationError": "Validierungsfehler",
-		"unknownError": "Unbekannter Fehler"
+		"unknownError": "Unbekannter Fehler",
+		"embedderValidationFailed": "Embedder-Validierung fehlgeschlagen: {{error}}",
+		"openAiApiKeyRequired": "OpenAI API-Schlüssel ist erforderlich. Bitte konfiguriere ihn in den Einstellungen.",
+		"ollamaBaseUrlRequired": "Ollama Basis-URL ist erforderlich. Bitte konfiguriere sie in den Einstellungen.",
+		"openAiCompatibleConfigRequired": "OpenAI-kompatible {{missing}} erforderlich. Bitte konfiguriere es in den Einstellungen.",
+		"invalidEmbedderType": "Ungültiger Embedder-Typ konfiguriert: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI API-Schlüssel ist erforderlich",
+		"ollamaBaseUrlRequiredValidation": "Ollama Basis-URL ist erforderlich",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI-kompatible Basis-URL und API-Schlüssel sind erforderlich",
+		"invalidEmbedderTypeValidation": "Ungültiger Embedder-Typ: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Konnte Vektordimension für Modell '{{modelId}}' mit Anbieter '{{provider}}' nicht bestimmen. Bitte stelle sicher, dass die 'Embedding-Dimension' in den OpenAI-kompatiblen Anbietereinstellungen korrekt eingestellt ist.",
+		"vectorDimensionErrorGeneral": "Konnte Vektordimension für Modell '{{modelId}}' mit Anbieter '{{provider}}' nicht bestimmen. Überprüfe Modellprofile oder Konfiguration.",
+		"qdrantUrlMissing": "Qdrant-URL fehlt für die Erstellung des Vektorspeichers",
+		"servicesNotConfigured": "Kann Services nicht erstellen: Code-Indexierung ist nicht ordnungsgemäß konfiguriert"
 	},
 	"autoApprove": {
 		"description": "Erlaubt Roo, Operationen automatisch ohne Genehmigung durchzuführen. Aktiviere diese Einstellungen nur, wenn du der KI vollständig vertraust und die damit verbundenen Sicherheitsrisiken verstehst.",

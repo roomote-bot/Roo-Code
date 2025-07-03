@@ -78,7 +78,20 @@
 		"authenticationError": "認証エラー",
 		"networkError": "ネットワークエラー",
 		"validationError": "検証エラー",
-		"unknownError": "不明なエラー"
+		"unknownError": "不明なエラー",
+		"embedderValidationFailed": "エンベッダーの検証に失敗しました: {{error}}",
+		"openAiApiKeyRequired": "OpenAI APIキーが必要です。設定で構成してください。",
+		"ollamaBaseUrlRequired": "Ollama ベースURLが必要です。設定で構成してください。",
+		"openAiCompatibleConfigRequired": "OpenAI互換の{{missing}}が必要です。設定で構成してください。",
+		"invalidEmbedderType": "無効なエンベッダータイプが構成されています: {{provider}}",
+		"openAiApiKeyRequiredValidation": "OpenAI APIキーが必要です",
+		"ollamaBaseUrlRequiredValidation": "Ollama ベースURLが必要です",
+		"openAiCompatibleConfigRequiredValidation": "OpenAI互換のベースURLとAPIキーが必要です",
+		"invalidEmbedderTypeValidation": "無効なエンベッダータイプ: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "プロバイダー '{{provider}}' でモデル '{{modelId}}' のベクター次元を決定できませんでした。OpenAI互換プロバイダー設定で「埋め込み次元」が正しく設定されていることを確認してください。",
+		"vectorDimensionErrorGeneral": "プロバイダー '{{provider}}' でモデル '{{modelId}}' のベクター次元を決定できませんでした。モデルプロファイルまたは構成を確認してください。",
+		"qdrantUrlMissing": "ベクターストア作成にQdrant URLが不足しています",
+		"servicesNotConfigured": "サービスを作成できません: コードインデックスが適切に構成されていません"
 	},
 	"autoApprove": {
 		"description": "Rooが承認なしで自動的に操作を実行できるようにします。AIを完全に信頼し、関連するセキュリティリスクを理解している場合にのみ、これらの設定を有効にしてください。",

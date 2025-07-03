@@ -5,7 +5,22 @@
 	"failedWithError": "{{attempts}} प्रयासों के बाद एम्बेडिंग बनाने में विफल: {{errorMessage}}",
 	"failedMaxAttempts": "{{attempts}} प्रयासों के बाद एम्बेडिंग बनाने में विफल",
 	"textExceedsTokenLimit": "अनुक्रमणिका {{index}} पर पाठ अधिकतम टोकन सीमा ({{itemTokens}} > {{maxTokens}}) से अधिक है। छोड़ा जा रहा है।",
+	"textWithPrefixExceedsTokenLimit": "उपसर्ग के साथ अनुक्रमणिका {{index}} पर पाठ अधिकतम टोकन सीमा ({{estimatedTokens}} > {{maxTokens}}) से अधिक है। उपसर्ग के बिना मूल पाठ का उपयोग कर रहे हैं।",
 	"rateLimitRetry": "दर सीमा समाप्त, {{delayMs}}ms में पुन: प्रयास किया जा रहा है (प्रयास {{attempt}}/{{maxRetries}})",
+	"genericError": "{{provider}} त्रुटि: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "मॉडल '{{modelId}}' नहीं मिला। उपलब्ध मॉडल: {{availableModels}}",
+		"invalidApiKey": "अमान्य API कुंजी। अपनी {{provider}} API कुंजी की जांच करें।",
+		"rateLimitExceeded": "दर सीमा पार हो गई। बाद में पुनः प्रयास करें।",
+		"networkError": "नेटवर्क त्रुटि। अपना इंटरनेट कनेक्शन जांचें।",
+		"configurationFailed": "{{provider}} कॉन्फ़िगरेशन सत्यापन विफल",
+		"baseUrlRequired": "{{provider}} एम्बेडर के लिए आधार URL आवश्यक है",
+		"apiKeyRequired": "{{provider}} एम्बेडर के लिए API कुंजी आवश्यक है",
+		"endpointNotFound": "एंडपॉइंट नहीं मिला: {{baseUrl}}",
+		"cannotConnect": "{{baseUrl}} पर {{provider}} से कनेक्ट नहीं हो सकता। सुनिश्चित करें कि {{provider}} चल रहा है।",
+		"apiNotFound": "{{baseUrl}} पर {{provider}} API नहीं मिला। क्या {{provider}} चल रहा है?",
+		"connectionFailed": "{{provider}} से कनेक्शन विफल: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "त्रुटि सामग्री पढ़ नहीं सका",
 		"requestFailed": "Ollama API अनुरोध स्थिति {{status}} {{statusText}} के साथ विफल: {{errorBody}}",

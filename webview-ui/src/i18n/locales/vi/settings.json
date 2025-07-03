@@ -78,7 +78,20 @@
 		"authenticationError": "Lỗi xác thực",
 		"networkError": "Lỗi mạng",
 		"validationError": "Lỗi xác thực",
-		"unknownError": "Lỗi không xác định"
+		"unknownError": "Lỗi không xác định",
+		"embedderValidationFailed": "Xác thực embedder thất bại: {{error}}",
+		"openAiApiKeyRequired": "Cần khóa API OpenAI. Vui lòng cấu hình trong cài đặt.",
+		"ollamaBaseUrlRequired": "Cần URL cơ sở Ollama. Vui lòng cấu hình trong cài đặt.",
+		"openAiCompatibleConfigRequired": "Cần {{missing}} tương thích OpenAI. Vui lòng cấu hình trong cài đặt.",
+		"invalidEmbedderType": "Loại embedder được cấu hình không hợp lệ: {{provider}}",
+		"openAiApiKeyRequiredValidation": "Cần khóa API OpenAI",
+		"ollamaBaseUrlRequiredValidation": "Cần URL cơ sở Ollama",
+		"openAiCompatibleConfigRequiredValidation": "Cần URL cơ sở và khóa API tương thích OpenAI",
+		"invalidEmbedderTypeValidation": "Loại embedder không hợp lệ: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Không thể xác định kích thước vector cho mô hình '{{modelId}}' với nhà cung cấp '{{provider}}'. Vui lòng đảm bảo 'Kích thước Embedding' được thiết lập chính xác trong cài đặt nhà cung cấp tương thích OpenAI.",
+		"vectorDimensionErrorGeneral": "Không thể xác định kích thước vector cho mô hình '{{modelId}}' với nhà cung cấp '{{provider}}'. Kiểm tra hồ sơ mô hình hoặc cấu hình.",
+		"qdrantUrlMissing": "Thiếu URL Qdrant để tạo kho lưu trữ vector",
+		"servicesNotConfigured": "Không thể tạo dịch vụ: Lập chỉ mục mã không được cấu hình đúng cách"
 	},
 	"autoApprove": {
 		"description": "Cho phép Roo tự động thực hiện các hoạt động mà không cần phê duyệt. Chỉ bật những cài đặt này nếu bạn hoàn toàn tin tưởng AI và hiểu rõ các rủi ro bảo mật liên quan.",

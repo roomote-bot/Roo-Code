@@ -78,7 +78,20 @@
 		"authenticationError": "Błąd uwierzytelniania",
 		"networkError": "Błąd sieci",
 		"validationError": "Błąd walidacji",
-		"unknownError": "Nieznany błąd"
+		"unknownError": "Nieznany błąd",
+		"embedderValidationFailed": "Walidacja embeddera nie powiodła się: {{error}}",
+		"openAiApiKeyRequired": "Klucz API OpenAI jest wymagany. Skonfiguruj go w ustawieniach.",
+		"ollamaBaseUrlRequired": "Bazowy URL Ollama jest wymagany. Skonfiguruj go w ustawieniach.",
+		"openAiCompatibleConfigRequired": "Kompatybilny z OpenAI {{missing}} jest wymagany. Skonfiguruj go w ustawieniach.",
+		"invalidEmbedderType": "Skonfigurowano nieprawidłowy typ embeddera: {{provider}}",
+		"openAiApiKeyRequiredValidation": "Klucz API OpenAI jest wymagany",
+		"ollamaBaseUrlRequiredValidation": "Bazowy URL Ollama jest wymagany",
+		"openAiCompatibleConfigRequiredValidation": "Kompatybilny z OpenAI bazowy URL i klucz API są wymagane",
+		"invalidEmbedderTypeValidation": "Nieprawidłowy typ embeddera: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "Nie można określić wymiaru wektora dla modelu '{{modelId}}' z dostawcą '{{provider}}'. Upewnij się, że 'Wymiar Embedding' jest poprawnie ustawiony w ustawieniach dostawcy kompatybilnego z OpenAI.",
+		"vectorDimensionErrorGeneral": "Nie można określić wymiaru wektora dla modelu '{{modelId}}' z dostawcą '{{provider}}'. Sprawdź profile modeli lub konfigurację.",
+		"qdrantUrlMissing": "Brakuje URL Qdrant do utworzenia magazynu wektorów",
+		"servicesNotConfigured": "Nie można utworzyć usług: Indeksowanie kodu nie jest poprawnie skonfigurowane"
 	},
 	"autoApprove": {
 		"description": "Pozwól Roo na automatyczne wykonywanie operacji bez wymagania zatwierdzenia. Włącz te ustawienia tylko jeśli w pełni ufasz AI i rozumiesz związane z tym zagrożenia bezpieczeństwa.",

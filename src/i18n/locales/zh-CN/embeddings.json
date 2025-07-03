@@ -5,7 +5,22 @@
 	"failedWithError": "尝试 {{attempts}} 次后创建嵌入失败：{{errorMessage}}",
 	"failedMaxAttempts": "尝试 {{attempts}} 次后创建嵌入失败",
 	"textExceedsTokenLimit": "索引 {{index}} 处的文本超过最大令牌限制 ({{itemTokens}} > {{maxTokens}})。正在跳过。",
+	"textWithPrefixExceedsTokenLimit": "带前缀的索引 {{index}} 处的文本超过最大令牌限制 ({{estimatedTokens}} > {{maxTokens}})。使用不带前缀的原始文本。",
 	"rateLimitRetry": "已达到速率限制，将在 {{delayMs}} 毫秒后重试（尝试次数 {{attempt}}/{{maxRetries}}）",
+	"genericError": "{{provider}} 错误: {{errorDetails}}",
+	"validation": {
+		"modelNotFound": "未找到模型 '{{modelId}}'。可用模型: {{availableModels}}",
+		"invalidApiKey": "无效的 API 密钥。请检查你的 {{provider}} API 密钥。",
+		"rateLimitExceeded": "超出速率限制。请稍后重试。",
+		"networkError": "网络错误。请检查你的互联网连接。",
+		"configurationFailed": "{{provider}} 配置验证失败",
+		"baseUrlRequired": "{{provider}} 嵌入器需要基础 URL",
+		"apiKeyRequired": "{{provider}} 嵌入器需要 API 密钥",
+		"endpointNotFound": "未找到端点: {{baseUrl}}",
+		"cannotConnect": "无法连接到 {{baseUrl}} 的 {{provider}}。请确保 {{provider}} 正在运行。",
+		"apiNotFound": "在 {{baseUrl}} 未找到 {{provider}} API。{{provider}} 是否正在运行？",
+		"connectionFailed": "连接到 {{provider}} 失败: {{status}} {{statusText}}"
+	},
 	"ollama": {
 		"couldNotReadErrorBody": "无法读取错误内容",
 		"requestFailed": "Ollama API 请求失败，状态码 {{status}} {{statusText}}：{{errorBody}}",

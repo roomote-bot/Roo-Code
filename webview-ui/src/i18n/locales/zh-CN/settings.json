@@ -78,7 +78,20 @@
 		"authenticationError": "身份验证错误",
 		"networkError": "网络错误",
 		"validationError": "验证错误",
-		"unknownError": "未知错误"
+		"unknownError": "未知错误",
+		"embedderValidationFailed": "Embedder 验证失败: {{error}}",
+		"openAiApiKeyRequired": "需要 OpenAI API 密钥。请在设置中配置。",
+		"ollamaBaseUrlRequired": "需要 Ollama 基础 URL。请在设置中配置。",
+		"openAiCompatibleConfigRequired": "需要 OpenAI 兼容的{{missing}}。请在设置中配置。",
+		"invalidEmbedderType": "配置了无效的 Embedder 类型: {{provider}}",
+		"openAiApiKeyRequiredValidation": "需要 OpenAI API 密钥",
+		"ollamaBaseUrlRequiredValidation": "需要 Ollama 基础 URL",
+		"openAiCompatibleConfigRequiredValidation": "需要 OpenAI 兼容的基础 URL 和 API 密钥",
+		"invalidEmbedderTypeValidation": "无效的 Embedder 类型: {{provider}}",
+		"vectorDimensionErrorOpenAiCompatible": "无法确定模型 '{{modelId}}' 与提供商 '{{provider}}' 的向量维度。请确保在 OpenAI 兼容提供商设置中正确设置了 'Embedding 维度'。",
+		"vectorDimensionErrorGeneral": "无法确定模型 '{{modelId}}' 与提供商 '{{provider}}' 的向量维度。请检查模型配置文件或配置。",
+		"qdrantUrlMissing": "创建向量存储缺少 Qdrant URL",
+		"servicesNotConfigured": "无法创建服务: 代码索引未正确配置"
 	},
 	"autoApprove": {
 		"description": "允许 Roo 自动执行操作而无需批准。只有在您完全信任 AI 并了解相关安全风险的情况下才启用这些设置。",
