@@ -11,6 +11,8 @@ export const Env = createEnv({
     CLICKHOUSE_URL: z.string().min(1),
     CLICKHOUSE_PASSWORD: z.string().min(1),
     CLERK_SECRET_KEY: z.string().min(1),
+    JOB_AUTH_PRIVATE_KEY: z.string().min(1),
+    JOB_AUTH_PUBLIC_KEY: z.string().min(1),
   },
   client: {},
   // You need to destructure all the keys manually.
@@ -21,5 +23,7 @@ export const Env = createEnv({
     CLICKHOUSE_URL: process.env.CLICKHOUSE_URL,
     CLICKHOUSE_PASSWORD: process.env.CLICKHOUSE_PASSWORD,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
+    JOB_AUTH_PRIVATE_KEY: process.env.JOB_AUTH_PRIVATE_KEY,
+    JOB_AUTH_PUBLIC_KEY: process.env.JOB_AUTH_PUBLIC_KEY,
   },
 });

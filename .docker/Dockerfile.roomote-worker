@@ -92,6 +92,7 @@ COPY packages/config-typescript/package.json ./packages/config-typescript/
 COPY packages/env/package.json ./packages/env/
 COPY packages/db/package.json ./packages/db/
 COPY packages/ipc/package.json ./packages/ipc/
+COPY packages/job-auth/package.json ./packages/job-auth/
 COPY apps/roomote/package.json ./apps/roomote/
 
 RUN pnpm install
@@ -101,6 +102,7 @@ COPY packages/config-typescript ./packages/config-typescript/
 COPY packages/env ./packages/env/
 COPY packages/db ./packages/db/
 COPY packages/ipc ./packages/ipc/
+COPY packages/job-auth ./packages/job-auth/
 COPY apps/roomote ./apps/roomote/
 
 WORKDIR /roo/apps/roomote

@@ -21,6 +21,7 @@
     "@roo-code-cloud/db": "workspace:^",
     "@roo-code-cloud/env": "workspace:^",
     "@roo-code-cloud/ipc": "workspace:^",
+    "@roo-code-cloud/job-auth": "workspace:^",
     "@roo-code/types": "^1.30.0",
     "bullmq": "^5.37.0",
     "cmd-ts": "^0.13.0",

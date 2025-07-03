@@ -48,6 +48,9 @@ importers:
       '@roo-code-cloud/ipc':
         specifier: workspace:^
         version: link:../../packages/ipc
+      '@roo-code-cloud/job-auth':
+        specifier: workspace:^
+        version: link:../../packages/job-auth
       '@roo-code/types':
         specifier: ^1.30.0
         version: 1.30.0
@@ -209,6 +212,9 @@ importers:
       '@roo-code-cloud/env':
         specifier: workspace:^
         version: link:../../packages/env
+      '@roo-code-cloud/job-auth':
+        specifier: workspace:^
+        version: link:../../packages/job-auth
       '@roo-code/types':
         specifier: ^1.30.0
         version: 1.30.0
@@ -530,6 +536,34 @@ importers:
       vitest:
         specifier: ^3.2.3
         version: 3.2.4(@types/debug@4.1.12)(@types/node@20.19.1)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
+
+  packages/job-auth:
+    dependencies:
+      '@roo-code-cloud/env':
+        specifier: workspace:*
+        version: link:../env
+      jsonwebtoken:
+        specifier: ^9.0.0
+        version: 9.0.2
+      zod:
+        specifier: ^3.22.0
+        version: 3.25.41
+    devDependencies:
+      '@roo-code-cloud/config-eslint':
+        specifier: workspace:^
+        version: link:../config-eslint
+      '@roo-code-cloud/config-typescript':
+        specifier: workspace:*
+        version: link:../config-typescript
+      '@types/jsonwebtoken':
+        specifier: ^9.0.0
+        version: 9.0.10
+      '@types/node':
+        specifier: ^24.0.3
+        version: 24.0.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.0.3)(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)(terser@5.43.1)(tsx@4.20.3)(yaml@2.8.0)
 
 packages:
 

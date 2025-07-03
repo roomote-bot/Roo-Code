@@ -1,5 +1,6 @@
 // import type { NextRequest } from 'next/server';
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import type { NextRequest } from 'next/server';
 
 const isUnprotectedRoute = createRouteMatcher([
   '/sign-in(.*)',
@@ -10,18 +11,18 @@ const isUnprotectedRoute = createRouteMatcher([
   '/',
 ]);
 
-// const isApiRoute = createRouteMatcher(['/api(.*)']);
+const isApiRoute = createRouteMatcher(['/api(.*)']);
 
-// const isAgentRequest = (req: NextRequest) => {
-//   return req.headers.get('authorization')?.startsWith('Bearer ');
-// };
+const isAgentRequest = (req: NextRequest) => {
+  return req.headers.get('authorization')?.startsWith('Bearer ');
+};
 
 export default clerkMiddleware(
   async (auth, req) => {
-    // const isUnprotected =
-    //   isUnprotectedRoute(req) || (isApiRoute(req) && isAgentRequest(req));
+    const isUnprotected =
+      isUnprotectedRoute(req) || (isApiRoute(req) && isAgentRequest(req));
 
-    if (!isUnprotectedRoute(req)) {
+    if (!isUnprotected) {
       await auth.protect();
     }
   },

@@ -7,6 +7,7 @@ import { Env } from '@roo-code-cloud/env';
 
 import { type AuthResult, type ApiAuthResult, isOrgRole } from '@/types';
 import { logger } from '@/lib/server';
+import { validateJobToken } from '@roo-code-cloud/job-auth';
 // import {
 //   type AgentTokenPayload,
 //   validateAgentToken,
@@ -44,64 +45,39 @@ export async function authorize(): Promise<AuthResult> {
  * Validates authentication and authorization for API endpoints.
  */
 export async function authorizeApi(
-  _request: NextRequest,
+  request: NextRequest,
 ): Promise<ApiAuthResult> {
-  return authorize();
+  const authHeader = request.headers.get('authorization');
 
-  // const isAgent = request.headers.get('authorization')?.startsWith('Bearer ');
+  if (!authHeader?.startsWith('Bearer ')) {
+    return authorize(); // Fall back to Clerk auth
+  }
 
-  // if (!isAgent) {
-  //   return authorize();
-  // }
+  const token = authHeader.slice(7);
+  if (!token) {
+    return {
+      success: false,
+      error: 'Unauthorized: Malformed authorization header',
+    };
+  }
 
-  // const startTime = Date.now();
+  // Try job token first
+  try {
+    const jobContext = await validateJobToken(token);
+    return {
+      success: true,
+      userType: 'job',
+      userId: jobContext.userId,
+      orgId: jobContext.orgId || null,
+      jobId: jobContext.jobId,
+    };
+  } catch {
+    // If job token validation fails, try agent token
+    // (existing agent token code would go here)
 
-  // try {
-  //   const authHeader = request.headers.get('authorization');
-
-  //   if (!authHeader?.startsWith('Bearer ')) {
-  //     return {
-  //       success: false,
-  //       error: 'Unauthorized: Missing authorization header',
-  //     };
-  //   }
-
-  //   const token = authHeader.slice(7);
-
-  //   if (!token) {
-  //     return {
-  //       success: false,
-  //       error: 'Unauthorized: Malformed authorization header',
-  //     };
-  //   }
-
-  //   let payload: AgentTokenPayload;
-
-  //   try {
-  //     payload = await validateAgentToken(token);
-  //   } catch {
-  //     return { success: false, error: 'Unauthorized: Invalid token' };
-  //   }
-
-  //   const { agent_id: userId, org_id: orgId } = payload;
-
-  //   updateAgentUsage(
-  //     userId,
-  //     new URL(request.url).pathname,
-  //     request.method,
-  //     200,
-  //     Date.now() - startTime,
-  //     request.headers.get('user-agent') || undefined,
-  //   );
-
-  //   return { success: true, userType: 'agent', userId, orgId };
-  // } catch (error) {
-  //   console.error(
-  //     `authorizeApi: ${error instanceof Error ? error.message : 'Unknown error'}`,
-  //   );
-
-  //   return { success: false, error: 'Unauthorized: Unexpected error' };
-  // }
+    // If both fail, fall back to Clerk
+    return authorize();
+  }
 }
 
 /**

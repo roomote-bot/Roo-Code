@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { authorizeApi } from '@/actions/auth';
-import { getOrganizationSettings } from '@/actions/organizationSettings';
+import { getOrganizationSettingsByOrgId } from '@/lib/server/organizationSettings';
 
 export async function GET(request: NextRequest) {
   try {
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const settings = await getOrganizationSettings();
+    const settings = await getOrganizationSettingsByOrgId(authResult.orgId);
 
     return NextResponse.json(settings);
   } catch (error) {

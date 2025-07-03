@@ -9,13 +9,13 @@ import {
   organizationDefaultSettingsSchema,
   organizationCloudSettingsSchema,
   ORGANIZATION_ALLOW_ALL,
-  ORGANIZATION_DEFAULT,
 } from '@roo-code/types';
 
 import { AuditLogTargetType, db, orgSettings } from '@roo-code-cloud/db/server';
 
 import { authorize } from './auth';
 import { insertAuditLog } from './auditLogs';
+import { getOrganizationSettingsByOrgId } from '@/lib/server/organizationSettings';
 
 export async function getOrganizationSettings(): Promise<OrganizationSettings> {
   const authResult = await authorize();
@@ -24,18 +24,7 @@ export async function getOrganizationSettings(): Promise<OrganizationSettings> {
     throw new Error('Unauthorized');
   }
 
-  // Organization settings are only available for organizations, not personal accounts
-  if (!authResult.orgId) {
-    return ORGANIZATION_DEFAULT;
-  }
-
-  const settings = await db
-    .select()
-    .from(orgSettings)
-    .where(eq(orgSettings.orgId, authResult.orgId))
-    .limit(1);
-
-  return settings[0] || ORGANIZATION_DEFAULT;
+  return getOrganizationSettingsByOrgId(authResult.orgId);
 }
 
 /**

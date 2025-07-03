@@ -2,7 +2,7 @@
  * UserType
  */
 
-const userTypes = ['user', 'agent'] as const;
+const userTypes = ['user', 'agent', 'job'] as const;
 
 export type UserType = (typeof userTypes)[number];
 
@@ -48,6 +48,18 @@ export type AgentAuthSuccess = {
   orgId: string;
 };
 
+export type JobAuthSuccess = {
+  success: true;
+  userType: 'job';
+  userId: string;
+  orgId: string | null;
+  jobId: string;
+};
+
 export type AuthResult = UserAuthSuccess | AuthError;
 
-export type ApiAuthResult = UserAuthSuccess | AgentAuthSuccess | AuthError;
+export type ApiAuthResult =
+  | UserAuthSuccess
+  | AgentAuthSuccess
+  | JobAuthSuccess
+  | AuthError;

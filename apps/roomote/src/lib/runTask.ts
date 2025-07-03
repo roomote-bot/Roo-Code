@@ -15,6 +15,9 @@ import {
   EVALS_SETTINGS,
 } from '@roo-code/types';
 import { IpcClient } from '@roo-code-cloud/ipc';
+import { createJobToken } from '@roo-code-cloud/job-auth';
+import { db, users } from '@roo-code-cloud/db/server';
+import { eq } from 'drizzle-orm';
 
 import type { JobPayload, JobType } from '@roo-code-cloud/db';
 
@@ -53,6 +56,8 @@ export type RunTaskCallbacks = {
 type RunTaskOptions<T extends JobType> = {
   jobType: T;
   jobPayload: JobPayload<T>;
+  jobId?: number;
+  userId?: string;
   prompt: string;
   logger?: Logger;
   callbacks?: RunTaskCallbacks;
@@ -64,6 +69,8 @@ type RunTaskOptions<T extends JobType> = {
 export const runTask = async <T extends JobType>({
   jobType,
   jobPayload,
+  jobId,
+  userId,
   prompt,
   logger,
   callbacks,
@@ -80,9 +87,36 @@ export const runTask = async <T extends JobType>({
   const cancelSignal = controller.signal;
   const containerized = isFlyMachine() || isDockerContainer();
 
+  let envVars = `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath}`;
+
+  // Create JWT token if we have jobId and userId
+  if (jobId && userId) {
+    try {
+      // Get user's org info
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      const orgId = user[0]?.orgId || null;
+
+      const token = await createJobToken(
+        jobId.toString(),
+        userId,
+        orgId,
+        TIMEOUT,
+      );
+
+      envVars += ` ROO_CODE_CLOUD_TOKEN=${token}`;
+    } catch (error) {
+      logger?.error('Failed to create job token:', error);
+      // Continue without token - job will fall back to no auth
+    }
+  }
+
   const codeCommand = containerized
-    ? `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath} xvfb-run --auto-servernum --server-num=1 code --wait --log trace --disable-workspace-trust --disable-gpu --disable-lcd-text --no-sandbox --user-data-dir /roo/.vscode --password-store="basic" -n ${workspacePath}`
-    : `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath} code --disable-workspace-trust -n ${workspacePath}`;
+    ? `${envVars} xvfb-run --auto-servernum --server-num=1 code --wait --log trace --disable-workspace-trust --disable-gpu --disable-lcd-text --no-sandbox --user-data-dir /roo/.vscode --password-store="basic" -n ${workspacePath}`
+    : `${envVars} code --disable-workspace-trust -n ${workspacePath}`;
 
   if (!logger) {
     logger = new Logger({

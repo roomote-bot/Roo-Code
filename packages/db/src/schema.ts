@@ -301,6 +301,7 @@ export const cloudJobs = pgTable('cloud_jobs', {
   result: jsonb('result'),
   error: text('error'),
   slackThreadTs: text('slack_thread_ts'),
+  userId: text('user_id').references(() => users.id),
   startedAt: timestamp('started_at'),
   completedAt: timestamp('completed_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
