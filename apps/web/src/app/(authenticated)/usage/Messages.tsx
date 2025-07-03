@@ -321,7 +321,12 @@ export const Messages = ({
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm leading-relaxed markdown-prose">
+                  <div
+                    className={cn(
+                      'text-sm leading-relaxed markdown-prose',
+                      message.say === 'completion_result' && 'text-[#89d185]',
+                    )}
+                  >
                     <ReactMarkdown
                       remarkPlugins={[remarkBreaks]}
                       rehypePlugins={[rehypeSanitize]}
