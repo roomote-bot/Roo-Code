@@ -24,6 +24,7 @@ export function getCheckpointService(cline: Task) {
 	}
 
 	if (cline.checkpointServiceInitializing) {
+		console.log("[Task#getCheckpointService] checkpoint service is still initializing")
 		return undefined
 	}
 
@@ -136,6 +137,7 @@ async function getInitializedCheckpointService(
 	try {
 		await pWaitFor(
 			() => {
+				console.log("[Task#getCheckpointService] waiting for service to initialize")
 				return service.isInitialized
 			},
 			{ interval, timeout },
@@ -165,6 +167,7 @@ export async function checkpointSave(cline: Task, force = false) {
 
 	// Start the checkpoint process in the background.
 	return service.saveCheckpoint(`Task: ${cline.taskId}, Time: ${Date.now()}`, { allowEmpty: force }).catch((err) => {
+		console.error("[Task#checkpointSave] caught unexpected error, disabling checkpoints", err)
 		cline.enableCheckpoints = false
 	})
 }
