@@ -1,7 +1,6 @@
 import { QdrantClient, Schemas } from "@qdrant/js-client-rest"
 import { createHash } from "crypto"
 import * as path from "path"
-import { getWorkspacePath } from "../../../utils/path"
 import { IVectorStore } from "../interfaces/vector-store"
 import { Payload, VectorStoreSearchResult } from "../interfaces"
 import { MAX_SEARCH_RESULTS, SEARCH_MIN_SCORE } from "../constants"
@@ -12,6 +11,7 @@ import { MAX_SEARCH_RESULTS, SEARCH_MIN_SCORE } from "../constants"
 export class QdrantVectorStore implements IVectorStore {
 	private readonly vectorSize!: number
 	private readonly DISTANCE_METRIC = "Cosine"
+	private readonly workspacePath: string
 
 	private client: QdrantClient
 	private readonly collectionName: string
@@ -73,6 +73,9 @@ export class QdrantVectorStore implements IVectorStore {
 				},
 			})
 		}
+
+		// Store workspace path
+		this.workspacePath = workspacePath
 
 		// Generate collection name from workspace path
 		const hash = createHash("sha256").update(workspacePath).digest("hex")
@@ -332,9 +335,8 @@ export class QdrantVectorStore implements IVectorStore {
 		}
 
 		try {
-			const workspaceRoot = getWorkspacePath()
 			const normalizedPaths = filePaths.map((filePath) => {
-				const absolutePath = path.resolve(workspaceRoot, filePath)
+				const absolutePath = path.resolve(this.workspacePath, filePath)
 				return path.normalize(absolutePath)
 			})
 

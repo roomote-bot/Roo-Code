@@ -15,7 +15,7 @@ import { OpenAiEmbedder } from "../services/code-index/embedders/openai"
 import { CodeIndexOllamaEmbedder } from "../services/code-index/embedders/ollama"
 import { OpenAICompatibleEmbedder } from "../services/code-index/embedders/openai-compatible"
 import { QdrantVectorStore } from "../services/code-index/vector-store/qdrant-client"
-import { codeParser } from "../services/code-index/processors"
+import { codeParser } from "../services/code-index/worker-utils/parser"
 import { EmbedderProvider, getDefaultModelId, getModelDimension } from "../shared/embeddingModels"
 
 class IndexingWorker {
