@@ -584,4 +584,189 @@ describe("CodeIndexServiceFactory", () => {
 			expect(() => factory.createVectorStore()).toThrow("Qdrant URL missing for vector store creation")
 		})
 	})
+
+	describe("validateEmbedderConfig", () => {
+		beforeEach(() => {
+			vitest.clearAllMocks()
+			// Mock the static validation methods
+			MockedOpenAiEmbedder.validateEndpoint = vitest.fn().mockResolvedValue(true)
+			MockedCodeIndexOllamaEmbedder.validateEndpoint = vitest.fn().mockResolvedValue(true)
+			MockedOpenAICompatibleEmbedder.validateEndpoint = vitest.fn().mockResolvedValue(true)
+		})
+
+		it("should validate OpenAI configuration with provided config", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "openai",
+				modelId: "text-embedding-3-large",
+				openAiOptions: {
+					openAiNativeApiKey: "test-api-key",
+				},
+			}
+
+			// Act
+			const result = await factory.validateEmbedderConfig(providedConfig)
+
+			// Assert
+			expect(result).toBe(true)
+			expect(MockedOpenAiEmbedder.validateEndpoint).toHaveBeenCalledWith("test-api-key", "text-embedding-3-large")
+		})
+
+		it("should validate Ollama configuration with provided config", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "ollama",
+				modelId: "nomic-embed-text:latest",
+				ollamaOptions: {
+					ollamaBaseUrl: "http://localhost:11434",
+				},
+			}
+
+			// Act
+			const result = await factory.validateEmbedderConfig(providedConfig)
+
+			// Assert
+			expect(result).toBe(true)
+			expect(MockedCodeIndexOllamaEmbedder.validateEndpoint).toHaveBeenCalledWith(
+				"http://localhost:11434",
+				"nomic-embed-text:latest",
+			)
+		})
+
+		it("should validate OpenAI-compatible configuration with provided config", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "openai-compatible",
+				modelId: "custom-model",
+				openAiCompatibleOptions: {
+					baseUrl: "https://api.example.com/v1",
+					apiKey: "test-api-key",
+				},
+			}
+
+			// Act
+			const result = await factory.validateEmbedderConfig(providedConfig)
+
+			// Assert
+			expect(result).toBe(true)
+			expect(MockedOpenAICompatibleEmbedder.validateEndpoint).toHaveBeenCalledWith(
+				"https://api.example.com/v1",
+				"test-api-key",
+				"custom-model",
+			)
+		})
+
+		it("should use current config when no config is provided", async () => {
+			// Arrange
+			const currentConfig = {
+				embedderProvider: "openai",
+				modelId: "text-embedding-3-small",
+				openAiOptions: {
+					openAiNativeApiKey: "current-api-key",
+				},
+			}
+			mockConfigManager.getConfig.mockReturnValue(currentConfig as any)
+
+			// Act
+			const result = await factory.validateEmbedderConfig()
+
+			// Assert
+			expect(result).toBe(true)
+			expect(mockConfigManager.getConfig).toHaveBeenCalled()
+			expect(MockedOpenAiEmbedder.validateEndpoint).toHaveBeenCalledWith(
+				"current-api-key",
+				"text-embedding-3-small",
+			)
+		})
+
+		it("should throw error for missing OpenAI API key", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "openai",
+				modelId: "text-embedding-3-large",
+				openAiOptions: {
+					openAiNativeApiKey: undefined,
+				},
+			}
+
+			// Act & Assert
+			await expect(factory.validateEmbedderConfig(providedConfig)).rejects.toThrow("OpenAI API key is required")
+		})
+
+		it("should throw error for missing Ollama base URL", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "ollama",
+				modelId: "nomic-embed-text:latest",
+				ollamaOptions: {
+					ollamaBaseUrl: undefined,
+				},
+			}
+
+			// Act & Assert
+			await expect(factory.validateEmbedderConfig(providedConfig)).rejects.toThrow("Ollama base URL is required")
+		})
+
+		it("should throw error for missing OpenAI-compatible credentials", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "openai-compatible",
+				modelId: "custom-model",
+				openAiCompatibleOptions: {
+					baseUrl: undefined,
+					apiKey: "test-api-key",
+				},
+			}
+
+			// Act & Assert
+			await expect(factory.validateEmbedderConfig(providedConfig)).rejects.toThrow(
+				"OpenAI-compatible base URL and API key are required",
+			)
+		})
+
+		it("should throw error for invalid embedder type", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "invalid-provider",
+				modelId: "some-model",
+			}
+
+			// Act & Assert
+			await expect(factory.validateEmbedderConfig(providedConfig)).rejects.toThrow(
+				"Invalid embedder type: invalid-provider",
+			)
+		})
+
+		it("should propagate validation errors from embedder", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "openai",
+				modelId: "text-embedding-3-large",
+				openAiOptions: {
+					openAiNativeApiKey: "invalid-key",
+				},
+			}
+			MockedOpenAiEmbedder.validateEndpoint = vitest.fn().mockRejectedValue(new Error("Invalid API key"))
+
+			// Act & Assert
+			await expect(factory.validateEmbedderConfig(providedConfig)).rejects.toThrow("Invalid API key")
+		})
+
+		it("should use default model ID when not provided", async () => {
+			// Arrange
+			const providedConfig = {
+				embedderProvider: "openai",
+				openAiOptions: {
+					openAiNativeApiKey: "test-api-key",
+				},
+			}
+
+			// Act
+			const result = await factory.validateEmbedderConfig(providedConfig)
+
+			// Assert
+			expect(result).toBe(true)
+			expect(MockedOpenAiEmbedder.validateEndpoint).toHaveBeenCalledWith("test-api-key", undefined)
+		})
+	})
 })

@@ -8,6 +8,7 @@ import {
 } from "../constants"
 import { getDefaultModelId, getModelQueryPrefix } from "../../../shared/embeddingModels"
 import { t } from "../../../i18n"
+import { serializeError } from "serialize-error"
 
 interface EmbeddingItem {
 	embedding: string | number[]
@@ -50,10 +51,10 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 	 */
 	constructor(baseUrl: string, apiKey: string, modelId?: string, maxItemTokens?: number) {
 		if (!baseUrl) {
-			throw new Error("Base URL is required for OpenAI Compatible embedder")
+			throw new Error(t("embeddings:validation.baseUrlRequired", { provider: "OpenAI Compatible" }))
 		}
 		if (!apiKey) {
-			throw new Error("API key is required for OpenAI Compatible embedder")
+			throw new Error(t("embeddings:validation.apiKeyRequired", { provider: "OpenAI Compatible" }))
 		}
 
 		this.baseUrl = baseUrl
@@ -76,36 +77,40 @@ export class OpenAICompatibleEmbedder implements IEmbedder {
 	 * @returns Promise resolving to true if valid
 	 * @throws Error with descriptive message if validation fails
 	 */
-	static async validateEndpoint(baseUrl: string, apiKey: string, modelId?: string): Promise<boolean> {
+	static async validateEndpoint(baseUrl: string, apiKey: string, modelId: string | undefined): Promise<boolean> {
 		try {
 			const client = new OpenAI({
 				baseURL: baseUrl,
 				apiKey: apiKey,
 			})
 
-			const testModel = modelId || getDefaultModelId("openai-compatible")
+			const effectiveModelId = modelId || getDefaultModelId("openai-compatible")
 
 			// Try a minimal embedding request
 			await client.embeddings.create({
 				input: "test",
-				model: testModel,
+				model: effectiveModelId,
 			})
 
 			return true
 		} catch (error: any) {
-			let errorMessage = t("embeddings:unknownError")
+			const serialized = serializeError(error)
 
 			if (error?.status === 401) {
-				errorMessage = t("embeddings:authenticationFailed")
+				throw new Error(t("embeddings:authenticationFailed"))
 			} else if (error?.status === 404) {
-				errorMessage = `Endpoint not found: ${baseUrl}`
+				throw new Error(t("embeddings:validation.endpointNotFound", { baseUrl }))
 			} else if (error?.code === "ECONNREFUSED" || error?.code === "ENOTFOUND") {
-				errorMessage = `Cannot connect to ${baseUrl}`
-			} else if (error?.message) {
-				errorMessage = error.message
+				throw new Error(t("embeddings:validation.cannotConnect", { provider: "OpenAI Compatible", baseUrl }))
 			}
 
-			throw new Error(errorMessage)
+			const errorDetails = serialized.message || t("embeddings:unknownError")
+			throw new Error(
+				t("embeddings:genericError", {
+					provider: "OpenAI Compatible",
+					errorDetails,
+				}),
+			)
 		}
 	}
 

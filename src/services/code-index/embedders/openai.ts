@@ -8,8 +8,9 @@ import {
 	MAX_BATCH_RETRIES as MAX_RETRIES,
 	INITIAL_RETRY_DELAY_MS as INITIAL_DELAY_MS,
 } from "../constants"
-import { getModelQueryPrefix } from "../../../shared/embeddingModels"
+import { getModelQueryPrefix, getDefaultModelId } from "../../../shared/embeddingModels"
 import { t } from "../../../i18n"
+import { serializeError } from "serialize-error"
 
 /**
  * OpenAI implementation of the embedder interface with batching and rate limiting
@@ -200,7 +201,8 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 	 * @param modelId - The model ID to check
 	 * @returns A promise that resolves to true if valid, or throws an error with details
 	 */
-	static async validateEndpoint(apiKey: string, modelId: string): Promise<boolean> {
+	static async validateEndpoint(apiKey: string, modelId: string | undefined): Promise<boolean> {
+		const effectiveModelId = modelId || getDefaultModelId("openai")
 		const client = new OpenAI({ apiKey })
 
 		try {
@@ -211,24 +213,45 @@ export class OpenAiEmbedder extends OpenAiNativeHandler implements IEmbedder {
 			// Check if the specified embedding model exists or is a known model
 			const knownEmbeddingModels = ["text-embedding-3-small", "text-embedding-3-large", "text-embedding-ada-002"]
 
-			if (!modelIds.includes(modelId) && !knownEmbeddingModels.includes(modelId)) {
+			if (!modelIds.includes(effectiveModelId) && !knownEmbeddingModels.includes(effectiveModelId)) {
 				throw new Error(
-					`Model '${modelId}' not found. Available embedding models: ${knownEmbeddingModels.join(", ")}`,
+					t("embeddings:validation.modelNotFound", {
+						modelId: effectiveModelId,
+						availableModels: knownEmbeddingModels.join(", "),
+					}),
 				)
 			}
 
 			return true
 		} catch (error: any) {
+			// If it's already a translated error, re-throw it
+			if (
+				error?.message?.includes(
+					t("embeddings:validation.modelNotFound", { modelId: "", availableModels: "" }).split(":")[0],
+				)
+			) {
+				throw error
+			}
+
+			const serialized = serializeError(error)
+
 			if (error?.status === 401) {
-				throw new Error("Invalid API key. Please check your OpenAI API key.")
+				throw new Error(t("embeddings:validation.invalidApiKey", { provider: "OpenAI" }))
 			}
 			if (error?.status === 429) {
-				throw new Error("Rate limit exceeded. Please try again later.")
+				throw new Error(t("embeddings:validation.rateLimitExceeded"))
 			}
 			if (error?.message?.includes("fetch failed") || error?.message?.includes("ECONNREFUSED")) {
-				throw new Error("Network error. Please check your internet connection.")
+				throw new Error(t("embeddings:validation.networkError"))
 			}
-			throw new Error(`Failed to validate OpenAI configuration: ${error?.message || "Unknown error"}`)
+
+			const errorDetails = serialized.message || t("embeddings:unknownError")
+			throw new Error(
+				t("embeddings:genericError", {
+					provider: "OpenAI",
+					errorDetails: `${t("embeddings:validation.configurationFailed", { provider: "OpenAI" })}: ${errorDetails}`,
+				}),
+			)
 		}
 	}
 }

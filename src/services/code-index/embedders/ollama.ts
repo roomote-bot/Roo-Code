@@ -1,8 +1,9 @@
 import { ApiHandlerOptions } from "../../../shared/api"
 import { EmbedderInfo, EmbeddingResponse, IEmbedder } from "../interfaces"
-import { getModelQueryPrefix } from "../../../shared/embeddingModels"
+import { getModelQueryPrefix, getDefaultModelId } from "../../../shared/embeddingModels"
 import { MAX_ITEM_TOKENS } from "../constants"
 import { t } from "../../../i18n"
+import { serializeError } from "serialize-error"
 
 /**
  * Implements the IEmbedder interface using a local Ollama instance.
@@ -113,7 +114,8 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 	 * @param modelId - The model ID to check
 	 * @returns A promise that resolves to true if valid, or throws an error with details
 	 */
-	static async validateEndpoint(baseUrl: string, modelId: string): Promise<boolean> {
+	static async validateEndpoint(baseUrl: string, modelId: string | undefined): Promise<boolean> {
+		const effectiveModelId = modelId || getDefaultModelId("ollama")
 		const url = `${baseUrl}/api/tags`
 
 		try {
@@ -126,9 +128,15 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 
 			if (!response.ok) {
 				if (response.status === 404) {
-					throw new Error(`Ollama API not found at ${baseUrl}. Is Ollama running?`)
+					throw new Error(t("embeddings:validation.apiNotFound", { provider: "Ollama", baseUrl }))
 				}
-				throw new Error(`Failed to connect to Ollama: ${response.status} ${response.statusText}`)
+				throw new Error(
+					t("embeddings:validation.connectionFailed", {
+						provider: "Ollama",
+						status: response.status,
+						statusText: response.statusText,
+					}),
+				)
 			}
 
 			const data = await response.json()
@@ -136,16 +144,47 @@ export class CodeIndexOllamaEmbedder implements IEmbedder {
 			const modelNames = models.map((m: any) => m.name)
 
 			// Check if the specified model exists
-			if (!modelNames.includes(modelId)) {
-				throw new Error(`Model '${modelId}' not found. Available models: ${modelNames.join(", ") || "none"}`)
+			if (!modelNames.includes(effectiveModelId)) {
+				throw new Error(
+					t("embeddings:validation.modelNotFound", {
+						modelId: effectiveModelId,
+						availableModels: modelNames.join(", ") || "none",
+					}),
+				)
 			}
 
 			return true
 		} catch (error: any) {
-			if (error.message.includes("fetch failed") || error.message.includes("ECONNREFUSED")) {
-				throw new Error(`Cannot connect to Ollama at ${baseUrl}. Please ensure Ollama is running.`)
+			// If it's already a translated error, re-throw it
+			if (
+				error?.message?.includes(
+					t("embeddings:validation.modelNotFound", { modelId: "", availableModels: "" }).split(":")[0],
+				) ||
+				error?.message?.includes(
+					t("embeddings:validation.apiNotFound", { provider: "", baseUrl: "" }).split(":")[0],
+				) ||
+				error?.message?.includes(
+					t("embeddings:validation.connectionFailed", { provider: "", status: "", statusText: "" }).split(
+						":",
+					)[0],
+				)
+			) {
+				throw error
 			}
-			throw error
+
+			const serialized = serializeError(error)
+
+			if (error.message?.includes("fetch failed") || error.message?.includes("ECONNREFUSED")) {
+				throw new Error(t("embeddings:validation.cannotConnect", { provider: "Ollama", baseUrl }))
+			}
+
+			const errorDetails = serialized.message || t("embeddings:unknownError")
+			throw new Error(
+				t("embeddings:genericError", {
+					provider: "Ollama",
+					errorDetails,
+				}),
+			)
 		}
 	}
 }

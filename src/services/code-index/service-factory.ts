@@ -10,6 +10,7 @@ import { ICodeParser, IEmbedder, IFileWatcher, IVectorStore } from "./interfaces
 import { CodeIndexConfigManager } from "./config-manager"
 import { CacheManager } from "./cache-manager"
 import { Ignore } from "ignore"
+import { t } from "../../i18n"
 
 /**
  * Factory class responsible for creating and configuring code indexing service dependencies.
@@ -31,7 +32,7 @@ export class CodeIndexServiceFactory {
 
 		if (provider === "openai") {
 			if (!config.openAiOptions?.openAiNativeApiKey) {
-				throw new Error("OpenAI API key is required. Please configure it in the settings.")
+				throw new Error(t("codeIndex:openAiApiKeyRequired"))
 			}
 			return new OpenAiEmbedder({
 				...config.openAiOptions,
@@ -39,7 +40,7 @@ export class CodeIndexServiceFactory {
 			})
 		} else if (provider === "ollama") {
 			if (!config.ollamaOptions?.ollamaBaseUrl) {
-				throw new Error("Ollama base URL is required. Please configure it in the settings.")
+				throw new Error(t("codeIndex:ollamaBaseUrlRequired"))
 			}
 			return new CodeIndexOllamaEmbedder({
 				...config.ollamaOptions,
@@ -50,9 +51,7 @@ export class CodeIndexServiceFactory {
 				const missing = []
 				if (!config.openAiCompatibleOptions?.baseUrl) missing.push("base URL")
 				if (!config.openAiCompatibleOptions?.apiKey) missing.push("API key")
-				throw new Error(
-					`OpenAI-compatible ${missing.join(" and ")} required. Please configure in the settings.`,
-				)
+				throw new Error(t("codeIndex:openAiCompatibleConfigRequired", { missing: missing.join(" and ") }))
 			}
 			return new OpenAICompatibleEmbedder(
 				config.openAiCompatibleOptions.baseUrl,
@@ -66,45 +65,52 @@ export class CodeIndexServiceFactory {
 			return new GeminiEmbedder(config.geminiOptions.apiKey)
 		}
 
-		throw new Error(`Invalid embedder type configured: ${config.embedderProvider}`)
+		throw new Error(t("codeIndex:invalidEmbedderType", { provider: config.embedderProvider }))
 	}
 
 	/**
 	 * Validates the embedder configuration by testing the connection.
+	 * @param config - The configuration to validate (optional, defaults to current config)
 	 * @returns A promise that resolves to true if valid, or throws an error with details
 	 */
-	public async validateEmbedderConfig(): Promise<boolean> {
-		const config = this.configManager.getConfig()
-		const provider = config.embedderProvider as EmbedderProvider
-
+	public async validateEmbedderConfig(config?: any): Promise<boolean> {
 		try {
+			// Use provided config or fall back to current config
+			const configToValidate = config || this.configManager.getConfig()
+			const provider = configToValidate.embedderProvider as EmbedderProvider
+
 			if (provider === "openai") {
-				if (!config.openAiOptions?.openAiNativeApiKey) {
-					throw new Error("OpenAI API key is required")
+				if (!configToValidate.openAiOptions?.openAiNativeApiKey) {
+					throw new Error(t("codeIndex:openAiApiKeyRequiredValidation"))
 				}
-				const modelId = config.modelId || "text-embedding-3-small"
-				return await OpenAiEmbedder.validateEndpoint(config.openAiOptions.openAiNativeApiKey, modelId)
+				return await OpenAiEmbedder.validateEndpoint(
+					configToValidate.openAiOptions.openAiNativeApiKey,
+					configToValidate.modelId,
+				)
 			} else if (provider === "ollama") {
-				if (!config.ollamaOptions?.ollamaBaseUrl) {
-					throw new Error("Ollama base URL is required")
+				if (!configToValidate.ollamaOptions?.ollamaBaseUrl) {
+					throw new Error(t("codeIndex:ollamaBaseUrlRequiredValidation"))
 				}
-				const modelId = config.modelId || "nomic-embed-text:latest"
-				return await CodeIndexOllamaEmbedder.validateEndpoint(config.ollamaOptions.ollamaBaseUrl, modelId)
+				return await CodeIndexOllamaEmbedder.validateEndpoint(
+					configToValidate.ollamaOptions.ollamaBaseUrl,
+					configToValidate.modelId,
+				)
 			} else if (provider === "openai-compatible") {
-				if (!config.openAiCompatibleOptions?.baseUrl || !config.openAiCompatibleOptions?.apiKey) {
-					throw new Error("OpenAI-compatible base URL and API key are required")
+				if (
+					!configToValidate.openAiCompatibleOptions?.baseUrl ||
+					!configToValidate.openAiCompatibleOptions?.apiKey
+				) {
+					throw new Error(t("codeIndex:openAiCompatibleConfigRequiredValidation"))
 				}
-				const modelId = config.modelId || "text-embedding-3-small"
 				return await OpenAICompatibleEmbedder.validateEndpoint(
-					config.openAiCompatibleOptions.baseUrl,
-					config.openAiCompatibleOptions.apiKey,
-					modelId,
+					configToValidate.openAiCompatibleOptions.baseUrl,
+					configToValidate.openAiCompatibleOptions.apiKey,
+					configToValidate.modelId,
 				)
 			}
-			throw new Error(`Invalid embedder type: ${provider}`)
-		} catch (error: any) {
-			// Re-throw with more context
-			throw new Error(`${provider} validation failed: ${error.message}`)
+			throw new Error(t("codeIndex:invalidEmbedderTypeValidation", { provider }))
+		} catch (error) {
+			throw new Error(t("codeIndex:embedderValidationFailed", { error: error.message }))
 		}
 	}
 
@@ -136,18 +142,16 @@ export class CodeIndexServiceFactory {
 		}
 
 		if (vectorSize === undefined) {
-			let errorMessage = `Could not determine vector dimension for model '${modelId}' with provider '${provider}'. `
 			if (provider === "openai-compatible") {
-				errorMessage += `Please ensure the 'Embedding Dimension' is correctly set in the OpenAI-Compatible provider settings.`
+				throw new Error(t("codeIndex:vectorDimensionErrorOpenAiCompatible", { modelId, provider }))
 			} else {
-				errorMessage += `Check model profiles or configuration.`
+				throw new Error(t("codeIndex:vectorDimensionErrorGeneral", { modelId, provider }))
 			}
-			throw new Error(errorMessage)
 		}
 
 		if (!config.qdrantUrl) {
 			// This check remains important
-			throw new Error("Qdrant URL missing for vector store creation")
+			throw new Error(t("codeIndex:qdrantUrlMissing"))
 		}
 
 		// Assuming constructor is updated: new QdrantVectorStore(workspacePath, url, vectorSize, apiKey?)
@@ -195,7 +199,7 @@ export class CodeIndexServiceFactory {
 		fileWatcher: IFileWatcher
 	} {
 		if (!this.configManager.isFeatureConfigured) {
-			throw new Error("Cannot create services: Code indexing is not properly configured")
+			throw new Error(t("codeIndex:servicesNotConfigured"))
 		}
 
 		const embedder = this.createEmbedder()
