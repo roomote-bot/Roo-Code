@@ -741,8 +741,6 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		let imageBlocks: Anthropic.ImageBlockParam[] = formatResponse.imageBlocks(images)
 
-		console.log(`[subtasks] task ${this.taskId}.${this.instanceId} starting`)
-
 		await this.initiateTaskLoop([
 			{
 				type: "text",
@@ -1007,8 +1005,6 @@ export class Task extends EventEmitter<ClineEvents> {
 		}
 
 		await this.overwriteApiConversationHistory(modifiedApiConversationHistory)
-
-		console.log(`[subtasks] task ${this.taskId}.${this.instanceId} resuming from history item`)
 
 		await this.initiateTaskLoop(newUserContent)
 	}
@@ -1289,7 +1285,6 @@ export class Task extends EventEmitter<ClineEvents> {
 					// lastMessage.ts = Date.now() DO NOT update ts since it is used as a key for virtuoso list
 					lastMessage.partial = false
 					// instead of streaming partialMessage events, we do a save and post like normal to persist to disk
-					console.log("updating partial message", lastMessage)
 					// await this.saveClineMessages()
 				}
 
