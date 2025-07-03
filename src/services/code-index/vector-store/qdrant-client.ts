@@ -5,7 +5,6 @@ import { getWorkspacePath } from "../../../utils/path"
 import { IVectorStore } from "../interfaces/vector-store"
 import { Payload, VectorStoreSearchResult } from "../interfaces"
 import { MAX_SEARCH_RESULTS, SEARCH_MIN_SCORE } from "../constants"
-import { t } from "../../../i18n"
 
 /**
  * Qdrant implementation of the vector store interface
@@ -205,9 +204,7 @@ export class QdrantVectorStore implements IVectorStore {
 			)
 
 			// Provide a more user-friendly error message that includes the original error
-			throw new Error(
-				t("embeddings:vectorStore.qdrantConnectionFailed", { qdrantUrl: this.qdrantUrl, errorMessage }),
-			)
+			throw new Error(`Failed to connect to Qdrant at ${this.qdrantUrl}: ${errorMessage}`)
 		}
 	}
 
