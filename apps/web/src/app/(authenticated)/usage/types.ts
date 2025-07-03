@@ -1,3 +1,8 @@
+// Re-export types and helpers from shared analytics types
+export type { FilterType, Filter, FilterState } from '@/types/analytics';
+
+export { filterExists, groupFiltersByType } from '@/types/analytics';
+
 export const viewModes = [
   'developers',
   'models',
@@ -6,9 +11,3 @@ export const viewModes = [
 ] as const;
 
 export type ViewMode = (typeof viewModes)[number];
-
-export type Filter = {
-  type: 'userId' | 'model' | 'repositoryName';
-  value: string;
-  label: string;
-};

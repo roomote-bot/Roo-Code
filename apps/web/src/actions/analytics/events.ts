@@ -8,6 +8,8 @@ import {
 } from '@roo-code/types';
 
 import type { AnyTimePeriod } from '@/types';
+import type { Filter } from '@/types/analytics';
+import { buildFilterConditions } from '@/types/analytics';
 import { analytics } from '@/lib/server';
 import { tokenSumSql } from '@/lib';
 import { type User, getUsersById } from '@roo-code-cloud/db/server';
@@ -178,10 +180,12 @@ export const getDeveloperUsage = async ({
   orgId,
   timePeriod = 90,
   userId,
+  filters = [],
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
   userId?: string | null;
+  filters?: Filter[];
 }): Promise<DeveloperUsage[]> => {
   await authorizeAnalytics({
     requestedOrgId: orgId,
@@ -207,6 +211,9 @@ export const getDeveloperUsage = async ({
     queryParams.userId = userId;
   }
 
+  // Build filter conditions using shared helper
+  const filterClause = buildFilterConditions(filters, queryParams);
+
   const results = await analytics.query({
     query: `
       SELECT
@@ -221,6 +228,7 @@ export const getDeveloperUsage = async ({
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
         ${userFilter}
+        ${filterClause}
       GROUP BY 1
     `,
     format: 'JSONEachRow',
@@ -245,10 +253,12 @@ export const getRepositoryUsage = async ({
   orgId,
   timePeriod = 90,
   userId,
+  filters = [],
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
   userId?: string | null;
+  filters?: Filter[];
 }): Promise<RepositoryUsage[]> => {
   await authorizeAnalytics({
     requestedOrgId: orgId,
@@ -274,6 +284,9 @@ export const getRepositoryUsage = async ({
     queryParams.userId = userId;
   }
 
+  // Build filter conditions using shared helper
+  const filterClause = buildFilterConditions(filters, queryParams);
+
   const results = await analytics.query({
     query: `
       SELECT
@@ -291,6 +304,7 @@ export const getRepositoryUsage = async ({
         AND type IN ({types: Array(String)})
         AND repositoryName IS NOT NULL
         ${userFilter}
+        ${filterClause}
       GROUP BY repositoryName
     `,
     format: 'JSONEachRow',
@@ -318,10 +332,12 @@ export const getModelUsage = async ({
   orgId,
   timePeriod = 90,
   userId,
+  filters = [],
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
   userId?: string | null;
+  filters?: Filter[];
 }): Promise<ModelUsage[]> => {
   await authorizeAnalytics({
     requestedOrgId: orgId,
@@ -349,6 +365,9 @@ export const getModelUsage = async ({
     queryParams.userId = userId;
   }
 
+  // Build filter conditions using shared helper
+  const filterClause = buildFilterConditions(filters, queryParams);
+
   const results = await analytics.query({
     query: `
       SELECT
@@ -364,6 +383,7 @@ export const getModelUsage = async ({
         AND type IN ({types: Array(String)})
         AND modelId IS NOT NULL
         ${userFilter}
+        ${filterClause}
       GROUP BY 1, 2
     `,
     format: 'JSONEachRow',
@@ -409,8 +429,7 @@ export const getTasks = async ({
   skipAuth = false,
   limit = 20,
   cursor,
-  filterType,
-  filterValue,
+  filters = [],
 }: {
   orgId?: string | null;
   userId?: string | null;
@@ -419,8 +438,7 @@ export const getTasks = async ({
   skipAuth?: boolean;
   limit?: number;
   cursor?: number;
-  filterType?: 'userId' | 'model' | 'repositoryName';
-  filterValue?: string;
+  filters?: Filter[];
 }): Promise<TasksResult> => {
   let effectiveUserId = userId;
 
@@ -480,27 +498,8 @@ export const getTasks = async ({
     queryParams.cursor = cursor;
   }
 
-  // Add filter parameters
-  if (filterType && filterValue) {
-    if (filterType === 'userId') {
-      queryParams.filterUserId = filterValue;
-    } else if (filterType === 'model') {
-      queryParams.filterModel = filterValue;
-    } else if (filterType === 'repositoryName') {
-      queryParams.filterRepository = filterValue;
-    }
-  }
-
-  // Build filter conditions
-  const filterConditions = [];
-  if (filterType === 'userId' && filterValue) {
-    filterConditions.push('AND e.userId = {filterUserId: String}');
-  } else if (filterType === 'model' && filterValue) {
-    filterConditions.push('AND e.modelId = {filterModel: String}');
-  } else if (filterType === 'repositoryName' && filterValue) {
-    filterConditions.push('AND e.repositoryName = {filterRepository: String}');
-  }
-  const filterClause = filterConditions.join(' ');
+  // Build filter conditions using shared helper
+  const filterClause = buildFilterConditions(filters, queryParams, 'e');
 
   // TODO: Handle same-timestamp edge cases
   // Currently using only timestamp as cursor, but this can miss/duplicate tasks
@@ -600,10 +599,12 @@ export const getHourlyUsageByUser = async ({
   orgId,
   timePeriod = 90,
   userId,
+  filters = [],
 }: {
   orgId?: string | null;
   timePeriod?: AnyTimePeriod;
   userId?: string | null;
+  filters?: Filter[];
 }): Promise<HourlyUsageByUser[]> => {
   const { effectiveUserId } = await authorizeAnalytics({
     requestedOrgId: orgId,
@@ -637,6 +638,9 @@ export const getHourlyUsageByUser = async ({
     queryParams.userId = effectiveUserId;
   }
 
+  // Build filter conditions using shared helper
+  const filterClause = buildFilterConditions(filters, queryParams);
+
   const results = await analytics.query({
     query: `
       SELECT
@@ -651,6 +655,7 @@ export const getHourlyUsageByUser = async ({
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
         ${userFilter}
+        ${filterClause}
       GROUP BY 1, 2
       ORDER BY hour_utc DESC, userId
     `,

@@ -283,11 +283,18 @@ const processDailyDataForChart = (
   });
 };
 
+type Filter = {
+  type: 'userId' | 'model' | 'repositoryName';
+  value: string;
+  label: string;
+};
+
 interface UsageChartProps {
   timePeriodConfig: TimePeriodConfig;
   selectedMetric?: MetricType;
   userRole?: 'admin' | 'member';
   currentUserId?: string | null;
+  filters?: Filter[];
 }
 
 // Custom tick components for theme-aware labels
@@ -463,6 +470,7 @@ export const UsageChart = ({
   selectedMetric = 'tasks',
   userRole = 'admin',
   currentUserId,
+  filters = [],
 }: UsageChartProps) => {
   const { orgId } = useAuth();
   const [isClient, setIsClient] = useState(false);
@@ -480,12 +488,14 @@ export const UsageChart = ({
       timePeriodConfig.value,
       timePeriodConfig.granularity,
       userRole === 'member' || !orgId ? currentUserId : null,
+      filters,
     ],
     queryFn: () =>
       getHourlyUsageByUser({
         orgId,
         timePeriod: timePeriodConfig.value,
         userId: userRole === 'member' || !orgId ? currentUserId : undefined,
+        filters,
       }),
     enabled: !!orgId || (!orgId && !!currentUserId), // Run for org context OR personal context with userId
   });

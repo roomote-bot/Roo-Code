@@ -12,14 +12,16 @@ import type { Filter } from './types';
 
 export const Models = ({
   onFilter,
+  filters = [],
 }: {
   onFilter: (filter: Filter) => void;
+  filters?: Filter[];
 }) => {
   const { orgId } = useAuth();
 
   const { data = [], isPending } = useQuery({
-    queryKey: ['getModelUsage', orgId],
-    queryFn: () => getModelUsage({ orgId }),
+    queryKey: ['getModelUsage', orgId, filters],
+    queryFn: () => getModelUsage({ orgId, filters }),
     enabled: !!orgId,
   });
 

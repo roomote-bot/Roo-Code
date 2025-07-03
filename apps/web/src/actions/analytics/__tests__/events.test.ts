@@ -58,62 +58,63 @@ describe('getTasks with filters', () => {
   it('should include userId filter in query parameters', async () => {
     await getTasks({
       orgId: 'test-org',
-      filterType: 'userId',
-      filterValue: 'filter-user-id',
+      filters: [
+        { type: 'userId', value: 'filter-user-id', label: 'Test User' },
+      ],
       limit: 20,
     });
 
     expect(mockQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         query_params: expect.objectContaining({
-          filterUserId: 'filter-user-id',
+          filter0: 'filter-user-id',
         }),
       }),
     );
 
     const queryCall = mockQuery.mock.calls[0]?.[0];
-    expect(queryCall?.query).toContain('AND e.userId = {filterUserId: String}');
+    expect(queryCall?.query).toContain('AND e.userId = {filter0: String}');
   });
 
   it('should include model filter in query parameters', async () => {
     await getTasks({
       orgId: 'test-org',
-      filterType: 'model',
-      filterValue: 'gpt-4',
+      filters: [{ type: 'model', value: 'gpt-4', label: 'GPT-4' }],
       limit: 20,
     });
 
     expect(mockQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         query_params: expect.objectContaining({
-          filterModel: 'gpt-4',
+          filter0: 'gpt-4',
         }),
       }),
     );
 
     const queryCall = mockQuery.mock.calls[0]?.[0];
-    expect(queryCall?.query).toContain('AND e.modelId = {filterModel: String}');
+    expect(queryCall?.query).toContain('AND e.modelId = {filter0: String}');
   });
 
   it('should include repository filter in query parameters', async () => {
     await getTasks({
       orgId: 'test-org',
-      filterType: 'repositoryName',
-      filterValue: 'test-repo',
+      filters: [
+        { type: 'repositoryName', value: 'test-repo', label: 'test-repo' },
+      ],
       limit: 20,
     });
 
     expect(mockQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         query_params: expect.objectContaining({
-          filterRepository: 'test-repo',
+          filter0: 'test-repo',
         }),
       }),
     );
 
     const queryCall = mockQuery.mock.calls[0]?.[0];
     expect(queryCall?.query).toContain(
-      'AND e.repositoryName = {filterRepository: String}',
+      'AND e.repositoryName = {filter0: String}',
     );
   });
 
@@ -124,16 +125,15 @@ describe('getTasks with filters', () => {
     });
 
     const queryCall = mockQuery.mock.calls[0]?.[0];
-    expect(queryCall?.query).not.toContain('filterUserId');
-    expect(queryCall?.query).not.toContain('filterModel');
-    expect(queryCall?.query).not.toContain('filterRepository');
+    expect(queryCall?.query).not.toContain('filter0');
+    expect(queryCall?.query).not.toContain('filter1');
+    expect(queryCall?.query).not.toContain('filter2');
   });
 
   it('should return properly formatted tasks with user data', async () => {
     const result = await getTasks({
       orgId: 'test-org',
-      filterType: 'model',
-      filterValue: 'gpt-4',
+      filters: [{ type: 'model', value: 'gpt-4', label: 'GPT-4' }],
       limit: 20,
     });
 

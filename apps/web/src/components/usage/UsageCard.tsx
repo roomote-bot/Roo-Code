@@ -27,14 +27,22 @@ import { UsageChart } from './UsageChart';
 
 type MetricType = 'tasks' | 'tokens' | 'cost';
 
+type Filter = {
+  type: 'userId' | 'model' | 'repositoryName';
+  value: string;
+  label: string;
+};
+
 type UsageCardProps = {
   userRole?: 'admin' | 'member';
   currentUserId?: string | null;
+  filters?: Filter[];
 };
 
 export const UsageCard = ({
   userRole = 'admin',
   currentUserId,
+  filters = [],
 }: UsageCardProps) => {
   const t = useTranslations('DashboardIndex');
   const { orgId } = useAuth();
@@ -187,6 +195,7 @@ export const UsageCard = ({
               selectedMetric={selectedMetric}
               userRole={userRole}
               currentUserId={currentUserId}
+              filters={filters}
             />
           )}
         </div>

@@ -17,14 +17,16 @@ import type { Filter } from './types';
 
 export const Developers = ({
   onFilter,
+  filters = [],
 }: {
   onFilter: (filter: Filter) => void;
+  filters?: Filter[];
 }) => {
   const { orgId } = useAuth();
 
   const { data = [], isPending } = useQuery({
-    queryKey: ['getDeveloperUsage', orgId],
-    queryFn: () => getDeveloperUsage({ orgId }),
+    queryKey: ['getDeveloperUsage', orgId, filters],
+    queryFn: () => getDeveloperUsage({ orgId, filters }),
     enabled: !!orgId,
   });
 

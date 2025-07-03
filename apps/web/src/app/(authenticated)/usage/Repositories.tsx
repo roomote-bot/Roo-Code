@@ -18,14 +18,16 @@ import type { Filter } from './types';
 
 export const Repositories = ({
   onFilter,
+  filters = [],
 }: {
   onFilter: (filter: Filter) => void;
+  filters?: Filter[];
 }) => {
   const { orgId } = useAuth();
 
   const { data = [], isPending } = useQuery({
-    queryKey: ['getRepositoryUsage', orgId],
-    queryFn: () => getRepositoryUsage({ orgId }),
+    queryKey: ['getRepositoryUsage', orgId, filters],
+    queryFn: () => getRepositoryUsage({ orgId, filters }),
     enabled: !!orgId,
   });
 

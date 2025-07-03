@@ -3,19 +3,19 @@
 import { useState, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
 import { useUser } from '@clerk/nextjs';
-import { X } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
-import { Badge, Button } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { UsageCard } from '@/components/usage';
 import { Loading } from '@/components/layout';
 
-import { type Filter, type ViewMode, viewModes } from './types';
+import { type Filter, type ViewMode, viewModes, filterExists } from './types';
 import { Developers } from './Developers';
 import { Models } from './Models';
 import { Repositories } from './Repositories';
 import { Tasks } from './Tasks';
 import { TaskModal } from './TaskModal';
+import { UsageFilters } from './UsageFilters';
 
 type UsageProps = {
   userRole?: 'admin' | 'member';
@@ -26,12 +26,30 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
   const { isSignedIn } = useUser();
   const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
-  const [filter, setFilter] = useState<Filter | null>(null);
+  const [filters, setFilters] = useState<Filter[]>([]);
   const [task, setTask] = useState<TaskWithUser | null>(null);
 
-  const onFilter = useCallback((filter: Filter) => {
-    setFilter(filter);
+  const onAddFilter = useCallback((newFilter: Filter) => {
+    setFilters((currentFilters) => {
+      // Don't add if filter already exists
+      if (filterExists(currentFilters, newFilter)) {
+        return currentFilters;
+      }
+      return [...currentFilters, newFilter];
+    });
     setViewMode('tasks');
+  }, []);
+
+  const onRemoveFilter = useCallback((filterToRemove: Filter) => {
+    setFilters((currentFilters) =>
+      currentFilters.filter(
+        (filter) =>
+          !(
+            filter.type === filterToRemove.type &&
+            filter.value === filterToRemove.value
+          ),
+      ),
+    );
   }, []);
 
   // For members, automatically set filter to their user ID and hide other tabs.
@@ -39,10 +57,10 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
   const availableViewModes = isMember ? (['tasks'] as const) : viewModes;
 
   // Auto-apply user filter for members.
-  const effectiveFilter =
+  const effectiveFilters =
     isMember && currentUserId
-      ? { type: 'userId' as const, value: currentUserId, label: 'Your Tasks' }
-      : filter;
+      ? [{ type: 'userId' as const, value: currentUserId, label: 'Your Tasks' }]
+      : filters;
 
   if (!isSignedIn) {
     return <Loading />;
@@ -51,7 +69,11 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
   return (
     <>
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
-        <UsageCard userRole={userRole} currentUserId={currentUserId} />
+        <UsageCard
+          userRole={userRole}
+          currentUserId={currentUserId}
+          filters={effectiveFilters}
+        />
         {!isMember && (
           <div className="flex flex-wrap gap-2">
             {availableViewModes.map((mode) => (
@@ -67,36 +89,26 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
             ))}
           </div>
         )}
-        {filter && !isMember && (
-          <div className="flex flex-row">
-            <Badge variant="outline">
-              <span className="text-sm">
-                <strong>{filter.label}</strong>
-              </span>
-              <Button
-                variant="link"
-                size="icon"
-                onClick={() => setFilter(null)}
-              >
-                <X className="size-4" />
-              </Button>
-            </Badge>
-          </div>
+        {effectiveFilters.length > 0 && !isMember && (
+          <UsageFilters
+            filters={effectiveFilters}
+            onRemoveFilter={onRemoveFilter}
+          />
         )}
         {viewMode === 'tasks' ? (
           <Tasks
-            filter={effectiveFilter}
-            onFilter={isMember ? () => {} : onFilter}
+            filters={effectiveFilters}
+            onFilter={isMember ? () => {} : onAddFilter}
             onTaskSelected={(task: TaskWithUser) => setTask(task)}
             userRole={userRole}
             currentUserId={currentUserId}
           />
         ) : viewMode === 'developers' ? (
-          <Developers onFilter={onFilter} />
+          <Developers onFilter={onAddFilter} filters={effectiveFilters} />
         ) : viewMode === 'repositories' ? (
-          <Repositories onFilter={onFilter} />
+          <Repositories onFilter={onAddFilter} filters={effectiveFilters} />
         ) : (
-          <Models onFilter={onFilter} />
+          <Models onFilter={onAddFilter} filters={effectiveFilters} />
         )}
       </div>
       {task && (

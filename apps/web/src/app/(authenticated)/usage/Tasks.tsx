@@ -13,13 +13,13 @@ import { useCursorPagination } from '@/hooks/usePagination';
 import type { Filter } from './types';
 
 export const Tasks = ({
-  filter,
+  filters,
   onFilter,
   onTaskSelected,
   userRole = 'admin',
   currentUserId,
 }: {
-  filter: Filter | null;
+  filters: Filter[];
   onFilter: (filter: Filter) => void;
   onTaskSelected: (task: TaskWithUser) => void;
   userRole?: 'admin' | 'member';
@@ -40,8 +40,7 @@ export const Tasks = ({
       !orgId,
       pagination.currentCursor,
       pagination.pageSize,
-      filter?.type,
-      filter?.value,
+      filters, // Include all filters in query key for proper cache invalidation
     ],
     queryFn: () =>
       getTasks({
@@ -49,8 +48,7 @@ export const Tasks = ({
         userId: userRole === 'member' ? currentUserId : undefined,
         limit: pagination.pageSize,
         cursor: pagination.currentCursor,
-        filterType: filter?.type,
-        filterValue: filter?.value,
+        filters,
       }),
     enabled: true, // Run for both personal and organization context
     ...polling,
@@ -63,20 +61,23 @@ export const Tasks = ({
     }
   }, [data?.nextCursor, pagination]);
 
-  // Reset pagination when filter changes
-  const prevFilter = useRef<Filter | null>(null);
+  // Reset pagination when filters change
+  const prevFilters = useRef<Filter[]>([]);
   useEffect(() => {
-    const currentFilter = filter;
-    const hasFilterChanged =
-      prevFilter.current?.type !== currentFilter?.type ||
-      prevFilter.current?.value !== currentFilter?.value;
+    const hasFiltersChanged =
+      prevFilters.current.length !== filters.length ||
+      prevFilters.current.some(
+        (prevFilter, index) =>
+          prevFilter.type !== filters[index]?.type ||
+          prevFilter.value !== filters[index]?.value,
+      );
 
-    if (hasFilterChanged) {
+    if (hasFiltersChanged) {
       pagination.reset();
-      prevFilter.current = currentFilter;
+      prevFilters.current = [...filters];
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  }, [filters]);
 
   const tasks = data?.tasks || [];
 
