@@ -214,7 +214,8 @@ export class CodeIndexManager {
 		}
 
 		// Create new worker
-		const workerPath = path.join(__dirname, "workers/indexing-worker.js")
+		// Use the extension path from context to ensure we get the correct path in both dev and production
+		const workerPath = path.join(this.context.extensionPath, "dist/workers/indexing-worker.js")
 		this._worker = new Worker(workerPath)
 		this._workerReady = false
 
