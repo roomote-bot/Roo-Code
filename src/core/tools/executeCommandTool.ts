@@ -27,6 +27,7 @@ export async function executeCommandTool(
 ) {
 	let command: string | undefined = block.params.command
 	const customCwd: string | undefined = block.params.cwd
+	console.log("executeCommandTool", command)
 
 	try {
 		if (block.partial) {
