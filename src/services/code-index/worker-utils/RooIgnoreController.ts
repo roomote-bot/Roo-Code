@@ -12,6 +12,9 @@ export class RooIgnoreController {
 	private initialized = false
 
 	constructor(private workspacePath: string) {
+		if (!workspacePath || workspacePath.trim() === "") {
+			throw new Error("Workspace path cannot be empty")
+		}
 		this.rooIgnorePath = path.join(workspacePath, ".rooignore")
 		this.ignoreInstance = ignore()
 	}
@@ -48,7 +51,7 @@ export class RooIgnoreController {
 		}
 
 		const relativePath = path.relative(this.workspacePath, filePath)
-		return this.ignoreInstance.ignores(relativePath)
+		return relativePath ? this.ignoreInstance.ignores(relativePath) : false
 	}
 
 	/**
@@ -61,7 +64,7 @@ export class RooIgnoreController {
 
 		return paths.filter((filePath) => {
 			const relativePath = path.relative(this.workspacePath, filePath)
-			return !this.ignoreInstance.ignores(relativePath)
+			return relativePath ? !this.ignoreInstance.ignores(relativePath) : true
 		})
 	}
 

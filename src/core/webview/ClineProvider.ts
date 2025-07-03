@@ -124,7 +124,6 @@ export class ClineProvider
 	) {
 		super()
 
-		this.log("ClineProvider instantiated")
 		ClineProvider.activeInstances.add(this)
 
 		this.codeIndexManager = codeIndexManager
@@ -163,8 +162,6 @@ export class ClineProvider
 	// The instance is pushed to the top of the stack (LIFO order).
 	// When the task is completed, the top instance is removed, reactivating the previous task.
 	async addClineToStack(cline: Task) {
-		console.log(`[subtasks] adding task ${cline.taskId}.${cline.instanceId} to stack`)
-
 		// Add this cline instance into the stack that represents the order of all the called tasks.
 		this.clineStack.push(cline)
 
@@ -187,8 +184,6 @@ export class ClineProvider
 		let cline = this.clineStack.pop()
 
 		if (cline) {
-			console.log(`[subtasks] removing task ${cline.taskId}.${cline.instanceId} from stack`)
-
 			try {
 				// Abort the running task and set isAbandoned to true so
 				// all running promises will exit as well.
@@ -227,7 +222,6 @@ export class ClineProvider
 	// and resume the previous task/cline instance (if it exists)
 	// this is used when a sub task is finished and the parent task needs to be resumed
 	async finishSubTask(lastMessage: string) {
-		console.log(`[subtasks] finishing subtask ${lastMessage}`)
 		// remove the last cline instance from the stack (this is the finished sub task)
 		await this.removeClineFromStack()
 		// resume the last cline instance in the stack (if it exists - this is the 'parent' calling task)
@@ -255,13 +249,10 @@ export class ClineProvider
 	}
 
 	async dispose() {
-		this.log("Disposing ClineProvider...")
 		await this.removeClineFromStack()
-		this.log("Cleared task")
 
 		if (this.view && "dispose" in this.view) {
 			this.view.dispose()
-			this.log("Disposed webview")
 		}
 
 		this.clearWebviewResources()
@@ -280,7 +271,6 @@ export class ClineProvider
 		this.mcpHub = undefined
 		this.marketplaceManager?.cleanup()
 		this.customModesManager?.dispose()
-		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 
 		McpServerManager.unregisterProvider(this)
@@ -383,8 +373,6 @@ export class ClineProvider
 	}
 
 	async resolveWebviewView(webviewView: vscode.WebviewView | vscode.WebviewPanel) {
-		this.log("Resolving webview view")
-
 		this.view = webviewView
 
 		// Set panel reference according to webview type
@@ -485,10 +473,8 @@ export class ClineProvider
 		webviewView.onDidDispose(
 			async () => {
 				if (inTabMode) {
-					this.log("Disposing ClineProvider instance for tab view")
 					await this.dispose()
 				} else {
-					this.log("Clearing webview resources for sidebar view")
 					this.clearWebviewResources()
 					this.codeIndexStatusSubscription?.dispose()
 					this.codeIndexStatusSubscription = undefined
@@ -509,8 +495,6 @@ export class ClineProvider
 
 		// If the extension is starting a new session, clear previous task state.
 		await this.removeClineFromStack()
-
-		this.log("Webview view resolved")
 	}
 
 	public async initClineWithSubTask(parent: Task, task?: string, images?: string[]) {
@@ -565,10 +549,6 @@ export class ClineProvider
 
 		await this.addClineToStack(cline)
 
-		this.log(
-			`[subtasks] ${cline.parentTask ? "child" : "parent"} task ${cline.taskId}.${cline.instanceId} instantiated`,
-		)
-
 		return cline
 	}
 
@@ -598,9 +578,6 @@ export class ClineProvider
 		})
 
 		await this.addClineToStack(cline)
-		this.log(
-			`[subtasks] ${cline.parentTask ? "child" : "parent"} task ${cline.taskId}.${cline.instanceId} instantiated`,
-		)
 		return cline
 	}
 
@@ -618,11 +595,6 @@ export class ClineProvider
 
 			if (fs.existsSync(portFilePath)) {
 				localPort = fs.readFileSync(portFilePath, "utf8").trim()
-				console.log(`[ClineProvider:Vite] Using Vite server port from ${portFilePath}: ${localPort}`)
-			} else {
-				console.log(
-					`[ClineProvider:Vite] Port file not found at ${portFilePath}, using default port: ${localPort}`,
-				)
 			}
 		} catch (err) {
 			console.error("[ClineProvider:Vite] Failed to read Vite port file:", err)
@@ -965,8 +937,6 @@ export class ClineProvider
 			return
 		}
 
-		console.log(`[subtasks] cancelling task ${cline.taskId}.${cline.instanceId}`)
-
 		const { historyItem } = await this.getTaskWithId(cline.taskId)
 		// Preserve parent and root task information for history item.
 		const rootTask = cline.rootTask
@@ -1218,7 +1188,6 @@ export class ClineProvider
 			// delete the entire task directory including checkpoints and all content
 			try {
 				await fs.rm(taskDirPath, { recursive: true, force: true })
-				console.log(`[deleteTaskWithId${id}] removed task directory`)
 			} catch (error) {
 				console.error(
 					`[deleteTaskWithId${id}] failed to remove task directory: ${error instanceof Error ? error.message : String(error)}`,

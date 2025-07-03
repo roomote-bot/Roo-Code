@@ -310,7 +310,11 @@ export class Scanner {
 		private workspacePath: string,
 		private excludePatterns: string[] = [],
 		private includePatterns: string[] = [],
-	) {}
+	) {
+		if (!workspacePath || workspacePath.trim() === "") {
+			throw new Error("Workspace path cannot be empty")
+		}
+	}
 
 	/**
 	 * Scans the workspace for files to index
@@ -336,7 +340,7 @@ export class Scanner {
 				// Double-check exclusion patterns using ignore
 				const relativePath = path.relative(this.workspacePath, file)
 				const ig = ignore().add(allExcludePatterns)
-				const isExcluded = ig.ignores(relativePath)
+				const isExcluded = relativePath ? ig.ignores(relativePath) : false
 
 				if (!isExcluded && !files.includes(file)) {
 					files.push(file)

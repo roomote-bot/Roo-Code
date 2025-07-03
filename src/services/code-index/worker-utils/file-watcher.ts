@@ -25,6 +25,9 @@ export class FileWatcher {
 		private workspacePath: string,
 		private options: FileWatcherOptions = {},
 	) {
+		if (!workspacePath || workspacePath.trim() === "") {
+			throw new Error("Workspace path cannot be empty")
+		}
 		// Initialize ignore instance with exclude patterns
 		this.ignoreInstance = ignore()
 		if (options.excludePatterns) {
@@ -45,7 +48,7 @@ export class FileWatcher {
 			cwd: this.workspacePath,
 			ignored: (filePath: string) => {
 				const relativePath = path.relative(this.workspacePath, filePath)
-				return this.ignoreInstance.ignores(relativePath)
+				return relativePath ? this.ignoreInstance.ignores(relativePath) : false
 			},
 			persistent: true,
 			ignoreInitial: true,
@@ -112,7 +115,7 @@ export class FileWatcher {
 		const relativePath = path.relative(this.workspacePath, filePath)
 
 		// Check if ignored
-		if (this.ignoreInstance.ignores(relativePath)) {
+		if (relativePath && this.ignoreInstance.ignores(relativePath)) {
 			return false
 		}
 

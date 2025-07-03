@@ -23,6 +23,11 @@ export class QdrantVectorStore implements IVectorStore {
 	 * @param url Optional URL to the Qdrant server
 	 */
 	constructor(workspacePath: string, url: string, vectorSize: number, apiKey?: string) {
+		// Validate workspacePath is not empty
+		if (!workspacePath || workspacePath.trim() === "") {
+			throw new Error("Workspace path must not be empty")
+		}
+
 		// Parse the URL to determine the appropriate QdrantClient configuration
 		const parsedUrl = this.parseQdrantUrl(url)
 

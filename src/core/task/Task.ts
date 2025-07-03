@@ -1008,8 +1008,6 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		await this.overwriteApiConversationHistory(modifiedApiConversationHistory)
 
-		console.log(`[subtasks] task ${this.taskId}.${this.instanceId} resuming from history item`)
-
 		await this.initiateTaskLoop(newUserContent)
 	}
 
@@ -1067,8 +1065,6 @@ export class Task extends EventEmitter<ClineEvents> {
 	}
 
 	public async abortTask(isAbandoned = false) {
-		console.log(`[subtasks] aborting task ${this.taskId}.${this.instanceId}`)
-
 		// Will stop any autonomously running promises.
 		if (isAbandoned) {
 			this.abandoned = true
@@ -1383,8 +1379,6 @@ export class Task extends EventEmitter<ClineEvents> {
 					}
 
 					if (this.abort) {
-						console.log(`aborting stream, this.abandoned = ${this.abandoned}`)
-
 						if (!this.abandoned) {
 							// Only need to gracefully abort if this instance
 							// isn't abandoned (sometimes OpenRouter stream
@@ -1716,7 +1710,9 @@ export class Task extends EventEmitter<ClineEvents> {
 
 			const contextWindow = modelInfo.contextWindow
 
-			const currentProfileId = state?.listApiConfigMeta.find((profile) => profile.name === state?.currentApiConfigName)?.id ?? "default";
+			const currentProfileId =
+				state?.listApiConfigMeta.find((profile) => profile.name === state?.currentApiConfigName)?.id ??
+				"default"
 
 			const truncateResult = await truncateConversationIfNeeded({
 				messages: this.apiConversationHistory,

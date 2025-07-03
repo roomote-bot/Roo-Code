@@ -26,7 +26,7 @@ export class CodeIndexManager {
 	public static getInstance(context: vscode.ExtensionContext): CodeIndexManager | undefined {
 		const workspacePath = getWorkspacePath() // Assumes single workspace for now
 
-		if (!workspacePath) {
+		if (!workspacePath || workspacePath.trim() === "") {
 			return undefined
 		}
 
@@ -216,7 +216,14 @@ export class CodeIndexManager {
 		// Create new worker
 		// Use the extension path from context to ensure we get the correct path in both dev and production
 		const workerPath = path.join(this.context.extensionPath, "dist/workers/indexing-worker.js")
-		this._worker = new Worker(workerPath)
+
+		try {
+			this._worker = new Worker(workerPath)
+		} catch (error) {
+			console.error("[CodeIndexManager] Failed to create worker:", error)
+			throw error
+		}
+
 		this._workerReady = false
 
 		// Set up message handling
@@ -226,6 +233,7 @@ export class CodeIndexManager {
 
 		// Initialize the worker
 		const response = await this.sendWorkerCommand({ type: "initialize", config: workerConfig })
+
 		if (response.type === "initialized" && response.success) {
 			this._workerReady = true
 		} else {
@@ -266,7 +274,24 @@ export class CodeIndexManager {
 		const message: WorkerMessage<WorkerCommand> = { id, payload: command }
 
 		return new Promise((resolve, reject) => {
-			this._pendingMessages.set(id, { resolve, reject })
+			// Add a timeout to detect if the worker is not responding
+			const timeout = setTimeout(() => {
+				this._pendingMessages.delete(id)
+				reject(new Error(`Worker timeout for command: ${command.type}`))
+			}, 30000)
+
+			// Store the promise handlers with timeout cleanup
+			this._pendingMessages.set(id, {
+				resolve: (value) => {
+					clearTimeout(timeout)
+					resolve(value)
+				},
+				reject: (error) => {
+					clearTimeout(timeout)
+					reject(error)
+				},
+			})
+
 			this._worker!.postMessage(message)
 		})
 	}

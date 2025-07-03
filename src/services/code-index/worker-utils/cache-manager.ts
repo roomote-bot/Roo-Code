@@ -22,6 +22,11 @@ export class CacheManager implements ICacheManager {
 		private context: { globalStorageUri: { fsPath: string } },
 		private workspacePath: string,
 	) {
+		// Validate workspacePath is not empty
+		if (!workspacePath || workspacePath.trim() === "") {
+			throw new Error("Workspace path must not be empty")
+		}
+
 		const cacheFileName = `roo-index-cache-${createHash("sha256").update(workspacePath).digest("hex")}.json`
 		this.cachePath = path.join(context.globalStorageUri.fsPath, cacheFileName)
 

@@ -2,13 +2,14 @@ import { parentPort } from "worker_threads"
 import { WorkerCommand, WorkerResponse, WorkerMessage, WorkerInitConfig } from "../services/code-index/worker-messenger"
 import { CodeIndexStateManager } from "../services/code-index/worker-utils/state-manager"
 import { CacheManager } from "../services/code-index/worker-utils/cache-manager"
-import { Scanner } from "../services/code-index/worker-utils/scanner"
+import { Scanner as DirectoryScanner } from "../services/code-index/worker-utils/scanner"
 import { FileWatcher } from "../services/code-index/worker-utils/file-watcher"
 import { RooIgnoreController } from "../services/code-index/worker-utils/RooIgnoreController"
 import { VectorStoreSearchResult } from "../services/code-index/interfaces"
 import ignore from "ignore"
 import * as fs from "fs/promises"
 import * as path from "path"
+import { v5 as uuidv5 } from "uuid"
 
 // Import embedders and vector store directly
 import { OpenAiEmbedder } from "../services/code-index/embedders/openai"
@@ -17,12 +18,17 @@ import { OpenAICompatibleEmbedder } from "../services/code-index/embedders/opena
 import { QdrantVectorStore } from "../services/code-index/vector-store/qdrant-client"
 import { codeParser } from "../services/code-index/worker-utils/parser"
 import { EmbedderProvider, getDefaultModelId, getModelDimension } from "../shared/embeddingModels"
+import { QDRANT_CODE_BLOCK_NAMESPACE } from "../services/code-index/constants"
+import {
+	generateNormalizedAbsolutePath,
+	generateRelativeFilePath,
+} from "../services/code-index/worker-utils/get-relative-path"
 
 class IndexingWorker {
 	private config: WorkerInitConfig | null = null
 	private stateManager: CodeIndexStateManager | null = null
 	private cacheManager: CacheManager | null = null
-	private scanner: Scanner | null = null
+	private scanner: DirectoryScanner | null = null
 	private fileWatcher: FileWatcher | null = null
 	private embedder: any = null
 	private vectorStore: any = null
@@ -74,6 +80,7 @@ class IndexingWorker {
 					})
 			}
 		} catch (error) {
+			console.error("[IndexingWorker] Error handling message:", error)
 			this.sendResponse(id, {
 				type: "error",
 				error: error instanceof Error ? error.message : String(error),
@@ -84,67 +91,82 @@ class IndexingWorker {
 	private async initialize(config: WorkerInitConfig) {
 		this.config = config
 
-		// Initialize state manager
-		this.stateManager = new CodeIndexStateManager()
-
-		// Set up state change listeners to forward to main thread
-		this.stateManager.onProgressUpdate((status) => {
-			// Send progress updates based on the current unit
-			if (status.currentItemUnit === "files") {
-				this.sendResponse("progress", {
-					type: "progress",
-					processedInBatch: status.processedItems,
-					totalInBatch: status.totalItems,
-					currentFile: status.message.includes("Current:") ? status.message.split("Current: ")[1] : undefined,
-				})
-			} else if (status.currentItemUnit === "blocks") {
-				this.sendResponse("blockProgress", {
-					type: "blockProgress",
-					blocksIndexed: status.processedItems,
-					totalBlocks: status.totalItems,
-				})
+		try {
+			// Validate required configuration
+			if (!config.workspacePath || config.workspacePath.trim() === "") {
+				throw new Error("Workspace path is required for indexing")
 			}
 
-			// Always send status updates
-			this.sendResponse("status", {
-				type: "status",
-				state: status.systemStatus,
-				message: status.message,
+			// Initialize state manager
+			this.stateManager = new CodeIndexStateManager()
+
+			// Set up state change listeners to forward to main thread
+			this.stateManager.onProgressUpdate((status) => {
+				// Send progress updates based on the current unit
+				if (status.currentItemUnit === "files") {
+					this.sendResponse("progress", {
+						type: "progress",
+						processedInBatch: status.processedItems,
+						totalInBatch: status.totalItems,
+						currentFile: status.message.includes("Current:")
+							? status.message.split("Current: ")[1]
+							: undefined,
+					})
+				} else if (status.currentItemUnit === "blocks") {
+					this.sendResponse("blockProgress", {
+						type: "blockProgress",
+						blocksIndexed: status.processedItems,
+						totalBlocks: status.totalItems,
+					})
+				}
+
+				// Always send status updates
+				this.sendResponse("status", {
+					type: "status",
+					state: status.systemStatus,
+					message: status.message,
+				})
 			})
-		})
 
-		// Initialize cache manager
-		this.cacheManager = new CacheManager({ globalStorageUri: { fsPath: config.contextPath } }, config.workspacePath)
-		await this.cacheManager.initialize()
+			// Initialize cache manager
+			this.cacheManager = new CacheManager(
+				{ globalStorageUri: { fsPath: config.contextPath } },
+				config.workspacePath,
+			)
+			await this.cacheManager.initialize()
 
-		// Initialize embedder based on config
-		this.embedder = this.createEmbedder(config)
+			// Initialize embedder based on config
+			this.embedder = this.createEmbedder(config)
 
-		// Initialize vector store
-		this.vectorStore = this.createVectorStore(config)
+			// Initialize vector store
+			this.vectorStore = this.createVectorStore(config)
 
-		// Load .gitignore
-		this.ignoreInstance = ignore()
-		const ignorePath = path.join(config.workspacePath, ".gitignore")
-		try {
-			const content = await fs.readFile(ignorePath, "utf8")
-			this.ignoreInstance.add(content)
-			this.ignoreInstance.add(".gitignore")
+			// Load .gitignore
+			this.ignoreInstance = ignore()
+			const ignorePath = path.join(config.workspacePath, ".gitignore")
+			try {
+				const content = await fs.readFile(ignorePath, "utf8")
+				this.ignoreInstance.add(content)
+				this.ignoreInstance.add(".gitignore")
+			} catch (error) {
+				// Ignore error if .gitignore doesn't exist
+			}
+
+			// Initialize RooIgnoreController
+			this.rooIgnoreController = new RooIgnoreController(config.workspacePath)
+			await this.rooIgnoreController.initialize()
+
+			// Initialize scanner
+			this.scanner = new DirectoryScanner(config.workspacePath)
+
+			// Initialize file watcher
+			this.fileWatcher = new FileWatcher(config.workspacePath, {
+				excludePatterns: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/out/**"],
+			})
 		} catch (error) {
-			console.error("Failed to load .gitignore:", error)
+			console.error("[IndexingWorker] Initialization error:", error)
+			throw error
 		}
-
-		// Initialize RooIgnoreController
-		this.rooIgnoreController = new RooIgnoreController(config.workspacePath)
-		await this.rooIgnoreController.initialize()
-
-		// Initialize scanner
-		this.scanner = new Scanner(config.workspacePath)
-
-		// Initialize file watcher
-		this.fileWatcher = new FileWatcher(config.workspacePath, {
-			excludePatterns: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/out/**"],
-		})
 	}
 
 	private createEmbedder(config: WorkerInitConfig): any {
@@ -282,16 +304,28 @@ class IndexingWorker {
 						const { embeddings } = await this.embedder.createEmbeddings(texts)
 
 						// Prepare points for vector store
-						const points = blocks.map((block, index) => ({
-							id: `${block.file_path}:${block.start_line}`,
-							vector: embeddings[index],
-							payload: {
-								filePath: block.file_path,
-								codeChunk: block.content,
-								startLine: block.start_line,
-								endLine: block.end_line,
-							},
-						}))
+						const points = blocks.map((block, index) => {
+							const normalizedAbsolutePath = generateNormalizedAbsolutePath(
+								block.file_path,
+								this.config!.workspacePath,
+							)
+							const stableName = `${normalizedAbsolutePath}:${block.start_line}`
+							const pointId = uuidv5(stableName, QDRANT_CODE_BLOCK_NAMESPACE)
+
+							return {
+								id: pointId,
+								vector: embeddings[index],
+								payload: {
+									filePath: generateRelativeFilePath(
+										normalizedAbsolutePath,
+										this.config!.workspacePath,
+									),
+									codeChunk: block.content,
+									startLine: block.start_line,
+									endLine: block.end_line,
+								},
+							}
+						})
 
 						await this.vectorStore.upsertPoints(points)
 						totalBlocksIndexed += blocks.length
@@ -304,8 +338,6 @@ class IndexingWorker {
 			// Start file watcher
 			if (this.fileWatcher) {
 				this.fileWatcher.onFileChange(async (event) => {
-					// Handle file changes
-					console.log(`File ${event.type}: ${event.path}`)
 					// TODO: Implement file change handling
 				})
 				this.fileWatcher.start()
@@ -375,4 +407,9 @@ class IndexingWorker {
 }
 
 // Start the worker
-new IndexingWorker()
+try {
+	new IndexingWorker()
+} catch (error) {
+	console.error("[IndexingWorker] Failed to create IndexingWorker:", error)
+	process.exit(1)
+}

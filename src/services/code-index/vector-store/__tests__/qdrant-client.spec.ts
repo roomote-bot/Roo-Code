@@ -629,9 +629,7 @@ describe("QdrantVectorStore", () => {
 			vitest.spyOn(console, "error").mockImplementation(() => {}) // Suppress console.error
 
 			// The actual error message includes the URL and error details
-			await expect(vectorStore.initialize()).rejects.toThrow(
-				/Failed to connect to Qdrant vector database|vectorStore\.qdrantConnectionFailed/,
-			)
+			await expect(vectorStore.initialize()).rejects.toThrow(/Failed to connect to Qdrant at/)
 
 			expect(mockQdrantClientInstance.getCollection).toHaveBeenCalledTimes(1)
 			expect(mockQdrantClientInstance.createCollection).toHaveBeenCalledTimes(1)
@@ -692,9 +690,7 @@ describe("QdrantVectorStore", () => {
 			vitest.spyOn(console, "warn").mockImplementation(() => {})
 
 			// The actual error message includes the URL and error details
-			await expect(vectorStore.initialize()).rejects.toThrow(
-				/Failed to connect to Qdrant vector database|vectorStore\.qdrantConnectionFailed/,
-			)
+			await expect(vectorStore.initialize()).rejects.toThrow(/Failed to connect to Qdrant at/)
 
 			expect(mockQdrantClientInstance.getCollection).toHaveBeenCalledTimes(1)
 			expect(mockQdrantClientInstance.deleteCollection).toHaveBeenCalledTimes(1)
