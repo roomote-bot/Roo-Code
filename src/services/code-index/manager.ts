@@ -214,7 +214,7 @@ export class CodeIndexManager {
 		}
 
 		// Create new worker
-		const workerPath = path.join(__dirname, "../../workers/indexing-worker.js")
+		const workerPath = path.join(__dirname, "workers/indexing-worker.js")
 		this._worker = new Worker(workerPath)
 		this._workerReady = false
 
