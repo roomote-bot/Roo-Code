@@ -1,27 +1,33 @@
 import { parentPort } from "worker_threads"
 import { WorkerCommand, WorkerResponse, WorkerMessage, WorkerInitConfig } from "../services/code-index/worker-messenger"
-import { CodeIndexConfigManager } from "../services/code-index/config-manager"
-import { CodeIndexStateManager, IndexingState } from "../services/code-index/state-manager"
-import { CodeIndexServiceFactory } from "../services/code-index/service-factory"
-import { CodeIndexOrchestrator } from "../services/code-index/orchestrator"
-import { CodeIndexSearchService } from "../services/code-index/search-service"
-import { CacheManager } from "../services/code-index/cache-manager"
-import { DirectoryScanner } from "../services/code-index/processors"
-import { IEmbedder, IVectorStore, IFileWatcher, VectorStoreSearchResult } from "../services/code-index/interfaces"
+import { CodeIndexStateManager } from "../services/code-index/worker-utils/state-manager"
+import { CacheManager } from "../services/code-index/worker-utils/cache-manager"
+import { Scanner } from "../services/code-index/worker-utils/scanner"
+import { FileWatcher } from "../services/code-index/worker-utils/file-watcher"
+import { RooIgnoreController } from "../services/code-index/worker-utils/RooIgnoreController"
+import { VectorStoreSearchResult } from "../services/code-index/interfaces"
 import ignore from "ignore"
 import * as fs from "fs/promises"
 import * as path from "path"
 
+// Import embedders and vector store directly
+import { OpenAiEmbedder } from "../services/code-index/embedders/openai"
+import { CodeIndexOllamaEmbedder } from "../services/code-index/embedders/ollama"
+import { OpenAICompatibleEmbedder } from "../services/code-index/embedders/openai-compatible"
+import { QdrantVectorStore } from "../services/code-index/vector-store/qdrant-client"
+import { codeParser } from "../services/code-index/processors"
+import { EmbedderProvider, getDefaultModelId, getModelDimension } from "../shared/embeddingModels"
+
 class IndexingWorker {
 	private config: WorkerInitConfig | null = null
-	private orchestrator: CodeIndexOrchestrator | null = null
-	private searchService: CodeIndexSearchService | null = null
 	private stateManager: CodeIndexStateManager | null = null
 	private cacheManager: CacheManager | null = null
-	private embedder: IEmbedder | null = null
-	private vectorStore: IVectorStore | null = null
-	private scanner: DirectoryScanner | null = null
-	private fileWatcher: IFileWatcher | null = null
+	private scanner: Scanner | null = null
+	private fileWatcher: FileWatcher | null = null
+	private embedder: any = null
+	private vectorStore: any = null
+	private ignoreInstance: any = null
+	private rooIgnoreController: RooIgnoreController | null = null
 
 	constructor() {
 		if (!parentPort) {
@@ -108,103 +114,256 @@ class IndexingWorker {
 		})
 
 		// Initialize cache manager
-		this.cacheManager = new CacheManager(
-			{ globalStorageUri: { fsPath: config.contextPath } } as any,
-			config.workspacePath,
-		)
+		this.cacheManager = new CacheManager({ globalStorageUri: { fsPath: config.contextPath } }, config.workspacePath)
 		await this.cacheManager.initialize()
 
-		// Create a mock config manager with the provided config
-		const configManager = this.createMockConfigManager(config)
+		// Initialize embedder based on config
+		this.embedder = this.createEmbedder(config)
 
-		// Initialize service factory
-		const serviceFactory = new CodeIndexServiceFactory(configManager, config.workspacePath, this.cacheManager)
+		// Initialize vector store
+		this.vectorStore = this.createVectorStore(config)
 
 		// Load .gitignore
-		const ignoreInstance = ignore()
+		this.ignoreInstance = ignore()
 		const ignorePath = path.join(config.workspacePath, ".gitignore")
 		try {
 			const content = await fs.readFile(ignorePath, "utf8")
-			ignoreInstance.add(content)
-			ignoreInstance.add(".gitignore")
+			this.ignoreInstance.add(content)
+			this.ignoreInstance.add(".gitignore")
 		} catch (error) {
 			console.error("Failed to load .gitignore:", error)
 		}
 
-		// Create services
-		const services = serviceFactory.createServices(
-			{ globalStorageUri: { fsPath: config.contextPath } } as any,
-			this.cacheManager,
-			ignoreInstance,
-		)
+		// Initialize RooIgnoreController
+		this.rooIgnoreController = new RooIgnoreController(config.workspacePath)
+		await this.rooIgnoreController.initialize()
 
-		this.embedder = services.embedder
-		this.vectorStore = services.vectorStore
-		this.scanner = services.scanner
-		this.fileWatcher = services.fileWatcher
+		// Initialize scanner
+		this.scanner = new Scanner(config.workspacePath)
 
-		// Initialize orchestrator
-		this.orchestrator = new CodeIndexOrchestrator(
-			configManager,
-			this.stateManager,
-			config.workspacePath,
-			this.cacheManager,
-			this.vectorStore,
-			this.scanner,
-			this.fileWatcher,
-		)
-
-		// Initialize search service
-		this.searchService = new CodeIndexSearchService(
-			configManager,
-			this.stateManager,
-			this.embedder,
-			this.vectorStore,
-		)
+		// Initialize file watcher
+		this.fileWatcher = new FileWatcher(config.workspacePath, {
+			excludePatterns: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/out/**"],
+		})
 	}
 
-	private createMockConfigManager(config: WorkerInitConfig): CodeIndexConfigManager {
-		// Create a mock config manager that returns the worker config
-		return {
-			isFeatureEnabled: config.isFeatureEnabled,
-			isFeatureConfigured: config.isFeatureConfigured,
-			currentQdrantUrl: config.qdrantUrl || "http://localhost:6333",
-			currentEmbedderProvider: config.embedderProvider || "openai",
-			currentEmbedderBaseUrl: config.embedderBaseUrl,
-			currentEmbedderModelId: config.embedderModelId,
-			currentEmbedderApiKey: config.embedderApiKey,
-			currentSearchMinScore: config.searchMinScore || 0.7,
-			loadConfiguration: async () => ({ requiresRestart: false }),
-		} as any
+	private createEmbedder(config: WorkerInitConfig): any {
+		const provider = config.embedderProvider as EmbedderProvider
+
+		if (provider === "openai") {
+			if (!config.embedderApiKey) {
+				throw new Error("OpenAI API key missing for embedder creation")
+			}
+			return new OpenAiEmbedder({
+				openAiNativeApiKey: config.embedderApiKey,
+				openAiNativeBaseUrl: config.embedderBaseUrl,
+				openAiEmbeddingModelId: config.embedderModelId || getDefaultModelId(provider),
+			})
+		} else if (provider === "ollama") {
+			if (!config.embedderBaseUrl) {
+				throw new Error("Ollama base URL missing for embedder creation")
+			}
+			return new CodeIndexOllamaEmbedder({
+				ollamaBaseUrl: config.embedderBaseUrl,
+				ollamaModelId: config.embedderModelId || getDefaultModelId(provider),
+			})
+		} else if (provider === "openai-compatible") {
+			if (!config.embedderBaseUrl || !config.embedderApiKey) {
+				throw new Error("OpenAI Compatible configuration missing for embedder creation")
+			}
+			return new OpenAICompatibleEmbedder(
+				config.embedderBaseUrl,
+				config.embedderApiKey,
+				config.embedderModelId || getDefaultModelId(provider),
+			)
+		}
+
+		throw new Error(`Invalid embedder type configured: ${provider}`)
+	}
+
+	private createVectorStore(config: WorkerInitConfig): any {
+		const provider = config.embedderProvider as EmbedderProvider
+		const defaultModel = getDefaultModelId(provider)
+		const modelId = config.embedderModelId || defaultModel
+
+		let vectorSize: number | undefined
+
+		if (provider === "openai-compatible") {
+			// For openai-compatible, we need to get the dimension from somewhere
+			// Default to 1536 for now (OpenAI's dimension)
+			vectorSize = 1536
+		} else {
+			vectorSize = getModelDimension(provider, modelId)
+		}
+
+		if (vectorSize === undefined) {
+			throw new Error(`Could not determine vector dimension for model '${modelId}' with provider '${provider}'`)
+		}
+
+		if (!config.qdrantUrl) {
+			throw new Error("Qdrant URL missing for vector store creation")
+		}
+
+		return new QdrantVectorStore(config.workspacePath, config.qdrantUrl, vectorSize)
 	}
 
 	private async startIndexing() {
-		if (!this.orchestrator) {
+		if (
+			!this.config ||
+			!this.stateManager ||
+			!this.scanner ||
+			!this.embedder ||
+			!this.vectorStore ||
+			!this.cacheManager
+		) {
 			throw new Error("Worker not initialized")
 		}
-		await this.orchestrator.startIndexing()
+
+		this.stateManager.setSystemState("Indexing", "Initializing services...")
+
+		try {
+			// Initialize vector store
+			const collectionCreated = await this.vectorStore.initialize()
+			if (collectionCreated) {
+				await this.cacheManager.clearCacheFile()
+			}
+
+			this.stateManager.setSystemState("Indexing", "Services ready. Starting workspace scan...")
+
+			// Perform the scan
+			const scanResult = await this.scanner.scan((processed, total) => {
+				this.stateManager!.reportFileQueueProgress(processed, total)
+			})
+
+			// Process files for indexing
+			let totalBlocksIndexed = 0
+			const batchSize = 50
+			const files = scanResult.files
+
+			for (let i = 0; i < files.length; i += batchSize) {
+				const batch = files.slice(i, i + batchSize)
+				const blocks = []
+
+				for (const filePath of batch) {
+					try {
+						// Check if file should be indexed
+						if (this.rooIgnoreController?.isIgnored(filePath)) {
+							continue
+						}
+
+						// Read file content
+						const content = await fs.readFile(filePath, "utf8")
+
+						// Calculate hash
+						const { createHash } = await import("crypto")
+						const fileHash = createHash("sha256").update(content).digest("hex")
+
+						// Check cache
+						const cachedHash = this.cacheManager.getHash(filePath)
+						if (cachedHash === fileHash) {
+							continue
+						}
+
+						// Parse file
+						const fileBlocks = await codeParser.parseFile(filePath, { content, fileHash })
+						blocks.push(...fileBlocks)
+
+						// Update cache
+						this.cacheManager.updateHash(filePath, fileHash)
+					} catch (error) {
+						console.error(`Error processing file ${filePath}:`, error)
+					}
+				}
+
+				// Create embeddings and store in vector store
+				if (blocks.length > 0) {
+					const texts = blocks.map((block) => block.content.trim()).filter((text) => text.length > 0)
+					if (texts.length > 0) {
+						const { embeddings } = await this.embedder.createEmbeddings(texts)
+
+						// Prepare points for vector store
+						const points = blocks.map((block, index) => ({
+							id: `${block.file_path}:${block.start_line}`,
+							vector: embeddings[index],
+							payload: {
+								filePath: block.file_path,
+								codeChunk: block.content,
+								startLine: block.start_line,
+								endLine: block.end_line,
+							},
+						}))
+
+						await this.vectorStore.upsertPoints(points)
+						totalBlocksIndexed += blocks.length
+
+						this.stateManager.reportBlockIndexingProgress(totalBlocksIndexed, scanResult.totalFiles)
+					}
+				}
+			}
+
+			// Start file watcher
+			if (this.fileWatcher) {
+				this.fileWatcher.onFileChange(async (event) => {
+					// Handle file changes
+					console.log(`File ${event.type}: ${event.path}`)
+					// TODO: Implement file change handling
+				})
+				this.fileWatcher.start()
+			}
+
+			this.stateManager.setSystemState("Indexed", "Indexing complete. File watcher started.")
+		} catch (error) {
+			console.error("Error during indexing:", error)
+			this.stateManager.setSystemState(
+				"Error",
+				`Indexing failed: ${error instanceof Error ? error.message : String(error)}`,
+			)
+			throw error
+		}
 	}
 
 	private async stopIndexing() {
-		if (!this.orchestrator) {
-			throw new Error("Worker not initialized")
+		if (this.fileWatcher) {
+			await this.fileWatcher.stop()
 		}
-		await this.orchestrator.stopWatcher()
+		if (this.stateManager) {
+			this.stateManager.setSystemState("Standby", "Indexing stopped")
+		}
 	}
 
 	private async clearIndex() {
-		if (!this.orchestrator || !this.cacheManager) {
+		if (!this.vectorStore || !this.cacheManager) {
 			throw new Error("Worker not initialized")
 		}
-		await this.orchestrator.clearIndexData()
+
+		await this.vectorStore.deleteCollection()
 		await this.cacheManager.clearCacheFile()
+
+		if (this.stateManager) {
+			this.stateManager.setSystemState("Standby", "Index cleared")
+		}
 	}
 
 	private async search(query: string, directoryPrefix?: string): Promise<VectorStoreSearchResult[]> {
-		if (!this.searchService) {
+		if (!this.embedder || !this.vectorStore) {
 			throw new Error("Worker not initialized")
 		}
-		return await this.searchService.searchIndex(query, directoryPrefix)
+
+		// Create embedding for query
+		const { embeddings } = await this.embedder.createEmbeddings([query])
+		const queryVector = embeddings[0]
+
+		// Search in vector store
+		const results = await this.vectorStore.search(queryVector, 10, this.config?.searchMinScore || 0.7)
+
+		// Filter by directory prefix if provided
+		if (directoryPrefix) {
+			return results.filter(
+				(result: VectorStoreSearchResult) => result.payload?.filePath?.startsWith(directoryPrefix) ?? false,
+			)
+		}
+
+		return results
 	}
 
 	private sendResponse(id: string, response: WorkerResponse) {
