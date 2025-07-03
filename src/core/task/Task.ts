@@ -1008,6 +1008,8 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		await this.overwriteApiConversationHistory(modifiedApiConversationHistory)
 
+		console.log(`[subtasks] task ${this.taskId}.${this.instanceId} resuming from history item`)
+
 		await this.initiateTaskLoop(newUserContent)
 	}
 
