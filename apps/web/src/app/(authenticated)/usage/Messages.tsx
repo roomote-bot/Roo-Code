@@ -10,6 +10,8 @@ import { cn } from '@/lib/utils';
 import { formatTimestamp } from '@/lib/formatters';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { CodeBlock } from '@/components/ui/CodeBlock';
+import { ToolUsageBadge } from '@/components/ui/ToolUsageBadge';
+import { parseToolUsage } from '@/lib/toolUsageParser';
 
 // Custom component to render links as plain text to avoid broken/nonsensical links
 const PlainTextLink = ({ children }: { children?: React.ReactNode }) => {
@@ -51,6 +53,7 @@ type DecoratedMessage = Omit<Message, 'timestamp'> & {
   name: string;
   timestamp: string;
   showHeader?: boolean;
+  toolUsage?: ReturnType<typeof parseToolUsage>;
 };
 
 // Determine if a message should show its header based on grouping rules
@@ -210,12 +213,24 @@ export const Messages = ({
               message.type === 'ask' && message.ask === 'followup';
             const isCommand =
               message.type === 'ask' && message.ask === 'command';
+            const isTool = message.type === 'ask' && message.ask === 'tool';
             const questionData =
               isQuestion && message.text
                 ? parseQuestionData(message.text)
                 : null;
 
             const messageId = `message-${message.id}`;
+
+            // For tool messages, render only the tool usage badge in the space between bubbles
+            if (isTool) {
+              return (
+                <div key={message.id} className="py-2 pl-4">
+                  {message.toolUsage && (
+                    <ToolUsageBadge usage={message.toolUsage} />
+                  )}
+                </div>
+              );
+            }
 
             return (
               <div
@@ -387,14 +402,19 @@ const decorate = ({
   const name = role === 'user' ? 'User' : 'Roo Code';
   const timestamp = formatTimestamp(message.timestamp);
 
-  return { ...message, role, name, timestamp };
+  // Parse tool usage for assistant messages
+  const toolUsage = role === 'assistant' ? parseToolUsage(message) : null;
+
+  return { ...message, role, name, timestamp, toolUsage };
 };
 
 const isVisible = (message: Message) => {
-  // Always show followup and command messages regardless of text content
+  // Always show followup, command, and tool messages regardless of text content
   if (
     message.type === 'ask' &&
-    (message.ask === 'followup' || message.ask === 'command')
+    (message.ask === 'followup' ||
+      message.ask === 'command' ||
+      message.ask === 'tool')
   ) {
     return true;
   }
