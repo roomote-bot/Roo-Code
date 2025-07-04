@@ -5,7 +5,7 @@ import { useAuth } from '@clerk/nextjs';
 
 import { type ModelUsage, getModelUsage } from '@/actions/analytics';
 import { formatCurrency, formatNumber } from '@/lib/formatters';
-import { Button, Skeleton } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { DataTable } from '@/components/layout';
 
 import type { Filter } from './types';
@@ -19,13 +19,17 @@ export const Models = ({
 }) => {
   const { orgId } = useAuth();
 
-  const { data = [], isPending } = useQuery({
+  const {
+    data = [],
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: ['getModelUsage', orgId, filters],
     queryFn: () => getModelUsage({ orgId, filters }),
     enabled: !!orgId,
   });
 
-  const cols: ColumnDef<ModelUsage>[] = useMemo(
+  const columns: ColumnDef<ModelUsage>[] = useMemo(
     () => [
       {
         header: 'Model',
@@ -65,16 +69,17 @@ export const Models = ({
     [onFilter],
   );
 
-  const columns = useMemo(
-    () =>
-      isPending
-        ? cols.map((col) => ({
-            ...col,
-            cell: () => <Skeleton className="h-9 w-full" />,
-          }))
-        : cols,
-    [isPending, cols],
+  return (
+    <DataTable
+      data={data}
+      columns={columns}
+      isPending={isPending}
+      isError={isError}
+      filters={filters}
+      loadingMessage="Loading models..."
+      errorTitle="Failed to load models"
+      emptyTitle="No models found"
+      emptyDescription="Model usage data will appear here once AI models are used in tasks"
+    />
   );
-
-  return <DataTable columns={columns} data={data} />;
 };

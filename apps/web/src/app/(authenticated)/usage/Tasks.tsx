@@ -5,8 +5,10 @@ import { useQuery } from '@tanstack/react-query';
 import type { TaskWithUser } from '@/actions/analytics';
 
 import { useRealtimePolling } from '@/hooks/useRealtimePolling';
+import { useGracefulLoading } from '@/hooks/useGracefulLoading';
 import { getTasks } from '@/actions/analytics';
-import { Skeleton, CursorPaginationControls } from '@/components/ui';
+import { CursorPaginationControls } from '@/components/ui';
+import { LoadingState, ErrorState, EmptyState } from '@/components/ui/states';
 import { TaskCard } from '@/components/usage';
 import { useCursorPagination } from '@/hooks/usePagination';
 
@@ -32,7 +34,7 @@ export const Tasks = ({
   // Initialize cursor-based pagination
   const pagination = useCursorPagination(100);
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, isError } = useQuery({
     queryKey: [
       'getTasksPaginated',
       orgId,
@@ -52,6 +54,13 @@ export const Tasks = ({
       }),
     enabled: true, // Run for both personal and organization context
     ...polling,
+  });
+
+  // Use graceful loading hook
+  const { showContent, isTransitioning } = useGracefulLoading({
+    isPending,
+    data: data?.tasks || [],
+    dependencies: [filters],
   });
 
   // Update cursor when we get new data
@@ -81,24 +90,26 @@ export const Tasks = ({
 
   const tasks = data?.tasks || [];
 
-  if (isPending) {
+  // Show loading state while pending or during transition period
+  if (isPending || !showContent) {
     return (
-      <div className="space-y-3">
-        {Array(8)
-          .fill(0)
-          .map((_, i) => (
-            <Skeleton key={i} className="h-14 w-full" />
-          ))}
-      </div>
+      <LoadingState
+        message={isPending ? 'Loading tasks...' : 'Preparing results...'}
+        isTransitioning={isTransitioning}
+      />
     );
+  }
+
+  if (isError) {
+    return <ErrorState title="Failed to load tasks" />;
   }
 
   if (tasks.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        No tasks have been synced yet. Check back after creating or sharing a
-        task.
-      </div>
+      <EmptyState
+        title="No tasks found"
+        description="Tasks will appear here after being created or shared"
+      />
     );
   }
 

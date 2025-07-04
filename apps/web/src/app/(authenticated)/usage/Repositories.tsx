@@ -11,7 +11,7 @@ import {
   formatNumber,
   formatTimestamp,
 } from '@/lib/formatters';
-import { Button, Skeleton } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { DataTable } from '@/components/layout';
 
 import type { Filter } from './types';
@@ -25,13 +25,17 @@ export const Repositories = ({
 }) => {
   const { orgId } = useAuth();
 
-  const { data = [], isPending } = useQuery({
+  const {
+    data = [],
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: ['getRepositoryUsage', orgId, filters],
     queryFn: () => getRepositoryUsage({ orgId, filters }),
     enabled: !!orgId,
   });
 
-  const cols: ColumnDef<RepositoryUsage>[] = useMemo(
+  const columns: ColumnDef<RepositoryUsage>[] = useMemo(
     () => [
       {
         header: 'Repository',
@@ -103,25 +107,17 @@ export const Repositories = ({
     [onFilter],
   );
 
-  const columns = useMemo(
-    () =>
-      isPending
-        ? cols.map((col) => ({
-            ...col,
-            cell: () => <Skeleton className="h-9 w-full" />,
-          }))
-        : cols,
-    [isPending, cols],
+  return (
+    <DataTable
+      data={data}
+      columns={columns}
+      isPending={isPending}
+      isError={isError}
+      filters={filters}
+      loadingMessage="Loading repositories..."
+      errorTitle="Failed to load repositories"
+      emptyTitle="No repositories found"
+      emptyDescription="Repository data will appear here once tasks with Git context are created"
+    />
   );
-
-  if (data.length === 0 && !isPending) {
-    return (
-      <div className="text-center py-8 text-muted-foreground">
-        No Git repository data available. Repository information will appear
-        here once tasks with Git repository context are created.
-      </div>
-    );
-  }
-
-  return <DataTable columns={columns} data={data} />;
 };

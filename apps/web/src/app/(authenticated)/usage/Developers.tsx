@@ -10,7 +10,7 @@ import {
   formatNumber,
   formatTimestamp,
 } from '@/lib/formatters';
-import { Button, Skeleton } from '@/components/ui';
+import { Button } from '@/components/ui';
 import { DataTable } from '@/components/layout';
 
 import type { Filter } from './types';
@@ -24,13 +24,17 @@ export const Developers = ({
 }) => {
   const { orgId } = useAuth();
 
-  const { data = [], isPending } = useQuery({
+  const {
+    data = [],
+    isPending,
+    isError,
+  } = useQuery({
     queryKey: ['getDeveloperUsage', orgId, filters],
     queryFn: () => getDeveloperUsage({ orgId, filters }),
     enabled: !!orgId,
   });
 
-  const cols: ColumnDef<DeveloperUsage>[] = useMemo(
+  const columns: ColumnDef<DeveloperUsage>[] = useMemo(
     () => [
       {
         header: 'Developer',
@@ -93,16 +97,17 @@ export const Developers = ({
     [onFilter],
   );
 
-  const columns = useMemo(
-    () =>
-      isPending
-        ? cols.map((col) => ({
-            ...col,
-            cell: () => <Skeleton className="h-9 w-full" />,
-          }))
-        : cols,
-    [isPending, cols],
+  return (
+    <DataTable
+      data={data}
+      columns={columns}
+      isPending={isPending}
+      isError={isError}
+      filters={filters}
+      loadingMessage="Loading developers..."
+      errorTitle="Failed to load developers"
+      emptyTitle="No developers found"
+      emptyDescription="Developer activity will appear here once team members start using the system"
+    />
   );
-
-  return <DataTable columns={columns} data={data} />;
 };
