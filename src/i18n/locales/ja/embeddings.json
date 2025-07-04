@@ -1,5 +1,8 @@
 {
 	"unknownError": "不明なエラー",
+	"code_indexing_requires_workspace": "コードのインデックスを作成するには、開いているワークスペースが必要です",
+	"indexing_started": "コードのインデックス作成が開始されました",
+	"indexing_failed": "インデックス作成の開始に失敗しました: {{error}}",
 	"authenticationFailed": "埋め込みの作成に失敗しました：認証に失敗しました。APIキーを確認してください。",
 	"failedWithStatus": "{{attempts}}回試行しましたが、埋め込みの作成に失敗しました：HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "{{attempts}}回試行しましたが、埋め込みの作成に失敗しました：{{errorMessage}}",

@@ -1,5 +1,8 @@
 {
 	"unknownError": "Erro desconhecido",
+	"code_indexing_requires_workspace": "A indexação de código requer um espaço de trabalho aberto",
+	"indexing_started": "Indexação de código iniciada",
+	"indexing_failed": "Falha ao iniciar a indexação: {{error}}",
 	"authenticationFailed": "Falha ao criar embeddings: Falha na autenticação. Verifique sua chave de API.",
 	"failedWithStatus": "Falha ao criar embeddings após {{attempts}} tentativas: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Falha ao criar embeddings após {{attempts}} tentativas: {{errorMessage}}",

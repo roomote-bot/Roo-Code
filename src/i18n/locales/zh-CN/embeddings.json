@@ -1,5 +1,8 @@
 {
 	"unknownError": "未知错误",
+	"code_indexing_requires_workspace": "代码索引需要一个打开的工作区",
+	"indexing_started": "代码索引已开始",
+	"indexing_failed": "启动索引失败：{{error}}",
 	"authenticationFailed": "创建嵌入失败：身份验证失败。请检查您的 API 密钥。",
 	"failedWithStatus": "尝试 {{attempts}} 次后创建嵌入失败：HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "尝试 {{attempts}} 次后创建嵌入失败：{{errorMessage}}",

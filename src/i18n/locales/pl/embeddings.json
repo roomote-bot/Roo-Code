@@ -1,5 +1,8 @@
 {
 	"unknownError": "Nieznany błąd",
+	"code_indexing_requires_workspace": "Indeksowanie kodu wymaga otwartego obszaru roboczego",
+	"indexing_started": "Rozpoczęto indeksowanie kodu",
+	"indexing_failed": "Nie udało się rozpocząć indeksowania: {{error}}",
 	"authenticationFailed": "Nie udało się utworzyć osadzeń: Uwierzytelnianie nie powiodło się. Sprawdź swój klucz API.",
 	"failedWithStatus": "Nie udało się utworzyć osadzeń po {{attempts}} próbach: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Nie udało się utworzyć osadzeń po {{attempts}} próbach: {{errorMessage}}",

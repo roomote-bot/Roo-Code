@@ -1,5 +1,8 @@
 {
 	"unknownError": "Errore sconosciuto",
+	"code_indexing_requires_workspace": "L'indicizzazione del codice richiede un'area di lavoro aperta",
+	"indexing_started": "Indicizzazione del codice avviata",
+	"indexing_failed": "Avvio dell'indicizzazione non riuscito: {{error}}",
 	"authenticationFailed": "Creazione degli embedding non riuscita: Autenticazione fallita. Controlla la tua chiave API.",
 	"failedWithStatus": "Creazione degli embedding non riuscita dopo {{attempts}} tentativi: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Creazione degli embedding non riuscita dopo {{attempts}} tentativi: {{errorMessage}}",

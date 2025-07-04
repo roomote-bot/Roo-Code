@@ -1,5 +1,8 @@
 {
 	"unknownError": "Onbekende fout",
+	"code_indexing_requires_workspace": "Code-indexering vereist een open werkruimte",
+	"indexing_started": "Code-indexering gestart",
+	"indexing_failed": "Starten van indexering mislukt: {{error}}",
 	"authenticationFailed": "Insluitingen maken mislukt: Authenticatie mislukt. Controleer je API-sleutel.",
 	"failedWithStatus": "Insluitingen maken mislukt na {{attempts}} pogingen: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Insluitingen maken mislukt na {{attempts}} pogingen: {{errorMessage}}",

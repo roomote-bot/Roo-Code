@@ -1,5 +1,8 @@
 {
 	"unknownError": "Error desconegut",
+	"code_indexing_requires_workspace": "La indexació de codi requereix un espai de treball obert",
+	"indexing_started": "Indexació de codi iniciada",
+	"indexing_failed": "No s'ha pogut iniciar la indexació: {{error}}",
 	"authenticationFailed": "No s'han pogut crear les incrustacions: ha fallat l'autenticació. Comproveu la vostra clau d'API.",
 	"failedWithStatus": "No s'han pogut crear les incrustacions després de {{attempts}} intents: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "No s'han pogut crear les incrustacions després de {{attempts}} intents: {{errorMessage}}",

@@ -1,5 +1,8 @@
 {
 	"unknownError": "Error tidak dikenal",
+	"code_indexing_requires_workspace": "Pengindeksan kode memerlukan ruang kerja yang terbuka",
+	"indexing_started": "Pengindeksan kode dimulai",
+	"indexing_failed": "Gagal memulai pengindeksan: {{error}}",
 	"authenticationFailed": "Gagal membuat embeddings: Autentikasi gagal. Silakan periksa API key Anda.",
 	"failedWithStatus": "Gagal membuat embeddings setelah {{attempts}} percobaan: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Gagal membuat embeddings setelah {{attempts}} percobaan: {{errorMessage}}",

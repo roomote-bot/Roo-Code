@@ -1,5 +1,8 @@
 {
 	"unknownError": "Error desconocido",
+	"code_indexing_requires_workspace": "La indexación de código requiere un espacio de trabajo abierto",
+	"indexing_started": "Indexación de código iniciada",
+	"indexing_failed": "No se pudo iniciar la indexación: {{error}}",
 	"authenticationFailed": "No se pudieron crear las incrustaciones: Error de autenticación. Comprueba tu clave de API.",
 	"failedWithStatus": "No se pudieron crear las incrustaciones después de {{attempts}} intentos: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "No se pudieron crear las incrustaciones después de {{attempts}} intentos: {{errorMessage}}",

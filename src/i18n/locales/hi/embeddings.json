@@ -1,5 +1,8 @@
 {
 	"unknownError": "अज्ञात त्रुटि",
+	"code_indexing_requires_workspace": "कोड इंडेक्सिंग के लिए एक खुला कार्यक्षेत्र आवश्यक है",
+	"indexing_started": "कोड इंडेक्सिंग शुरू हुई",
+	"indexing_failed": "इंडेक्सिंग शुरू करने में विफल: {{error}}",
 	"authenticationFailed": "एम्बेडिंग बनाने में विफल: प्रमाणीकरण विफल। कृपया अपनी एपीआई कुंजी जांचें।",
 	"failedWithStatus": "{{attempts}} प्रयासों के बाद एम्बेडिंग बनाने में विफल: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "{{attempts}} प्रयासों के बाद एम्बेडिंग बनाने में विफल: {{errorMessage}}",

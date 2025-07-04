@@ -1,5 +1,8 @@
 {
 	"unknownError": "Unbekannter Fehler",
+	"code_indexing_requires_workspace": "Die Code-Indizierung erfordert einen geöffneten Arbeitsbereich",
+	"indexing_started": "Code-Indizierung gestartet",
+	"indexing_failed": "Indizierung konnte nicht gestartet werden: {{error}}",
 	"authenticationFailed": "Erstellung von Einbettungen fehlgeschlagen: Authentifizierung fehlgeschlagen. Bitte überprüfe deinen API-Schlüssel.",
 	"failedWithStatus": "Erstellung von Einbettungen nach {{attempts}} Versuchen fehlgeschlagen: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Erstellung von Einbettungen nach {{attempts}} Versuchen fehlgeschlagen: {{errorMessage}}",

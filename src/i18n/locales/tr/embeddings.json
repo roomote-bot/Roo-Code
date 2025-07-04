@@ -1,5 +1,8 @@
 {
 	"unknownError": "Bilinmeyen hata",
+	"code_indexing_requires_workspace": "Kod indeksleme için açık bir çalışma alanı gerekir",
+	"indexing_started": "Kod indeksleme başlatıldı",
+	"indexing_failed": "İndeksleme başlatılamadı: {{error}}",
 	"authenticationFailed": "Gömülmeler oluşturulamadı: Kimlik doğrulama başarısız oldu. Lütfen API anahtarınızı kontrol edin.",
 	"failedWithStatus": "{{attempts}} denemeden sonra gömülmeler oluşturulamadı: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "{{attempts}} denemeden sonra gömülmeler oluşturulamadı: {{errorMessage}}",

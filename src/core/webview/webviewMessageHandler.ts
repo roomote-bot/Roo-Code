@@ -1126,6 +1126,9 @@ export const webviewMessageHandler = async (
 			// Notify the code index manager about the change
 			if (provider.codeIndexManager) {
 				await provider.codeIndexManager.handleSettingsChange()
+			} else {
+				// Send error response when no workspace is open
+				vscode.window.showErrorMessage(t("embeddings:code_indexing_requires_workspace"))
 			}
 
 			await provider.postStateToWebview()
@@ -1827,6 +1830,17 @@ export const webviewMessageHandler = async (
 				break
 			}
 
+			// Check if codeIndexManager exists first
+			if (!provider.codeIndexManager) {
+				// Send error response when no workspace is open
+				await provider.postMessageToWebview({
+					type: "codeIndexSettingsSaved",
+					success: false,
+					error: t("embeddings:code_indexing_requires_workspace"),
+				})
+				break
+			}
+
 			const settings = message.codeIndexSettings
 
 			try {
@@ -1869,16 +1883,14 @@ export const webviewMessageHandler = async (
 				const storedOpenAiKey = provider.contextProxy.getSecret("codeIndexOpenAiKey")
 
 				// Notify code index manager of changes
-				if (provider.codeIndexManager) {
-					await provider.codeIndexManager.handleSettingsChange()
+				await provider.codeIndexManager.handleSettingsChange()
 
-					// Auto-start indexing if now enabled and configured
-					if (provider.codeIndexManager.isFeatureEnabled && provider.codeIndexManager.isFeatureConfigured) {
-						if (!provider.codeIndexManager.isInitialized) {
-							await provider.codeIndexManager.initialize(provider.contextProxy)
-						}
-						provider.codeIndexManager.startIndexing()
+				// Auto-start indexing if now enabled and configured
+				if (provider.codeIndexManager.isFeatureEnabled && provider.codeIndexManager.isFeatureConfigured) {
+					if (!provider.codeIndexManager.isInitialized) {
+						await provider.codeIndexManager.initialize(provider.contextProxy)
 					}
+					provider.codeIndexManager.startIndexing()
 				}
 
 				// Send success response
@@ -1902,7 +1914,21 @@ export const webviewMessageHandler = async (
 		}
 
 		case "requestIndexingStatus": {
-			const status = provider.codeIndexManager!.getCurrentStatus()
+			if (!provider.codeIndexManager) {
+				// Send a default status indicating indexing is unavailable
+				provider.postMessageToWebview({
+					type: "indexingStatusUpdate",
+					values: {
+						systemStatus: "Unavailable",
+						message: t("embeddings:code_indexing_requires_workspace"),
+						processedItems: 0,
+						totalItems: 0,
+						currentItemUnit: "files",
+					},
+				})
+				break
+			}
+			const status = provider.codeIndexManager.getCurrentStatus()
 			provider.postMessageToWebview({
 				type: "indexingStatusUpdate",
 				values: status,
@@ -1930,23 +1956,45 @@ export const webviewMessageHandler = async (
 			break
 		}
 		case "startIndexing": {
+			if (!provider.codeIndexManager) {
+				provider.log("Cannot start indexing: No workspace is open")
+				// Show error message to user
+				vscode.window.showErrorMessage(t("embeddings:code_indexing_requires_workspace"))
+				break
+			}
 			try {
-				const manager = provider.codeIndexManager!
+				const manager = provider.codeIndexManager
 				if (manager.isFeatureEnabled && manager.isFeatureConfigured) {
 					if (!manager.isInitialized) {
 						await manager.initialize(provider.contextProxy)
 					}
-
 					manager.startIndexing()
+					// Show success message
+					vscode.window.showInformationMessage(t("embeddings:indexing_started"))
 				}
 			} catch (error) {
 				provider.log(`Error starting indexing: ${error instanceof Error ? error.message : String(error)}`)
+				// Show error message
+				vscode.window.showErrorMessage(
+					t("embeddings:indexing_failed", { error: error instanceof Error ? error.message : String(error) }),
+				)
 			}
 			break
 		}
 		case "clearIndexData": {
+			if (!provider.codeIndexManager) {
+				provider.log("Cannot clear index data: No workspace is open")
+				provider.postMessageToWebview({
+					type: "indexCleared",
+					values: {
+						success: false,
+						error: t("embeddings:code_indexing_requires_workspace"),
+					},
+				})
+				break
+			}
 			try {
-				const manager = provider.codeIndexManager!
+				const manager = provider.codeIndexManager
 				await manager.clearIndexData()
 				provider.postMessageToWebview({ type: "indexCleared", values: { success: true } })
 			} catch (error) {

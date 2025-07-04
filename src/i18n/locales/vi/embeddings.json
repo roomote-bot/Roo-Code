@@ -1,5 +1,8 @@
 {
 	"unknownError": "Lỗi không xác định",
+	"code_indexing_requires_workspace": "Lập chỉ mục mã yêu cầu một không gian làm việc đang mở",
+	"indexing_started": "Đã bắt đầu lập chỉ mục mã",
+	"indexing_failed": "Không thể bắt đầu lập chỉ mục: {{error}}",
 	"authenticationFailed": "Không thể tạo nhúng: Xác thực không thành công. Vui lòng kiểm tra khóa API của bạn.",
 	"failedWithStatus": "Không thể tạo nhúng sau {{attempts}} lần thử: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Không thể tạo nhúng sau {{attempts}} lần thử: {{errorMessage}}",

@@ -1,5 +1,8 @@
 {
 	"unknownError": "알 수 없는 오류",
+	"code_indexing_requires_workspace": "코드 인덱싱을 위해서는 열려 있는 작업 공간이 필요합니다",
+	"indexing_started": "코드 인덱싱이 시작되었습니다",
+	"indexing_failed": "인덱싱 시작 실패: {{error}}",
 	"authenticationFailed": "임베딩 생성 실패: 인증에 실패했습니다. API 키를 확인하세요.",
 	"failedWithStatus": "{{attempts}}번 시도 후 임베딩 생성 실패: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "{{attempts}}번 시도 후 임베딩 생성 실패: {{errorMessage}}",

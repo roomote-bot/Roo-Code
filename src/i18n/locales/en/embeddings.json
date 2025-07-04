@@ -1,5 +1,8 @@
 {
 	"unknownError": "Unknown error",
+	"code_indexing_requires_workspace": "Code indexing requires an open workspace",
+	"indexing_started": "Code indexing started",
+	"indexing_failed": "Failed to start indexing: {{error}}",
 	"authenticationFailed": "Failed to create embeddings: Authentication failed. Please check your API key.",
 	"failedWithStatus": "Failed to create embeddings after {{attempts}} attempts: HTTP {{statusCode}} - {{errorMessage}}",
 	"failedWithError": "Failed to create embeddings after {{attempts}} attempts: {{errorMessage}}",
