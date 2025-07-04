@@ -10,6 +10,7 @@ import ignore from "ignore"
 import * as fs from "fs/promises"
 import * as path from "path"
 import { v5 as uuidv5 } from "uuid"
+import { createHash } from "crypto"
 
 // Import embedders and vector store directly
 import { OpenAiEmbedder } from "../services/code-index/embedders/openai"
@@ -32,7 +33,6 @@ class IndexingWorker {
 	private fileWatcher: FileWatcher | null = null
 	private embedder: any = null
 	private vectorStore: any = null
-	private ignoreInstance: any = null
 	private rooIgnoreController: RooIgnoreController | null = null
 
 	constructor() {
@@ -55,6 +55,11 @@ class IndexingWorker {
 
 				case "start":
 					await this.startIndexing()
+					this.sendResponse(id, {
+						type: "status",
+						state: "Indexed",
+						message: "Indexing completed successfully",
+					})
 					break
 
 				case "stop":
@@ -140,17 +145,6 @@ class IndexingWorker {
 
 			// Initialize vector store
 			this.vectorStore = this.createVectorStore(config)
-
-			// Load .gitignore
-			this.ignoreInstance = ignore()
-			const ignorePath = path.join(config.workspacePath, ".gitignore")
-			try {
-				const content = await fs.readFile(ignorePath, "utf8")
-				this.ignoreInstance.add(content)
-				this.ignoreInstance.add(".gitignore")
-			} catch (error) {
-				// Ignore error if .gitignore doesn't exist
-			}
 
 			// Initialize RooIgnoreController
 			this.rooIgnoreController = new RooIgnoreController(config.workspacePath)
@@ -277,7 +271,6 @@ class IndexingWorker {
 						const content = await fs.readFile(filePath, "utf8")
 
 						// Calculate hash
-						const { createHash } = await import("crypto")
 						const fileHash = createHash("sha256").update(content).digest("hex")
 
 						// Check cache

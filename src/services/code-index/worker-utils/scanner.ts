@@ -327,6 +327,9 @@ export class Scanner {
 		const files: string[] = []
 		let processedCount = 0
 
+		// Create ignore instance once, outside the loop
+		const ig = ignore().add(allExcludePatterns)
+
 		for (const pattern of allIncludePatterns) {
 			const matches = await glob(pattern, {
 				cwd: this.workspacePath,
@@ -339,7 +342,6 @@ export class Scanner {
 			for (const file of matches) {
 				// Double-check exclusion patterns using ignore
 				const relativePath = path.relative(this.workspacePath, file)
-				const ig = ignore().add(allExcludePatterns)
 				const isExcluded = relativePath ? ig.ignores(relativePath) : false
 
 				if (!isExcluded && !files.includes(file)) {
