@@ -4,12 +4,15 @@ import { eq } from 'drizzle-orm';
 import { db, cloudJobs } from '@roo-code-cloud/db/server';
 
 import { SlackNotifier } from '@/lib/slack';
+import { redis } from '@/lib/redis';
 
 import { createAndEnqueueJob } from '../github/handlers/utils';
 
-const mentionedThreads = new Set<string>();
-const pendingWorkspaceSelections = new Map<string, SlackEvent>();
 const slack = new SlackNotifier();
+
+// Redis keys for storing thread data
+const MENTIONED_THREADS_KEY = 'slack:mentioned_threads';
+const PENDING_WORKSPACE_SELECTIONS_KEY = 'slack:pending_workspace_selections';
 
 interface SlackEvent {
   type: string;
@@ -126,13 +129,17 @@ async function handleInteractivePayload(payload: SlackInteractivePayload) {
     const threadId = payload.message.thread_ts || payload.message.ts;
 
     try {
-      const originalEvent = pendingWorkspaceSelections.get(threadId);
+      const originalEventJson = await redis.hget(
+        PENDING_WORKSPACE_SELECTIONS_KEY,
+        threadId,
+      );
 
-      if (!originalEvent) {
+      if (!originalEventJson) {
         throw new Error('Original mention event not found');
       }
 
-      pendingWorkspaceSelections.delete(threadId);
+      const originalEvent: SlackEvent = JSON.parse(originalEventJson);
+      await redis.hdel(PENDING_WORKSPACE_SELECTIONS_KEY, threadId);
 
       const { jobId, enqueuedJobId } = await createAndEnqueueJob(
         'slack.app.mention',
@@ -161,10 +168,8 @@ async function handleInteractivePayload(payload: SlackInteractivePayload) {
         .set({ slackThreadTs: threadId })
         .where(eq(cloudJobs.id, jobId));
     } catch (error) {
-      console.error('❌ Failed to process workspace selection:', error);
-
       await slack.postMessage({
-        text: `❌ Sorry, something went wrong processing your request. Please try again.`,
+        text: `❌ ${error instanceof Error ? error.message : 'Unknown error'}`,
         channel: payload.channel.id,
         thread_ts: threadId,
       });
@@ -175,11 +180,15 @@ async function handleInteractivePayload(payload: SlackInteractivePayload) {
 async function handleAppMention(event: SlackEvent) {
   console.log('🤖 Bot mentioned in channel:', event.channel);
   const threadId = event.thread_ts || event.ts;
-  mentionedThreads.add(threadId);
+  await redis.sadd(MENTIONED_THREADS_KEY, threadId);
   console.log(`📌 Tracking thread: ${threadId}`);
 
   try {
-    pendingWorkspaceSelections.set(threadId, event);
+    await redis.hset(
+      PENDING_WORKSPACE_SELECTIONS_KEY,
+      threadId,
+      JSON.stringify(event),
+    );
 
     const workspaceRoot = process.env.WORKSPACE_ROOT || '/roo/repos';
 
@@ -222,7 +231,15 @@ async function handleAppMention(event: SlackEvent) {
 }
 
 async function handleMessage(event: SlackEvent) {
-  if (!event.thread_ts || !mentionedThreads.has(event.thread_ts)) {
+  if (!event.thread_ts) {
+    return;
+  }
+
+  const isTrackedThread = await redis.sismember(
+    MENTIONED_THREADS_KEY,
+    event.thread_ts,
+  );
+  if (!isTrackedThread) {
     return;
   }
 
