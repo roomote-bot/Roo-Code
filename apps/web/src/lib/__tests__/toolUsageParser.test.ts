@@ -188,17 +188,16 @@ describe('toolUsageParser', () => {
       });
     });
 
-    it('should handle searchFiles tool with query fallback', () => {
+    it('should handle searchFiles tool without regex', () => {
       const message = {
         ask: 'tool',
-        text: '{"tool":"searchFiles","query":"test pattern"}',
+        text: '{"tool":"searchFiles"}',
       };
 
       const result = extractToolUsageFromAsk(message);
 
       expect(result).toEqual({
         action: 'Grepped',
-        details: 'test pattern',
       });
     });
 

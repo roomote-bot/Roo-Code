@@ -32,12 +32,12 @@ export function extractToolUsageFromAsk(message: {
       case 'editedExistingFile':
         return {
           action: 'Edited',
-          details: path || undefined,
+          details: path,
         };
       case 'createdNewFile':
         return {
           action: 'Created',
-          details: path || undefined,
+          details: path,
         };
       case 'readFile':
         // Handle batch files (multiple reads)
@@ -59,32 +59,32 @@ export function extractToolUsageFromAsk(message: {
         // Handle single file read
         return {
           action: 'Read',
-          details: path || undefined,
+          details: path,
         };
       case 'searchFiles':
         return {
           action: 'Grepped',
-          details: regex || query || 'pattern',
+          details: regex,
         };
       case 'listFiles':
         return {
           action: 'Listed',
-          details: path || undefined,
+          details: path,
         };
       case 'listFilesTopLevel':
         return {
           action: 'Listed',
-          details: path || undefined,
+          details: path,
         };
       case 'listFilesRecursive':
         return {
           action: 'Listed',
-          details: path || undefined,
+          details: path,
         };
       case 'newFileCreated':
         return {
           action: 'Created',
-          details: path || undefined,
+          details: path,
         };
       case 'appliedDiff':
         // Handle batch diffs (multiple file edits)
@@ -106,7 +106,7 @@ export function extractToolUsageFromAsk(message: {
         // Handle single file diff
         return {
           action: 'Edited',
-          details: path || undefined,
+          details: path,
         };
       default:
         return null;
