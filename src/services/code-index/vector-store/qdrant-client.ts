@@ -3,7 +3,7 @@ import { createHash } from "crypto"
 import * as path from "path"
 import { IVectorStore } from "../interfaces/vector-store"
 import { Payload, VectorStoreSearchResult } from "../interfaces"
-import { MAX_SEARCH_RESULTS, SEARCH_MIN_SCORE } from "../constants"
+import { MAX_SEARCH_RESULTS, SEARCH_MIN_SCORE, MAX_PAYLOAD_SIZE_BYTES } from "../constants"
 
 /**
  * Qdrant implementation of the vector store interface
@@ -21,8 +21,11 @@ export class QdrantVectorStore implements IVectorStore {
 	 * Creates a new Qdrant vector store
 	 * @param workspacePath Path to the workspace
 	 * @param url Optional URL to the Qdrant server
+	 * @param vectorSize Size of the vectors
+	 * @param apiKey Optional API key for authentication
+	 * @param timeout Optional timeout in milliseconds
 	 */
-	constructor(workspacePath: string, url: string, vectorSize: number, apiKey?: string) {
+	constructor(workspacePath: string, url: string, vectorSize: number, apiKey?: string, timeout?: number) {
 		// Validate workspacePath is not empty
 		if (!workspacePath || workspacePath.trim() === "") {
 			throw new Error("Workspace path must not be empty")
@@ -66,6 +69,8 @@ export class QdrantVectorStore implements IVectorStore {
 				headers: {
 					"User-Agent": "Roo-Code",
 				},
+				// Add timeout configuration
+				timeout: timeout || 30000, // Use provided timeout or default to 30 seconds
 			})
 		} catch (urlError) {
 			// If URL parsing fails, fall back to URL-based config
@@ -76,6 +81,7 @@ export class QdrantVectorStore implements IVectorStore {
 				headers: {
 					"User-Agent": "Roo-Code",
 				},
+				timeout: timeout || 30000, // Use provided timeout or default to 30 seconds
 			})
 		}
 
@@ -217,6 +223,54 @@ export class QdrantVectorStore implements IVectorStore {
 	}
 
 	/**
+	 * Estimates the payload size of points in bytes
+	 * @param points Array of points to estimate
+	 * @returns Estimated size in bytes
+	 */
+	private estimatePayloadSize(points: Array<any>): number {
+		// Rough estimation of JSON payload size
+		return JSON.stringify(points).length
+	}
+
+	/**
+	 * Chunks points by payload size to avoid exceeding limits
+	 * @param points Array of points to chunk
+	 * @param maxSizeBytes Maximum size per chunk in bytes
+	 * @returns Array of point chunks
+	 */
+	private chunkPointsBySize(points: Array<any>, maxSizeBytes: number): Array<Array<any>> {
+		const chunks: Array<Array<any>> = []
+		let currentChunk: Array<any> = []
+		let currentSize = 0
+
+		for (const point of points) {
+			const pointSize = this.estimatePayloadSize([point])
+
+			// Warn if a single point exceeds the max size
+			if (pointSize > maxSizeBytes) {
+				console.warn(
+					`[QdrantVectorStore] Single point exceeds maximum payload size (${pointSize} > ${maxSizeBytes}). It will be sent anyway but may fail.`,
+				)
+			}
+
+			if (currentSize + pointSize > maxSizeBytes && currentChunk.length > 0) {
+				chunks.push(currentChunk)
+				currentChunk = []
+				currentSize = 0
+			}
+
+			currentChunk.push(point)
+			currentSize += pointSize
+		}
+
+		if (currentChunk.length > 0) {
+			chunks.push(currentChunk)
+		}
+
+		return chunks
+	}
+
+	/**
 	 * Upserts points into the vector store
 	 * @param points Array of points to upsert
 	 */
@@ -227,35 +281,57 @@ export class QdrantVectorStore implements IVectorStore {
 			payload: Record<string, any>
 		}>,
 	): Promise<void> {
-		try {
-			const processedPoints = points.map((point) => {
-				if (point.payload?.filePath) {
-					const segments = point.payload.filePath.split(path.sep).filter(Boolean)
-					const pathSegments = segments.reduce(
-						(acc: Record<string, string>, segment: string, index: number) => {
-							acc[index.toString()] = segment
-							return acc
-						},
-						{},
-					)
-					return {
-						...point,
-						payload: {
-							...point.payload,
-							pathSegments,
-						},
-					}
-				}
-				return point
-			})
+		const MAX_RETRIES = 3
+		const INITIAL_DELAY = 1000
 
-			await this.client.upsert(this.collectionName, {
-				points: processedPoints,
-				wait: true,
-			})
-		} catch (error) {
-			console.error("Failed to upsert points:", error)
-			throw error
+		for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+			try {
+				const processedPoints = points.map((point) => {
+					if (point.payload?.filePath) {
+						const segments = point.payload.filePath.split(path.sep).filter(Boolean)
+						const pathSegments = segments.reduce(
+							(acc: Record<string, string>, segment: string, index: number) => {
+								acc[index.toString()] = segment
+								return acc
+							},
+							{},
+						)
+						return {
+							...point,
+							payload: {
+								...point.payload,
+								pathSegments,
+							},
+						}
+					}
+					return point
+				})
+
+				// Chunk by payload size
+				const chunks = this.chunkPointsBySize(processedPoints, MAX_PAYLOAD_SIZE_BYTES)
+
+				for (const chunk of chunks) {
+					await this.client.upsert(this.collectionName, {
+						points: chunk,
+						wait: true,
+					})
+				}
+
+				return // Success
+			} catch (error: any) {
+				const isSocketError = error?.cause?.code === "UND_ERR_SOCKET"
+				const isLastAttempt = attempt === MAX_RETRIES - 1
+
+				if (!isSocketError || isLastAttempt) {
+					console.error("Failed to upsert points:", error)
+					throw error
+				}
+
+				// Exponential backoff
+				const delay = INITIAL_DELAY * Math.pow(2, attempt)
+				console.warn(`Qdrant socket error, retrying in ${delay}ms (attempt ${attempt + 1}/${MAX_RETRIES})`)
+				await new Promise((resolve) => setTimeout(resolve, delay))
+			}
 		}
 	}
 
