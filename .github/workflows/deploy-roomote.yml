@@ -11,6 +11,30 @@ on:
       - 'packages/ipc/**'
       - 'packages/job-auth/**'
       - '.env.production'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+      deploy_api:
+        description: 'Deploy roomote-api'
+        required: false
+        default: true
+        type: boolean
+      deploy_controller:
+        description: 'Deploy roomote-controller'
+        required: false
+        default: true
+        type: boolean
+      deploy_worker:
+        description: 'Deploy roomote-worker'
+        required: false
+        default: true
+        type: boolean
 
 env:
   NODE_VERSION: 20.19.2
@@ -51,18 +75,21 @@ jobs:
           echo "FLY_ACCESS_TOKEN=$FLY_ACCESS_TOKEN" >> $GITHUB_ENV
 
       - name: Build and deploy roomote-api
+        if: ${{ github.event_name == 'push' || inputs.deploy_api }}
         env:
           FLY_ACCESS_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
         run: |
           flyctl deploy --config fly.roomote-api.toml --remote-only
 
       - name: Build and deploy roomote-controller
+        if: ${{ github.event_name == 'push' || inputs.deploy_controller }}
         env:
           FLY_ACCESS_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
         run: |
           flyctl deploy --config fly.roomote-controller.toml --remote-only
 
       - name: Build and deploy roomote-worker
+        if: ${{ github.event_name == 'push' || inputs.deploy_worker }}
         env:
           FLY_ACCESS_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
           DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
