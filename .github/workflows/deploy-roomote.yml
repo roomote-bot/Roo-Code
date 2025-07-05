@@ -1,0 +1,73 @@
+name: Deploy Roomote Apps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/roomote/**'
+      - 'packages/db/**'
+      - 'packages/env/**'
+      - 'packages/ipc/**'
+      - 'packages/job-auth/**'
+      - '.env.production'
+
+env:
+  NODE_VERSION: 20.19.2
+  PNPM_VERSION: 10.12.1
+
+jobs:
+  deploy:
+    name: Deploy Roomote Apps
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup Fly CLI
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Setup environment variables
+        env:
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+        run: |
+          # Get FLY_ACCESS_TOKEN from the encrypted production env file
+          export FLY_ACCESS_TOKEN=$(npx dotenvx get FLY_ACCESS_TOKEN -f .env.production)
+          echo "FLY_ACCESS_TOKEN=$FLY_ACCESS_TOKEN" >> $GITHUB_ENV
+
+      - name: Build and deploy roomote-api
+        env:
+          FLY_ACCESS_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
+        run: |
+          flyctl deploy --config fly.roomote-api.toml --remote-only
+
+      - name: Build and deploy roomote-controller
+        env:
+          FLY_ACCESS_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
+        run: |
+          flyctl deploy --config fly.roomote-controller.toml --remote-only
+
+      - name: Build and deploy roomote-worker
+        env:
+          FLY_ACCESS_TOKEN: ${{ env.FLY_ACCESS_TOKEN }}
+          DOTENV_PRIVATE_KEY_PRODUCTION: ${{ secrets.DOTENV_PRIVATE_KEY_PRODUCTION }}
+        run: |
+          # Get GH_TOKEN from the encrypted production env file
+          export GH_TOKEN=$(npx dotenvx get GH_TOKEN -f .env.production)
+          flyctl deploy --config fly.roomote-worker.toml --build-arg GH_TOKEN=$GH_TOKEN --ha=false --remote-only
+          flyctl scale count 0 -a roomote-worker -y
