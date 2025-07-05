@@ -1,35 +1,9 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
 import type { JobPayload } from '@roo-code-cloud/db';
 
-import { createAndEnqueueJob } from './utils';
-
-export const githubPullRequestReviewCommentWebhookSchema = z.object({
-  action: z.string(),
-  comment: z.object({
-    id: z.number(),
-    body: z.string(),
-    html_url: z.string(),
-    user: z.object({
-      login: z.string(),
-    }),
-  }),
-  pull_request: z.object({
-    number: z.number(),
-    title: z.string(),
-    body: z.string().nullable(),
-    head: z.object({
-      ref: z.string(),
-    }),
-    base: z.object({
-      ref: z.string(),
-    }),
-  }),
-  repository: z.object({
-    full_name: z.string(),
-  }),
-});
+import { githubPullRequestReviewCommentWebhookSchema } from './types';
+import { createAndEnqueueJob, isRoomoteMention } from './utils';
 
 export async function handlePullRequestReviewCommentEvent(body: string) {
   const data = githubPullRequestReviewCommentWebhookSchema.parse(
@@ -41,7 +15,7 @@ export async function handlePullRequestReviewCommentEvent(body: string) {
     return NextResponse.json({ message: 'action_ignored' });
   }
 
-  if (!comment.body.includes('@roomote') || comment.user.login === 'roomote') {
+  if (!isRoomoteMention(comment)) {
     return NextResponse.json({ message: 'no_roomote_mention' });
   }
 
@@ -52,8 +26,8 @@ export async function handlePullRequestReviewCommentEvent(body: string) {
     prNumber: pull_request.number,
     prTitle: pull_request.title,
     prBody: pull_request.body || '',
-    prBranch: pull_request.head.ref,
-    baseRef: pull_request.base.ref,
+    prBranch: pull_request.head?.ref || '',
+    baseRef: pull_request.base?.ref || '',
     commentId: comment.id,
     commentBody: comment.body,
     commentAuthor: comment.user.login,

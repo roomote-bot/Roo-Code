@@ -1,23 +1,10 @@
 import { NextResponse } from 'next/server';
 import { eq } from 'drizzle-orm';
-import { z } from 'zod';
 
 import { db, cloudJobs } from '@roo-code-cloud/db/server';
 
 import { SlackNotifier } from '@/lib/slack';
-
-const githubPullRequestWebhookSchema = z.object({
-  action: z.string(),
-  pull_request: z.object({
-    number: z.number(),
-    title: z.string(),
-    body: z.string().nullable(),
-    html_url: z.string(),
-  }),
-  repository: z.object({
-    full_name: z.string(),
-  }),
-});
+import { githubPullRequestWebhookSchema } from './types';
 
 export async function handlePullRequestEvent(body: string) {
   const data = githubPullRequestWebhookSchema.parse(JSON.parse(body));
@@ -50,6 +37,7 @@ export async function handlePullRequestEvent(body: string) {
   // Filter jobs to find the one matching this repo and issue.
   const job = jobs.find((j) => {
     const payload = j.payload as { repo: string; issue: number };
+
     return (
       payload.repo === repository.full_name && payload.issue === issueNumber
     );

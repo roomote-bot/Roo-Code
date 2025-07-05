@@ -1,22 +1,9 @@
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
 
 import type { JobPayload } from '@roo-code-cloud/db';
 
+import { githubIssueWebhookSchema } from './types';
 import { createAndEnqueueJob } from './utils';
-
-const githubIssueWebhookSchema = z.object({
-  action: z.string(),
-  issue: z.object({
-    number: z.number(),
-    title: z.string(),
-    body: z.string().nullable(),
-    labels: z.array(z.object({ name: z.string() })),
-  }),
-  repository: z.object({
-    full_name: z.string(),
-  }),
-});
 
 export async function handleIssueEvent(body: string) {
   const data = githubIssueWebhookSchema.parse(JSON.parse(body));
@@ -33,7 +20,7 @@ export async function handleIssueEvent(body: string) {
     issue: issue.number,
     title: issue.title,
     body: issue.body || '',
-    labels: issue.labels.map(({ name }) => name),
+    labels: issue.labels?.map(({ name }) => name) || [],
   };
 
   const { jobId, enqueuedJobId } = await createAndEnqueueJob(

@@ -8,6 +8,7 @@ import {
 } from '@roo-code-cloud/db/server';
 
 import { enqueue } from '@/lib';
+import type { GithubComment } from './types';
 
 export function verifySignature(
   body: string,
@@ -57,3 +58,7 @@ export async function fetchGitHubAPI(url: string, options: RequestInit = {}) {
 
   return fetch(url, { ...options, headers });
 }
+
+export const isRoomoteMention = (comment: GithubComment) =>
+  comment.body.includes('@roomote') &&
+  !['roomote', 'vercel'].includes(comment.user.login);
