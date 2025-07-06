@@ -1,6 +1,7 @@
 import type { JobType, JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
+import { CRITICAL_COMMAND_RESTRICTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
 
 const jobType: JobType = 'github.issue.fix';
 
@@ -19,6 +20,10 @@ Fix the following GitHub issue:
 
 Repository: ${jobPayload.repo}
 Issue #${jobPayload.issue}
+
+${CRITICAL_COMMAND_RESTRICTIONS}
+
+${MAIN_BRANCH_PROTECTION}
 `.trim();
 
   const { repo, issue } = jobPayload;

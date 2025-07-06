@@ -1,6 +1,7 @@
 import type { JobType, JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
+import { CRITICAL_COMMAND_RESTRICTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
 
 const jobType: JobType = 'github.issue.comment.respond';
 
@@ -30,6 +31,10 @@ ${jobPayload.commentBody}
 Comment URL: ${jobPayload.commentUrl}
 
 Please analyze the comment and provide a helpful response. The comment mentions @roomote, which means the user wants you to engage with their question or request.
+
+${CRITICAL_COMMAND_RESTRICTIONS}
+
+${MAIN_BRANCH_PROTECTION}
 
 Instructions:
 1. Read and understand the context of the issue and the specific comment

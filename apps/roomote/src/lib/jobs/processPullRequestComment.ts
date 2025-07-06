@@ -1,6 +1,7 @@
 import type { JobType, JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
+import { CRITICAL_COMMAND_RESTRICTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
 
 const jobType: JobType = 'github.pr.comment.respond';
 
@@ -35,6 +36,10 @@ PR Branch: ${jobPayload.prBranch}
 Base Branch: ${jobPayload.baseRef}
 
 Please analyze the comment and understand what changes are being requested. Then implement the requested changes directly on the PR branch AND respond to the comment.
+
+${CRITICAL_COMMAND_RESTRICTIONS}
+
+${MAIN_BRANCH_PROTECTION}
 
 Instructions:
 1. First, respond to the comment to acknowledge the request and explain what you'll do
