@@ -24,3 +24,6 @@ Thumbs.db
 
 # logs
 *.log
+
+# project mcp config
+.roo/mcp.json

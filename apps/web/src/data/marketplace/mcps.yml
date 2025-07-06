@@ -2256,3 +2256,174 @@ items:
             "type": "sse",
             "url": "http://127.0.0.1:3845/sse"
           }
+  - id: 'azure-devops'
+    name: 'Azure DevOps'
+    description: 'Official Microsoft MCP server for Azure DevOps integration, bringing comprehensive Azure DevOps functionality directly to your AI agents. Supports work items, repositories, builds, releases, test plans, and search across your Azure DevOps organization with 50+ tools for complete DevOps automation.'
+    author: 'microsoft'
+    url: 'https://github.com/microsoft/azure-devops-mcp'
+    tags:
+      - 'azure-devops'
+      - 'microsoft'
+      - 'devops'
+      - 'work-items'
+      - 'repositories'
+      - 'builds'
+      - 'releases'
+      - 'test-plans'
+      - 'project-management'
+      - 'ci-cd'
+      - 'version-control'
+      - 'pull-requests'
+      - 'search'
+      - 'official'
+    prerequisites:
+      - 'Azure DevOps organization'
+      - 'Azure CLI authentication'
+    content:
+      - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
+          - 'Azure CLI (logged in with az login)'
+        content: |
+          {
+            "command": "npx",
+            "args": ["-y", "@azure-devops/mcp@1.0.0", "--hash", "sha1:742d3aa74ec8a13283a62c77c9fc5c2a0d276624", "{{AZURE_DEVOPS_ORG}}"]
+          }
+        parameters:
+          - name: 'Azure DevOps Organization'
+            key: 'AZURE_DEVOPS_ORG'
+            placeholder: 'contoso'
+  - id: 'atlassian'
+    name: 'Atlassian'
+    description: 'Comprehensive MCP server for Atlassian tools (Confluence and Jira) supporting both Cloud and Server/Data Center deployments with multiple authentication methods including API tokens, Personal Access Tokens, and OAuth 2.0.'
+    author: 'sooperset'
+    url: 'https://github.com/sooperset/mcp-atlassian'
+    tags:
+      - 'atlassian'
+      - 'jira'
+      - 'confluence'
+      - 'project-management'
+      - 'issue-tracking'
+      - 'documentation'
+      - 'collaboration'
+      - 'oauth'
+      - 'api-integration'
+    prerequisites:
+      - 'Docker'
+      - 'Atlassian account (Cloud or Server/Data Center)'
+    content:
+      - name: 'Docker'
+        prerequisites:
+          - 'Docker'
+          - 'Atlassian Cloud account'
+        content: |
+          {
+            "command": "docker",
+            "args": ["run", "-i", "--rm", "-e", "CONFLUENCE_URL", "-e", "CONFLUENCE_USERNAME", "-e", "CONFLUENCE_API_TOKEN", "-e", "JIRA_URL", "-e", "JIRA_USERNAME", "-e", "JIRA_API_TOKEN", "ghcr.io/sooperset/mcp-atlassian@sha256:27c8e5b890e16134a443f49683eaa794fdb48ed5bef785c1b4c88a0cd729df56"],
+            "env": {
+              "CONFLUENCE_URL": "{{CONFLUENCE_URL}}",
+              "CONFLUENCE_USERNAME": "{{CONFLUENCE_USERNAME}}",
+              "CONFLUENCE_API_TOKEN": "{{CONFLUENCE_API_TOKEN}}",
+              "JIRA_URL": "{{JIRA_URL}}",
+              "JIRA_USERNAME": "{{JIRA_USERNAME}}",
+              "JIRA_API_TOKEN": "{{JIRA_API_TOKEN}}"
+            }
+          }
+        parameters:
+          - name: 'Confluence URL'
+            key: 'CONFLUENCE_URL'
+            placeholder: 'https://your-company.atlassian.net/wiki'
+          - name: 'Confluence Username'
+            key: 'CONFLUENCE_USERNAME'
+            placeholder: 'your.email@company.com'
+          - name: 'Confluence API Token'
+            key: 'CONFLUENCE_API_TOKEN'
+            placeholder: 'your_confluence_api_token'
+          - name: 'Jira URL'
+            key: 'JIRA_URL'
+            placeholder: 'https://your-company.atlassian.net'
+          - name: 'Jira Username'
+            key: 'JIRA_USERNAME'
+            placeholder: 'your.email@company.com'
+          - name: 'Jira API Token'
+            key: 'JIRA_API_TOKEN'
+            placeholder: 'your_jira_api_token'
+      - name: 'UVX'
+        prerequisites:
+          - 'Python and uv'
+        content: |
+          {
+            "command": "uvx",
+            "args": ["--from", "mcp-atlassian==0.11.9", "--hash", "sha256:1ba6a171b5299e554d4e0eff98279e74cdc4eb1c12c8e62be924103d9cd38e5e", "mcp-atlassian"],
+            "env": {
+              "CONFLUENCE_URL": "{{CONFLUENCE_URL}}",
+              "CONFLUENCE_USERNAME": "{{CONFLUENCE_USERNAME}}",
+              "CONFLUENCE_API_TOKEN": "{{CONFLUENCE_API_TOKEN}}",
+              "JIRA_URL": "{{JIRA_URL}}",
+              "JIRA_USERNAME": "{{JIRA_USERNAME}}",
+              "JIRA_API_TOKEN": "{{JIRA_API_TOKEN}}"
+            }
+          }
+        parameters:
+          - name: 'Confluence URL'
+            key: 'CONFLUENCE_URL'
+            placeholder: 'https://your-company.atlassian.net/wiki'
+          - name: 'Confluence Username'
+            key: 'CONFLUENCE_USERNAME'
+            placeholder: 'your.email@company.com'
+          - name: 'Confluence API Token'
+            key: 'CONFLUENCE_API_TOKEN'
+            placeholder: 'your_confluence_api_token'
+          - name: 'Jira URL'
+            key: 'JIRA_URL'
+            placeholder: 'https://your-company.atlassian.net'
+          - name: 'Jira Username'
+            key: 'JIRA_USERNAME'
+            placeholder: 'your.email@company.com'
+          - name: 'Jira API Token'
+            key: 'JIRA_API_TOKEN'
+            placeholder: 'your_jira_api_token'
+  - id: 'clickup'
+    name: 'ClickUp'
+    description: 'Comprehensive ClickUp MCP server for project management integration with AI through Model Context Protocol. Supports task management, time tracking, workspace organization, document management, member management, and tag operations with 36 available tools for complete ClickUp automation.'
+    author: 'taazkareem'
+    url: 'https://github.com/TaazKareem/clickup-mcp-server'
+    tags:
+      - 'clickup'
+      - 'project-management'
+      - 'task-management'
+      - 'time-tracking'
+      - 'productivity'
+      - 'automation'
+      - 'workflow'
+      - 'team-collaboration'
+      - 'workspace'
+      - 'api-integration'
+    prerequisites:
+      - 'ClickUp account'
+      - 'ClickUp API key'
+    content:
+      - name: 'NPX'
+        prerequisites:
+          - 'Node.js'
+        content: |
+          {
+            "command": "npx",
+            "args": ["-y", "@taazkareem/clickup-mcp-server@0.8.3", "--hash", "sha256:yAu9DCsGc8NLwXk3n/JhjjcFfdl+8fv7lcbnVUygRgO8dcG1PFEH/tgcHGpLEtBUx00z13mBH8FiSKUjd4pv5Q=="],
+            "env": {
+              "CLICKUP_API_KEY": "{{CLICKUP_API_KEY}}",
+              "CLICKUP_TEAM_ID": "{{CLICKUP_TEAM_ID}}",
+              "DOCUMENT_SUPPORT": "{{DOCUMENT_SUPPORT}}"
+            }
+          }
+        parameters:
+          - name: 'ClickUp API Key'
+            key: 'CLICKUP_API_KEY'
+            placeholder: 'pk_your_clickup_api_key'
+          - name: 'ClickUp Team ID'
+            key: 'CLICKUP_TEAM_ID'
+            placeholder: 'your_team_id'
+          - name: 'Document Support'
+            key: 'DOCUMENT_SUPPORT'
+            placeholder: 'true'
+            optional: true
