@@ -13,6 +13,7 @@ import {
   RooCodeEventName,
   IpcMessageType,
   EVALS_SETTINGS,
+  ORGANIZATION_DEFAULT,
 } from '@roo-code/types';
 import { IpcClient } from '@roo-code-cloud/ipc';
 import { createJobToken } from '@roo-code-cloud/job-auth';
@@ -108,6 +109,8 @@ export const runTask = async <T extends JobType>({
       );
 
       envVars += ` ROO_CODE_CLOUD_TOKEN=${token}`;
+
+      envVars += ` ROO_CODE_CLOUD_ORG_SETTINGS=${Buffer.from(JSON.stringify(ORGANIZATION_DEFAULT)).toString('base64')}`;
     } catch (error) {
       logger?.error('Failed to create job token:', error);
       // Continue without token - job will fall back to no auth
