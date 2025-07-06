@@ -16,6 +16,7 @@ vi.mock('@/lib', () => ({
 describe('GitHub Webhook Utils', () => {
   let verifySignature: typeof import('../utils').verifySignature;
   let createAndEnqueueJob: typeof import('../utils').createAndEnqueueJob;
+  let isRoomoteMention: typeof import('../utils').isRoomoteMention;
   let mockDb: { insert: ReturnType<typeof vi.fn> };
   let mockEnqueue: ReturnType<typeof vi.fn>;
 
@@ -30,6 +31,7 @@ describe('GitHub Webhook Utils', () => {
     const utilsModule = await import('../utils');
     verifySignature = utilsModule.verifySignature;
     createAndEnqueueJob = utilsModule.createAndEnqueueJob;
+    isRoomoteMention = utilsModule.isRoomoteMention;
   });
 
   afterEach(() => {
@@ -253,6 +255,105 @@ describe('GitHub Webhook Utils', () => {
       await expect(createAndEnqueueJob(type, payload)).rejects.toThrow(
         'Queue service unavailable',
       );
+    });
+  });
+
+  describe('isRoomoteMention', () => {
+    const createMockComment = (body: string, login: string) => ({
+      id: 123,
+      body,
+      html_url: 'https://github.com/test/repo/issues/1#issuecomment-123',
+      user: { login },
+    });
+
+    it('should return true for valid roomote mention from regular user', () => {
+      const comment = createMockComment(
+        'Hey @roomote, can you help with this?',
+        'testuser',
+      );
+      expect(isRoomoteMention(comment)).toBe(true);
+    });
+
+    it('should return false when no roomote mention', () => {
+      const comment = createMockComment(
+        'This is a regular comment without mention',
+        'testuser',
+      );
+      expect(isRoomoteMention(comment)).toBe(false);
+    });
+
+    it('should return false when comment is from roomote user', () => {
+      const comment = createMockComment(
+        'Thanks for mentioning @roomote!',
+        'roomote',
+      );
+      expect(isRoomoteMention(comment)).toBe(false);
+    });
+
+    it('should return false when comment is from vercel[bot]', () => {
+      const comment = createMockComment(
+        'Deployment successful! @roomote',
+        'vercel[bot]',
+      );
+      expect(isRoomoteMention(comment)).toBe(false);
+    });
+
+    it('should return true when comment is from vercel (not vercel[bot])', () => {
+      const comment = createMockComment(
+        'Hey @roomote, check this out',
+        'vercel',
+      );
+      expect(isRoomoteMention(comment)).toBe(true);
+    });
+
+    it('should handle roomote mention in middle of text', () => {
+      const comment = createMockComment(
+        'I think @roomote should look at this issue',
+        'developer',
+      );
+      expect(isRoomoteMention(comment)).toBe(true);
+    });
+
+    it('should handle multiple mentions including roomote', () => {
+      const comment = createMockComment(
+        '@user1 @roomote @user2 please review',
+        'reviewer',
+      );
+      expect(isRoomoteMention(comment)).toBe(true);
+    });
+
+    it('should be case sensitive for roomote mention', () => {
+      const comment = createMockComment(
+        'Hey @Roomote, can you help?',
+        'testuser',
+      );
+      expect(isRoomoteMention(comment)).toBe(false);
+    });
+
+    it('should handle roomote as part of larger word', () => {
+      const comment = createMockComment(
+        'The roomotebot is not working',
+        'testuser',
+      );
+      expect(isRoomoteMention(comment)).toBe(false);
+    });
+
+    it('should return true for other bot users (only roomote and vercel[bot] are ignored)', () => {
+      const comment = createMockComment(
+        'Hey @roomote, check this',
+        'github-actions[bot]',
+      );
+      expect(isRoomoteMention(comment)).toBe(true);
+    });
+
+    it('should handle empty comment body', () => {
+      const comment = createMockComment('', 'testuser');
+      expect(isRoomoteMention(comment)).toBe(false);
+    });
+
+    it('should handle comment with only @roomote', () => {
+      const comment = createMockComment('@roomote', 'testuser');
+      expect(isRoomoteMention(comment)).toBe(true);
     });
   });
 
