@@ -71,11 +71,21 @@ export async function processJob<T extends JobType>({
       case 'slack.app.mention': {
         const jobPayload = payload as JobPayload<'slack.app.mention'>;
         const { channel, thread_ts } = jobPayload;
+        let isFirstMessage = true;
 
         result = await processSlackMention(jobPayload, jobId, {
           onTaskStarted,
           onTaskMessage: async (message: ClineMessage) => {
             console.log(`onTaskMessage (${channel}, ${thread_ts}) ->`, message);
+
+            // Skip the first message to avoid echoing the prompt
+            if (isFirstMessage) {
+              isFirstMessage = false;
+              console.log(
+                `Skipping first message (prompt echo) for ${channel}, ${thread_ts}`,
+              );
+              return;
+            }
 
             if (
               (message.say === 'text' || message.say === 'completion_result') &&
