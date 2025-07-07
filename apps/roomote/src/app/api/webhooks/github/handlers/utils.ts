@@ -100,5 +100,5 @@ export async function fetchGitHubAPI(url: string, options: RequestInit = {}) {
 }
 
 export const isRoomoteMention = (comment: GithubComment) =>
-  comment.body.includes('@roomote') &&
-  !['roomote', 'vercel[bot]'].includes(comment.user.login);
+  comment.body.includes('@roomote-bot') &&
+  !['roomote-bot', 'vercel[bot]'].includes(comment.user.login);

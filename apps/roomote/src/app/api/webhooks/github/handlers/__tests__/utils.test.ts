@@ -342,7 +342,7 @@ describe('GitHub Webhook Utils', () => {
 
     it('should return true for valid roomote mention from regular user', () => {
       const comment = createMockComment(
-        'Hey @roomote, can you help with this?',
+        'Hey @roomote-bot, can you help with this?',
         'testuser',
       );
       expect(isRoomoteMention(comment)).toBe(true);
@@ -358,15 +358,15 @@ describe('GitHub Webhook Utils', () => {
 
     it('should return false when comment is from roomote user', () => {
       const comment = createMockComment(
-        'Thanks for mentioning @roomote!',
-        'roomote',
+        'Thanks for mentioning @roomote-bot!',
+        'roomote-bot',
       );
       expect(isRoomoteMention(comment)).toBe(false);
     });
 
     it('should return false when comment is from vercel[bot]', () => {
       const comment = createMockComment(
-        'Deployment successful! @roomote',
+        'Deployment successful! @roomote-bot',
         'vercel[bot]',
       );
       expect(isRoomoteMention(comment)).toBe(false);
@@ -374,7 +374,7 @@ describe('GitHub Webhook Utils', () => {
 
     it('should return true when comment is from vercel (not vercel[bot])', () => {
       const comment = createMockComment(
-        'Hey @roomote, check this out',
+        'Hey @roomote-bot, check this out',
         'vercel',
       );
       expect(isRoomoteMention(comment)).toBe(true);
@@ -382,7 +382,7 @@ describe('GitHub Webhook Utils', () => {
 
     it('should handle roomote mention in middle of text', () => {
       const comment = createMockComment(
-        'I think @roomote should look at this issue',
+        'I think @roomote-bot should look at this issue',
         'developer',
       );
       expect(isRoomoteMention(comment)).toBe(true);
@@ -390,7 +390,7 @@ describe('GitHub Webhook Utils', () => {
 
     it('should handle multiple mentions including roomote', () => {
       const comment = createMockComment(
-        '@user1 @roomote @user2 please review',
+        '@user1 @roomote-bot @user2 please review',
         'reviewer',
       );
       expect(isRoomoteMention(comment)).toBe(true);
@@ -414,7 +414,7 @@ describe('GitHub Webhook Utils', () => {
 
     it('should return true for other bot users (only roomote and vercel[bot] are ignored)', () => {
       const comment = createMockComment(
-        'Hey @roomote, check this',
+        'Hey @roomote-bot, check this',
         'github-actions[bot]',
       );
       expect(isRoomoteMention(comment)).toBe(true);
@@ -425,8 +425,8 @@ describe('GitHub Webhook Utils', () => {
       expect(isRoomoteMention(comment)).toBe(false);
     });
 
-    it('should handle comment with only @roomote', () => {
-      const comment = createMockComment('@roomote', 'testuser');
+    it('should handle comment with only @roomote-bot', () => {
+      const comment = createMockComment('@roomote-bot', 'testuser');
       expect(isRoomoteMention(comment)).toBe(true);
     });
   });

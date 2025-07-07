@@ -115,8 +115,11 @@ export function Jobs({ userId }: JobsProps) {
         </div>
 
         {jobs.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            No jobs found. Create your first job using the form above.
+          <div className="text-sm text-muted-foreground text-center py-8">
+            No tasks found.
+            <Button variant="link" size="sm" onClick={() => setModal('create')}>
+              Create your first task.
+            </Button>
           </div>
         ) : (
           <div className="border rounded-lg overflow-hidden">

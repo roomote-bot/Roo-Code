@@ -45,7 +45,7 @@ Instructions:
 6. Push the changes to the same PR branch: git push origin ${jobPayload.prBranch}
 7. After completing the changes, update your response or add a follow-up comment with the results
 
-The comment mentions @roomote, which means the user wants you to process this request. Make sure to:
+The comment mentions @roomote-bot, which means the user wants you to process this request. Make sure to:
 - Respond to the comment first to acknowledge the request
 - Understand the context of the PR and the specific request in the comment
 - Implement the requested changes thoughtfully

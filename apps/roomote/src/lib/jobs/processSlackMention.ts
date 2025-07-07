@@ -23,7 +23,7 @@ User: @${user}
 Original Request:
 ${originalPrompt}
 
-Please analyze the request and implement the necessary changes. The user mentioned @roomote, which means they want you to engage with their request.
+Please analyze the request and implement the necessary changes. The user mentioned @roomote-bot, which means they want you to engage with their request.
 
 ${CRITICAL_COMMAND_RESTRICTIONS}
 

@@ -26,7 +26,7 @@ ${jobPayload.commentBody}
 
 Comment URL: ${jobPayload.commentUrl}
 
-Please analyze the comment and provide a helpful response. The comment mentions @roomote, which means the user wants you to engage with their question or request.
+Please analyze the comment and provide a helpful response. The comment mentions @roomote-bot, which means the user wants you to engage with their question or request.
 
 ${CRITICAL_COMMAND_RESTRICTIONS}
 
@@ -40,7 +40,7 @@ Instructions:
 5. If the comment is unclear, ask for clarification
 6. Use the GitHub CLI or API to respond to the comment with your message
 
-Your goal is to be helpful and engage meaningfully with the community member who mentioned @roomote.
+Your goal is to be helpful and engage meaningfully with the community member who mentioned @roomote-bot.
 
 Use the "gh" command line tool to respond to the comment:
 gh api repos/${jobPayload.repo}/issues/comments/${jobPayload.commentId} --method PATCH --field body="Your response here"
