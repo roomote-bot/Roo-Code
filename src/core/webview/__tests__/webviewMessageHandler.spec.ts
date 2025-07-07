@@ -14,6 +14,10 @@ vi.mock("vscode", () => ({
 	ConfigurationTarget: {
 		Global: 1,
 	},
+	window: {
+		showErrorMessage: vi.fn().mockResolvedValue(undefined),
+		showInformationMessage: vi.fn().mockResolvedValue(undefined),
+	},
 }))
 
 // Mock Package
