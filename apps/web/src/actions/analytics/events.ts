@@ -673,3 +673,26 @@ export const getHourlyUsageByUser = async ({
     .map((usage) => ({ ...usage, user: users[usage.userId] }))
     .filter((usage): usage is HourlyUsageByUser => !!usage.user);
 };
+
+/**
+ * getTaskById - Convenience function to fetch a single task by ID
+ */
+export const getTaskById = async ({
+  taskId,
+  orgId,
+  userId,
+}: {
+  taskId: string;
+  orgId?: string | null;
+  userId?: string | null;
+}): Promise<TaskWithUser | null> => {
+  const result = await getTasks({
+    taskId,
+    orgId,
+    userId,
+    limit: 1,
+    allowCrossUserAccess: false,
+  });
+
+  return result.tasks[0] || null;
+};

@@ -2,13 +2,15 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useAuth } from '@clerk/nextjs';
 import { X, AlertCircle } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
+import { getTaskById } from '@/actions/analytics';
 import { Button } from '@/components/ui';
 import { UsageCard } from '@/components/usage';
 import { Loading } from '@/components/layout';
+import { useTaskHash } from '@/hooks/useTaskHash';
 
 import { type Filter, type ViewMode, viewModes, filterExists } from './types';
 import { Developers } from './Developers';
@@ -30,11 +32,17 @@ export const Usage = ({
   error,
 }: UsageProps) => {
   const { isSignedIn } = useUser();
+  const { orgId, userId } = useAuth();
   const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [task, setTask] = useState<TaskWithUser | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoadingTask, setIsLoadingTask] = useState(false);
   const [showError, setShowError] = useState(!!error);
+
+  // Hash-based routing for deep linking
+  const { taskIdFromHash, setTaskHash } = useTaskHash();
 
   const onAddFilter = useCallback((newFilter: Filter) => {
     setFilters((currentFilters) => {
@@ -46,6 +54,68 @@ export const Usage = ({
     });
     setViewMode('tasks');
   }, []);
+
+  // Handle hash-based task loading
+  useEffect(() => {
+    const loadTaskFromHash = async () => {
+      if (taskIdFromHash) {
+        // Wait for auth to be available before attempting to load task
+        if (!isSignedIn || (orgId === undefined && userId === undefined)) {
+          return; // Wait for auth to be ready
+        }
+
+        // Only load if we don't have the task or it's a different task
+        if (!task || task.taskId !== taskIdFromHash) {
+          setIsLoadingTask(true);
+          try {
+            const taskData = await getTaskById({
+              taskId: taskIdFromHash,
+              orgId,
+              userId,
+            });
+
+            if (taskData) {
+              setTask(taskData);
+              setIsModalOpen(true);
+            } else {
+              // Task not found or no permission, clear hash
+              setTaskHash(null);
+              setShowError(true);
+            }
+          } catch (error) {
+            console.error('Failed to load task:', error);
+            setTaskHash(null);
+            setShowError(true);
+          } finally {
+            setIsLoadingTask(false);
+          }
+        } else if (task && task.taskId === taskIdFromHash && !isModalOpen) {
+          // We have the right task but modal is closed, open it
+          setIsModalOpen(true);
+        }
+      } else if (!taskIdFromHash) {
+        // No hash, ensure modal is closed and task is cleared
+        if (isModalOpen) {
+          setIsModalOpen(false);
+        }
+        if (task) {
+          setTask(null);
+        }
+        // Always clear loading state when no hash
+        setIsLoadingTask(false);
+      }
+    };
+
+    loadTaskFromHash();
+  }, [
+    taskIdFromHash,
+    task,
+    orgId,
+    userId,
+    isModalOpen,
+    isSignedIn,
+    setTaskHash,
+  ]);
 
   useEffect(() => {
     if (error) {
@@ -74,6 +144,22 @@ export const Usage = ({
       ),
     );
   }, []);
+
+  // Handle task selection with hash routing
+  const handleTaskSelect = useCallback(
+    (selectedTask: TaskWithUser) => {
+      setTask(selectedTask);
+      setIsModalOpen(true);
+      setTaskHash(selectedTask.taskId);
+    },
+    [setTaskHash],
+  );
+
+  // Handle modal close with hash routing
+  const handleTaskClose = useCallback(() => {
+    // Clear hash first, which will trigger the effect to close the modal
+    setTaskHash(null);
+  }, [setTaskHash]);
 
   // For members, automatically set filter to their user ID and hide other tabs.
   const isMember = userRole === 'member';
@@ -140,7 +226,7 @@ export const Usage = ({
           <Tasks
             filters={effectiveFilters}
             onFilter={isMember ? () => {} : onAddFilter}
-            onTaskSelected={(task: TaskWithUser) => setTask(task)}
+            onTaskSelected={handleTaskSelect}
             userRole={userRole}
             currentUserId={currentUserId}
           />
@@ -152,8 +238,17 @@ export const Usage = ({
           <Models onFilter={onAddFilter} filters={effectiveFilters} />
         )}
       </div>
+
+      {/* Loading indicator for hash-based task loading */}
+      {isLoadingTask && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <Loading />
+        </div>
+      )}
+
+      {/* Task Modal with hash-based routing */}
       {task && (
-        <TaskModal task={task} open={!!task} onClose={() => setTask(null)} />
+        <TaskModal task={task} open={isModalOpen} onClose={handleTaskClose} />
       )}
     </>
   );
