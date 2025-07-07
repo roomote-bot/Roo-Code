@@ -1634,7 +1634,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						<div
 							className={`${
 								primaryButtonText || secondaryButtonText || tertiaryButtonText || isStreaming
-									? "px-[15px] pt-[10px]"
+									? "px-[15px] pt-[10px] pb-[10px]"
 									: "p-0"
 							} ${
 								primaryButtonText || secondaryButtonText || tertiaryButtonText || isStreaming
