@@ -125,6 +125,7 @@ const getCommandsMap = ({ context, outputChannel, provider }: RegisterCommandOpt
 		return openClineInNewTab({ context, outputChannel })
 	},
 	openInNewTab: () => openClineInNewTab({ context, outputChannel }),
+	openInThisTab: () => openClineInThisTab({ context, outputChannel }),
 	settingsButtonClicked: () => {
 		const visibleProvider = getVisibleProviderOrLog(outputChannel)
 
@@ -281,6 +282,56 @@ export const openClineInNewTab = async ({ context, outputChannel }: Omit<Registe
 	// Lock the editor group so clicking on files doesn't open them over the panel.
 	await delay(100)
 	await vscode.commands.executeCommand("workbench.action.lockEditorGroup")
+
+	return tabProvider
+}
+
+export const openClineInThisTab = async ({ context, outputChannel }: Omit<RegisterCommandOptions, "provider">) => {
+	const contextProxy = await ContextProxy.getInstance(context)
+	const codeIndexManager = CodeIndexManager.getInstance(context)
+	const tabProvider = new ClineProvider(context, outputChannel, "editor", contextProxy, codeIndexManager)
+
+	// Use the active column instead of creating a new one
+	const targetCol = vscode.ViewColumn.Active
+
+	const newPanel = vscode.window.createWebviewPanel(ClineProvider.tabPanelId, "Roo Code", targetCol, {
+		enableScripts: true,
+		retainContextWhenHidden: true,
+		localResourceRoots: [context.extensionUri],
+	})
+
+	// Save as tab type panel.
+	setPanel(newPanel, "tab")
+
+	// TODO: Use better svg icon with light and dark variants (see
+	// https://stackoverflow.com/questions/58365687/vscode-extension-iconpath).
+	newPanel.iconPath = {
+		light: vscode.Uri.joinPath(context.extensionUri, "assets", "icons", "panel_light.png"),
+		dark: vscode.Uri.joinPath(context.extensionUri, "assets", "icons", "panel_dark.png"),
+	}
+
+	await tabProvider.resolveWebviewView(newPanel)
+
+	// Add listener for visibility changes to notify webview
+	newPanel.onDidChangeViewState(
+		(e) => {
+			const panel = e.webviewPanel
+			if (panel.visible) {
+				panel.webview.postMessage({ type: "action", action: "didBecomeVisible" }) // Use the same message type as in SettingsView.tsx
+			}
+		},
+		null, // First null is for `thisArgs`
+		context.subscriptions, // Register listener for disposal
+	)
+
+	// Handle panel closing events.
+	newPanel.onDidDispose(
+		() => {
+			setPanel(undefined, "tab")
+		},
+		null,
+		context.subscriptions, // Also register dispose listener
+	)
 
 	return tabProvider
 }
