@@ -11,6 +11,7 @@ import { formatTimestamp } from '@/lib/formatters';
 import { useAutoScroll } from '@/hooks/useAutoScroll';
 import { CodeBlock } from '@/components/ui/CodeBlock';
 import { ToolUsageBadge } from '@/components/ui/ToolUsageBadge';
+import { TodoListDisplay } from '@/components/ui/TodoListDisplay';
 import { parseToolUsage } from '@/lib/toolUsageParser';
 
 // Custom component to render links as plain text to avoid broken/nonsensical links
@@ -317,12 +318,18 @@ export const Messages = ({
               );
             }
 
-            // For other tool messages, render only the tool usage badge in the space between bubbles
+            // For tool messages, render the tool usage badge and todo list if present
             if (isTool) {
               return (
-                <div key={message.id} className="py-2 pl-4">
-                  {message.toolUsage && (
-                    <ToolUsageBadge usage={message.toolUsage} />
+                <div key={message.id} className="py-2 space-y-3">
+                  {message.toolUsage?.todoData ? (
+                    <TodoListDisplay todos={message.toolUsage.todoData.todos} />
+                  ) : (
+                    message.toolUsage && (
+                      <div className="pl-4">
+                        <ToolUsageBadge usage={message.toolUsage} />
+                      </div>
+                    )
                   )}
                 </div>
               );

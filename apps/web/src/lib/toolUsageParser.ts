@@ -5,6 +5,13 @@
 export type ToolUsage = {
   action: string;
   details?: string;
+  todoData?: {
+    todos: Array<{
+      id: string;
+      content: string;
+      status: 'pending' | 'in_progress' | 'completed';
+    }>;
+  };
 };
 
 /**
@@ -107,6 +114,21 @@ export function extractToolUsageFromAsk(message: {
         return {
           action: 'Edited',
           details: path,
+        };
+      case 'updateTodoList':
+        // Handle todo list updates
+        if (toolData.todos && Array.isArray(toolData.todos)) {
+          return {
+            action: 'Updated',
+            details: 'todo list',
+            todoData: {
+              todos: toolData.todos,
+            },
+          };
+        }
+        return {
+          action: 'Updated',
+          details: 'todo list',
         };
       default:
         return null;
