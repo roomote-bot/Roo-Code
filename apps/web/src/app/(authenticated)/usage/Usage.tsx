@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useUser, useAuth } from '@clerk/nextjs';
+import { useQuery } from '@tanstack/react-query';
 import { X, AlertCircle } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
@@ -36,13 +37,31 @@ export const Usage = ({
   const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
   const [filters, setFilters] = useState<Filter[]>([]);
-  const [task, setTask] = useState<TaskWithUser | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoadingTask, setIsLoadingTask] = useState(false);
   const [showError, setShowError] = useState(!!error);
 
   // Hash-based routing for deep linking
   const { taskIdFromHash, setTaskHash } = useTaskHash();
+
+  // Use React Query for task loading instead of useEffect
+  const {
+    data: task,
+    isLoading: isLoadingTask,
+    error: taskError,
+  } = useQuery({
+    queryKey: ['getTaskById', taskIdFromHash, orgId, userId],
+    queryFn: () =>
+      getTaskById({
+        taskId: taskIdFromHash!,
+        orgId,
+        userId,
+      }),
+    enabled:
+      !!taskIdFromHash &&
+      !!isSignedIn &&
+      (orgId !== undefined || userId !== undefined),
+    retry: false,
+  });
 
   const onAddFilter = useCallback((newFilter: Filter) => {
     setFilters((currentFilters) => {
@@ -55,67 +74,21 @@ export const Usage = ({
     setViewMode('tasks');
   }, []);
 
-  // Handle hash-based task loading
+  // Handle modal state based on hash and task data
   useEffect(() => {
-    const loadTaskFromHash = async () => {
-      if (taskIdFromHash) {
-        // Wait for auth to be available before attempting to load task
-        if (!isSignedIn || (orgId === undefined && userId === undefined)) {
-          return; // Wait for auth to be ready
-        }
-
-        // Only load if we don't have the task or it's a different task
-        if (!task || task.taskId !== taskIdFromHash) {
-          setIsLoadingTask(true);
-          try {
-            const taskData = await getTaskById({
-              taskId: taskIdFromHash,
-              orgId,
-              userId,
-            });
-
-            if (taskData) {
-              setTask(taskData);
-              setIsModalOpen(true);
-            } else {
-              // Task not found or no permission, clear hash
-              setTaskHash(null);
-              setShowError(true);
-            }
-          } catch (error) {
-            console.error('Failed to load task:', error);
-            setTaskHash(null);
-            setShowError(true);
-          } finally {
-            setIsLoadingTask(false);
-          }
-        } else if (task && task.taskId === taskIdFromHash && !isModalOpen) {
-          // We have the right task but modal is closed, open it
-          setIsModalOpen(true);
-        }
-      } else if (!taskIdFromHash) {
-        // No hash, ensure modal is closed and task is cleared
-        if (isModalOpen) {
-          setIsModalOpen(false);
-        }
-        if (task) {
-          setTask(null);
-        }
-        // Always clear loading state when no hash
-        setIsLoadingTask(false);
-      }
-    };
-
-    loadTaskFromHash();
-  }, [
-    taskIdFromHash,
-    task,
-    orgId,
-    userId,
-    isModalOpen,
-    isSignedIn,
-    setTaskHash,
-  ]);
+    if (taskIdFromHash && task) {
+      // Task loaded successfully, open modal
+      setIsModalOpen(true);
+    } else if (taskIdFromHash && taskError) {
+      // Task failed to load, clear hash and show error
+      console.error('Failed to load task:', taskError);
+      setTaskHash(null);
+      setShowError(true);
+    } else if (!taskIdFromHash) {
+      // No hash, ensure modal is closed
+      setIsModalOpen(false);
+    }
+  }, [taskIdFromHash, task, taskError, setTaskHash]);
 
   useEffect(() => {
     if (error) {
@@ -148,8 +121,6 @@ export const Usage = ({
   // Handle task selection with hash routing
   const handleTaskSelect = useCallback(
     (selectedTask: TaskWithUser) => {
-      setTask(selectedTask);
-      setIsModalOpen(true);
       setTaskHash(selectedTask.taskId);
     },
     [setTaskHash],
