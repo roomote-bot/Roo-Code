@@ -221,7 +221,103 @@ export const Messages = ({
 
             const messageId = `message-${message.id}`;
 
-            // For tool messages, render only the tool usage badge in the space between bubbles
+            // Parse tool data to check for special cases
+            let toolData = null;
+            let isNewTask = false;
+            if (isTool && message.text) {
+              try {
+                toolData = JSON.parse(message.text);
+                isNewTask = toolData?.tool === 'newTask';
+              } catch {
+                // Invalid JSON, treat as regular tool message
+              }
+            }
+
+            // For newTask tool messages, render the full content
+            if (isNewTask && toolData) {
+              return (
+                <div key={message.id} className="py-2">
+                  <div className="bg-secondary/30 border border-border rounded-lg overflow-hidden">
+                    <div className="bg-secondary/50 px-4 py-2 border-b border-border">
+                      <div className="flex items-center gap-2 text-sm font-medium text-foreground/80">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
+                        New task created in {toolData.mode} mode
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="text-sm leading-relaxed markdown-prose text-foreground/90">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkBreaks]}
+                          rehypePlugins={[rehypeSanitize]}
+                          components={{
+                            a: PlainTextLink,
+                            code: CodeBlock,
+                          }}
+                        >
+                          {toolData.content}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // For subtask_result messages, render with special styling
+            if (message.say === 'subtask_result') {
+              return (
+                <div key={message.id} className="py-2">
+                  <div className="bg-secondary/30 border border-border rounded-lg overflow-hidden">
+                    <div className="bg-secondary/50 px-4 py-2 border-b border-border">
+                      <div className="flex items-center gap-2 text-sm font-medium text-foreground/80">
+                        <svg
+                          className="w-4 h-4"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M7 16l-4-4m0 0l4-4m-4 4h18"
+                          />
+                        </svg>
+                        Subtask results
+                      </div>
+                    </div>
+                    <div className="p-4">
+                      <div className="text-sm leading-relaxed markdown-prose text-foreground/90">
+                        <ReactMarkdown
+                          remarkPlugins={[remarkBreaks]}
+                          rehypePlugins={[rehypeSanitize]}
+                          components={{
+                            a: PlainTextLink,
+                            code: CodeBlock,
+                          }}
+                        >
+                          {message.text}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
+            // For other tool messages, render only the tool usage badge in the space between bubbles
             if (isTool) {
               return (
                 <div key={message.id} className="py-2 pl-4">
@@ -424,6 +520,7 @@ const isVisible = (message: Message) => {
     (message.ask === 'text' ||
       message.say === 'text' ||
       message.say === 'completion_result' ||
+      message.say === 'subtask_result' ||
       message.say === 'user_feedback') &&
     typeof message.text === 'string' &&
     message.text.length > 0
