@@ -4,6 +4,7 @@ import { runTask, type RunTaskCallbacks } from '../runTask';
 
 export async function processGeneralTask(
   jobPayload: JobPayload<'general.task'>,
+  jobId: number,
   callbacks?: RunTaskCallbacks,
   mode?: string,
 ) {
@@ -22,6 +23,7 @@ Please complete this task and create a pull request with your changes when finis
   const result = await runTask({
     jobType: 'general.task',
     jobPayload,
+    jobId,
     prompt,
     callbacks,
     notify: false,

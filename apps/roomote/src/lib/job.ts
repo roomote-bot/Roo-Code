@@ -92,7 +92,7 @@ export async function processJob<T extends JobType>({
 
       case 'general.task': {
         const jobPayload = payload as JobPayload<'general.task'>;
-        result = await processGeneralTask(jobPayload, { onTaskStarted });
+        result = await processGeneralTask(jobPayload, jobId, { onTaskStarted });
         break;
       }
 

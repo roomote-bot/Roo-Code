@@ -36,7 +36,9 @@ export async function createAndEnqueueJob<T extends JobType>(
       await db
         .select({ id: orgs.id })
         .from(orgs)
-        .where(or(eq(orgs.name, 'Roo Code'), eq(orgs.name, 'Roo Code / Dev')))
+        .where(
+          or(eq(orgs.name, 'Roo Code, Inc.'), eq(orgs.name, 'Roo Code / Dev')),
+        )
         .limit(1)
     )[0]?.id;
 
