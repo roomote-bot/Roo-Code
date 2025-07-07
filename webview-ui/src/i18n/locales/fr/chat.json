@@ -63,6 +63,10 @@
 		"title": "Ajouter et exécuter",
 		"tooltip": "Ajouter le modèle de commande à la liste blanche et exécuter"
 	},
+	"alwaysAllow": {
+		"title": "Toujours autoriser",
+		"tooltip": "Ajouter ce modèle de commande à la liste blanche"
+	},
 	"proceedWhileRunning": {
 		"title": "Continuer pendant l'exécution",
 		"tooltip": "Continuer malgré les avertissements"

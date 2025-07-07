@@ -63,6 +63,10 @@
 		"title": "Adicionar & Executar",
 		"tooltip": "Adicionar padrão de comando à lista de permissões e executar"
 	},
+	"alwaysAllow": {
+		"title": "Sempre permitir",
+		"tooltip": "Adicionar este padrão de comando à lista de permissões"
+	},
 	"proceedWhileRunning": {
 		"title": "Prosseguir durante execução",
 		"tooltip": "Continuar apesar dos avisos"

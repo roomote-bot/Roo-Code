@@ -63,6 +63,10 @@
 		"title": "追加して実行",
 		"tooltip": "コマンドパターンをホワイトリストに追加して実行します"
 	},
+	"alwaysAllow": {
+		"title": "常に許可",
+		"tooltip": "このコマンドパターンをホワイトリストに追加します"
+	},
 	"proceedWhileRunning": {
 		"title": "実行中も続行",
 		"tooltip": "警告にもかかわらず続行"

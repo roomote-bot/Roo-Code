@@ -77,6 +77,10 @@
 		"title": "Tambah & Jalankan",
 		"tooltip": "Tambahkan pola perintah ke daftar putih dan jalankan"
 	},
+	"alwaysAllow": {
+		"title": "Selalu izinkan",
+		"tooltip": "Tambahkan pola perintah ini ke daftar putih"
+	},
 	"proceedWhileRunning": {
 		"title": "Lanjutkan Saat Berjalan",
 		"tooltip": "Lanjutkan meskipun ada peringatan"

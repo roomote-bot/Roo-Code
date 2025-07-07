@@ -63,6 +63,10 @@
 		"title": "Afegeix i executa",
 		"tooltip": "Afegeix el patró de comanda a la llista blanca i executa-la"
 	},
+	"alwaysAllow": {
+		"title": "Permet sempre",
+		"tooltip": "Afegeix aquest patró de comanda a la llista blanca"
+	},
 	"proceedWhileRunning": {
 		"title": "Continuar mentre s'executa",
 		"tooltip": "Continua malgrat els advertiments"

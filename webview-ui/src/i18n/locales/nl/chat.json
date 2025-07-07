@@ -63,6 +63,10 @@
 		"title": "Toevoegen & uitvoeren",
 		"tooltip": "Commandopatroon toevoegen aan de witte lijst en uitvoeren"
 	},
+	"alwaysAllow": {
+		"title": "Altijd toestaan",
+		"tooltip": "Voeg dit commandopatroon toe aan de whitelist"
+	},
 	"proceedWhileRunning": {
 		"title": "Doorgaan tijdens uitvoeren",
 		"tooltip": "Ga door ondanks waarschuwingen"

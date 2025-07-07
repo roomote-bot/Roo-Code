@@ -63,6 +63,10 @@
 		"title": "添加并运行",
 		"tooltip": "将命令模式添加到白名单并运行"
 	},
+	"alwaysAllow": {
+		"title": "始终允许",
+		"tooltip": "将此命令模式添加到白名单"
+	},
 	"proceedWhileRunning": {
 		"title": "强制继续",
 		"tooltip": "忽略运行中的命令并继续"

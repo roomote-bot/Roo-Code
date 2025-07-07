@@ -63,6 +63,10 @@
 		"title": "Hinzufügen & Ausführen",
 		"tooltip": "Befehlsmuster zur Whitelist hinzufügen und ausführen"
 	},
+	"alwaysAllow": {
+		"title": "Immer erlauben",
+		"tooltip": "Dieses Befehlsmuster zur Whitelist hinzufügen"
+	},
 	"proceedWhileRunning": {
 		"title": "Während Ausführung fortfahren",
 		"tooltip": "Trotz Warnungen fortfahren"

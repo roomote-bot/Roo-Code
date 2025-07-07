@@ -63,6 +63,10 @@
 		"title": "Aggiungi ed esegui",
 		"tooltip": "Aggiungi il pattern del comando alla whitelist ed eseguilo"
 	},
+	"alwaysAllow": {
+		"title": "Consenti sempre",
+		"tooltip": "Aggiungi questo pattern di comando alla whitelist"
+	},
 	"proceedWhileRunning": {
 		"title": "Procedi durante l'esecuzione",
 		"tooltip": "Continua nonostante gli avvisi"
