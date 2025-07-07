@@ -1,5 +1,6 @@
 import * as vscode from "vscode"
 import { ZodError } from "zod"
+import * as crypto from "crypto"
 
 import {
 	PROVIDER_SETTINGS_KEYS,
@@ -39,12 +40,39 @@ export class ContextProxy {
 	private stateCache: GlobalState
 	private secretCache: SecretState
 	private _isInitialized = false
+	private _profileId: string
 
 	constructor(context: vscode.ExtensionContext) {
 		this.originalContext = context
 		this.stateCache = {}
 		this.secretCache = {}
 		this._isInitialized = false
+		this._profileId = this.generateProfileId()
+	}
+
+	/**
+	 * Generates a unique profile identifier based on VSCode's environment
+	 * This ensures secrets are isolated per VSCode profile (local, WSL, etc.)
+	 */
+	private generateProfileId(): string {
+		// Use a combination of machineId and environment-specific identifiers
+		const machineId = vscode.env.machineId
+		const appName = vscode.env.appName
+		const uriScheme = vscode.env.uriScheme
+
+		// Create a hash of these identifiers to create a unique profile ID
+		const profileData = `${machineId}-${appName}-${uriScheme}`
+		const hash = crypto.createHash("sha256").update(profileData).digest("hex")
+
+		// Use first 16 characters for a shorter but still unique identifier
+		return hash.substring(0, 16)
+	}
+
+	/**
+	 * Creates a profile-specific secret key to ensure secrets are isolated per VSCode profile
+	 */
+	private getProfileSpecificSecretKey(key: SecretStateKey): string {
+		return `${this._profileId}:${key}`
 	}
 
 	public get isInitialized() {
@@ -63,7 +91,24 @@ export class ContextProxy {
 
 		const promises = SECRET_STATE_KEYS.map(async (key) => {
 			try {
-				this.secretCache[key] = await this.originalContext.secrets.get(key)
+				// Use profile-specific key for secrets to ensure profile isolation
+				const profileSpecificKey = this.getProfileSpecificSecretKey(key)
+				let secretValue = await this.originalContext.secrets.get(profileSpecificKey)
+
+				// Migration: If profile-specific secret doesn't exist, check for legacy global secret
+				if (!secretValue) {
+					const legacyValue = await this.originalContext.secrets.get(key)
+					if (legacyValue) {
+						// Migrate legacy secret to profile-specific storage
+						await this.originalContext.secrets.store(profileSpecificKey, legacyValue)
+						// Clean up legacy secret to prevent cross-profile leakage
+						await this.originalContext.secrets.delete(key)
+						secretValue = legacyValue
+						logger.info(`Migrated secret ${key} to profile-specific storage`)
+					}
+				}
+
+				this.secretCache[key] = secretValue
 			} catch (error) {
 				logger.error(`Error loading secret ${key}: ${error instanceof Error ? error.message : String(error)}`)
 			}
@@ -141,10 +186,13 @@ export class ContextProxy {
 		// Update cache.
 		this.secretCache[key] = value
 
-		// Write directly to context.
+		// Use profile-specific key for secrets to ensure profile isolation
+		const profileSpecificKey = this.getProfileSpecificSecretKey(key)
+
+		// Write directly to context with profile-specific key.
 		return value === undefined
-			? this.originalContext.secrets.delete(key)
-			: this.originalContext.secrets.store(key, value)
+			? this.originalContext.secrets.delete(profileSpecificKey)
+			: this.originalContext.secrets.store(profileSpecificKey, value)
 	}
 
 	/**
@@ -154,7 +202,24 @@ export class ContextProxy {
 	async refreshSecrets(): Promise<void> {
 		const promises = SECRET_STATE_KEYS.map(async (key) => {
 			try {
-				this.secretCache[key] = await this.originalContext.secrets.get(key)
+				// Use profile-specific key for secrets to ensure profile isolation
+				const profileSpecificKey = this.getProfileSpecificSecretKey(key)
+				let secretValue = await this.originalContext.secrets.get(profileSpecificKey)
+
+				// Migration: If profile-specific secret doesn't exist, check for legacy global secret
+				if (!secretValue) {
+					const legacyValue = await this.originalContext.secrets.get(key)
+					if (legacyValue) {
+						// Migrate legacy secret to profile-specific storage
+						await this.originalContext.secrets.store(profileSpecificKey, legacyValue)
+						// Clean up legacy secret to prevent cross-profile leakage
+						await this.originalContext.secrets.delete(key)
+						secretValue = legacyValue
+						logger.info(`Migrated secret ${key} to profile-specific storage during refresh`)
+					}
+				}
+
+				this.secretCache[key] = secretValue
 			} catch (error) {
 				logger.error(
 					`Error refreshing secret ${key}: ${error instanceof Error ? error.message : String(error)}`,
@@ -284,7 +349,11 @@ export class ContextProxy {
 
 		await Promise.all([
 			...GLOBAL_STATE_KEYS.map((key) => this.originalContext.globalState.update(key, undefined)),
-			...SECRET_STATE_KEYS.map((key) => this.originalContext.secrets.delete(key)),
+			...SECRET_STATE_KEYS.map((key) => {
+				// Use profile-specific key for secrets to ensure profile isolation
+				const profileSpecificKey = this.getProfileSpecificSecretKey(key)
+				return this.originalContext.secrets.delete(profileSpecificKey)
+			}),
 		])
 
 		await this.initialize()

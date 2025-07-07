@@ -15,6 +15,11 @@ vi.mock("vscode", () => ({
 		Production: 2,
 		Test: 3,
 	},
+	env: {
+		machineId: "test-machine-id",
+		appName: "Visual Studio Code",
+		uriScheme: "vscode",
+	},
 }))
 
 describe("ContextProxy", () => {
@@ -76,10 +81,11 @@ describe("ContextProxy", () => {
 			}
 		})
 
-		it("should initialize secret cache with all secret keys", () => {
+		it("should initialize secret cache with all secret keys using profile-specific keys", () => {
 			expect(mockSecrets.get).toHaveBeenCalledTimes(SECRET_STATE_KEYS.length)
 			for (const key of SECRET_STATE_KEYS) {
-				expect(mockSecrets.get).toHaveBeenCalledWith(key)
+				// Should use profile-specific key format: profileId:originalKey
+				expect(mockSecrets.get).toHaveBeenCalledWith(expect.stringMatching(new RegExp(`^[a-f0-9]{16}:${key}$`)))
 			}
 		})
 	})
@@ -191,22 +197,22 @@ describe("ContextProxy", () => {
 	})
 
 	describe("storeSecret", () => {
-		it("should store secret directly in original context", async () => {
+		it("should store secret directly in original context with profile-specific key", async () => {
 			await proxy.storeSecret("apiKey", "new-secret")
 
-			// Should have called original context
-			expect(mockSecrets.store).toHaveBeenCalledWith("apiKey", "new-secret")
+			// Should have called original context with profile-specific key
+			expect(mockSecrets.store).toHaveBeenCalledWith(expect.stringMatching(/^[a-f0-9]{16}:apiKey$/), "new-secret")
 
 			// Should have stored the value in cache
 			const storedValue = await proxy.getSecret("apiKey")
 			expect(storedValue).toBe("new-secret")
 		})
 
-		it("should handle undefined value for secret deletion", async () => {
+		it("should handle undefined value for secret deletion with profile-specific key", async () => {
 			await proxy.storeSecret("apiKey", undefined)
 
-			// Should have called delete on original context
-			expect(mockSecrets.delete).toHaveBeenCalledWith("apiKey")
+			// Should have called delete on original context with profile-specific key
+			expect(mockSecrets.delete).toHaveBeenCalledWith(expect.stringMatching(/^[a-f0-9]{16}:apiKey$/))
 
 			// Should have stored undefined in cache
 			const storedValue = await proxy.getSecret("apiKey")
@@ -391,7 +397,7 @@ describe("ContextProxy", () => {
 			expect(mockGlobalState.update).toHaveBeenCalledTimes(expectedUpdateCalls)
 		})
 
-		it("should delete all secrets", async () => {
+		it("should delete all secrets using profile-specific keys", async () => {
 			// Setup initial secrets
 			await proxy.storeSecret("apiKey", "test-api-key")
 			await proxy.storeSecret("openAiApiKey", "test-openai-key")
@@ -399,9 +405,11 @@ describe("ContextProxy", () => {
 			// Reset all state
 			await proxy.resetAllState()
 
-			// Should have called delete for each key
+			// Should have called delete for each key with profile-specific format
 			for (const key of SECRET_STATE_KEYS) {
-				expect(mockSecrets.delete).toHaveBeenCalledWith(key)
+				expect(mockSecrets.delete).toHaveBeenCalledWith(
+					expect.stringMatching(new RegExp(`^[a-f0-9]{16}:${key}$`)),
+				)
 			}
 
 			// Total calls should equal the number of secret keys
@@ -417,6 +425,138 @@ describe("ContextProxy", () => {
 
 			// Should reinitialize caches
 			expect(initializeSpy).toHaveBeenCalledTimes(1)
+		})
+	})
+
+	describe("profile-aware secret storage", () => {
+		it("should generate consistent profile IDs", () => {
+			// Create multiple instances and verify they generate the same profile ID
+			const proxy1 = new ContextProxy(mockContext)
+			const proxy2 = new ContextProxy(mockContext)
+
+			// Access private method for testing
+			const profileId1 = (proxy1 as any).generateProfileId()
+			const profileId2 = (proxy2 as any).generateProfileId()
+
+			expect(profileId1).toBe(profileId2)
+			expect(profileId1).toMatch(/^[a-f0-9]{16}$/)
+		})
+
+		it("should create profile-specific secret keys", () => {
+			const profileSpecificKey = (proxy as any).getProfileSpecificSecretKey("codeIndexQdrantApiKey")
+
+			expect(profileSpecificKey).toMatch(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/)
+		})
+
+		it("should migrate legacy secrets to profile-specific storage during initialization", async () => {
+			// Setup mock to return legacy secret on first call, undefined on profile-specific call
+			mockSecrets.get
+				.mockImplementationOnce((key: string) => {
+					// Profile-specific key call returns undefined (no existing profile-specific secret)
+					if (key.includes(":")) return Promise.resolve(undefined)
+					// Legacy key call returns the legacy value
+					return Promise.resolve("legacy-qdrant-key")
+				})
+				.mockImplementation((key: string) => {
+					// Subsequent calls for legacy key return the legacy value
+					if (!key.includes(":")) return Promise.resolve("legacy-qdrant-key")
+					return Promise.resolve(undefined)
+				})
+
+			// Create new proxy to trigger initialization
+			const newProxy = new ContextProxy(mockContext)
+			await newProxy.initialize()
+
+			// Should have attempted to get profile-specific key first
+			expect(mockSecrets.get).toHaveBeenCalledWith(expect.stringMatching(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/))
+
+			// Should have attempted to get legacy key when profile-specific wasn't found
+			expect(mockSecrets.get).toHaveBeenCalledWith("codeIndexQdrantApiKey")
+
+			// Should have stored the migrated value with profile-specific key
+			expect(mockSecrets.store).toHaveBeenCalledWith(
+				expect.stringMatching(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/),
+				"legacy-qdrant-key",
+			)
+
+			// Should have deleted the legacy key
+			expect(mockSecrets.delete).toHaveBeenCalledWith("codeIndexQdrantApiKey")
+		})
+
+		it("should migrate legacy secrets during refreshSecrets", async () => {
+			// Setup mock to simulate legacy secret exists
+			mockSecrets.get.mockImplementation((key: string) => {
+				if (key.includes(":")) return Promise.resolve(undefined) // No profile-specific secret
+				if (key === "codeIndexQdrantApiKey") return Promise.resolve("legacy-refresh-key")
+				return Promise.resolve(undefined)
+			})
+
+			await proxy.refreshSecrets()
+
+			// Should have migrated the legacy secret
+			expect(mockSecrets.store).toHaveBeenCalledWith(
+				expect.stringMatching(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/),
+				"legacy-refresh-key",
+			)
+			expect(mockSecrets.delete).toHaveBeenCalledWith("codeIndexQdrantApiKey")
+		})
+
+		it("should not migrate when profile-specific secret already exists", async () => {
+			// Setup mock to return existing profile-specific secret
+			mockSecrets.get.mockImplementation((key: string) => {
+				if (key.includes(":codeIndexQdrantApiKey")) return Promise.resolve("existing-profile-key")
+				return Promise.resolve(undefined)
+			})
+
+			// Create new proxy to trigger initialization
+			const newProxy = new ContextProxy(mockContext)
+			await newProxy.initialize()
+
+			// Should not have attempted migration since profile-specific secret exists
+			expect(mockSecrets.store).not.toHaveBeenCalledWith(
+				expect.stringMatching(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/),
+				expect.any(String),
+			)
+			expect(mockSecrets.delete).not.toHaveBeenCalledWith("codeIndexQdrantApiKey")
+		})
+
+		it("should isolate secrets between different profile environments", () => {
+			// Mock different VSCode environments
+			const wslEnv = {
+				machineId: "test-machine-id",
+				appName: "Visual Studio Code",
+				uriScheme: "vscode-remote",
+			}
+
+			const localEnv = {
+				machineId: "test-machine-id",
+				appName: "Visual Studio Code",
+				uriScheme: "vscode",
+			}
+
+			// Mock vscode.env for different environments
+			vi.mocked(vscode.env).machineId = wslEnv.machineId
+			vi.mocked(vscode.env).appName = wslEnv.appName
+			vi.mocked(vscode.env).uriScheme = wslEnv.uriScheme
+
+			const wslProxy = new ContextProxy(mockContext)
+			const wslProfileId = (wslProxy as any).generateProfileId()
+
+			vi.mocked(vscode.env).uriScheme = localEnv.uriScheme
+
+			const localProxy = new ContextProxy(mockContext)
+			const localProfileId = (localProxy as any).generateProfileId()
+
+			// Profile IDs should be different for different environments
+			expect(wslProfileId).not.toBe(localProfileId)
+
+			// Secret keys should be different
+			const wslSecretKey = (wslProxy as any).getProfileSpecificSecretKey("codeIndexQdrantApiKey")
+			const localSecretKey = (localProxy as any).getProfileSpecificSecretKey("codeIndexQdrantApiKey")
+
+			expect(wslSecretKey).not.toBe(localSecretKey)
+			expect(wslSecretKey).toMatch(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/)
+			expect(localSecretKey).toMatch(/^[a-f0-9]{16}:codeIndexQdrantApiKey$/)
 		})
 	})
 })
