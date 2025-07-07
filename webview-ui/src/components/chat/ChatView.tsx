@@ -1659,7 +1659,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								<>
 									{/* Command approval with auto-approve pattern */}
 									{clineAsk === "command" && !isStreaming ? (
-										<div className="flex flex-col gap-[6px] mb-[10px]">
+										<div className="flex flex-col gap-[6px]">
 											{/* Top row: Run Command and Reject */}
 											<div className="flex gap-[6px]">
 												<StandardTooltip content={t("chat:runCommand.tooltip")}>
