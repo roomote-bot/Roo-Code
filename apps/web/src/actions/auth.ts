@@ -8,11 +8,6 @@ import { Env } from '@roo-code-cloud/env';
 import { type AuthResult, type ApiAuthResult, isOrgRole } from '@/types';
 import { logger } from '@/lib/server';
 import { validateJobToken } from '@roo-code-cloud/job-auth';
-// import {
-//   type AgentTokenPayload,
-//   validateAgentToken,
-// } from '@/lib/server/agent-auth';
-// import { updateAgentUsage } from '@/actions/agents';
 
 export async function authorize(): Promise<AuthResult> {
   const { userId, orgId, orgRole } = await auth();
@@ -21,7 +16,6 @@ export async function authorize(): Promise<AuthResult> {
     return { success: false, error: 'Unauthorized: User required' };
   }
 
-  // Personal context is valid - no org required
   if (!orgId) {
     return {
       success: true,
@@ -41,19 +35,17 @@ export async function authorize(): Promise<AuthResult> {
   };
 }
 
-/**
- * Validates authentication and authorization for API endpoints.
- */
 export async function authorizeApi(
   request: NextRequest,
 ): Promise<ApiAuthResult> {
   const authHeader = request.headers.get('authorization');
 
   if (!authHeader?.startsWith('Bearer ')) {
-    return authorize(); // Fall back to Clerk auth
+    return authorize();
   }
 
   const token = authHeader.slice(7);
+
   if (!token) {
     return {
       success: false,
@@ -61,9 +53,9 @@ export async function authorizeApi(
     };
   }
 
-  // Try job token first
   try {
     const jobContext = await validateJobToken(token);
+
     return {
       success: true,
       userType: 'job',
@@ -72,17 +64,10 @@ export async function authorizeApi(
       jobId: jobContext.jobId,
     };
   } catch {
-    // If job token validation fails, try agent token
-    // (existing agent token code would go here)
-
-    // If both fail, fall back to Clerk
     return authorize();
   }
 }
 
-/**
- * Validates authentication and authorization for analytics functions.
- */
 export async function authorizeAnalytics({
   requestedOrgId,
   requestedUserId,
@@ -100,9 +85,7 @@ export async function authorizeAnalytics({
     throw new Error('Unauthorized: User required');
   }
 
-  // Handle personal context
   if (!authOrgId && !requestedOrgId) {
-    // Personal context - user can only access their own data
     if (requestedUserId && requestedUserId !== authUserId) {
       throw new Error(
         'Unauthorized: Personal users can only access their own data',
@@ -117,17 +100,14 @@ export async function authorizeAnalytics({
     };
   }
 
-  // Ensure user is authenticated and belongs to the organization
   if (!authOrgId || !authUserId || authOrgId !== requestedOrgId) {
     throw new Error('Unauthorized: Invalid organization access');
   }
 
-  // Check if admin access is required
   if (requireAdmin && orgRole !== 'org:admin') {
     throw new Error('Unauthorized: Administrator access required');
   }
 
-  // If user is not an admin and trying to access data other than their own
   if (
     orgRole !== 'org:admin' &&
     requestedUserId &&
@@ -136,8 +116,6 @@ export async function authorizeAnalytics({
     throw new Error('Unauthorized: Members can only access their own data');
   }
 
-  // For non-admin users, force userId filter to their own ID
-  // Unless allowCrossUserAccess is true and we're checking task sharing permissions
   const effectiveUserId =
     orgRole !== 'org:admin' && !allowCrossUserAccess
       ? authUserId

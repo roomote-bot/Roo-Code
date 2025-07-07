@@ -135,6 +135,21 @@ export class SlackNotifier {
           ],
         });
       }
+      case 'general.task': {
+        const payload = jobPayload as JobPayload<'general.task'>;
+        return await this.postMessage({
+          text: `🚀 Task Started`,
+          blocks: [
+            {
+              type: 'section',
+              text: {
+                type: 'mrkdwn',
+                text: `🚀 *Task Started*\nWorking on general task in <https://github.com/${payload.repo}|${payload.repo}>\n*Task:* ${payload.description.slice(0, 200)}${payload.description.length > 200 ? '...' : ''}`,
+              },
+            },
+          ],
+        });
+      }
       default:
         throw new Error(`Unknown job type: ${jobType}`);
     }

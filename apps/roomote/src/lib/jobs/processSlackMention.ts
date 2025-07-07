@@ -1,23 +1,19 @@
-import type { JobType, JobPayload } from '@roo-code-cloud/db';
+import type { JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
-import { CRITICAL_COMMAND_RESTRICTIONS, GIT_WORKFLOW_INSTRUCTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
-
-const jobType: JobType = 'slack.app.mention';
-
-type ProcessSlackMentionJobPayload = JobPayload<'slack.app.mention'>;
+import {
+  CRITICAL_COMMAND_RESTRICTIONS,
+  GIT_WORKFLOW_INSTRUCTIONS,
+  MAIN_BRANCH_PROTECTION,
+} from '../promptConstants';
 
 export async function processSlackMention(
-  jobPayload: ProcessSlackMentionJobPayload,
+  jobPayload: JobPayload<'slack.app.mention'>,
   callbacks?: RunTaskCallbacks,
-): Promise<{
-  channel: string;
-  user: string;
-  result: unknown;
-}> {
+  mode?: string,
+) {
   const { text: originalPrompt, channel, user } = jobPayload;
 
-  // Create a structured prompt following the same pattern as other roomote triggers
   const prompt = `
 Process the following Slack mention request:
 
@@ -50,12 +46,13 @@ ${GIT_WORKFLOW_INSTRUCTIONS}
     : `${workspaceRoot}/${jobPayload.workspace}`;
 
   const result = await runTask({
-    jobType,
+    jobType: 'slack.app.mention',
     jobPayload,
     prompt,
     callbacks,
     notify: false,
     workspacePath,
+    mode,
   });
 
   return { channel, user, result };

@@ -3,7 +3,6 @@
 ## Testing & Formatting
 
 - **Test**: `pnpm test` (runs all tests via Turbo)
-- **Test single file**: `pnpm test path/to/file.test.ts`
 - **Lint**: `pnpm lint` (ESLint with TypeScript support)
 - **Type check**: `pnpm check-types`
 - **Format**: Files are auto-formatted on commit via lint-staged

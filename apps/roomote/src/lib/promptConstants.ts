@@ -1,7 +1,3 @@
-/**
- * Shared constants for roomote job prompts
- */
-
 export const CRITICAL_COMMAND_RESTRICTIONS = `
 CRITICAL COMMAND RESTRICTIONS:
 - NEVER execute long-running commands like starting servers (npm run dev, npm start, python -m http.server, etc.)

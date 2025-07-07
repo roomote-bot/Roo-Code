@@ -1,21 +1,16 @@
-import type { JobType, JobPayload } from '@roo-code-cloud/db';
+import type { JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
-import { CRITICAL_COMMAND_RESTRICTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
-
-const jobType: JobType = 'github.issue.comment.respond';
-
-type ProcessIssueCommentJobPayload = JobPayload<'github.issue.comment.respond'>;
+import {
+  CRITICAL_COMMAND_RESTRICTIONS,
+  MAIN_BRANCH_PROTECTION,
+} from '../promptConstants';
 
 export async function processIssueComment(
-  jobPayload: ProcessIssueCommentJobPayload,
+  jobPayload: JobPayload<'github.issue.comment.respond'>,
   callbacks?: RunTaskCallbacks,
-): Promise<{
-  repo: string;
-  issueNumber: number;
-  commentId: number;
-  result: unknown;
-}> {
+  mode?: string,
+) {
   const prompt = `
 Respond to the following GitHub Issue comment:
 
@@ -56,10 +51,11 @@ gh api repos/${jobPayload.repo}/issues/${jobPayload.issueNumber}/comments --meth
   const { repo, issueNumber, commentId } = jobPayload;
 
   const result = await runTask({
-    jobType,
+    jobType: 'github.issue.comment.respond',
     jobPayload,
     prompt,
     callbacks,
+    mode,
   });
 
   return { repo, issueNumber, commentId, result };

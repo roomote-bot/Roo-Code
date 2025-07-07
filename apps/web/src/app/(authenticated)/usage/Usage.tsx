@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useUser } from '@clerk/nextjs';
+import { X, AlertCircle } from 'lucide-react';
 
 import type { TaskWithUser } from '@/actions/analytics';
 import { Button } from '@/components/ui';
@@ -20,14 +21,20 @@ import { UsageFilters } from './UsageFilters';
 type UsageProps = {
   userRole?: 'admin' | 'member';
   currentUserId?: string | null;
+  error?: string;
 };
 
-export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
+export const Usage = ({
+  userRole = 'admin',
+  currentUserId,
+  error,
+}: UsageProps) => {
   const { isSignedIn } = useUser();
   const t = useTranslations('Analytics');
   const [viewMode, setViewMode] = useState<ViewMode>('tasks');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [task, setTask] = useState<TaskWithUser | null>(null);
+  const [showError, setShowError] = useState(!!error);
 
   const onAddFilter = useCallback((newFilter: Filter) => {
     setFilters((currentFilters) => {
@@ -39,6 +46,22 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
     });
     setViewMode('tasks');
   }, []);
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => setShowError(false), 10_000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
+
+  const getErrorMessage = (errorCode: string) => {
+    switch (errorCode) {
+      case 'roomotes_not_enabled':
+        return 'The Roomotes feature is not enabled for your account. Please contact your administrator.';
+      default:
+        return 'An error occurred. Please try again.';
+    }
+  };
 
   const onRemoveFilter = useCallback((filterToRemove: Filter) => {
     setFilters((currentFilters) =>
@@ -69,6 +92,24 @@ export const Usage = ({ userRole = 'admin', currentUserId }: UsageProps) => {
   return (
     <>
       <div className="flex flex-col gap-3 sm:gap-4 lg:gap-6">
+        {showError && error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
+            <AlertCircle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+            <div className="flex-1">
+              <p className="text-red-800 text-sm font-medium">
+                {getErrorMessage(error)}
+              </p>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowError(false)}
+              className="text-red-600 hover:text-red-800 p-1 h-auto"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
         <UsageCard
           userRole={userRole}
           currentUserId={currentUserId}

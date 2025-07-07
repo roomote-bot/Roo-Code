@@ -13,8 +13,6 @@
     "controller:production": "dotenvx run -f ../../.env.production -- tsx src/lib/controller.ts",
     "worker": "dotenvx run -f ../../.env.development -- tsx src/lib/worker.ts",
     "worker:production": "dotenvx run -f ../../.env.production -- tsx src/lib/worker.ts",
-    "cli": "dotenvx run -f ../../.env.development -- tsx src/lib/cli.ts",
-    "cli:production": "dotenvx run -f ../../.env.production -- tsx src/lib/cli.ts",
     "clean": "rimraf .next .turbo"
   },
   "dependencies": {
@@ -24,7 +22,6 @@
     "@roo-code-cloud/job-auth": "workspace:^",
     "@roo-code/types": "^1.30.0",
     "bullmq": "^5.37.0",
-    "cmd-ts": "^0.13.0",
     "drizzle-orm": "^0.44.2",
     "execa": "^9.6.0",
     "ioredis": "^5.6.1",

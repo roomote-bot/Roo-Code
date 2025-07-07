@@ -1,22 +1,16 @@
-import type { JobType, JobPayload } from '@roo-code-cloud/db';
+import type { JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
-import { CRITICAL_COMMAND_RESTRICTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
-
-const jobType: JobType = 'github.pr.comment.respond';
-
-type ProcessPullRequestCommentJobPayload =
-  JobPayload<'github.pr.comment.respond'>;
+import {
+  CRITICAL_COMMAND_RESTRICTIONS,
+  MAIN_BRANCH_PROTECTION,
+} from '../promptConstants';
 
 export async function processPullRequestComment(
-  jobPayload: ProcessPullRequestCommentJobPayload,
+  jobPayload: JobPayload<'github.pr.comment.respond'>,
   callbacks?: RunTaskCallbacks,
-): Promise<{
-  repo: string;
-  prNumber: number;
-  commentId: number;
-  result: unknown;
-}> {
+  mode?: string,
+) {
   const prompt = `
 Process the following GitHub Pull Request comment:
 
@@ -70,10 +64,11 @@ Do not create a new pull request - work directly on the existing PR branch.
   const { repo, prNumber, commentId } = jobPayload;
 
   const result = await runTask({
-    jobType,
+    jobType: 'github.pr.comment.respond',
     jobPayload,
     prompt,
     callbacks,
+    mode,
   });
 
   return { repo, prNumber, commentId, result };

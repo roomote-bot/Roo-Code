@@ -20,9 +20,6 @@ export {
   agentRequestLogs,
   agentRequestLogsRelations,
   cloudJobs,
-  type CloudJob,
-  type InsertCloudJob,
-  type UpdateCloudJob,
 } from './schema';
 
 export * from './queries';

@@ -13,6 +13,7 @@ export * from './pagination';
 export * from './PaginationControls';
 export * from './CursorPaginationControls';
 export * from './popover';
+export * from './select';
 export * from './separator';
 export * from './skeleton';
 export * from './slider';

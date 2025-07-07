@@ -1,20 +1,16 @@
-import type { JobType, JobPayload } from '@roo-code-cloud/db';
+import type { JobPayload } from '@roo-code-cloud/db';
 
 import { runTask, type RunTaskCallbacks } from '../runTask';
-import { CRITICAL_COMMAND_RESTRICTIONS, MAIN_BRANCH_PROTECTION } from '../promptConstants';
-
-const jobType: JobType = 'github.issue.fix';
-
-type FixGitHubIssueJobPayload = JobPayload<'github.issue.fix'>;
+import {
+  CRITICAL_COMMAND_RESTRICTIONS,
+  MAIN_BRANCH_PROTECTION,
+} from '../promptConstants';
 
 export async function fixGitHubIssue(
-  jobPayload: FixGitHubIssueJobPayload,
+  jobPayload: JobPayload<'github.issue.fix'>,
   callbacks?: RunTaskCallbacks,
-): Promise<{
-  repo: string;
-  issue: number;
-  result: unknown;
-}> {
+  mode?: string,
+) {
   const prompt = `
 Fix the following GitHub issue:
 
@@ -29,13 +25,11 @@ ${MAIN_BRANCH_PROTECTION}
   const { repo, issue } = jobPayload;
 
   const result = await runTask({
-    jobType,
+    jobType: 'github.issue.fix',
     jobPayload,
     prompt,
     callbacks,
-    settings: {
-      mode: 'issue-fixer',
-    },
+    mode,
   });
 
   return { repo, issue, result };

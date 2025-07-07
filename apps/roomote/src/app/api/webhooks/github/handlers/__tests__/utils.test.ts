@@ -87,6 +87,7 @@ describe('GitHub Webhook Utils', () => {
     const mockJob = { id: 123 };
     const mockEnqueuedJob = { id: 'enqueued-123' };
     const mockCloudJobs = {};
+    const testOrgId = 'test-org-123';
 
     beforeEach(() => {
       mockDb.insert.mockReturnValue({
@@ -107,13 +108,14 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test body',
       };
 
-      const result = await createAndEnqueueJob(type, payload);
+      const result = await createAndEnqueueJob(type, payload, testOrgId);
 
       expect(mockDb.insert).toHaveBeenCalledWith(mockCloudJobs);
       expect(mockEnqueue).toHaveBeenCalledWith({
         jobId: mockJob.id,
         type,
         payload,
+        orgId: testOrgId,
       });
       expect(result).toEqual({
         jobId: mockJob.id,
@@ -136,9 +138,9 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test',
       };
 
-      await expect(createAndEnqueueJob(type, payload)).rejects.toThrow(
-        'Failed to create `cloudJobs` record.',
-      );
+      await expect(
+        createAndEnqueueJob(type, payload, testOrgId),
+      ).rejects.toThrow('Failed to create `cloudJobs` record.');
     });
 
     it('should throw error when enqueue fails to return job ID', async () => {
@@ -152,9 +154,9 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test',
       };
 
-      await expect(createAndEnqueueJob(type, payload)).rejects.toThrow(
-        'Failed to get enqueued job ID.',
-      );
+      await expect(
+        createAndEnqueueJob(type, payload, testOrgId),
+      ).rejects.toThrow('Failed to get enqueued job ID.');
     });
 
     it('should throw error when enqueue returns undefined', async () => {
@@ -168,9 +170,9 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test',
       };
 
-      await expect(createAndEnqueueJob(type, payload)).rejects.toThrow(
-        'Failed to get enqueued job ID.',
-      );
+      await expect(
+        createAndEnqueueJob(type, payload, testOrgId),
+      ).rejects.toThrow('Failed to get enqueued job ID.');
     });
 
     it('should handle different job types', async () => {
@@ -189,12 +191,13 @@ describe('GitHub Webhook Utils', () => {
         commentUrl: 'https://github.com/test/repo/issues/456#issuecomment-789',
       };
 
-      const result = await createAndEnqueueJob(type, payload);
+      const result = await createAndEnqueueJob(type, payload, testOrgId);
 
       expect(mockEnqueue).toHaveBeenCalledWith({
         jobId: mockJob.id,
         type,
         payload,
+        orgId: testOrgId,
       });
       expect(result).toEqual({
         jobId: mockJob.id,
@@ -213,7 +216,7 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test',
       };
 
-      await createAndEnqueueJob(type, payload);
+      await createAndEnqueueJob(type, payload, testOrgId);
 
       expect(consoleSpy).toHaveBeenCalledWith(
         `🔗 Enqueued ${type} job (id: ${mockJob.id}) ->`,
@@ -236,9 +239,9 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test',
       };
 
-      await expect(createAndEnqueueJob(type, payload)).rejects.toThrow(
-        'Database connection failed',
-      );
+      await expect(
+        createAndEnqueueJob(type, payload, testOrgId),
+      ).rejects.toThrow('Database connection failed');
     });
 
     it('should handle enqueue service errors', async () => {
@@ -252,9 +255,9 @@ describe('GitHub Webhook Utils', () => {
         body: 'Test',
       };
 
-      await expect(createAndEnqueueJob(type, payload)).rejects.toThrow(
-        'Queue service unavailable',
-      );
+      await expect(
+        createAndEnqueueJob(type, payload, testOrgId),
+      ).rejects.toThrow('Queue service unavailable');
     });
   });
 
@@ -362,6 +365,7 @@ describe('GitHub Webhook Utils', () => {
       // Test job creation in a realistic webhook scenario.
       const mockJob = { id: 456 };
       const mockEnqueuedJob = { id: 'job-456' };
+      const testOrgId = 'test-org-456';
 
       mockDb.insert.mockReturnValue({
         values: vi.fn().mockReturnValue({
@@ -371,12 +375,16 @@ describe('GitHub Webhook Utils', () => {
       mockEnqueue.mockResolvedValue(mockEnqueuedJob);
 
       // Create job after successful verification.
-      const result = await createAndEnqueueJob('github.issue.fix', {
-        repo: 'test/repo',
-        issue: 123,
-        title: 'Test issue',
-        body: 'Test issue body',
-      });
+      const result = await createAndEnqueueJob(
+        'github.issue.fix',
+        {
+          repo: 'test/repo',
+          issue: 123,
+          title: 'Test issue',
+          body: 'Test issue body',
+        },
+        testOrgId,
+      );
 
       expect(result).toEqual({
         jobId: mockJob.id,

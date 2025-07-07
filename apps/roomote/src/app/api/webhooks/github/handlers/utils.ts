@@ -1,10 +1,12 @@
 import { createHmac } from 'crypto';
+import { or, eq } from 'drizzle-orm';
 
 import {
   type JobType,
   type JobPayload,
   db,
   cloudJobs,
+  orgs,
 } from '@roo-code-cloud/db/server';
 
 import { enqueue } from '@/lib';
@@ -25,17 +27,38 @@ export function verifySignature(
 export async function createAndEnqueueJob<T extends JobType>(
   type: T,
   payload: JobPayload<T>,
+  orgId?: string,
 ): Promise<{ jobId: number; enqueuedJobId: string }> {
+  // @TODO: Require `orgId` to be specified.
+  const organizationId =
+    orgId ||
+    (
+      await db
+        .select({ id: orgs.id })
+        .from(orgs)
+        .where(or(eq(orgs.name, 'Roo Code'), eq(orgs.name, 'Roo Code / Dev')))
+        .limit(1)
+    )[0]?.id;
+
+  if (!organizationId) {
+    throw new Error('Organization ID is required for job creation.');
+  }
+
   const [job] = await db
     .insert(cloudJobs)
-    .values({ type, payload, status: 'pending' })
+    .values({ type, payload, status: 'pending', orgId: organizationId })
     .returning();
 
   if (!job) {
     throw new Error('Failed to create `cloudJobs` record.');
   }
 
-  const enqueuedJob = await enqueue({ jobId: job.id, type, payload });
+  const enqueuedJob = await enqueue({
+    jobId: job.id,
+    type,
+    payload,
+    orgId: organizationId,
+  });
   console.log(`🔗 Enqueued ${type} job (id: ${job.id}) ->`, payload);
 
   if (!enqueuedJob.id) {

@@ -247,7 +247,7 @@ export const agentsRelations = relations(agents, ({ one, many }) => ({
 }));
 
 /**
- * agent_request_logs
+ * agentRequestLogs
  */
 
 export const agentRequestLogs = pgTable(
@@ -293,22 +293,26 @@ export const agentRequestLogsRelations = relations(
  * cloudJobs
  */
 
-export const cloudJobs = pgTable('cloud_jobs', {
-  id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
-  type: text('type').notNull().$type<JobType>(),
-  status: text('status').notNull().default('pending').$type<JobStatus>(),
-  payload: jsonb('payload').notNull().$type<JobPayload>(),
-  result: jsonb('result'),
-  error: text('error'),
-  slackThreadTs: text('slack_thread_ts'),
-  userId: text('user_id').references(() => users.id),
-  startedAt: timestamp('started_at'),
-  completedAt: timestamp('completed_at'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-});
-
-export type CloudJob = typeof cloudJobs.$inferSelect;
-
-export type InsertCloudJob = typeof cloudJobs.$inferInsert;
-
-export type UpdateCloudJob = Partial<Omit<CloudJob, 'id' | 'createdAt'>>;
+export const cloudJobs = pgTable(
+  'cloud_jobs',
+  {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    type: text('type').notNull().$type<JobType>(),
+    orgId: text('organization_id')
+      .notNull()
+      .references(() => orgs.id),
+    userId: text('user_id').references(() => users.id),
+    status: text('status').notNull().default('pending').$type<JobStatus>(),
+    payload: jsonb('payload').notNull().$type<JobPayload>(),
+    result: jsonb('result'),
+    error: text('error'),
+    slackThreadTs: text('slack_thread_ts'),
+    startedAt: timestamp('started_at'),
+    completedAt: timestamp('completed_at'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+  },
+  (table) => [
+    index('cloud_jobs_user_id_idx').on(table.userId),
+    index('cloud_jobs_user_org_idx').on(table.userId, table.orgId),
+  ],
+);

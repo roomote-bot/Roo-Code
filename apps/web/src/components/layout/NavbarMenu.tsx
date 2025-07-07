@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { useRoomotes } from '@/hooks/useRoomotes';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/ecosystem';
 
 import { Section } from './Section';
@@ -20,6 +21,7 @@ const tabValues = [
   '/providers',
   '/settings',
   '/org',
+  '/roomote',
   '/hidden',
 ] as const;
 
@@ -35,6 +37,7 @@ export const NavbarMenu = ({
   const router = useRouter();
   const pathname = usePathname();
   const [tabValue, setTabValue] = useState<TabValue | undefined>(undefined);
+  const roomotes = useRoomotes();
 
   useEffect(() => {
     setTabValue(isTabValue(pathname) ? pathname : '/hidden');
@@ -65,6 +68,9 @@ export const NavbarMenu = ({
                   <TabsTrigger value="/settings">Settings</TabsTrigger>
                   <TabsTrigger value="/org">Organization</TabsTrigger>
                 </>
+              )}
+              {roomotes.isEnabled && (
+                <TabsTrigger value="/roomote">Roomote</TabsTrigger>
               )}
               <TabsTrigger value="/hidden" className="hidden" />
             </TabsList>

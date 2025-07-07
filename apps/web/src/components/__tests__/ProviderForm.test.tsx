@@ -22,6 +22,13 @@ vi.mock('@/actions/organizationSettings', () => ({
   getOrganizationSettings: vi.fn(),
 }));
 
+vi.mock('@/lib/server/analytics', () => ({
+  analytics: {
+    query: vi.fn(),
+    insert: vi.fn(),
+  },
+}));
+
 vi.mock('@/lib/providers', () => ({
   PROVIDERS: {
     anthropic: {

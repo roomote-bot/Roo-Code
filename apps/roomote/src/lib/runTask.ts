@@ -65,6 +65,7 @@ type RunTaskOptions<T extends JobType> = {
   notify?: boolean;
   workspacePath?: string;
   settings?: RooCodeSettings;
+  mode?: string;
 };
 
 export const runTask = async <T extends JobType>({
@@ -78,6 +79,7 @@ export const runTask = async <T extends JobType>({
   notify = true,
   workspacePath = '/roo/repos/Roo-Code',
   settings = {},
+  mode,
 }: RunTaskOptions<T>) => {
   const ipcSocketPath = path.resolve(
     os.tmpdir(),
@@ -90,15 +92,15 @@ export const runTask = async <T extends JobType>({
 
   let envVars = `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath}`;
 
-  // Create JWT token if we have jobId and userId
+  // Create JWT token if we have jobId and userId.
   if (jobId && userId) {
     try {
-      // Get user's org info
       const user = await db
         .select()
         .from(users)
         .where(eq(users.id, userId))
         .limit(1);
+
       const orgId = user[0]?.orgId || null;
 
       const token = await createJobToken(
@@ -109,11 +111,10 @@ export const runTask = async <T extends JobType>({
       );
 
       envVars += ` ROO_CODE_CLOUD_TOKEN=${token}`;
-
       envVars += ` ROO_CODE_CLOUD_ORG_SETTINGS=${Buffer.from(JSON.stringify(ORGANIZATION_DEFAULT)).toString('base64')}`;
     } catch (error) {
       logger?.error('Failed to create job token:', error);
-      // Continue without token - job will fall back to no auth
+      // Continue without token - job will fall back to no auth.
     }
   }
 
@@ -131,9 +132,10 @@ export const runTask = async <T extends JobType>({
 
   logger.info(codeCommand);
 
-  // Pull latest changes from git before opening VSCode
+  // Pull latest changes from git before opening VSCode.
   try {
     const repoConfig = getRepoConfigByPath(workspacePath);
+
     if (repoConfig) {
       logger.info(`Pulling latest changes for repository: ${repoConfig.name}`);
       await gitPullRepoFromConfig(repoConfig, logger);
@@ -148,7 +150,7 @@ export const runTask = async <T extends JobType>({
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     logger.error(`Failed to pull git changes: ${errorMessage}`);
-    // Continue with task execution even if git pull fails
+    // Continue with task execution even if git pull fails.
     logger.info('Continuing with task execution despite git pull failure');
   }
 
@@ -305,6 +307,7 @@ export const runTask = async <T extends JobType>({
         openRouterApiKey: process.env.OPENROUTER_API_KEY,
         lastShownAnnouncementId: 'jun-17-2025-3-21',
         ...settings,
+        mode,
       },
       text: prompt,
     },
