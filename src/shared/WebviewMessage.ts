@@ -197,6 +197,7 @@ export interface WebviewMessage {
 		| "checkRulesDirectoryResult"
 		| "saveCodeIndexSettingsAtomic"
 		| "requestCodeIndexSecretStatus"
+		| "addToWhitelist"
 	text?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
 	disabled?: boolean
@@ -238,6 +239,7 @@ export interface WebviewMessage {
 	hasContent?: boolean // For checkRulesDirectoryResult
 	checkOnly?: boolean // For deleteCustomMode check
 	commandPattern?: string // For "Add & Run" button - the extracted command pattern to whitelist
+	pattern?: string // For "addToWhitelist" message - the command pattern to add to whitelist
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

@@ -587,6 +587,30 @@ export const webviewMessageHandler = async (
 
 			break
 		}
+		case "addToWhitelist": {
+			// Handle adding a command pattern to the whitelist without running it
+			if (message.pattern) {
+				// Get current allowed commands
+				const currentAllowedCommands = getGlobalState("allowedCommands") || []
+
+				// Add the new pattern if it's not already in the list
+				if (!currentAllowedCommands.includes(message.pattern)) {
+					const updatedCommands = [...currentAllowedCommands, message.pattern]
+
+					// Update global state
+					await updateGlobalState("allowedCommands", updatedCommands)
+
+					// Also update workspace settings
+					await vscode.workspace
+						.getConfiguration(Package.name)
+						.update("allowedCommands", updatedCommands, vscode.ConfigurationTarget.Global)
+
+					// Post state update to webview
+					await provider.postStateToWebview()
+				}
+			}
+			break
+		}
 		case "openCustomModesSettings": {
 			const customModesFilePath = await provider.customModesManager.getCustomModesFilePath()
 

@@ -330,8 +330,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setClineAsk("command")
 							setEnableButtons(!isPartial)
 							setPrimaryButtonText(t("chat:runCommand.title"))
-							setSecondaryButtonText(t("chat:addAndRunCommand.title"))
-							setTertiaryButtonText(t("chat:reject.title"))
+							setSecondaryButtonText(t("chat:reject.title"))
+							setTertiaryButtonText(undefined)
 							break
 						case "command_output":
 							setSendingDisabled(false)
@@ -615,38 +615,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		[clineAsk, startNewTask],
 	)
 
-	const handleTertiaryButtonClick = useCallback(
-		(_text?: string, images?: string[]) => {
-			switch (clineAsk) {
-				case "command":
-					// For the "Add & Run" button on command approval
-					// Extract the command pattern for whitelisting
-					const commandMessage = findLast(
-						messagesRef.current,
-						(msg) => msg.type === "ask" && msg.ask === "command",
-					)
-					const commandText = commandMessage?.text || ""
-					const pattern = extractCommandPattern(commandText)
-
-					// Send the pattern in the text field as expected by the backend
-					vscode.postMessage({
-						type: "askResponse",
-						askResponse: "addAndRunButtonClicked",
-						text: pattern, // Send pattern in text field
-						images: images || [],
-					})
-					// Clear input state after sending
-					setInputValue("")
-					setSelectedImages([])
-					break
-			}
-			setSendingDisabled(true)
-			setClineAsk(undefined)
-			setEnableButtons(false)
-		},
-		[clineAsk], // messagesRef is stable
-	)
-
 	const handleSecondaryButtonClick = useCallback(
 		(text?: string, images?: string[]) => {
 			const trimmedInput = text?.trim()
@@ -767,9 +735,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						case "secondaryButtonClick":
 							handleSecondaryButtonClick(message.text ?? "", message.images ?? [])
 							break
-						case "tertiaryButtonClick":
-							handleTertiaryButtonClick(message.text ?? "", message.images ?? [])
-							break
 					}
 					break
 				case "condenseTaskContextResponse":
@@ -796,7 +761,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			handleSetChatBoxMessage,
 			handlePrimaryButtonClick,
 			handleSecondaryButtonClick,
-			handleTertiaryButtonClick,
 		],
 	)
 
@@ -1693,20 +1657,47 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</StandardTooltip>
 							) : (
 								<>
-									{/* Three button layout for command approval */}
-									{tertiaryButtonText && clineAsk === "command" && !isStreaming ? (
+									{/* Command approval with auto-approve pattern */}
+									{clineAsk === "command" && !isStreaming ? (
 										<div className="flex flex-col gap-[6px]">
-											{/* Top row: Run and Add & Run */}
+											{/* Top row: Run Command and Reject */}
 											<div className="flex gap-[6px]">
 												<StandardTooltip content={t("chat:runCommand.tooltip")}>
 													<VSCodeButton
 														appearance="primary"
 														disabled={!enableButtons}
 														className="flex-1"
-														onClick={() => handlePrimaryButtonClick(inputValue, selectedImages)}>
+														onClick={() =>
+															handlePrimaryButtonClick(inputValue, selectedImages)
+														}>
 														{primaryButtonText}
 													</VSCodeButton>
 												</StandardTooltip>
+												<StandardTooltip content={t("chat:reject.tooltip")}>
+													<VSCodeButton
+														appearance="secondary"
+														disabled={!enableButtons}
+														className="flex-1"
+														onClick={() =>
+															handleSecondaryButtonClick(inputValue, selectedImages)
+														}>
+														{secondaryButtonText}
+													</VSCodeButton>
+												</StandardTooltip>
+											</div>
+											{/* Bottom row: Auto-approve pattern */}
+											<div className="flex items-center gap-[6px]">
+												<div className="flex-1 px-2 py-1 bg-vscode-input-background text-vscode-input-foreground rounded text-sm font-mono">
+													{(() => {
+														const commandMessage = findLast(
+															messagesRef.current,
+															(msg) => msg.type === "ask" && msg.ask === "command",
+														)
+														const commandText = commandMessage?.text || ""
+														const pattern = extractCommandPattern(commandText)
+														return pattern || commandText
+													})()}
+												</div>
 												<StandardTooltip
 													content={(() => {
 														const commandMessage = findLast(
@@ -1717,28 +1708,36 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														const pattern = extractCommandPattern(commandText)
 														const description = getPatternDescription(pattern)
 														return pattern
-															? `${t("chat:addAndRunCommand.tooltip")} Will whitelist: "${pattern}" (${description})`
-															: t("chat:addAndRunCommand.tooltip")
+															? `${t("chat:alwaysAllow.tooltip")} Will whitelist: "${pattern}" (${description})`
+															: t("chat:alwaysAllow.tooltip")
 													})()}>
 													<VSCodeButton
 														appearance="secondary"
 														disabled={!enableButtons}
-														className="flex-1"
-														onClick={() => handleTertiaryButtonClick(inputValue, selectedImages)}>
-														{secondaryButtonText}
+														onClick={() => {
+															// Extract the command pattern
+															const commandMessage = findLast(
+																messagesRef.current,
+																(msg) => msg.type === "ask" && msg.ask === "command",
+															)
+															const commandText = commandMessage?.text || ""
+															const pattern = extractCommandPattern(commandText)
+
+															// Add to whitelist without running
+															vscode.postMessage({
+																type: "addToWhitelist",
+																pattern: pattern,
+															})
+
+															// Clear the ask state
+															setSendingDisabled(true)
+															setClineAsk(undefined)
+															setEnableButtons(false)
+														}}>
+														{t("chat:alwaysAllow.title")}
 													</VSCodeButton>
 												</StandardTooltip>
 											</div>
-											{/* Bottom row: Reject */}
-											<StandardTooltip content={t("chat:reject.tooltip")}>
-												<VSCodeButton
-													appearance="secondary"
-													disabled={!enableButtons}
-													className="w-full"
-													onClick={() => handleSecondaryButtonClick(inputValue, selectedImages)}>
-													{tertiaryButtonText}
-												</VSCodeButton>
-											</StandardTooltip>
 										</div>
 									) : (
 										/* Standard two button layout */
@@ -1754,23 +1753,33 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 																	? t("chat:approve.tooltip")
 																	: primaryButtonText === t("chat:runCommand.title")
 																		? t("chat:runCommand.tooltip")
-																		: primaryButtonText === t("chat:startNewTask.title")
+																		: primaryButtonText ===
+																			  t("chat:startNewTask.title")
 																			? t("chat:startNewTask.tooltip")
-																			: primaryButtonText === t("chat:resumeTask.title")
+																			: primaryButtonText ===
+																				  t("chat:resumeTask.title")
 																				? t("chat:resumeTask.tooltip")
 																				: primaryButtonText ===
 																					  t("chat:proceedAnyways.title")
 																					? t("chat:proceedAnyways.tooltip")
 																					: primaryButtonText ===
-																						  t("chat:proceedWhileRunning.title")
-																						? t("chat:proceedWhileRunning.tooltip")
+																						  t(
+																								"chat:proceedWhileRunning.title",
+																						  )
+																						? t(
+																								"chat:proceedWhileRunning.tooltip",
+																							)
 																						: undefined
 													}>
 													<VSCodeButton
 														appearance="primary"
 														disabled={!enableButtons}
-														className={secondaryButtonText ? "flex-1 mr-[6px]" : "flex-[2] mr-0"}
-														onClick={() => handlePrimaryButtonClick(inputValue, selectedImages)}>
+														className={
+															secondaryButtonText ? "flex-1 mr-[6px]" : "flex-[2] mr-0"
+														}
+														onClick={() =>
+															handlePrimaryButtonClick(inputValue, selectedImages)
+														}>
 														{primaryButtonText}
 													</VSCodeButton>
 												</StandardTooltip>
@@ -1792,7 +1801,9 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 														appearance="secondary"
 														disabled={!enableButtons && !(isStreaming && !didClickCancel)}
 														className={isStreaming ? "flex-[2] ml-0" : "flex-1 ml-[6px]"}
-														onClick={() => handleSecondaryButtonClick(inputValue, selectedImages)}>
+														onClick={() =>
+															handleSecondaryButtonClick(inputValue, selectedImages)
+														}>
 														{isStreaming ? t("chat:cancel.title") : secondaryButtonText}
 													</VSCodeButton>
 												</StandardTooltip>
