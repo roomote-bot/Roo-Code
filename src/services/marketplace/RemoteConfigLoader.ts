@@ -1,6 +1,8 @@
 import axios from "axios"
 import * as yaml from "yaml"
 import { z } from "zod"
+import * as fs from "fs"
+import * as path from "path"
 import { getRooCodeApiUrl } from "@roo-code/cloud"
 import type { MarketplaceItem, MarketplaceItemType } from "@roo-code/types"
 import { modeMarketplaceItemSchema, mcpMarketplaceItemSchema } from "@roo-code/types"
@@ -57,19 +59,51 @@ export class RemoteConfigLoader {
 		const cached = this.getFromCache(cacheKey)
 		if (cached) return cached
 
-		const data = await this.fetchWithRetry<string>(`${this.apiBaseUrl}/api/marketplace/mcps`)
+		try {
+			const data = await this.fetchWithRetry<string>(`${this.apiBaseUrl}/api/marketplace/mcps`)
 
-		// Parse and validate YAML response
-		const yamlData = yaml.parse(data)
-		const validated = mcpMarketplaceResponse.parse(yamlData)
+			// Parse and validate YAML response
+			const yamlData = yaml.parse(data)
+			const validated = mcpMarketplaceResponse.parse(yamlData)
 
-		const items: MarketplaceItem[] = validated.items.map((item) => ({
-			type: "mcp" as const,
-			...item,
-		}))
+			const items: MarketplaceItem[] = validated.items.map((item) => ({
+				type: "mcp" as const,
+				...item,
+			}))
 
-		this.setCache(cacheKey, items)
-		return items
+			this.setCache(cacheKey, items)
+			return items
+		} catch (error) {
+			// Fallback to local development data if remote fetch fails
+			console.warn("Failed to fetch remote MCP data, falling back to local data:", error)
+			return this.loadLocalMcps()
+		}
+	}
+
+	private async loadLocalMcps(): Promise<MarketplaceItem[]> {
+		try {
+			const localDataPath = path.join(__dirname, "data", "mcps.yaml")
+
+			if (!fs.existsSync(localDataPath)) {
+				console.warn("Local MCP data file not found:", localDataPath)
+				return []
+			}
+
+			const fileContent = fs.readFileSync(localDataPath, "utf-8")
+			const yamlData = yaml.parse(fileContent)
+			const validated = mcpMarketplaceResponse.parse(yamlData)
+
+			const items: MarketplaceItem[] = validated.items.map((item) => ({
+				type: "mcp" as const,
+				...item,
+			}))
+
+			console.log(`Loaded ${items.length} MCP items from local data`)
+			return items
+		} catch (error) {
+			console.error("Failed to load local MCP data:", error)
+			return []
+		}
 	}
 
 	private async fetchWithRetry<T>(url: string, maxRetries = 3): Promise<T> {

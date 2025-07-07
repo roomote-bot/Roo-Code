@@ -1,12 +1,22 @@
 // npx vitest services/marketplace/__tests__/RemoteConfigLoader.spec.ts
 
 import axios from "axios"
+import * as fs from "fs"
+import * as path from "path"
 import { RemoteConfigLoader } from "../RemoteConfigLoader"
 import type { MarketplaceItemType } from "@roo-code/types"
 
 // Mock axios
 vi.mock("axios")
 const mockedAxios = axios as any
+
+// Mock fs
+vi.mock("fs")
+const mockedFs = fs as any
+
+// Mock path
+vi.mock("path")
+const mockedPath = path as any
 
 // Mock the cloud config
 vi.mock("@roo-code/cloud", () => ({
@@ -330,6 +340,204 @@ describe("RemoteConfigLoader", () => {
 
 			// Restore original Date.now
 			Date.now = originalDateNow
+		})
+	})
+
+	describe("local fallback functionality", () => {
+		beforeEach(() => {
+			// Reset mocks
+			vi.clearAllMocks()
+			loader.clearCache()
+			// Mock path.join to return a predictable path
+			mockedPath.join.mockReturnValue("/test/path/data/mcps.yaml")
+		})
+
+		it("should fallback to local data when remote API fails", async () => {
+			const localMcpsYaml = `items:
+		- id: "test-mcp"
+		  name: "Test MCP"
+		  description: "A test MCP"
+		  url: "https://github.com/test/test-mcp"
+		  content:
+		    - name: "Installation"
+		      content: '{"command": "test"}'`
+
+			// Mock remote API failure
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: "items: []" })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.reject(new Error("Network error"))
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			// Mock local file system
+			mockedFs.existsSync.mockReturnValue(true)
+			mockedFs.readFileSync.mockReturnValue(localMcpsYaml)
+
+			const items = await loader.loadAllItems()
+
+			// Should have attempted remote call first
+			expect(mockedAxios.get).toHaveBeenCalledWith(
+				"https://test.api.com/api/marketplace/mcps",
+				expect.any(Object),
+			)
+
+			// Should have fallen back to local file
+			expect(mockedFs.existsSync).toHaveBeenCalled()
+			expect(mockedFs.readFileSync).toHaveBeenCalled()
+
+			// Should contain the test MCP
+			expect(items).toHaveLength(1)
+			expect(items[0]).toEqual({
+				type: "mcp",
+				id: "test-mcp",
+				name: "Test MCP",
+				description: "A test MCP",
+				url: "https://github.com/test/test-mcp",
+				content: [
+					{
+						name: "Installation",
+						content: '{"command": "test"}',
+					},
+				],
+			})
+		})
+
+		it("should return empty array when local file doesn't exist", async () => {
+			// Mock remote API failure
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: "items: []" })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.reject(new Error("Network error"))
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			// Mock local file not existing
+			mockedFs.existsSync.mockReturnValue(false)
+
+			const items = await loader.loadAllItems()
+
+			// Should have attempted remote call first
+			expect(mockedAxios.get).toHaveBeenCalledWith(
+				"https://test.api.com/api/marketplace/mcps",
+				expect.any(Object),
+			)
+
+			// Should have checked for local file
+			expect(mockedFs.existsSync).toHaveBeenCalledWith(expect.stringContaining("data/mcps.yaml"))
+
+			// Should not have tried to read the file
+			expect(mockedFs.readFileSync).not.toHaveBeenCalled()
+
+			// Should return empty array (only modes, no MCPs)
+			expect(items).toHaveLength(0)
+		})
+
+		it("should handle local file read errors gracefully", async () => {
+			// Mock remote API failure
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: "items: []" })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.reject(new Error("Network error"))
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			// Mock local file exists but read fails
+			mockedFs.existsSync.mockReturnValue(true)
+			mockedFs.readFileSync.mockImplementation(() => {
+				throw new Error("File read error")
+			})
+
+			const items = await loader.loadAllItems()
+
+			// Should have attempted to read local file
+			expect(mockedFs.readFileSync).toHaveBeenCalledWith(expect.stringContaining("data/mcps.yaml"), "utf-8")
+
+			// Should return empty array when local fallback fails
+			expect(items).toHaveLength(0)
+		})
+
+		it("should prefer remote data over local when remote is available", async () => {
+			const remoteMcpsYaml = `items:
+		- id: "remote-mcp"
+		  name: "Remote MCP"
+		  description: "From remote API"
+		  url: "https://github.com/remote/mcp"
+		  content:
+		    - name: "Installation"
+		      content: '{"command": "remote"}'`
+
+			// Mock successful remote API
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: "items: []" })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.resolve({ data: remoteMcpsYaml })
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			const items = await loader.loadAllItems()
+
+			// Should have used remote data
+			expect(items).toHaveLength(1)
+			expect(items[0].id).toBe("remote-mcp")
+			expect(items[0].name).toBe("Remote MCP")
+
+			// Should not have accessed local file system
+			expect(mockedFs.existsSync).not.toHaveBeenCalled()
+			expect(mockedFs.readFileSync).not.toHaveBeenCalled()
+		})
+	})
+
+	describe("Google Researcher MCP Server integration", () => {
+		it("should find Google Researcher MCP by ID when loaded from local data", async () => {
+			const localMcpsYaml = `items:
+		- id: "google-researcher-mcp"
+			 name: "Google Researcher MCP Server"
+			 description: "Power your AI agents with Google Search–enhanced research"
+			 author: "Zohar Babin"
+			 url: "https://github.com/zoharbabin/google-research-mcp"
+			 content:
+			   - name: "STDIO Installation"
+			     content: '{"google-researcher": {"command": "npx", "args": ["google-researcher-mcp@latest"]}}'`
+
+			// Mock remote API failure to trigger local fallback
+			mockedAxios.get.mockImplementation((url: string) => {
+				if (url.includes("/modes")) {
+					return Promise.resolve({ data: "items: []" })
+				}
+				if (url.includes("/mcps")) {
+					return Promise.reject(new Error("Network error"))
+				}
+				return Promise.reject(new Error("Unknown URL"))
+			})
+
+			// Mock local file system
+			mockedFs.existsSync.mockReturnValue(true)
+			mockedFs.readFileSync.mockReturnValue(localMcpsYaml)
+
+			const item = await loader.getItem("google-researcher-mcp", "mcp" as MarketplaceItemType)
+
+			expect(item).not.toBeNull()
+			expect(item?.id).toBe("google-researcher-mcp")
+			expect(item?.name).toBe("Google Researcher MCP Server")
+			expect(item?.author).toBe("Zohar Babin")
+
+			// Type guard to ensure we have an MCP item
+			if (item?.type === "mcp") {
+				expect(item.url).toBe("https://github.com/zoharbabin/google-research-mcp")
+			}
 		})
 	})
 })

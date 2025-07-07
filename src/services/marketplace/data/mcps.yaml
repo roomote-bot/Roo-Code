@@ -1,0 +1,54 @@
+items:
+  - id: "google-researcher-mcp"
+    name: "Google Researcher MCP Server"
+    description: "Power your AI agents with Google Search–enhanced research via an open-source MCP server. Includes tools for Google Search, YouTube/web scraping, LLM-driven synthesis, persistent caching, and dual transport (STDIO + HTTP SSE) for efficient, flexible integration."
+    author: "Zohar Babin"
+    authorUrl: "https://github.com/zoharbabin"
+    url: "https://github.com/zoharbabin/google-research-mcp"
+    tags: ["research", "google", "search", "web-scraping", "ai-analysis", "caching"]
+    prerequisites:
+      - "Node.js 18.0.0 or higher"
+      - "Google Custom Search API Key"
+      - "Google Custom Search Engine ID"
+      - "Google Gemini API Key"
+    parameters:
+      - name: "Google Custom Search API Key"
+        key: "google_search_api_key"
+        placeholder: "Enter your Google Custom Search API key"
+      - name: "Google Custom Search Engine ID"
+        key: "google_search_engine_id"
+        placeholder: "Enter your Google Custom Search Engine ID"
+      - name: "Google Gemini API Key"
+        key: "google_gemini_api_key"
+        placeholder: "Enter your Google Gemini API key"
+    content:
+      - name: "STDIO Installation (Recommended)"
+        content: '{"google-researcher": {"command": "npx", "args": ["google-researcher-mcp@latest"], "env": {"GOOGLE_SEARCH_API_KEY": "{{google_search_api_key}}", "GOOGLE_SEARCH_ENGINE_ID": "{{google_search_engine_id}}", "GOOGLE_GEMINI_API_KEY": "{{google_gemini_api_key}}"}}}'
+        prerequisites:
+          - "Ensure you have npm installed"
+          - "Get API keys from Google Cloud Console"
+      - name: "Local Installation"
+        content: '{"google-researcher": {"command": "node", "args": ["{{install_path}}/dist/server.js"], "env": {"GOOGLE_SEARCH_API_KEY": "{{google_search_api_key}}", "GOOGLE_SEARCH_ENGINE_ID": "{{google_search_engine_id}}", "GOOGLE_GEMINI_API_KEY": "{{google_gemini_api_key}}"}}}'
+        parameters:
+          - name: "Installation Path"
+            key: "install_path"
+            placeholder: "/path/to/google-research-mcp"
+        prerequisites:
+          - "Clone the repository: git clone https://github.com/zoharbabin/google-research-mcp.git"
+          - "Install dependencies: npm install"
+          - "Build the project: npm run build"
+      - name: "HTTP+SSE Installation"
+        content: '{"google-researcher": {"url": "http://localhost:{{port}}/mcp", "headers": {"Authorization": "Bearer {{oauth_token}}"}}}'
+        parameters:
+          - name: "Server Port"
+            key: "port"
+            placeholder: "3000"
+            optional: true
+          - name: "OAuth Token"
+            key: "oauth_token"
+            placeholder: "Enter your OAuth token"
+            optional: true
+        prerequisites:
+          - "Start the server: npm start"
+          - "Configure OAuth 2.1 provider (optional)"
+          - "Server will be available at http://localhost:3000/mcp"
