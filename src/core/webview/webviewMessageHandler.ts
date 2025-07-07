@@ -588,7 +588,7 @@ export const webviewMessageHandler = async (
 			break
 		}
 		case "addToWhitelist": {
-			// Handle adding a command pattern to the whitelist without running it
+			// Handle adding a command pattern to the whitelist and then running it
 			if (message.pattern) {
 				// Get current allowed commands
 				const currentAllowedCommands = getGlobalState("allowedCommands") || []
@@ -608,6 +608,9 @@ export const webviewMessageHandler = async (
 					// Post state update to webview
 					await provider.postStateToWebview()
 				}
+
+				// After whitelisting, approve the pending command execution
+				provider.getCurrentCline()?.handleWebviewAskResponse("yesButtonClicked")
 			}
 			break
 		}
