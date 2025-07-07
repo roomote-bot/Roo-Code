@@ -434,7 +434,7 @@ export const Messages = ({
                   </div>
                 ) : isCommand ? (
                   <div className="space-y-3">
-                    <div className="bg-black/90 text-foreground p-3 rounded-md font-mono text-sm">
+                    <div className="bg-muted text-muted-foreground p-3 rounded-md font-mono text-sm border border-border">
                       {message.text}
                     </div>
                   </div>
