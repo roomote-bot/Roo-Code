@@ -5,8 +5,10 @@ import { createHmac } from 'crypto';
 vi.mock('@roo-code-cloud/db/server', () => ({
   db: {
     insert: vi.fn(),
+    select: vi.fn(),
   },
   cloudJobs: {},
+  orgs: {},
 }));
 
 vi.mock('@/lib', () => ({
@@ -17,16 +19,34 @@ describe('GitHub Webhook Utils', () => {
   let verifySignature: typeof import('../utils').verifySignature;
   let createAndEnqueueJob: typeof import('../utils').createAndEnqueueJob;
   let isRoomoteMention: typeof import('../utils').isRoomoteMention;
-  let mockDb: { insert: ReturnType<typeof vi.fn> };
+  let mockDb: {
+    insert: ReturnType<typeof vi.fn>;
+    select: ReturnType<typeof vi.fn>;
+  };
   let mockEnqueue: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
+    // Set default environment variable for tests
+    process.env.ROOMOTE_FALLBACK_USER_ID = 'test-user-123';
+
     const dbModule = await import('@roo-code-cloud/db/server');
     const libModule = await import('@/lib');
-    mockDb = dbModule.db as unknown as { insert: ReturnType<typeof vi.fn> };
+    mockDb = dbModule.db as unknown as {
+      insert: ReturnType<typeof vi.fn>;
+      select: ReturnType<typeof vi.fn>;
+    };
     mockEnqueue = libModule.enqueue as unknown as ReturnType<typeof vi.fn>;
+
+    // Mock the select chain for organization lookup
+    mockDb.select.mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          limit: vi.fn().mockResolvedValue([{ id: 'default-org-id' }]),
+        }),
+      }),
+    });
 
     const utilsModule = await import('../utils');
     verifySignature = utilsModule.verifySignature;
@@ -205,7 +225,7 @@ describe('GitHub Webhook Utils', () => {
       });
     });
 
-    it('should log the enqueued job', async () => {
+    it('should log the enqueued job with user ID', async () => {
       const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
       const type = 'github.issue.fix';
@@ -258,6 +278,57 @@ describe('GitHub Webhook Utils', () => {
       await expect(
         createAndEnqueueJob(type, payload, testOrgId),
       ).rejects.toThrow('Queue service unavailable');
+    });
+
+    it('should always include fallback user ID in job creation', async () => {
+      const type = 'github.issue.fix';
+      const payload = {
+        repo: 'test/repo',
+        issue: 123,
+        title: 'Test issue',
+        body: 'Test body',
+      };
+
+      const mockValuesCall = vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([mockJob]),
+      });
+      mockDb.insert.mockReturnValue({
+        values: mockValuesCall,
+      });
+
+      await createAndEnqueueJob(type, payload, testOrgId);
+
+      expect(mockValuesCall).toHaveBeenCalledWith({
+        type,
+        payload,
+        status: 'pending',
+        orgId: testOrgId,
+        userId: 'test-user-123',
+      });
+    });
+
+    it('should throw error when ROOMOTE_FALLBACK_USER_ID is not set', async () => {
+      const originalEnv = process.env.ROOMOTE_FALLBACK_USER_ID;
+      delete process.env.ROOMOTE_FALLBACK_USER_ID;
+
+      const type = 'github.issue.fix';
+      const payload = {
+        repo: 'test/repo',
+        issue: 123,
+        title: 'Test issue',
+        body: 'Test body',
+      };
+
+      await expect(
+        createAndEnqueueJob(type, payload, testOrgId),
+      ).rejects.toThrow(
+        'ROOMOTE_FALLBACK_USER_ID environment variable is required but not set',
+      );
+
+      // Restore original environment
+      if (originalEnv !== undefined) {
+        process.env.ROOMOTE_FALLBACK_USER_ID = originalEnv;
+      }
     });
   });
 

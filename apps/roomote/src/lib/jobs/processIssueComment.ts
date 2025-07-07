@@ -8,6 +8,7 @@ import {
 
 export async function processIssueComment(
   jobPayload: JobPayload<'github.issue.comment.respond'>,
+  jobId?: number,
   callbacks?: RunTaskCallbacks,
   mode?: string,
 ) {
@@ -53,6 +54,7 @@ gh api repos/${jobPayload.repo}/issues/${jobPayload.issueNumber}/comments --meth
   const result = await runTask({
     jobType: 'github.issue.comment.respond',
     jobPayload,
+    jobId,
     prompt,
     callbacks,
     mode,

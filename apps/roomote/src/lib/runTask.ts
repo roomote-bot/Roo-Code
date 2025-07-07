@@ -17,7 +17,7 @@ import {
 } from '@roo-code/types';
 import { IpcClient } from '@roo-code-cloud/ipc';
 import { createJobToken } from '@roo-code-cloud/job-auth';
-import { db, users } from '@roo-code-cloud/db/server';
+import { db, cloudJobs } from '@roo-code-cloud/db/server';
 import { eq } from 'drizzle-orm';
 
 import type { JobPayload, JobType } from '@roo-code-cloud/db';
@@ -58,7 +58,6 @@ type RunTaskOptions<T extends JobType> = {
   jobType: T;
   jobPayload: JobPayload<T>;
   jobId?: number;
-  userId?: string;
   prompt: string;
   logger?: Logger;
   callbacks?: RunTaskCallbacks;
@@ -72,7 +71,6 @@ export const runTask = async <T extends JobType>({
   jobType,
   jobPayload,
   jobId,
-  userId,
   prompt,
   logger,
   callbacks,
@@ -92,26 +90,31 @@ export const runTask = async <T extends JobType>({
 
   let envVars = `ROO_CODE_IPC_SOCKET_PATH=${ipcSocketPath}`;
 
-  // Create JWT token if we have jobId and userId.
-  if (jobId && userId) {
+  if (jobId) {
     try {
-      const user = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, userId))
-        .limit(1);
+      const job = await db.query.cloudJobs.findFirst({
+        where: eq(cloudJobs.id, jobId),
+      });
+      if (!job) {
+        throw new Error(`job ${jobId} not found`);
+      }
 
-      const orgId = user[0]?.orgId || null;
+      const userId = job.userId;
 
-      const token = await createJobToken(
-        jobId.toString(),
-        userId,
-        orgId,
-        TIMEOUT,
-      );
+      if (userId) {
+        const token = await createJobToken(
+          jobId.toString(),
+          userId,
+          job.orgId,
+          TIMEOUT,
+        );
 
-      envVars += ` ROO_CODE_CLOUD_TOKEN=${token}`;
-      envVars += ` ROO_CODE_CLOUD_ORG_SETTINGS=${Buffer.from(JSON.stringify(ORGANIZATION_DEFAULT)).toString('base64')}`;
+        envVars += ` ROO_CODE_CLOUD_TOKEN=${token}`;
+
+        envVars += ` ROO_CODE_CLOUD_ORG_SETTINGS=${Buffer.from(JSON.stringify(ORGANIZATION_DEFAULT)).toString('base64')}`;
+      } else {
+        logger?.warn(`No userId found for jobId ${jobId}`);
+      }
     } catch (error) {
       logger?.error('Failed to create job token:', error);
       // Continue without token - job will fall back to no auth.

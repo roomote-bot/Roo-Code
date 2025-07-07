@@ -44,9 +44,24 @@ export async function createAndEnqueueJob<T extends JobType>(
     throw new Error('Organization ID is required for job creation.');
   }
 
+  // Require fallback user ID from environment variable
+  const fallbackUserId = process.env.ROOMOTE_FALLBACK_USER_ID;
+
+  if (!fallbackUserId) {
+    throw new Error(
+      'ROOMOTE_FALLBACK_USER_ID environment variable is required but not set',
+    );
+  }
+
   const [job] = await db
     .insert(cloudJobs)
-    .values({ type, payload, status: 'pending', orgId: organizationId })
+    .values({
+      type,
+      payload,
+      status: 'pending',
+      orgId: organizationId,
+      userId: fallbackUserId,
+    })
     .returning();
 
   if (!job) {

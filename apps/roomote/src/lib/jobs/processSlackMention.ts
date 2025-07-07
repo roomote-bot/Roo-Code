@@ -9,6 +9,7 @@ import {
 
 export async function processSlackMention(
   jobPayload: JobPayload<'slack.app.mention'>,
+  jobId?: number,
   callbacks?: RunTaskCallbacks,
   mode?: string,
 ) {
@@ -48,6 +49,7 @@ ${GIT_WORKFLOW_INSTRUCTIONS}
   const result = await runTask({
     jobType: 'slack.app.mention',
     jobPayload,
+    jobId,
     prompt,
     callbacks,
     notify: false,

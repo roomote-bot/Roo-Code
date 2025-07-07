@@ -8,6 +8,7 @@ import {
 
 export async function fixGitHubIssue(
   jobPayload: JobPayload<'github.issue.fix'>,
+  jobId?: number,
   callbacks?: RunTaskCallbacks,
   mode?: string,
 ) {
@@ -27,6 +28,7 @@ ${MAIN_BRANCH_PROTECTION}
   const result = await runTask({
     jobType: 'github.issue.fix',
     jobPayload,
+    jobId,
     prompt,
     callbacks,
     mode,

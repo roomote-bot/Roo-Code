@@ -44,6 +44,7 @@ export async function processJob<T extends JobType>({
       case 'github.issue.fix':
         result = await fixGitHubIssue(
           payload as JobPayload<'github.issue.fix'>,
+          jobId,
           { onTaskStarted },
           mode,
         );
@@ -52,6 +53,7 @@ export async function processJob<T extends JobType>({
       case 'github.issue.comment.respond':
         result = await processIssueComment(
           payload as JobPayload<'github.issue.comment.respond'>,
+          jobId,
           { onTaskStarted },
           mode,
         );
@@ -60,6 +62,7 @@ export async function processJob<T extends JobType>({
       case 'github.pr.comment.respond':
         result = await processPullRequestComment(
           payload as JobPayload<'github.pr.comment.respond'>,
+          jobId,
           { onTaskStarted },
           mode,
         );
@@ -69,7 +72,7 @@ export async function processJob<T extends JobType>({
         const jobPayload = payload as JobPayload<'slack.app.mention'>;
         const { channel, thread_ts } = jobPayload;
 
-        result = await processSlackMention(jobPayload, {
+        result = await processSlackMention(jobPayload, jobId, {
           onTaskStarted,
           onTaskMessage: async (message: ClineMessage) => {
             console.log(`onTaskMessage (${channel}, ${thread_ts}) ->`, message);

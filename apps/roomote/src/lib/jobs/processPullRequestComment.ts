@@ -8,6 +8,7 @@ import {
 
 export async function processPullRequestComment(
   jobPayload: JobPayload<'github.pr.comment.respond'>,
+  jobId?: number,
   callbacks?: RunTaskCallbacks,
   mode?: string,
 ) {
@@ -66,6 +67,7 @@ Do not create a new pull request - work directly on the existing PR branch.
   const result = await runTask({
     jobType: 'github.pr.comment.respond',
     jobPayload,
+    jobId,
     prompt,
     callbacks,
     mode,
