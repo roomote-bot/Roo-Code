@@ -1,1 +1,0 @@
-@cte I'll convert the useEffect-based task loading to use React Query's useQuery hook. This will provide better caching, error handling, and loading states for the modal data loading. Working on this now.
