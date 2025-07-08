@@ -22,7 +22,7 @@ export const useTaskHash = (): TaskHashState => {
   // Set task hash in URL
   const setTaskHash = useCallback((taskId: string | null) => {
     if (taskId) {
-      window.location.hash = `task-${taskId}`;
+      window.location.hash = `#task-${taskId}`;
     } else {
       // Clear hash without triggering scroll
       const url = new URL(window.location.href);
