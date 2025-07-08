@@ -691,7 +691,7 @@ export const getTaskById = async ({
     orgId,
     userId,
     limit: 1,
-    allowCrossUserAccess: false,
+    allowCrossUserAccess: true, // Allow access to tasks from other users in the same org
   });
 
   return result.tasks[0] || null;
