@@ -106,6 +106,7 @@ describe("Timeout Integration Tests", () => {
 		const mockTask = {
 			assistantMessageContent: [],
 			cwd: "/test/dir",
+			say: vitest.fn().mockResolvedValue(undefined),
 		} as unknown as Task
 
 		const response = await TimeoutFallbackHandler.createTimeoutResponse(

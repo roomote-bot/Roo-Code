@@ -1,10 +1,7 @@
 import type { ToolName } from "@roo-code/types"
 import { formatResponse } from "../prompts/responses"
-import {
-	TimeoutFallbackGenerator,
-	type TimeoutFallbackContext,
-	type TimeoutFallbackResult,
-} from "./TimeoutFallbackGenerator"
+import type { TimeoutFallbackContext } from "../prompts/instructions/timeout-fallback"
+import { TimeoutFallbackGenerator, type TimeoutFallbackResult } from "./TimeoutFallbackGenerator"
 import type { Task } from "../task/Task"
 import { parseAssistantMessage } from "../assistant-message/parseAssistantMessage"
 
@@ -23,6 +20,13 @@ export class TimeoutFallbackHandler {
 		task?: Task,
 	): Promise<string> {
 		const baseResponse = formatResponse.toolTimeout(toolName, timeoutMs, executionTimeMs)
+
+		// Create a timeout message for display in the chat
+		if (task) {
+			await task.say("tool_timeout", "", undefined, false, undefined, undefined, {
+				isNonInteractive: true,
+			})
+		}
 
 		// Create context for AI fallback generation
 		const aiContext: TimeoutFallbackContext = {

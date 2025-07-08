@@ -230,6 +230,7 @@
 		"hasQuestion": "Roo has a question:"
 	},
 	"taskCompleted": "Task Completed",
+	"toolTimeout": "Tool Timeout",
 	"error": "Error",
 	"diffError": {
 		"title": "Edit Unsuccessful"
