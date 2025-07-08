@@ -14,6 +14,7 @@ import {
 	AskFinishSubTaskApproval,
 } from "../../shared/tools"
 import { formatResponse } from "../prompts/responses"
+import { validateTodosForCompletion } from "./updateTodoListTool"
 
 export async function attemptCompletionTool(
 	cline: Task,
@@ -60,6 +61,17 @@ export async function attemptCompletionTool(
 				cline.consecutiveMistakeCount++
 				cline.recordToolError("attempt_completion")
 				pushToolResult(await cline.sayAndCreateMissingParamError("attempt_completion", "result"))
+				return
+			}
+
+			// Validate that all todos are completed before allowing completion
+			const todoValidation = validateTodosForCompletion(cline.todoList)
+			if (!todoValidation.valid) {
+				cline.consecutiveMistakeCount++
+				cline.recordToolError("attempt_completion")
+				pushToolResult(
+					formatResponse.toolError(todoValidation.error || "Cannot complete task with incomplete todos"),
+				)
 				return
 			}
 

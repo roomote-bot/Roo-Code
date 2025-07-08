@@ -144,6 +144,57 @@ function validateTodos(todos: any[]): { valid: boolean; error?: string } {
 }
 
 /**
+ * Validate that all todos are completed before allowing task completion.
+ * @param todoList Array of TodoItem objects to validate
+ * @returns Validation result with error details if incomplete todos exist
+ */
+export function validateTodosForCompletion(todoList?: TodoItem[]): {
+	valid: boolean
+	error?: string
+	incompleteTodos?: { pending: TodoItem[]; inProgress: TodoItem[] }
+} {
+	// If no todos exist, completion is allowed
+	if (!todoList || todoList.length === 0) {
+		return { valid: true }
+	}
+
+	const pendingTodos = todoList.filter((todo) => todo.status === "pending")
+	const inProgressTodos = todoList.filter((todo) => todo.status === "in_progress")
+
+	// If there are any incomplete todos, block completion
+	if (pendingTodos.length > 0 || inProgressTodos.length > 0) {
+		let errorMessage = "Cannot attempt completion while there are incomplete todos:\n\n"
+
+		if (pendingTodos.length > 0) {
+			errorMessage += "Pending todos:\n"
+			pendingTodos.forEach((todo) => {
+				errorMessage += `- [ ] ${todo.content}\n`
+			})
+			errorMessage += "\n"
+		}
+
+		if (inProgressTodos.length > 0) {
+			errorMessage += "In Progress todos:\n"
+			inProgressTodos.forEach((todo) => {
+				errorMessage += `- [-] ${todo.content}\n`
+			})
+			errorMessage += "\n"
+		}
+
+		errorMessage += "Please complete all todos using the update_todo_list tool before attempting completion."
+
+		return {
+			valid: false,
+			error: errorMessage,
+			incompleteTodos: { pending: pendingTodos, inProgress: inProgressTodos },
+		}
+	}
+
+	// All todos are completed
+	return { valid: true }
+}
+
+/**
  * Update the todo list for a task.
  * @param cline Task instance
  * @param block ToolUse block
