@@ -1,7 +1,7 @@
 // pnpm test src/app/api/events/backfill/__tests__/route.test.ts
 
-import fs from 'fs';
-import path from 'path';
+import * as fs from 'fs';
+import * as path from 'path';
 import { NextRequest } from 'next/server';
 
 import { authorizeApi } from '@/actions/auth';
@@ -296,8 +296,8 @@ describe('/api/events/backfill', () => {
       say: 'api_req_started',
     });
 
-    expect(textMessage?.timestamp).toBeTypeOf('number');
-    expect(apiMessage?.timestamp).toBeTypeOf('number');
+    expect(typeof textMessage?.timestamp).toBe('number');
+    expect(typeof apiMessage?.timestamp).toBe('number');
 
     const messageTypes = dbData.map((item) => item.say);
     expect(messageTypes).toContain('text');
