@@ -40,13 +40,13 @@ vi.mock('@/types', () => ({
 }));
 
 describe('Share Token Authorization in Events', () => {
-  let mockAnalytics: vi.MockedFunction<any>;
-  let mockAuthorizeAnalytics: vi.MockedFunction<any>;
-  let mockGetUsersById: vi.MockedFunction<any>;
-  let mockDb: vi.MockedFunction<any>;
-  let mockIsValidShareToken: vi.MockedFunction<any>;
-  let mockIsShareExpired: vi.MockedFunction<any>;
-  let mockAuth: vi.MockedFunction<any>;
+  let mockAnalytics: any;
+  let mockAuthorizeAnalytics: any;
+  let mockGetUsersById: any;
+  let mockDb: any;
+  let mockIsValidShareToken: any;
+  let mockIsShareExpired: any;
+  let mockAuth: any;
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -228,7 +228,7 @@ describe('Share Token Authorization in Events', () => {
       });
 
       expect(result.tasks).toHaveLength(1);
-      expect(result.tasks[0].taskId).toBe('task-123');
+      expect(result.tasks?.[0]?.taskId).toBe('task-123');
     });
 
     it('should allow access for valid public share', async () => {
@@ -257,7 +257,7 @@ describe('Share Token Authorization in Events', () => {
       });
 
       expect(result.tasks).toHaveLength(1);
-      expect(result.tasks[0].taskId).toBe('task-123');
+      expect(result.tasks?.[0]?.taskId).toBe('task-123');
       // Should not call auth for public shares
       expect(mockAuth).not.toHaveBeenCalled();
     });
