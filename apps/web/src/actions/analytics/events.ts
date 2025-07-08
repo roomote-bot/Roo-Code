@@ -74,14 +74,13 @@ type AccessControlResult = {
 };
 
 const buildAccessControlFilter = (
-  authUserId: string | null,
+  userId: string | null,
   isAdmin: boolean,
   orgId: string | null | undefined,
-  authOrgId: string | null,
   tablePrefix: string = '',
 ): AccessControlResult => {
   // For personal accounts, query by userId instead of orgId
-  if (!orgId && !authUserId) {
+  if (!orgId && !userId) {
     throw new Error('Personal accounts require authenticated user ID');
   }
 
@@ -99,16 +98,16 @@ const buildAccessControlFilter = (
 
   // Build access control: (userId = your_id) OR (you're admin AND orgId = your_org)
   let accessCondition = '';
-  if (authUserId) {
-    accessParams.authUserId = authUserId;
+  if (userId) {
+    accessParams.userId = userId;
 
-    if (orgId && isAdmin && authOrgId) {
+    if (orgId && isAdmin) {
       // Admin can see: their own tasks OR all tasks in their org
-      accessParams.authOrgId = authOrgId;
-      accessCondition = ` AND (${prefix}userId = {authUserId: String} OR ${prefix}orgId = {authOrgId: String})`;
+      // When querying org data, orgId is the user's org (ensured by authorization)
+      accessCondition = ` AND (${prefix}userId = {userId: String} OR ${prefix}orgId = {orgId: String})`;
     } else {
       // Non-admin or personal account: only see your own tasks
-      accessCondition = ` AND ${prefix}userId = {authUserId: String}`;
+      accessCondition = ` AND ${prefix}userId = {userId: String}`;
     }
   }
 
@@ -142,7 +141,7 @@ export const getUsage = async ({
   timePeriod?: AnyTimePeriod;
   userId?: string | null;
 }): Promise<UsageRecord> => {
-  const { authUserId, authOrgId, isAdmin } = await authorizeAnalytics({
+  const { authUserId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
   });
@@ -156,7 +155,6 @@ export const getUsage = async ({
     authUserId,
     isAdmin,
     orgId,
-    authOrgId,
   );
 
   const queryParams = {
@@ -486,7 +484,6 @@ export const getTasks = async ({
   filters?: Filter[];
 }): Promise<TasksResult> => {
   let authUserId: string | null = null;
-  let authOrgId: string | null = null;
   let isAdmin = false;
 
   if (!skipAuth) {
@@ -495,7 +492,6 @@ export const getTasks = async ({
       requestedUserId: userId,
     });
     authUserId = authResult.authUserId;
-    authOrgId = authResult.authOrgId;
     isAdmin = authResult.isAdmin;
   }
 
@@ -509,8 +505,8 @@ export const getTasks = async ({
   const messageTaskFilter = taskId ? 'AND taskId = {taskId: String}' : '';
 
   // Build access control filters using the shared helper
-  let eventsAccessFilter = '';
-  let messagesAccessFilter = '';
+  let eventsAccessFilter = 'WHERE 1=1';
+  let messagesAccessFilter = 'WHERE 1=1';
   let accessParams: Record<string, string> = {};
 
   if (!skipAuth) {
@@ -518,7 +514,6 @@ export const getTasks = async ({
       authUserId,
       isAdmin,
       orgId,
-      authOrgId,
       'e', // table prefix for events table
     );
     eventsAccessFilter = `WHERE ${accessFilter}`;
@@ -529,11 +524,10 @@ export const getTasks = async ({
       authUserId,
       isAdmin,
       orgId,
-      authOrgId,
     );
     messagesAccessFilter = `WHERE ${messageFilter}`;
   }
-  // When skipAuth=true (for public shares), no access control filters are needed
+  // When skipAuth=true (for public shares), use 'WHERE 1=1' to ensure valid SQL
   // The share token itself provides the authorization
 
   const queryParams: Record<string, string | string[] | number> = {
@@ -659,7 +653,7 @@ export const getHourlyUsageByUser = async ({
   userId?: string | null;
   filters?: Filter[];
 }): Promise<HourlyUsageByUser[]> => {
-  const { authUserId, authOrgId, isAdmin } = await authorizeAnalytics({
+  const { authUserId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
   });
@@ -673,7 +667,6 @@ export const getHourlyUsageByUser = async ({
     authUserId,
     isAdmin,
     orgId,
-    authOrgId,
   );
 
   const queryParams = {
