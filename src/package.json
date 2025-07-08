@@ -225,7 +225,6 @@
 				},
 				{
 					"command": "roo-cline.settingsButtonClicked",
-					"group": "navigation@3",
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
@@ -234,6 +233,7 @@
 				},
 				{
 					"command": "roo-cline.historyButtonClicked",
+					"group": "navigation@3",
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
@@ -258,7 +258,6 @@
 				},
 				{
 					"command": "roo-cline.settingsButtonClicked",
-					"group": "navigation@3",
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				},
 				{
@@ -267,6 +266,7 @@
 				},
 				{
 					"command": "roo-cline.historyButtonClicked",
+					"group": "navigation@3",
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				},
 				{
