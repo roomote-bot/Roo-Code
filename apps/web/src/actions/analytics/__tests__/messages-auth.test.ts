@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { getMessages } from '../messages';
 
@@ -38,12 +39,12 @@ vi.mock('@/types', () => ({
 }));
 
 describe('Share Token Authorization in Messages', () => {
-  let mockAnalytics: unknown;
-  let mockAuthorizeAnalytics: unknown;
-  let mockDb: unknown;
-  let mockIsValidShareToken: unknown;
-  let mockIsShareExpired: unknown;
-  let mockAuth: unknown;
+  let mockAnalytics: vi.MockedFunction<any>;
+  let mockAuthorizeAnalytics: vi.MockedFunction<any>;
+  let mockDb: vi.MockedFunction<any>;
+  let mockIsValidShareToken: vi.MockedFunction<any>;
+  let mockIsShareExpired: vi.MockedFunction<any>;
+  let mockAuth: vi.MockedFunction<any>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
