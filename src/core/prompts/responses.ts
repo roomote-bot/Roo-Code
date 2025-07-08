@@ -15,6 +15,18 @@ export const formatResponse = {
 
 	toolError: (error?: string) => `The tool execution failed with the following error:\n<error>\n${error}\n</error>`,
 
+	toolTimeout: (toolName: string, timeoutMs: number, executionTimeMs: number) =>
+		`The ${toolName} operation timed out after ${Math.round(timeoutMs / 1000)} seconds and was automatically canceled.
+
+<timeout_details>
+Tool: ${toolName}
+Configured Timeout: ${Math.round(timeoutMs / 1000)}s
+Execution Time: ${Math.round(executionTimeMs / 1000)}s
+Status: Canceled
+</timeout_details>
+
+The operation has been terminated to prevent system resource issues. Please consider one of the following approaches to complete your task.`,
+
 	rooIgnoreError: (path: string) =>
 		`Access to ${path} is blocked by the .rooignore file settings. You must try to continue in the task without using this file, or ask the user to update the .rooignore file.`,
 

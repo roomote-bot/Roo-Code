@@ -120,6 +120,8 @@ export interface WebviewMessage {
 		| "terminalZshP10k"
 		| "terminalZdotdir"
 		| "terminalCompressProgressBar"
+		| "toolExecutionTimeoutMs"
+		| "timeoutFallbackEnabled"
 		| "mcpEnabled"
 		| "enableMcpServerCreation"
 		| "searchCommits"
