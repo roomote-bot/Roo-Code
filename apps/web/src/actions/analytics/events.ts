@@ -508,31 +508,33 @@ export const getTasks = async ({
   const taskFilter = taskId ? 'AND e.taskId = {taskId: String}' : '';
   const messageTaskFilter = taskId ? 'AND taskId = {taskId: String}' : '';
 
-  // Build access control conditions based on the two rules:
-  // 1. You always have access to your own tasks
-  // 2. If you're an org:admin, you have access to all tasks in your org
-  let accessFilter = '';
-  let messageAccessFilter = '';
+  // Build access control filters using the shared helper
+  let eventsAccessFilter = '';
+  let messagesAccessFilter = '';
+  let accessParams: Record<string, string> = {};
 
-  if (!skipAuth && authUserId) {
-    if (orgId && isAdmin) {
-      // Admin can see all tasks in the org OR their own tasks
-      accessFilter =
-        'AND (e.userId = {authUserId: String} OR (e.orgId = {authOrgId: String}))';
-      messageAccessFilter =
-        'AND (userId = {authUserId: String} OR (orgId = {authOrgId: String}))';
-    } else {
-      // Non-admin or personal account: only see your own tasks
-      accessFilter = 'AND e.userId = {authUserId: String}';
-      messageAccessFilter = 'AND userId = {authUserId: String}';
-    }
+  if (!skipAuth) {
+    const { accessFilter, accessParams: params } = buildAccessControlFilter(
+      authUserId,
+      isAdmin,
+      orgId,
+      authOrgId,
+      'e', // table prefix for events table
+    );
+    eventsAccessFilter = `WHERE ${accessFilter}`;
+    accessParams = params;
+
+    // Build messages access filter (without table prefix)
+    const { accessFilter: messageFilter } = buildAccessControlFilter(
+      authUserId,
+      isAdmin,
+      orgId,
+      authOrgId,
+    );
+    messagesAccessFilter = `WHERE ${messageFilter}`;
   }
-
-  // Build query conditions based on account type
-  const orgCondition = !orgId ? 'e.orgId IS NULL' : 'e.orgId = {orgId: String}';
-  const messageOrgCondition = !orgId
-    ? 'orgId IS NULL'
-    : 'orgId = {orgId: String}';
+  // When skipAuth=true (for public shares), no access control filters are needed
+  // The share token itself provides the authorization
 
   const queryParams: Record<string, string | string[] | number> = {
     types: [
@@ -541,19 +543,8 @@ export const getTasks = async ({
       TelemetryEventName.LLM_COMPLETION,
     ],
     limit: limit + 1, // Request one extra to determine hasMore
+    ...accessParams, // Include access control parameters from buildAccessControlFilter
   };
-
-  if (orgId) {
-    queryParams.orgId = orgId;
-  }
-
-  if (authOrgId) {
-    queryParams.authOrgId = authOrgId;
-  }
-
-  if (authUserId) {
-    queryParams.authUserId = authUserId;
-  }
 
   if (taskId) {
     queryParams.taskId = taskId;
@@ -582,8 +573,7 @@ export const getTasks = async ({
           argMin(text, ts) as title,
           argMin(mode, ts) as mode
         FROM messages
-        WHERE ${messageOrgCondition}
-        ${messageAccessFilter}
+        ${messagesAccessFilter}
         ${messageTaskFilter}
         GROUP BY taskId
       )
@@ -603,11 +593,9 @@ export const getTasks = async ({
         any(e.defaultBranch) AS defaultBranch
       FROM events e
       LEFT JOIN first_messages fm ON e.taskId = fm.taskId
-      WHERE
-        ${orgCondition}
+      ${eventsAccessFilter}
         AND e.type IN ({types: Array(String)})
         AND e.modelId IS NOT NULL
-        ${accessFilter}
         ${taskFilter}
         ${filterClause}
       GROUP BY 1, 2
