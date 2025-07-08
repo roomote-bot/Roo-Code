@@ -65,8 +65,19 @@ export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
 };
 
 /**
- * Helper function to build access control filters for analytics queries
- * Includes both organization-level and user-level filtering
+ * SECURITY: Standardized access control filter builder
+ *
+ * This function ensures consistent access control across all analytics queries.
+ * It implements the principle of least privilege:
+ * - Personal accounts: Can only see their own data
+ * - Organization members: Can only see their own data within their org
+ * - Organization admins: Can see all data within their org OR their own data
+ *
+ * @param userId - Authenticated user ID (from authorizeAnalytics)
+ * @param isAdmin - Whether the user has admin privileges in their org
+ * @param orgId - Organization ID being queried (validated by authorizeAnalytics)
+ * @param tablePrefix - Optional table prefix for SQL queries (validated for safety)
+ * @returns SQL filter conditions and parameters for ClickHouse queries
  */
 type AccessControlResult = {
   accessFilter: string;
@@ -79,6 +90,13 @@ const buildAccessControlFilter = (
   orgId: string | null | undefined,
   tablePrefix: string = '',
 ): AccessControlResult => {
+  // Security: Validate table prefix to prevent SQL injection
+  if (tablePrefix && !/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tablePrefix)) {
+    throw new Error(
+      'Invalid table prefix: must be alphanumeric with underscores',
+    );
+  }
+
   // For personal accounts, query by userId instead of orgId
   if (!orgId && !userId) {
     throw new Error('Personal accounts require authenticated user ID');
