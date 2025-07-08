@@ -28,6 +28,20 @@ export async function attemptCompletionTool(
 	const result: string | undefined = block.params.result
 	const command: string | undefined = block.params.command
 
+	// Check if there are incomplete todos
+	const hasIncompleteTodos = cline.todoList && cline.todoList.some((todo) => todo.status !== "completed")
+
+	if (hasIncompleteTodos) {
+		cline.consecutiveMistakeCount++
+		cline.recordToolError("attempt_completion")
+		pushToolResult(
+			formatResponse.toolError(
+				"Cannot complete task while there are incomplete todos. Please finish all todos before attempting completion.",
+			),
+		)
+		return
+	}
+
 	try {
 		const lastMessage = cline.clineMessages.at(-1)
 
