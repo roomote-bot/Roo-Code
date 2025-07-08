@@ -72,12 +72,10 @@ export async function authorizeAnalytics({
   requestedOrgId,
   requestedUserId,
   requireAdmin = false,
-  allowCrossUserAccess = false,
 }: {
   requestedOrgId?: string | null;
   requestedUserId?: string | null;
   requireAdmin?: boolean;
-  allowCrossUserAccess?: boolean;
 }) {
   const { orgId: authOrgId, orgRole, userId: authUserId } = await auth();
 
@@ -85,6 +83,7 @@ export async function authorizeAnalytics({
     throw new Error('Unauthorized: User required');
   }
 
+  // Personal account access
   if (!authOrgId && !requestedOrgId) {
     if (requestedUserId && requestedUserId !== authUserId) {
       throw new Error(
@@ -96,10 +95,11 @@ export async function authorizeAnalytics({
       authOrgId: null,
       authUserId,
       orgRole: null,
-      effectiveUserId: authUserId,
+      isAdmin: false,
     };
   }
 
+  // Organization account access
   if (!authOrgId || !authUserId || authOrgId !== requestedOrgId) {
     throw new Error('Unauthorized: Invalid organization access');
   }
@@ -108,24 +108,13 @@ export async function authorizeAnalytics({
     throw new Error('Unauthorized: Administrator access required');
   }
 
-  if (
-    orgRole !== 'org:admin' &&
-    requestedUserId &&
-    requestedUserId !== authUserId
-  ) {
-    throw new Error('Unauthorized: Members can only access their own data');
-  }
-
-  const effectiveUserId =
-    orgRole !== 'org:admin' && !allowCrossUserAccess
-      ? authUserId
-      : requestedUserId || null;
+  const isAdmin = orgRole === 'org:admin';
 
   return {
     authOrgId,
     authUserId,
     orgRole: isOrgRole(orgRole) ? orgRole : 'org:member',
-    effectiveUserId,
+    isAdmin,
   };
 }
 

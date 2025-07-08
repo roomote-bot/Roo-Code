@@ -65,6 +65,59 @@ export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
 };
 
 /**
+ * Helper function to build access control filters for analytics queries
+ * Includes both organization-level and user-level filtering
+ */
+type AccessControlResult = {
+  accessFilter: string;
+  accessParams: Record<string, string>;
+};
+
+const buildAccessControlFilter = (
+  authUserId: string | null,
+  isAdmin: boolean,
+  orgId: string | null | undefined,
+  authOrgId: string | null,
+  tablePrefix: string = '',
+): AccessControlResult => {
+  // For personal accounts, query by userId instead of orgId
+  if (!orgId && !authUserId) {
+    throw new Error('Personal accounts require authenticated user ID');
+  }
+
+  const accessParams: Record<string, string> = {};
+  const prefix = tablePrefix ? `${tablePrefix}.` : '';
+
+  // Build organization scope filter first
+  const orgCondition = !orgId
+    ? `${prefix}orgId IS NULL`
+    : `${prefix}orgId = {orgId: String}`;
+
+  if (orgId) {
+    accessParams.orgId = orgId;
+  }
+
+  // Build access control: (userId = your_id) OR (you're admin AND orgId = your_org)
+  let accessCondition = '';
+  if (authUserId) {
+    accessParams.authUserId = authUserId;
+
+    if (orgId && isAdmin && authOrgId) {
+      // Admin can see: their own tasks OR all tasks in their org
+      accessParams.authOrgId = authOrgId;
+      accessCondition = ` AND (${prefix}userId = {authUserId: String} OR ${prefix}orgId = {authOrgId: String})`;
+    } else {
+      // Non-admin or personal account: only see your own tasks
+      accessCondition = ` AND ${prefix}userId = {authUserId: String}`;
+    }
+  }
+
+  const accessFilter = `${orgCondition}${accessCondition}`;
+
+  return { accessFilter, accessParams };
+};
+
+/**
  * getUsage
  */
 
@@ -89,32 +142,27 @@ export const getUsage = async ({
   timePeriod?: AnyTimePeriod;
   userId?: string | null;
 }): Promise<UsageRecord> => {
-  const { effectiveUserId } = await authorizeAnalytics({
+  const { authUserId, authOrgId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
   });
 
   // For personal accounts, query by userId instead of orgId
-  if (!orgId && !effectiveUserId) {
+  if (!orgId && !authUserId) {
     return {}; // Personal accounts must have a userId
   }
 
-  const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
+  const { accessFilter, accessParams } = buildAccessControlFilter(
+    authUserId,
+    isAdmin,
+    orgId,
+    authOrgId,
+  );
 
-  // Build query conditions based on account type
-  const orgCondition = !orgId ? 'orgId IS NULL' : 'orgId = {orgId: String}';
-
-  const queryParams: Record<string, string | number> = {
+  const queryParams = {
     timePeriod,
+    ...accessParams,
   };
-
-  if (orgId) {
-    queryParams.orgId = orgId;
-  }
-
-  if (effectiveUserId) {
-    queryParams.userId = effectiveUserId;
-  }
 
   const results = await analytics.query({
     query: `
@@ -126,9 +174,8 @@ export const getUsage = async ({
         SUM(COALESCE(cost, 0)) AS cost
       FROM events
       WHERE
-        ${orgCondition}
+        ${accessFilter}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
-        ${userFilter}
       GROUP BY 1
     `,
     format: 'JSONEachRow',
@@ -425,7 +472,6 @@ export const getTasks = async ({
   orgId,
   userId,
   taskId,
-  allowCrossUserAccess = false,
   skipAuth = false,
   limit = 20,
   cursor,
@@ -434,41 +480,56 @@ export const getTasks = async ({
   orgId?: string | null;
   userId?: string | null;
   taskId?: string | null;
-  allowCrossUserAccess?: boolean;
   skipAuth?: boolean;
   limit?: number;
   cursor?: number;
   filters?: Filter[];
 }): Promise<TasksResult> => {
-  let effectiveUserId = userId;
+  let authUserId: string | null = null;
+  let authOrgId: string | null = null;
+  let isAdmin = false;
 
   if (!skipAuth) {
     const authResult = await authorizeAnalytics({
       requestedOrgId: orgId,
       requestedUserId: userId,
-      allowCrossUserAccess,
     });
-    effectiveUserId = authResult.effectiveUserId;
+    authUserId = authResult.authUserId;
+    authOrgId = authResult.authOrgId;
+    isAdmin = authResult.isAdmin;
   }
 
   // For personal accounts, query by userId instead of orgId
   // Exception: when skipAuth is true (for public shares), we can query without userId
-  if (!orgId && !effectiveUserId && !skipAuth) {
+  if (!orgId && !authUserId && !skipAuth) {
     return { tasks: [], hasMore: false }; // Personal accounts must have a userId unless we're skipping auth
   }
 
-  const userFilter = effectiveUserId ? 'AND e.userId = {userId: String}' : '';
   const taskFilter = taskId ? 'AND e.taskId = {taskId: String}' : '';
-
-  const messageUserFilter = effectiveUserId
-    ? 'AND userId = {userId: String}'
-    : '';
-
   const messageTaskFilter = taskId ? 'AND taskId = {taskId: String}' : '';
+
+  // Build access control conditions based on the two rules:
+  // 1. You always have access to your own tasks
+  // 2. If you're an org:admin, you have access to all tasks in your org
+  let accessFilter = '';
+  let messageAccessFilter = '';
+
+  if (!skipAuth && authUserId) {
+    if (orgId && isAdmin) {
+      // Admin can see all tasks in the org OR their own tasks
+      accessFilter =
+        'AND (e.userId = {authUserId: String} OR (e.orgId = {authOrgId: String}))';
+      messageAccessFilter =
+        'AND (userId = {authUserId: String} OR (orgId = {authOrgId: String}))';
+    } else {
+      // Non-admin or personal account: only see your own tasks
+      accessFilter = 'AND e.userId = {authUserId: String}';
+      messageAccessFilter = 'AND userId = {authUserId: String}';
+    }
+  }
 
   // Build query conditions based on account type
   const orgCondition = !orgId ? 'e.orgId IS NULL' : 'e.orgId = {orgId: String}';
-
   const messageOrgCondition = !orgId
     ? 'orgId IS NULL'
     : 'orgId = {orgId: String}';
@@ -486,8 +547,12 @@ export const getTasks = async ({
     queryParams.orgId = orgId;
   }
 
-  if (effectiveUserId) {
-    queryParams.userId = effectiveUserId;
+  if (authOrgId) {
+    queryParams.authOrgId = authOrgId;
+  }
+
+  if (authUserId) {
+    queryParams.authUserId = authUserId;
   }
 
   if (taskId) {
@@ -518,7 +583,7 @@ export const getTasks = async ({
           argMin(mode, ts) as mode
         FROM messages
         WHERE ${messageOrgCondition}
-        ${messageUserFilter}
+        ${messageAccessFilter}
         ${messageTaskFilter}
         GROUP BY taskId
       )
@@ -542,7 +607,7 @@ export const getTasks = async ({
         ${orgCondition}
         AND e.type IN ({types: Array(String)})
         AND e.modelId IS NOT NULL
-        ${userFilter}
+        ${accessFilter}
         ${taskFilter}
         ${filterClause}
       GROUP BY 1, 2
@@ -606,37 +671,32 @@ export const getHourlyUsageByUser = async ({
   userId?: string | null;
   filters?: Filter[];
 }): Promise<HourlyUsageByUser[]> => {
-  const { effectiveUserId } = await authorizeAnalytics({
+  const { authUserId, authOrgId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
   });
 
   // For personal accounts, query by userId instead of orgId
-  if (!orgId && !effectiveUserId) {
+  if (!orgId && !authUserId) {
     return []; // Personal accounts must have a userId
   }
 
-  const userFilter = effectiveUserId ? 'AND userId = {userId: String}' : '';
+  const { accessFilter, accessParams } = buildAccessControlFilter(
+    authUserId,
+    isAdmin,
+    orgId,
+    authOrgId,
+  );
 
-  // Build query conditions based on account type
-  const orgCondition = !orgId ? 'orgId IS NULL' : 'orgId = {orgId: String}';
-
-  const queryParams: Record<string, string | number | string[]> = {
+  const queryParams = {
     timePeriod,
     types: [
       TelemetryEventName.TASK_CREATED,
       TelemetryEventName.TASK_COMPLETED,
       TelemetryEventName.LLM_COMPLETION,
     ],
+    ...accessParams,
   };
-
-  if (orgId) {
-    queryParams.orgId = orgId;
-  }
-
-  if (effectiveUserId) {
-    queryParams.userId = effectiveUserId;
-  }
 
   // Build filter conditions using shared helper
   const filterClause = buildFilterConditions(filters, queryParams);
@@ -651,10 +711,9 @@ export const getHourlyUsageByUser = async ({
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
       FROM events
       WHERE
-        ${orgCondition}
+        ${accessFilter}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
-        ${userFilter}
         ${filterClause}
       GROUP BY 1, 2
       ORDER BY hour_utc DESC, userId
@@ -691,7 +750,6 @@ export const getTaskById = async ({
     orgId,
     userId,
     limit: 1,
-    allowCrossUserAccess: true, // Allow access to tasks from other users in the same org
   });
 
   return result.tasks[0] || null;

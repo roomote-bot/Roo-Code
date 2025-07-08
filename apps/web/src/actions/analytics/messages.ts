@@ -39,7 +39,6 @@ export const getMessages = async (
     await authorizeAnalytics({
       requestedOrgId: orgId,
       requestedUserId: userId,
-      allowCrossUserAccess: true, // Allow viewing messages within authorized tasks
     });
   }
 

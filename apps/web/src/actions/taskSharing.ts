@@ -80,7 +80,6 @@ export async function canShareTask(taskId: string): Promise<{
       const result = await getTasks({
         taskId,
         orgId,
-        allowCrossUserAccess: true,
       });
 
       const task = result.tasks[0];
@@ -298,7 +297,6 @@ export async function getTaskByShareToken(token: string): Promise<{
     const result = await getTasks({
       taskId: share.taskId,
       orgId: share.orgId, // Will be null for personal shares
-      allowCrossUserAccess: true,
       skipAuth: true, // Skip auth for both public and organization shares since we've already validated access above
     });
     const task = result.tasks[0];
@@ -531,7 +529,6 @@ export async function getSharedTaskMessages(
     const result = await getTasks({
       taskId: share.taskId,
       orgId: share.orgId,
-      allowCrossUserAccess: true,
       skipAuth: true, // We've already validated access above
     });
     const task = result.tasks[0];
