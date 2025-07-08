@@ -12,7 +12,7 @@ vi.mock("path", async () => {
 	const originalPath = await vi.importActual("path")
 	return {
 		...originalPath,
-		resolve: vi.fn().mockImplementation((...args) => args.join("/")),
+		resolve: vi.fn(),
 	}
 })
 
@@ -54,6 +54,7 @@ vi.mock("../../ignore/RooIgnoreController", () => ({
 
 describe("insertContentTool", () => {
 	const testFilePath = "test/file.txt"
+	// Use a consistent mock absolute path for testing
 	const absoluteFilePath = "/test/file.txt"
 
 	const mockedFileExistsAtPath = fileExistsAtPath as MockedFunction<typeof fileExistsAtPath>
@@ -70,6 +71,7 @@ describe("insertContentTool", () => {
 	beforeEach(() => {
 		vi.clearAllMocks()
 
+		// Mock path.resolve to return our test absolute path
 		mockedPathResolve.mockReturnValue(absoluteFilePath)
 		mockedFileExistsAtPath.mockResolvedValue(true) // Assume file exists by default for insert
 		mockedFsReadFile.mockResolvedValue("") // Default empty file content
