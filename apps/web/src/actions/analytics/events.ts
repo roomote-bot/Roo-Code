@@ -12,8 +12,17 @@ import type { Filter } from '@/types/analytics';
 import { buildFilterConditions } from '@/types/analytics';
 import { analytics } from '@/lib/server';
 import { tokenSumSql } from '@/lib';
-import { type User, getUsersById } from '@roo-code-cloud/db/server';
+import {
+  type User,
+  getUsersById,
+  db,
+  taskShares,
+} from '@roo-code-cloud/db/server';
 import { authorizeAnalytics } from '@/actions/auth';
+import { eq } from 'drizzle-orm';
+import { isValidShareToken, isShareExpired } from '@/lib/task-sharing';
+import { TaskShareVisibility } from '@/types';
+import { auth } from '@clerk/nextjs/server';
 
 type Table = 'events' | 'messages';
 
@@ -63,6 +72,68 @@ export const captureEvent = async ({ event, ...rest }: AnalyticsEvent) => {
 
   await analytics.insert({ table, values: [value], format: 'JSONEachRow' });
 };
+
+/**
+ * SECURITY: Share token authorization for public access
+ *
+ * This function validates share tokens and returns scoped access permissions
+ * for public task sharing without bypassing all security controls.
+ *
+ * @param shareToken - The share token to validate
+ * @returns Authorization result with scoped access or null if invalid
+ */
+async function authorizeShareToken(shareToken: string): Promise<{
+  isValid: boolean;
+  taskId?: string;
+  orgId?: string | null;
+  userId?: string;
+  visibility?: string;
+} | null> {
+  try {
+    if (!isValidShareToken(shareToken)) {
+      return null;
+    }
+
+    // Get the share from database
+    const [shareWithUser] = await db
+      .select({
+        share: taskShares,
+      })
+      .from(taskShares)
+      .where(eq(taskShares.shareToken, shareToken))
+      .limit(1);
+
+    if (!shareWithUser) {
+      return null;
+    }
+
+    const { share } = shareWithUser;
+
+    if (isShareExpired(share.expiresAt)) {
+      return null;
+    }
+
+    // For organization shares, verify the user has access to the org
+    if (share.visibility === TaskShareVisibility.ORGANIZATION) {
+      const { userId, orgId } = await auth();
+
+      if (!userId || !orgId || orgId !== share.orgId) {
+        return null; // Organization shares require matching org membership
+      }
+    }
+
+    return {
+      isValid: true,
+      taskId: share.taskId,
+      orgId: share.orgId,
+      userId: share.createdByUserId,
+      visibility: share.visibility,
+    };
+  } catch (error) {
+    console.error('Error validating share token:', error);
+    return null;
+  }
+}
 
 /**
  * SECURITY: Standardized access control filter builder
@@ -524,7 +595,7 @@ export const getTasks = async ({
   orgId,
   userId,
   taskId,
-  skipAuth = false,
+  shareToken,
   limit = 20,
   cursor,
   filters = [],
@@ -532,15 +603,33 @@ export const getTasks = async ({
   orgId?: string | null;
   userId?: string | null;
   taskId?: string | null;
-  skipAuth?: boolean;
+  shareToken?: string;
   limit?: number;
   cursor?: number;
   filters?: Filter[];
 }): Promise<TasksResult> => {
   let authUserId: string | null = null;
   let isAdmin = false;
+  let isShareAccess = false;
 
-  if (!skipAuth) {
+  // Handle share token authorization (for public shares)
+  if (shareToken) {
+    const shareAuth = await authorizeShareToken(shareToken);
+    if (!shareAuth?.isValid) {
+      return { tasks: [], hasMore: false }; // Invalid share token
+    }
+
+    // For share access, we only allow querying the specific shared task
+    if (taskId && taskId !== shareAuth.taskId) {
+      return { tasks: [], hasMore: false }; // Share token doesn't match requested task
+    }
+
+    // Override parameters with share-scoped values
+    taskId = shareAuth.taskId;
+    orgId = shareAuth.orgId;
+    isShareAccess = true;
+  } else {
+    // Normal authentication flow
     const authResult = await authorizeAnalytics({
       requestedOrgId: orgId,
       requestedUserId: userId,
@@ -550,9 +639,9 @@ export const getTasks = async ({
   }
 
   // For personal accounts, query by userId instead of orgId
-  // Exception: when skipAuth is true (for public shares), we can query without userId
-  if (!orgId && !authUserId && !skipAuth) {
-    return { tasks: [], hasMore: false }; // Personal accounts must have a userId unless we're skipping auth
+  // Exception: when using share token, access is already validated
+  if (!orgId && !authUserId && !isShareAccess) {
+    return { tasks: [], hasMore: false }; // Personal accounts must have a userId unless using share access
   }
 
   const taskFilter = taskId ? 'AND e.taskId = {taskId: String}' : '';
@@ -563,7 +652,8 @@ export const getTasks = async ({
   let messagesAccessFilter = 'WHERE 1=1';
   let accessParams: Record<string, string> = {};
 
-  if (!skipAuth) {
+  if (!isShareAccess) {
+    // Normal access control for authenticated users
     const { accessFilter, accessParams: params } = buildAccessControlFilter(
       authUserId,
       isAdmin,
@@ -580,9 +670,21 @@ export const getTasks = async ({
       orgId,
     );
     messagesAccessFilter = `WHERE ${messageFilter}`;
+  } else {
+    // Share access: only allow access to the specific shared task
+    if (taskId) {
+      eventsAccessFilter = 'WHERE e.taskId = {taskId: String}';
+      messagesAccessFilter = 'WHERE taskId = {taskId: String}';
+      if (orgId) {
+        eventsAccessFilter += ' AND e.orgId = {orgId: String}';
+        messagesAccessFilter += ' AND orgId = {orgId: String}';
+        accessParams.orgId = orgId;
+      } else {
+        eventsAccessFilter += ' AND e.orgId IS NULL';
+        messagesAccessFilter += ' AND orgId IS NULL';
+      }
+    }
   }
-  // When skipAuth=true (for public shares), use 'WHERE 1=1' to ensure valid SQL
-  // The share token itself provides the authorization
 
   const queryParams: Record<string, string | string[] | number> = {
     types: [
@@ -775,15 +877,18 @@ export const getTaskById = async ({
   taskId,
   orgId,
   userId,
+  shareToken,
 }: {
   taskId: string;
   orgId?: string | null;
   userId?: string | null;
+  shareToken?: string;
 }): Promise<TaskWithUser | null> => {
   const result = await getTasks({
     taskId,
     orgId,
     userId,
+    shareToken,
     limit: 1,
   });
 

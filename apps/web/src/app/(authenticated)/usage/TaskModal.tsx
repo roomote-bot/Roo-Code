@@ -25,7 +25,7 @@ export const TaskModal = ({ task, open, onClose }: TaskModalProps) => {
 
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', task.taskId, orgId, userId],
-    queryFn: () => getMessages(task.taskId, orgId, userId, false),
+    queryFn: () => getMessages(task.taskId, orgId, userId),
     enabled: open && !!task.taskId,
     ...messagePolling,
   });

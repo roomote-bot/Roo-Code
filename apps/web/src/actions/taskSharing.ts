@@ -291,13 +291,10 @@ export async function getTaskByShareToken(token: string): Promise<{
     }
     // For public shares (including personal shares), no auth check needed
 
-    // Get task data based on visibility
-    // For organization shares, we need to skip auth since the viewer might be a different user
-    // but they're authorized to view this share within their organization
+    // Get task data using secure share token authorization
     const result = await getTasks({
       taskId: share.taskId,
-      orgId: share.orgId, // Will be null for personal shares
-      skipAuth: true, // Skip auth for both public and organization shares since we've already validated access above
+      shareToken: token, // Use share token for secure scoped access
     });
     const task = result.tasks[0];
 
@@ -309,7 +306,7 @@ export async function getTaskByShareToken(token: string): Promise<{
       share.taskId,
       share.orgId,
       task.userId,
-      true, // Skip auth for both public and organization shares since we've already validated access above
+      token, // Use share token for secure scoped access
     );
 
     return {
@@ -525,11 +522,10 @@ export async function getSharedTaskMessages(
     }
     // For public shares, no auth check needed
 
-    // Get the task to get the userId
+    // Get the task using secure share token authorization
     const result = await getTasks({
       taskId: share.taskId,
-      orgId: share.orgId,
-      skipAuth: true, // We've already validated access above
+      shareToken: shareToken, // Use share token for secure scoped access
     });
     const task = result.tasks[0];
 
@@ -537,12 +533,12 @@ export async function getSharedTaskMessages(
       throw new Error('Task not found');
     }
 
-    // Get messages with skipAuth since we've already validated access
+    // Get messages using secure share token authorization
     const messages = await getMessages(
       share.taskId,
       share.orgId,
       task.userId,
-      true, // Skip auth since we've already validated access above
+      shareToken, // Use share token for secure scoped access
     );
 
     return messages;

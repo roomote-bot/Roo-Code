@@ -4,6 +4,11 @@ import { z } from 'zod';
 
 import { analytics } from '@/lib/server';
 import { authorizeAnalytics } from '@/actions/auth';
+import { db, taskShares } from '@roo-code-cloud/db/server';
+import { eq } from 'drizzle-orm';
+import { isValidShareToken, isShareExpired } from '@/lib/task-sharing';
+import { TaskShareVisibility } from '@/types';
+import { auth } from '@clerk/nextjs/server';
 
 /**
  * getMessages
@@ -27,15 +32,80 @@ const messageSchema = z.object({
 
 export type Message = z.infer<typeof messageSchema>;
 
+/**
+ * SECURITY: Share token authorization for messages
+ */
+async function authorizeMessageShareToken(shareToken: string): Promise<{
+  isValid: boolean;
+  taskId?: string;
+  orgId?: string | null;
+} | null> {
+  try {
+    if (!isValidShareToken(shareToken)) {
+      return null;
+    }
+
+    const [shareWithUser] = await db
+      .select({
+        share: taskShares,
+      })
+      .from(taskShares)
+      .where(eq(taskShares.shareToken, shareToken))
+      .limit(1);
+
+    if (!shareWithUser) {
+      return null;
+    }
+
+    const { share } = shareWithUser;
+
+    if (isShareExpired(share.expiresAt)) {
+      return null;
+    }
+
+    // For organization shares, verify the user has access to the org
+    if (share.visibility === TaskShareVisibility.ORGANIZATION) {
+      const { userId, orgId } = await auth();
+
+      if (!userId || !orgId || orgId !== share.orgId) {
+        return null;
+      }
+    }
+
+    return {
+      isValid: true,
+      taskId: share.taskId,
+      orgId: share.orgId,
+    };
+  } catch (error) {
+    console.error('Error validating message share token:', error);
+    return null;
+  }
+}
+
 export const getMessages = async (
   taskId: string,
   orgId?: string | null,
   userId?: string | null,
-  skipAuth = false,
+  shareToken?: string,
 ): Promise<Message[]> => {
-  // Authorize the request - this will handle both personal and org contexts
-  // Skip auth for public shares viewed by unauthenticated users
-  if (!skipAuth) {
+  // Handle share token authorization (for public shares)
+  if (shareToken) {
+    const shareAuth = await authorizeMessageShareToken(shareToken);
+    if (!shareAuth?.isValid) {
+      return []; // Invalid share token
+    }
+
+    // For share access, we only allow querying the specific shared task
+    if (taskId !== shareAuth.taskId) {
+      return []; // Share token doesn't match requested task
+    }
+
+    // Override parameters with share-scoped values
+    taskId = shareAuth.taskId;
+    orgId = shareAuth.orgId;
+  } else {
+    // Normal authentication flow
     await authorizeAnalytics({
       requestedOrgId: orgId,
       requestedUserId: userId,
