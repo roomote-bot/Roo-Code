@@ -62,7 +62,7 @@ describe('useTaskHash', () => {
       result.current.setTaskHash('test-task-id');
     });
 
-    expect(mockLocation.hash).toBe('task-test-task-id');
+    expect(mockLocation.hash).toBe('#task-test-task-id');
   });
 
   it('should clear hash when setting null', () => {
