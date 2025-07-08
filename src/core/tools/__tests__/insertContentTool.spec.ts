@@ -1,43 +1,47 @@
 import * as path from "path"
 import * as fs from "fs/promises"
 
+import type { MockedFunction } from "vitest"
+
 import { fileExistsAtPath } from "../../../utils/fs"
 import { ToolUse, ToolResponse } from "../../../shared/tools"
 import { insertContentTool } from "../insertContentTool"
 
 // Mock external dependencies
-jest.mock("path", () => {
-	const originalPath = jest.requireActual("path")
+vi.mock("path", async () => {
+	const originalPath = await vi.importActual("path")
 	return {
 		...originalPath,
-		resolve: jest.fn().mockImplementation((...args) => args.join("/")),
+		resolve: vi.fn().mockImplementation((...args) => args.join("/")),
 	}
 })
 
-jest.mock("fs/promises", () => ({
-	readFile: jest.fn(),
-	writeFile: jest.fn(),
+vi.mock("fs/promises", () => ({
+	readFile: vi.fn(),
+	writeFile: vi.fn(),
 }))
 
-jest.mock("delay", () => jest.fn())
-
-jest.mock("../../../utils/fs", () => ({
-	fileExistsAtPath: jest.fn().mockResolvedValue(false),
+vi.mock("delay", () => ({
+	default: vi.fn(),
 }))
 
-jest.mock("../../prompts/responses", () => ({
+vi.mock("../../../utils/fs", () => ({
+	fileExistsAtPath: vi.fn().mockResolvedValue(false),
+}))
+
+vi.mock("../../prompts/responses", () => ({
 	formatResponse: {
-		toolError: jest.fn((msg) => `Error: ${msg}`),
-		rooIgnoreError: jest.fn((path) => `Access denied: ${path}`),
-		createPrettyPatch: jest.fn((_path, original, updated) => `Diff: ${original} -> ${updated}`),
+		toolError: vi.fn((msg) => `Error: ${msg}`),
+		rooIgnoreError: vi.fn((path) => `Access denied: ${path}`),
+		createPrettyPatch: vi.fn((_path, original, updated) => `Diff: ${original} -> ${updated}`),
 	},
 }))
 
-jest.mock("../../../utils/path", () => ({
-	getReadablePath: jest.fn().mockReturnValue("test/path.txt"),
+vi.mock("../../../utils/path", () => ({
+	getReadablePath: vi.fn().mockReturnValue("test/path.txt"),
 }))
 
-jest.mock("../../ignore/RooIgnoreController", () => ({
+vi.mock("../../ignore/RooIgnoreController", () => ({
 	RooIgnoreController: class {
 		initialize() {
 			return Promise.resolve()
@@ -52,19 +56,19 @@ describe("insertContentTool", () => {
 	const testFilePath = "test/file.txt"
 	const absoluteFilePath = "/test/file.txt"
 
-	const mockedFileExistsAtPath = fileExistsAtPath as jest.MockedFunction<typeof fileExistsAtPath>
-	const mockedFsReadFile = fs.readFile as jest.MockedFunction<typeof fs.readFile>
-	const mockedPathResolve = path.resolve as jest.MockedFunction<typeof path.resolve>
+	const mockedFileExistsAtPath = fileExistsAtPath as MockedFunction<typeof fileExistsAtPath>
+	const mockedFsReadFile = fs.readFile as MockedFunction<typeof fs.readFile>
+	const mockedPathResolve = path.resolve as MockedFunction<typeof path.resolve>
 
 	let mockCline: any
-	let mockAskApproval: jest.Mock
-	let mockHandleError: jest.Mock
-	let mockPushToolResult: jest.Mock
-	let mockRemoveClosingTag: jest.Mock
+	let mockAskApproval: ReturnType<typeof vi.fn>
+	let mockHandleError: ReturnType<typeof vi.fn>
+	let mockPushToolResult: ReturnType<typeof vi.fn>
+	let mockRemoveClosingTag: ReturnType<typeof vi.fn>
 	let toolResult: ToolResponse | undefined
 
 	beforeEach(() => {
-		jest.clearAllMocks()
+		vi.clearAllMocks()
 
 		mockedPathResolve.mockReturnValue(absoluteFilePath)
 		mockedFileExistsAtPath.mockResolvedValue(true) // Assume file exists by default for insert
@@ -75,23 +79,23 @@ describe("insertContentTool", () => {
 			consecutiveMistakeCount: 0,
 			didEditFile: false,
 			rooIgnoreController: {
-				validateAccess: jest.fn().mockReturnValue(true),
+				validateAccess: vi.fn().mockReturnValue(true),
 			},
 			diffViewProvider: {
 				editType: undefined,
 				isEditing: false,
 				originalContent: "",
-				open: jest.fn().mockResolvedValue(undefined),
-				update: jest.fn().mockResolvedValue(undefined),
-				reset: jest.fn().mockResolvedValue(undefined),
-				revertChanges: jest.fn().mockResolvedValue(undefined),
-				saveChanges: jest.fn().mockResolvedValue({
+				open: vi.fn().mockResolvedValue(undefined),
+				update: vi.fn().mockResolvedValue(undefined),
+				reset: vi.fn().mockResolvedValue(undefined),
+				revertChanges: vi.fn().mockResolvedValue(undefined),
+				saveChanges: vi.fn().mockResolvedValue({
 					newProblemsMessage: "",
 					userEdits: null,
 					finalContent: "final content",
 				}),
-				scrollToFirstDiff: jest.fn(),
-				pushToolWriteResult: jest.fn().mockImplementation(async function (
+				scrollToFirstDiff: vi.fn(),
+				pushToolWriteResult: vi.fn().mockImplementation(async function (
 					this: any,
 					task: any,
 					cwd: string,
@@ -101,17 +105,17 @@ describe("insertContentTool", () => {
 				}),
 			},
 			fileContextTracker: {
-				trackFileContext: jest.fn().mockResolvedValue(undefined),
+				trackFileContext: vi.fn().mockResolvedValue(undefined),
 			},
-			say: jest.fn().mockResolvedValue(undefined),
-			ask: jest.fn().mockResolvedValue({ response: "yesButtonClicked" }), // Default to approval
-			recordToolError: jest.fn(),
-			sayAndCreateMissingParamError: jest.fn().mockResolvedValue("Missing param error"),
+			say: vi.fn().mockResolvedValue(undefined),
+			ask: vi.fn().mockResolvedValue({ response: "yesButtonClicked" }), // Default to approval
+			recordToolError: vi.fn(),
+			sayAndCreateMissingParamError: vi.fn().mockResolvedValue("Missing param error"),
 		}
 
-		mockAskApproval = jest.fn().mockResolvedValue(true)
-		mockHandleError = jest.fn().mockResolvedValue(undefined)
-		mockRemoveClosingTag = jest.fn((tag, content) => content)
+		mockAskApproval = vi.fn().mockResolvedValue(true)
+		mockHandleError = vi.fn().mockResolvedValue(undefined)
+		mockRemoveClosingTag = vi.fn((tag, content) => content)
 
 		toolResult = undefined
 	})
