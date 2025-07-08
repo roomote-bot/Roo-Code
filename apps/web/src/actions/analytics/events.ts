@@ -232,7 +232,7 @@ export const getDeveloperUsage = async ({
   userId?: string | null;
   filters?: Filter[];
 }): Promise<DeveloperUsage[]> => {
-  await authorizeAnalytics({
+  const { authUserId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
     requireAdmin: true,
@@ -242,22 +242,35 @@ export const getDeveloperUsage = async ({
     return [];
   }
 
-  const userFilter = userId ? 'AND userId = {userId: String}' : '';
+  // Use standardized access control filter
+  const { accessFilter, accessParams } = buildAccessControlFilter(
+    authUserId,
+    isAdmin,
+    orgId,
+  );
+
   const queryParams: Record<string, string | number | string[]> = {
-    orgId: orgId!,
     timePeriod,
     types: [
       TelemetryEventName.TASK_CREATED,
       TelemetryEventName.TASK_COMPLETED,
       TelemetryEventName.LLM_COMPLETION,
     ],
+    ...accessParams,
   };
+
+  // Add specific user filter if requested
   if (userId) {
-    queryParams.userId = userId;
+    queryParams.requestedUserId = userId;
   }
 
   // Build filter conditions using shared helper
   const filterClause = buildFilterConditions(filters, queryParams);
+
+  // Add user-specific filter if requested
+  const userSpecificFilter = userId
+    ? 'AND userId = {requestedUserId: String}'
+    : '';
 
   const results = await analytics.query({
     query: `
@@ -269,10 +282,10 @@ export const getDeveloperUsage = async ({
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost,
         MAX(timestamp) AS lastEventTimestamp
       FROM events
-      WHERE orgId = {orgId: String}
+      WHERE ${accessFilter}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
-        ${userFilter}
+        ${userSpecificFilter}
         ${filterClause}
       GROUP BY 1
     `,
@@ -305,7 +318,7 @@ export const getRepositoryUsage = async ({
   userId?: string | null;
   filters?: Filter[];
 }): Promise<RepositoryUsage[]> => {
-  await authorizeAnalytics({
+  const { authUserId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
     requireAdmin: true,
@@ -315,40 +328,53 @@ export const getRepositoryUsage = async ({
     return [];
   }
 
-  const userFilter = userId ? 'AND userId = {userId: String}' : '';
+  // Use standardized access control filter
+  const { accessFilter, accessParams } = buildAccessControlFilter(
+    authUserId,
+    isAdmin,
+    orgId,
+  );
+
   const queryParams: Record<string, string | number | string[]> = {
-    orgId: orgId!,
     timePeriod,
     types: [
       TelemetryEventName.TASK_CREATED,
       TelemetryEventName.TASK_COMPLETED,
       TelemetryEventName.LLM_COMPLETION,
     ],
+    ...accessParams,
   };
+
+  // Add specific user filter if requested
   if (userId) {
-    queryParams.userId = userId;
+    queryParams.requestedUserId = userId;
   }
 
   // Build filter conditions using shared helper
   const filterClause = buildFilterConditions(filters, queryParams);
+
+  // Add user-specific filter if requested
+  const userSpecificFilter = userId
+    ? 'AND userId = {requestedUserId: String}'
+    : '';
 
   const results = await analytics.query({
     query: `
       SELECT
         repositoryName,
         -- Get most recent timestamp to backfill old URL
-        argMax(repositoryUrl, timestamp) as repositoryUrl, 
+        argMax(repositoryUrl, timestamp) as repositoryUrl,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_CREATED}' THEN 1 ELSE 0 END) AS tasksStarted,
         SUM(CASE WHEN type = '${TelemetryEventName.TASK_COMPLETED}' THEN 1 ELSE 0 END) AS tasksCompleted,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost,
         MAX(timestamp) AS lastEventTimestamp
       FROM events
-      WHERE orgId = {orgId: String}
+      WHERE ${accessFilter}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
         AND repositoryName IS NOT NULL
-        ${userFilter}
+        ${userSpecificFilter}
         ${filterClause}
       GROUP BY repositoryName
     `,
@@ -384,7 +410,7 @@ export const getModelUsage = async ({
   userId?: string | null;
   filters?: Filter[];
 }): Promise<ModelUsage[]> => {
-  await authorizeAnalytics({
+  const { authUserId, isAdmin } = await authorizeAnalytics({
     requestedOrgId: orgId,
     requestedUserId: userId,
     requireAdmin: true,
@@ -394,24 +420,35 @@ export const getModelUsage = async ({
     return [];
   }
 
-  const userFilter = userId ? 'AND userId = {userId: String}' : '';
+  // Use standardized access control filter
+  const { accessFilter, accessParams } = buildAccessControlFilter(
+    authUserId,
+    isAdmin,
+    orgId,
+  );
 
   const queryParams: Record<string, string | number | string[]> = {
-    orgId: orgId!,
     timePeriod,
     types: [
       TelemetryEventName.TASK_CREATED,
       TelemetryEventName.TASK_COMPLETED,
       TelemetryEventName.LLM_COMPLETION,
     ],
+    ...accessParams,
   };
 
+  // Add specific user filter if requested
   if (userId) {
-    queryParams.userId = userId;
+    queryParams.requestedUserId = userId;
   }
 
   // Build filter conditions using shared helper
   const filterClause = buildFilterConditions(filters, queryParams);
+
+  // Add user-specific filter if requested
+  const userSpecificFilter = userId
+    ? 'AND userId = {requestedUserId: String}'
+    : '';
 
   const results = await analytics.query({
     query: `
@@ -422,12 +459,11 @@ export const getModelUsage = async ({
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN ${tokenSumSql()} ELSE 0 END) AS tokens,
         SUM(CASE WHEN type = '${TelemetryEventName.LLM_COMPLETION}' THEN COALESCE(cost, 0) ELSE 0 END) AS cost
       FROM events
-      WHERE
-        orgId = {orgId: String}
+      WHERE ${accessFilter}
         AND timestamp >= toUnixTimestamp(now() - INTERVAL {timePeriod: Int32} DAY)
         AND type IN ({types: Array(String)})
         AND modelId IS NOT NULL
-        ${userFilter}
+        ${userSpecificFilter}
         ${filterClause}
       GROUP BY 1, 2
     `,
