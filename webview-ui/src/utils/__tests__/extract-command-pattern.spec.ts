@@ -11,17 +11,17 @@ describe("extractCommandPattern", () => {
 
 	describe("npm/yarn/pnpm/bun commands", () => {
 		it("extracts npm run patterns", () => {
-			expect(extractCommandPattern("npm run build")).toBe("npm run build")
-			expect(extractCommandPattern("npm run test:unit")).toBe("npm run *")
-			expect(extractCommandPattern("yarn run dev")).toBe("yarn run dev")
-			expect(extractCommandPattern("pnpm run lint")).toBe("pnpm run lint")
-			expect(extractCommandPattern("bun run start")).toBe("bun run start")
+			expect(extractCommandPattern("npm run build")).toBe("npm run")
+			expect(extractCommandPattern("npm run test:unit")).toBe("npm run")
+			expect(extractCommandPattern("yarn run dev")).toBe("yarn run")
+			expect(extractCommandPattern("pnpm run lint")).toBe("pnpm run")
+			expect(extractCommandPattern("bun run start")).toBe("bun run")
 		})
 
 		it("handles npm run with additional arguments", () => {
-			expect(extractCommandPattern("npm run build:prod -- --env=production")).toBe("npm run build:prod")
-			expect(extractCommandPattern("npm run test -- --coverage")).toBe("npm run test")
-			expect(extractCommandPattern("npm run build:dev --watch")).toBe("npm run *")
+			expect(extractCommandPattern("npm run build:prod -- --env=production")).toBe("npm run")
+			expect(extractCommandPattern("npm run test -- --coverage")).toBe("npm run")
+			expect(extractCommandPattern("npm run build:dev --watch")).toBe("npm run")
 		})
 
 		it("extracts npm script patterns", () => {
@@ -82,18 +82,16 @@ describe("extractCommandPattern", () => {
 
 	describe("chained commands", () => {
 		it("extracts patterns from all commands in chain", () => {
-			expect(extractCommandPattern("cd /path && npm install")).toBe("cd * && npm install")
+			expect(extractCommandPattern("cd /path && npm install")).toBe("cd && npm install")
 			expect(extractCommandPattern("npm test || echo 'failed'")).toBe("npm test || echo")
 			expect(extractCommandPattern("git pull; npm install; npm run build")).toBe(
-				"git pull ; npm install ; npm run build",
+				"git pull ; npm install ; npm run",
 			)
 			expect(extractCommandPattern("echo 'start' | grep start")).toBe("echo | grep")
 		})
 
 		it("handles complex chained commands with wildcards", () => {
-			expect(extractCommandPattern("cd /path/to/project && npm run build:prod --verbose")).toBe(
-				"cd * && npm run *",
-			)
+			expect(extractCommandPattern("cd /path/to/project && npm run build:prod --verbose")).toBe("cd && npm run")
 		})
 	})
 
@@ -124,7 +122,7 @@ describe("extractCommandPattern", () => {
 
 		it("handles double quotes", () => {
 			expect(extractCommandPattern('echo "hello world"')).toBe("echo")
-			expect(extractCommandPattern('npm run "test:unit"')).toBe("npm run *")
+			expect(extractCommandPattern('npm run "test:unit"')).toBe("npm run")
 		})
 
 		it("handles quotes with spaces", () => {
@@ -140,15 +138,15 @@ describe("extractCommandPattern", () => {
 		})
 
 		it("handles cd command", () => {
-			expect(extractCommandPattern("cd /home/user/project")).toBe("cd *")
-			expect(extractCommandPattern("cd ..")).toBe("cd *")
-			expect(extractCommandPattern("cd")).toBe("cd *")
-			expect(extractCommandPattern("cd /usr/local/bin")).toBe("cd *")
+			expect(extractCommandPattern("cd /home/user/project")).toBe("cd")
+			expect(extractCommandPattern("cd ..")).toBe("cd")
+			expect(extractCommandPattern("cd")).toBe("cd")
+			expect(extractCommandPattern("cd /usr/local/bin")).toBe("cd")
 		})
 
 		it("handles commands with environment variables", () => {
-			expect(extractCommandPattern("NODE_ENV=production npm start")).toBe("NODE_ENV=*")
-			expect(extractCommandPattern("PORT=3000 node server.js")).toBe("PORT=*")
+			expect(extractCommandPattern("NODE_ENV=production npm start")).toBe("NODE_ENV=production")
+			expect(extractCommandPattern("PORT=3000 node server.js")).toBe("PORT=3000")
 		})
 
 		it("handles dangerous commands more carefully", () => {
@@ -174,10 +172,10 @@ describe("extractCommandPattern", () => {
 
 describe("getPatternDescription", () => {
 	it("describes npm patterns", () => {
-		expect(getPatternDescription("npm run")).toBe("npm run scripts")
+		expect(getPatternDescription("npm run")).toBe("all npm run scripts")
 		expect(getPatternDescription("npm test")).toBe("npm test commands")
 		expect(getPatternDescription("npm")).toBe("npm commands")
-		expect(getPatternDescription("yarn run")).toBe("yarn run scripts")
+		expect(getPatternDescription("yarn run")).toBe("all yarn run scripts")
 		expect(getPatternDescription("pnpm build")).toBe("pnpm build commands")
 	})
 

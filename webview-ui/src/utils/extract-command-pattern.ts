@@ -151,24 +151,16 @@ function extractSingleCommandPattern(command: string): string {
 	// 1. npm/yarn/pnpm commands - include subcommand with wildcards for scripts
 	if (["npm", "yarn", "pnpm", "bun"].includes(baseCommand) && tokens.length > 1) {
 		const subCommand = tokens[1]
-		// For "run" commands, be more specific about patterns
+		// For "run" commands, check the script name
 		if (subCommand === "run" && tokens.length > 2) {
-			const scriptName = tokens[2]
-			// Check if there are additional arguments after the script name
-			const hasDoubleDash = tokens.includes("--")
-			const doubleDashIndex = hasDoubleDash ? tokens.indexOf("--") : -1
+			const _scriptName = tokens[2].replace(/^["']|["']$/g, "") // Remove quotes if present
 
-			// For scripts with colons or complex names
-			if (scriptName && (scriptName.includes(":") || scriptName.includes("-"))) {
-				// If there's a double dash with additional args, include the full script name
-				if (hasDoubleDash && doubleDashIndex > 2) {
-					return `${baseCommand} run ${scriptName}`
-				}
-				// Otherwise use wildcard for flexibility
-				return `${baseCommand} run *`
-			}
-			// For simple script names, include the script name itself
-			return `${baseCommand} run ${scriptName}`
+			// Check if there's a -- separator (pass-through args)
+			const _hasPassThroughArgs = tokens.includes("--")
+
+			// Always return just "npm run" without the script name
+			// This allows all npm run commands without using wildcards
+			return `${baseCommand} run`
 		}
 		// For direct scripts like "npm test", "npm build", include the script name
 		if (!subCommand.startsWith("-")) {
@@ -205,9 +197,9 @@ function extractSingleCommandPattern(command: string): string {
 		return baseCommand
 	}
 
-	// 6. cd command - use wildcard for flexibility
+	// 6. cd command - just return cd
 	if (baseCommand === "cd") {
-		return "cd *"
+		return "cd"
 	}
 
 	// 7. Docker/kubectl commands - include subcommand
@@ -231,8 +223,8 @@ function extractSingleCommandPattern(command: string): string {
 		// This might be an environment variable like NODE_ENV=production
 		const envMatch = baseCommand.match(/^([A-Z_]+)=/)
 		if (envMatch) {
-			// Don't include the value, just the variable name pattern
-			return `${envMatch[1]}=*`
+			// Return the full environment variable assignment
+			return baseCommand
 		}
 	}
 
@@ -266,7 +258,8 @@ export function getPatternDescription(pattern: string): string {
 	// npm/yarn/pnpm patterns
 	if (["npm", "yarn", "pnpm", "bun"].includes(baseCommand)) {
 		if (tokens[1] === "run") {
-			return `${baseCommand} run scripts`
+			// For "npm run", describe what it allows
+			return `all ${baseCommand} run scripts`
 		}
 		if (tokens[1]) {
 			return `${baseCommand} ${tokens[1]} commands`

@@ -25,7 +25,6 @@ import { ProfileValidator } from "@roo/ProfileValidator"
 
 import { vscode } from "@src/utils/vscode"
 import { validateCommand } from "@src/utils/command-validation"
-import { extractCommandPattern, getPatternDescription } from "@src/utils/extract-command-pattern"
 import { buildDocLink } from "@src/utils/docLinks"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -1657,87 +1656,31 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</StandardTooltip>
 							) : (
 								<>
-									{/* Command approval with auto-approve pattern */}
+									{/* Command approval - simplified layout */}
 									{clineAsk === "command" && !isStreaming ? (
-										<div className="flex flex-col gap-[6px]">
-											{/* Top row: Run Command and Reject */}
-											<div className="flex gap-[6px]">
-												<StandardTooltip content={t("chat:runCommand.tooltip")}>
-													<VSCodeButton
-														appearance="primary"
-														disabled={!enableButtons}
-														className="flex-1"
-														onClick={() =>
-															handlePrimaryButtonClick(inputValue, selectedImages)
-														}>
-														{primaryButtonText}
-													</VSCodeButton>
-												</StandardTooltip>
-												<StandardTooltip content={t("chat:reject.tooltip")}>
-													<VSCodeButton
-														appearance="secondary"
-														disabled={!enableButtons}
-														className="flex-1"
-														onClick={() =>
-															handleSecondaryButtonClick(inputValue, selectedImages)
-														}>
-														{secondaryButtonText}
-													</VSCodeButton>
-												</StandardTooltip>
-											</div>
-											{/* Bottom row: Auto-approve pattern */}
-											<div className="flex items-center gap-[6px]">
-												<div className="flex-1 px-2 py-1 bg-vscode-input-background text-vscode-input-foreground rounded text-sm font-mono">
-													{(() => {
-														const commandMessage = findLast(
-															messagesRef.current,
-															(msg) => msg.type === "ask" && msg.ask === "command",
-														)
-														const commandText = commandMessage?.text || ""
-														const pattern = extractCommandPattern(commandText)
-														return pattern || commandText
-													})()}
-												</div>
-												<StandardTooltip
-													content={(() => {
-														const commandMessage = findLast(
-															messagesRef.current,
-															(msg) => msg.type === "ask" && msg.ask === "command",
-														)
-														const commandText = commandMessage?.text || ""
-														const pattern = extractCommandPattern(commandText)
-														const description = getPatternDescription(pattern)
-														return pattern
-															? `${t("chat:alwaysAllow.tooltip")} Will whitelist: "${pattern}" (${description})`
-															: t("chat:alwaysAllow.tooltip")
-													})()}>
-													<VSCodeButton
-														appearance="secondary"
-														disabled={!enableButtons}
-														onClick={() => {
-															// Extract the command pattern
-															const commandMessage = findLast(
-																messagesRef.current,
-																(msg) => msg.type === "ask" && msg.ask === "command",
-															)
-															const commandText = commandMessage?.text || ""
-															const pattern = extractCommandPattern(commandText)
-
-															// Add to whitelist without running
-															vscode.postMessage({
-																type: "addToWhitelist",
-																pattern: pattern,
-															})
-
-															// Clear the ask state
-															setSendingDisabled(true)
-															setClineAsk(undefined)
-															setEnableButtons(false)
-														}}>
-														{t("chat:alwaysAllow.title")}
-													</VSCodeButton>
-												</StandardTooltip>
-											</div>
+										<div className="flex gap-[6px]">
+											<StandardTooltip content={t("chat:runCommand.tooltip")}>
+												<VSCodeButton
+													appearance="primary"
+													disabled={!enableButtons}
+													className="flex-1"
+													onClick={() =>
+														handlePrimaryButtonClick(inputValue, selectedImages)
+													}>
+													{primaryButtonText}
+												</VSCodeButton>
+											</StandardTooltip>
+											<StandardTooltip content={t("chat:reject.tooltip")}>
+												<VSCodeButton
+													appearance="secondary"
+													disabled={!enableButtons}
+													className="flex-1"
+													onClick={() =>
+														handleSecondaryButtonClick(inputValue, selectedImages)
+													}>
+													{secondaryButtonText}
+												</VSCodeButton>
+											</StandardTooltip>
 										</div>
 									) : (
 										/* Standard two button layout */
