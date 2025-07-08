@@ -253,13 +253,15 @@ export async function addCustomInstructions(
 	}
 
 	// Add global instructions first
-	if (typeof globalCustomInstructions === "string" && globalCustomInstructions.trim()) {
-		sections.push(`Global Instructions:\n${globalCustomInstructions.trim()}`)
+	if (typeof globalCustomInstructions === "string") {
+		const trimmed = globalCustomInstructions.trim()
+		sections.push(`Global Instructions:\n${trimmed || "(No global instructions set)"}`)
 	}
 
 	// Add mode-specific instructions after
-	if (typeof modeCustomInstructions === "string" && modeCustomInstructions.trim()) {
-		sections.push(`Mode-specific Instructions:\n${modeCustomInstructions.trim()}`)
+	if (typeof modeCustomInstructions === "string") {
+		const trimmed = modeCustomInstructions.trim()
+		sections.push(`Mode-specific Instructions:\n${trimmed || "(No mode-specific instructions set)"}`)
 	}
 
 	// Add rules - include both mode-specific and generic rules if they exist

@@ -505,14 +505,16 @@ describe("addCustomInstructions", () => {
 		expect(result).toContain("Rules from .roorules-test-mode:\nmode specific rules")
 	})
 
-	it("should return empty string when no instructions provided", async () => {
+	it("should show placeholder text when no instructions provided", async () => {
 		// Simulate no .roo/rules directory
 		statMock.mockRejectedValueOnce({ code: "ENOENT" })
 
 		readFileMock.mockRejectedValue({ code: "ENOENT" })
 
 		const result = await addCustomInstructions("", "", "/fake/path", "", {})
-		expect(result).toBe("")
+		expect(result).toContain("Global Instructions:\n(No global instructions set)")
+		expect(result).toContain("Mode-specific Instructions:\n(No mode-specific instructions set)")
+		expect(result).toContain("USER'S CUSTOM INSTRUCTIONS")
 	})
 
 	it("should handle missing mode-specific rules file", async () => {
