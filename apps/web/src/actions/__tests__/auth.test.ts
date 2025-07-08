@@ -191,7 +191,7 @@ describe('authorizeAnalytics', () => {
           requestedOrgId: 'org-456',
           requestedUserId: null,
         }),
-      ).rejects.toThrow('Unauthorized: Invalid organization access');
+      ).rejects.toThrow('Unauthorized: User required');
     });
   });
 
