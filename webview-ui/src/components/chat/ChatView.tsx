@@ -25,6 +25,7 @@ import { ProfileValidator } from "@roo/ProfileValidator"
 
 import { vscode } from "@src/utils/vscode"
 import { validateCommand } from "@src/utils/command-validation"
+import { extractCommandPattern, getPatternDescription } from "@src/utils/extract-command-pattern"
 import { buildDocLink } from "@src/utils/docLinks"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
@@ -149,6 +150,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	const [enableButtons, setEnableButtons] = useState<boolean>(false)
 	const [primaryButtonText, setPrimaryButtonText] = useState<string | undefined>(undefined)
 	const [secondaryButtonText, setSecondaryButtonText] = useState<string | undefined>(undefined)
+	const [tertiaryButtonText, setTertiaryButtonText] = useState<string | undefined>(undefined)
 	const [didClickCancel, setDidClickCancel] = useState(false)
 	const virtuosoRef = useRef<VirtuosoHandle>(null)
 	const [expandedRows, setExpandedRows] = useState<Record<number, boolean>>({})
@@ -247,6 +249,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(true)
 							setPrimaryButtonText(t("chat:retry.title"))
 							setSecondaryButtonText(t("chat:startNewTask.title"))
+							setTertiaryButtonText(undefined)
 							break
 						case "mistake_limit_reached":
 							playSound("progress_loop")
@@ -255,6 +258,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(true)
 							setPrimaryButtonText(t("chat:proceedAnyways.title"))
 							setSecondaryButtonText(t("chat:startNewTask.title"))
+							setTertiaryButtonText(undefined)
 							break
 						case "followup":
 							if (!isPartial) {
@@ -285,15 +289,18 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								case "insertContent":
 									setPrimaryButtonText(t("chat:save.title"))
 									setSecondaryButtonText(t("chat:reject.title"))
+									setTertiaryButtonText(undefined)
 									break
 								case "finishTask":
 									setPrimaryButtonText(t("chat:completeSubtaskAndReturn"))
 									setSecondaryButtonText(undefined)
+									setTertiaryButtonText(undefined)
 									break
 								case "readFile":
 									if (tool.batchFiles && Array.isArray(tool.batchFiles)) {
 										setPrimaryButtonText(t("chat:read-batch.approve.title"))
 										setSecondaryButtonText(t("chat:read-batch.deny.title"))
+										setTertiaryButtonText(undefined)
 									} else {
 										setPrimaryButtonText(t("chat:approve.title"))
 										setSecondaryButtonText(t("chat:reject.title"))
@@ -324,6 +331,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(!isPartial)
 							setPrimaryButtonText(t("chat:runCommand.title"))
 							setSecondaryButtonText(t("chat:reject.title"))
+							setTertiaryButtonText(undefined)
 							break
 						case "command_output":
 							setSendingDisabled(false)
@@ -331,6 +339,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(true)
 							setPrimaryButtonText(t("chat:proceedWhileRunning.title"))
 							setSecondaryButtonText(t("chat:killCommand.title"))
+							setTertiaryButtonText(undefined)
 							break
 						case "use_mcp_server":
 							if (!isAutoApproved(lastMessage) && !isPartial) {
@@ -341,6 +350,10 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(!isPartial)
 							setPrimaryButtonText(t("chat:approve.title"))
 							setSecondaryButtonText(t("chat:reject.title"))
+							setTertiaryButtonText(undefined)
+							setTertiaryButtonText(undefined)
+							setTertiaryButtonText(undefined)
+							setTertiaryButtonText(undefined)
 							break
 						case "completion_result":
 							// extension waiting for feedback. but we can just present a new task button
@@ -359,6 +372,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(true)
 							setPrimaryButtonText(t("chat:resumeTask.title"))
 							setSecondaryButtonText(t("chat:terminate.title"))
+							setTertiaryButtonText(undefined)
 							setDidClickCancel(false) // special case where we reset the cancel button state
 							break
 						case "resume_completed_task":
@@ -367,6 +381,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 							setEnableButtons(true)
 							setPrimaryButtonText(t("chat:startNewTask.title"))
 							setSecondaryButtonText(undefined)
+							setTertiaryButtonText(undefined)
+							setTertiaryButtonText(undefined)
 							setDidClickCancel(false)
 							break
 					}
@@ -409,6 +425,8 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setEnableButtons(false)
 			setPrimaryButtonText(undefined)
 			setSecondaryButtonText(undefined)
+			setTertiaryButtonText(undefined)
+			setTertiaryButtonText(undefined)
 		}
 	}, [messages.length])
 
@@ -613,7 +631,6 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 				case "resume_task":
 					startNewTask()
 					break
-				case "command":
 				case "tool":
 				case "browser_action_launch":
 				case "use_mcp_server":
@@ -633,6 +650,29 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					setInputValue("")
 					setSelectedImages([])
 					break
+				case "command":
+					// When there are three buttons, secondary button is "Add & Run"
+					// This case should not happen as we're using tertiary button for reject
+					// But keeping for backward compatibility
+					if (tertiaryButtonText) {
+						// Three button mode - this shouldn't be called
+						console.warn("Secondary button clicked in three-button command mode")
+					} else {
+						// Two button mode - reject
+						if (trimmedInput || (images && images.length > 0)) {
+							vscode.postMessage({
+								type: "askResponse",
+								askResponse: "noButtonClicked",
+								text: trimmedInput,
+								images: images,
+							})
+						} else {
+							vscode.postMessage({ type: "askResponse", askResponse: "noButtonClicked" })
+						}
+						setInputValue("")
+						setSelectedImages([])
+					}
+					break
 				case "command_output":
 					vscode.postMessage({ type: "terminalOperation", terminalOperation: "abort" })
 					break
@@ -641,7 +681,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			setClineAsk(undefined)
 			setEnableButtons(false)
 		},
-		[clineAsk, startNewTask, isStreaming],
+		[clineAsk, startNewTask, isStreaming, tertiaryButtonText],
 	)
 
 	const handleTaskCloseButtonClick = useCallback(() => startNewTask(), [startNewTask])
@@ -1592,12 +1632,16 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					</div>
 					{areButtonsVisible && (
 						<div
-							className={`flex h-9 items-center mb-1 px-[15px] ${
-								showScrollToBottom
-									? "opacity-100"
-									: enableButtons || (isStreaming && !didClickCancel)
+							className={`${
+								primaryButtonText || secondaryButtonText || tertiaryButtonText || isStreaming
+									? "px-[15px] pt-[10px] pb-[10px]"
+									: "p-0"
+							} ${
+								primaryButtonText || secondaryButtonText || tertiaryButtonText || isStreaming
+									? enableButtons || (isStreaming && !didClickCancel)
 										? "opacity-100"
 										: "opacity-50"
+									: ""
 							}`}>
 							{showScrollToBottom ? (
 								<StandardTooltip content={t("chat:scrollToBottom")}>
@@ -1613,59 +1657,158 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 								</StandardTooltip>
 							) : (
 								<>
-									{primaryButtonText && !isStreaming && (
-										<StandardTooltip
-											content={
-												primaryButtonText === t("chat:retry.title")
-													? t("chat:retry.tooltip")
-													: primaryButtonText === t("chat:save.title")
-														? t("chat:save.tooltip")
-														: primaryButtonText === t("chat:approve.title")
-															? t("chat:approve.tooltip")
-															: primaryButtonText === t("chat:runCommand.title")
-																? t("chat:runCommand.tooltip")
-																: primaryButtonText === t("chat:startNewTask.title")
-																	? t("chat:startNewTask.tooltip")
-																	: primaryButtonText === t("chat:resumeTask.title")
-																		? t("chat:resumeTask.tooltip")
+									{/* Command approval with auto-approve pattern */}
+									{clineAsk === "command" && !isStreaming ? (
+										<div className="flex flex-col gap-[6px]">
+											{/* Top row: Run Command and Reject */}
+											<div className="flex gap-[6px]">
+												<StandardTooltip content={t("chat:runCommand.tooltip")}>
+													<VSCodeButton
+														appearance="primary"
+														disabled={!enableButtons}
+														className="flex-1"
+														onClick={() =>
+															handlePrimaryButtonClick(inputValue, selectedImages)
+														}>
+														{primaryButtonText}
+													</VSCodeButton>
+												</StandardTooltip>
+												<StandardTooltip content={t("chat:reject.tooltip")}>
+													<VSCodeButton
+														appearance="secondary"
+														disabled={!enableButtons}
+														className="flex-1"
+														onClick={() =>
+															handleSecondaryButtonClick(inputValue, selectedImages)
+														}>
+														{secondaryButtonText}
+													</VSCodeButton>
+												</StandardTooltip>
+											</div>
+											{/* Bottom row: Auto-approve pattern */}
+											<div className="flex items-center gap-[6px]">
+												<div className="flex-1 px-2 py-1 bg-vscode-input-background text-vscode-input-foreground rounded text-sm font-mono">
+													{(() => {
+														const commandMessage = findLast(
+															messagesRef.current,
+															(msg) => msg.type === "ask" && msg.ask === "command",
+														)
+														const commandText = commandMessage?.text || ""
+														const pattern = extractCommandPattern(commandText)
+														return pattern || commandText
+													})()}
+												</div>
+												<StandardTooltip
+													content={(() => {
+														const commandMessage = findLast(
+															messagesRef.current,
+															(msg) => msg.type === "ask" && msg.ask === "command",
+														)
+														const commandText = commandMessage?.text || ""
+														const pattern = extractCommandPattern(commandText)
+														const description = getPatternDescription(pattern)
+														return pattern
+															? `${t("chat:alwaysAllow.tooltip")} Will whitelist: "${pattern}" (${description})`
+															: t("chat:alwaysAllow.tooltip")
+													})()}>
+													<VSCodeButton
+														appearance="secondary"
+														disabled={!enableButtons}
+														onClick={() => {
+															// Extract the command pattern
+															const commandMessage = findLast(
+																messagesRef.current,
+																(msg) => msg.type === "ask" && msg.ask === "command",
+															)
+															const commandText = commandMessage?.text || ""
+															const pattern = extractCommandPattern(commandText)
+
+															// Add to whitelist without running
+															vscode.postMessage({
+																type: "addToWhitelist",
+																pattern: pattern,
+															})
+
+															// Clear the ask state
+															setSendingDisabled(true)
+															setClineAsk(undefined)
+															setEnableButtons(false)
+														}}>
+														{t("chat:alwaysAllow.title")}
+													</VSCodeButton>
+												</StandardTooltip>
+											</div>
+										</div>
+									) : (
+										/* Standard two button layout */
+										<div className="flex">
+											{primaryButtonText && !isStreaming && (
+												<StandardTooltip
+													content={
+														primaryButtonText === t("chat:retry.title")
+															? t("chat:retry.tooltip")
+															: primaryButtonText === t("chat:save.title")
+																? t("chat:save.tooltip")
+																: primaryButtonText === t("chat:approve.title")
+																	? t("chat:approve.tooltip")
+																	: primaryButtonText === t("chat:runCommand.title")
+																		? t("chat:runCommand.tooltip")
 																		: primaryButtonText ===
-																			  t("chat:proceedAnyways.title")
-																			? t("chat:proceedAnyways.tooltip")
+																			  t("chat:startNewTask.title")
+																			? t("chat:startNewTask.tooltip")
 																			: primaryButtonText ===
-																				  t("chat:proceedWhileRunning.title")
-																				? t("chat:proceedWhileRunning.tooltip")
-																				: undefined
-											}>
-											<VSCodeButton
-												appearance="primary"
-												disabled={!enableButtons}
-												className={secondaryButtonText ? "flex-1 mr-[6px]" : "flex-[2] mr-0"}
-												onClick={() => handlePrimaryButtonClick(inputValue, selectedImages)}>
-												{primaryButtonText}
-											</VSCodeButton>
-										</StandardTooltip>
-									)}
-									{(secondaryButtonText || isStreaming) && (
-										<StandardTooltip
-											content={
-												isStreaming
-													? t("chat:cancel.tooltip")
-													: secondaryButtonText === t("chat:startNewTask.title")
-														? t("chat:startNewTask.tooltip")
-														: secondaryButtonText === t("chat:reject.title")
-															? t("chat:reject.tooltip")
-															: secondaryButtonText === t("chat:terminate.title")
-																? t("chat:terminate.tooltip")
-																: undefined
-											}>
-											<VSCodeButton
-												appearance="secondary"
-												disabled={!enableButtons && !(isStreaming && !didClickCancel)}
-												className={isStreaming ? "flex-[2] ml-0" : "flex-1 ml-[6px]"}
-												onClick={() => handleSecondaryButtonClick(inputValue, selectedImages)}>
-												{isStreaming ? t("chat:cancel.title") : secondaryButtonText}
-											</VSCodeButton>
-										</StandardTooltip>
+																				  t("chat:resumeTask.title")
+																				? t("chat:resumeTask.tooltip")
+																				: primaryButtonText ===
+																					  t("chat:proceedAnyways.title")
+																					? t("chat:proceedAnyways.tooltip")
+																					: primaryButtonText ===
+																						  t(
+																								"chat:proceedWhileRunning.title",
+																						  )
+																						? t(
+																								"chat:proceedWhileRunning.tooltip",
+																							)
+																						: undefined
+													}>
+													<VSCodeButton
+														appearance="primary"
+														disabled={!enableButtons}
+														className={
+															secondaryButtonText ? "flex-1 mr-[6px]" : "flex-[2] mr-0"
+														}
+														onClick={() =>
+															handlePrimaryButtonClick(inputValue, selectedImages)
+														}>
+														{primaryButtonText}
+													</VSCodeButton>
+												</StandardTooltip>
+											)}
+											{(secondaryButtonText || isStreaming) && (
+												<StandardTooltip
+													content={
+														isStreaming
+															? t("chat:cancel.tooltip")
+															: secondaryButtonText === t("chat:startNewTask.title")
+																? t("chat:startNewTask.tooltip")
+																: secondaryButtonText === t("chat:reject.title")
+																	? t("chat:reject.tooltip")
+																	: secondaryButtonText === t("chat:terminate.title")
+																		? t("chat:terminate.tooltip")
+																		: undefined
+													}>
+													<VSCodeButton
+														appearance="secondary"
+														disabled={!enableButtons && !(isStreaming && !didClickCancel)}
+														className={isStreaming ? "flex-[2] ml-0" : "flex-1 ml-[6px]"}
+														onClick={() =>
+															handleSecondaryButtonClick(inputValue, selectedImages)
+														}>
+														{isStreaming ? t("chat:cancel.title") : secondaryButtonText}
+													</VSCodeButton>
+												</StandardTooltip>
+											)}
+										</div>
 									)}
 								</>
 							)}

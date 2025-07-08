@@ -12,7 +12,12 @@ import { marketplaceItemSchema } from "@roo-code/types"
 
 import { Mode } from "./modes"
 
-export type ClineAskResponse = "yesButtonClicked" | "noButtonClicked" | "messageResponse" | "objectResponse"
+export type ClineAskResponse =
+	| "yesButtonClicked"
+	| "noButtonClicked"
+	| "addAndRunButtonClicked"
+	| "messageResponse"
+	| "objectResponse"
 
 export type PromptMode = Mode | "enhance"
 
@@ -193,6 +198,7 @@ export interface WebviewMessage {
 		| "checkRulesDirectoryResult"
 		| "saveCodeIndexSettingsAtomic"
 		| "requestCodeIndexSecretStatus"
+		| "addToWhitelist"
 	text?: string
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "account"
@@ -234,6 +240,8 @@ export interface WebviewMessage {
 	visibility?: ShareVisibility // For share visibility
 	hasContent?: boolean // For checkRulesDirectoryResult
 	checkOnly?: boolean // For deleteCustomMode check
+	commandPattern?: string // For "Add & Run" button - the extracted command pattern to whitelist
+	pattern?: string // For "addToWhitelist" message - the command pattern to add to whitelist
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

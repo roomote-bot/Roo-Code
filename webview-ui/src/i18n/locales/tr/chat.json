@@ -59,6 +59,14 @@
 		"title": "Komutu Çalıştır",
 		"tooltip": "Bu komutu çalıştır"
 	},
+	"addAndRunCommand": {
+		"title": "Ekle ve Çalıştır",
+		"tooltip": "Komut desenini beyaz listeye ekle ve çalıştır"
+	},
+	"alwaysAllow": {
+		"title": "Her zaman izin ver",
+		"tooltip": "Bu komut desenini beyaz listeye ekle"
+	},
 	"proceedWhileRunning": {
 		"title": "Çalışırken Devam Et",
 		"tooltip": "Uyarılara rağmen devam et"

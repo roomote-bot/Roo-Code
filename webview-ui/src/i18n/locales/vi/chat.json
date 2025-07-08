@@ -59,6 +59,14 @@
 		"title": "Chạy lệnh",
 		"tooltip": "Thực thi lệnh này"
 	},
+	"addAndRunCommand": {
+		"title": "Thêm & Chạy",
+		"tooltip": "Thêm mẫu lệnh vào danh sách trắng và chạy"
+	},
+	"alwaysAllow": {
+		"title": "Luôn cho phép",
+		"tooltip": "Thêm mẫu lệnh này vào danh sách trắng"
+	},
 	"proceedWhileRunning": {
 		"title": "Tiếp tục trong khi chạy",
 		"tooltip": "Tiếp tục bất chấp cảnh báo"
