@@ -219,33 +219,29 @@
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
-					"command": "roo-cline.mcpButtonClicked",
+					"command": "roo-cline.marketplaceButtonClicked",
 					"group": "navigation@2",
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
-					"command": "roo-cline.marketplaceButtonClicked",
+					"command": "roo-cline.settingsButtonClicked",
 					"group": "navigation@3",
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
+					"command": "roo-cline.mcpButtonClicked",
+					"when": "view == roo-cline.SidebarProvider"
+				},
+				{
 					"command": "roo-cline.historyButtonClicked",
-					"group": "navigation@4",
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
 					"command": "roo-cline.popoutButtonClicked",
-					"group": "navigation@5",
 					"when": "view == roo-cline.SidebarProvider"
 				},
 				{
 					"command": "roo-cline.accountButtonClicked",
-					"group": "navigation@6",
-					"when": "view == roo-cline.SidebarProvider"
-				},
-				{
-					"command": "roo-cline.settingsButtonClicked",
-					"group": "navigation@7",
 					"when": "view == roo-cline.SidebarProvider"
 				}
 			],
@@ -256,28 +252,29 @@
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				},
 				{
-					"command": "roo-cline.mcpButtonClicked",
+					"command": "roo-cline.marketplaceButtonClicked",
 					"group": "navigation@2",
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				},
 				{
-					"command": "roo-cline.marketplaceButtonClicked",
+					"command": "roo-cline.settingsButtonClicked",
 					"group": "navigation@3",
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				},
 				{
+					"command": "roo-cline.mcpButtonClicked",
+					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
+				},
+				{
 					"command": "roo-cline.historyButtonClicked",
-					"group": "navigation@4",
+					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
+				},
+				{
+					"command": "roo-cline.popoutButtonClicked",
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				},
 				{
 					"command": "roo-cline.accountButtonClicked",
-					"group": "navigation@5",
-					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
-				},
-				{
-					"command": "roo-cline.settingsButtonClicked",
-					"group": "navigation@6",
 					"when": "activeWebviewPanelId == roo-cline.TabPanelProvider"
 				}
 			]
