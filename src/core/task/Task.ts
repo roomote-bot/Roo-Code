@@ -87,6 +87,7 @@ import { ApiMessage } from "../task-persistence/apiMessages"
 import { getMessagesSinceLastSummary, summarizeConversation } from "../condense"
 import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
 import { restoreTodoListForTask } from "../tools/updateTodoListTool"
+import { TaskComplexityAnalyzer, DEFAULT_AUTO_TODO_CONFIG } from "./TaskComplexityAnalyzer"
 
 // Constants
 const MAX_EXPONENTIAL_BACKOFF_SECONDS = 600 // 10 minutes
@@ -742,6 +743,32 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		await this.say("text", task, images)
 		this.isInitialized = true
+
+		// Check if we should automatically create a TODO list for this task
+		if (task) {
+			try {
+				const analyzer = new TaskComplexityAnalyzer(DEFAULT_AUTO_TODO_CONFIG)
+				const analysis = analyzer.analyzeTask(task)
+
+				if (analysis.shouldCreateTodos && analysis.suggestedTodos.length > 0) {
+					// Create automatic TODO list without user intervention
+					this.todoList = analysis.suggestedTodos.map((todo, index) => ({
+						id: `auto-${index + 1}`,
+						content: todo,
+						status: "pending" as const,
+					}))
+
+					// Notify user that automatic TODO list was created
+					await this.say(
+						"text",
+						`📋 **Automatic TODO List Created**\n\nBased on the task complexity, I've created a TODO list to help track progress:\n\n${analysis.suggestedTodos.map((todo, i) => `${i + 1}. ${todo}`).join("\n")}\n\nI'll update this list as I work through the task.`,
+					)
+				}
+			} catch (error) {
+				// Don't let TODO creation errors interrupt task execution
+				console.warn("Failed to create automatic TODO list:", error)
+			}
+		}
 
 		let imageBlocks: Anthropic.ImageBlockParam[] = formatResponse.imageBlocks(images)
 
