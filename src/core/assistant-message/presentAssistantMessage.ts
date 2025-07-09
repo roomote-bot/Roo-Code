@@ -351,9 +351,10 @@ export async function presentAssistantMessage(cline: Task) {
 				TelemetryService.instance.captureToolUsage(cline.taskId, block.name)
 			}
 
-			// Validate tool use before execution.
+			// Get the provider and state
 			const { mode, customModes } = (await cline.providerRef.deref()?.getState()) ?? {}
 
+			// Always validate tool use
 			try {
 				validateToolUse(
 					block.name as ToolName,
@@ -363,8 +364,11 @@ export async function presentAssistantMessage(cline: Task) {
 					block.params,
 				)
 			} catch (error) {
+				// All validation errors should be treated as errors, including FileRestrictionError
+				// Auto-approval should not bypass mode restrictions
+				const validationError = error as Error
 				cline.consecutiveMistakeCount++
-				pushToolResult(formatResponse.toolError(error.message))
+				pushToolResult(formatResponse.toolError(validationError.message))
 				break
 			}
 
