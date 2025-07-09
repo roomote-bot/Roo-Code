@@ -123,13 +123,18 @@ describe("Timeout Integration Tests", () => {
 		expect(response).toContain("6s")
 		expect(response.length).toBeGreaterThan(50)
 
-		// The AI-generated tool call should be injected into the task's assistant message content
-		const toolUseBlock = mockTask.assistantMessageContent.find((block) => block.type === "tool_use")
-		expect(toolUseBlock).toBeDefined()
-		if (toolUseBlock?.type === "tool_use") {
-			expect(toolUseBlock.name).toBe("ask_followup_question")
-			expect(toolUseBlock.params?.question).toContain("timed out")
-		}
+		// The response should now contain instructions to use ask_followup_question
+		expect(response).toContain("You MUST now use the ask_followup_question tool")
+		expect(response).toContain("<ask_followup_question>")
+		expect(response).toContain("<question>")
+		expect(response).toContain("timed out")
+		expect(response).toContain("</question>")
+		expect(response).toContain("<follow_up>")
+		expect(response).toContain("</follow_up>")
+		expect(response).toContain("</ask_followup_question>")
+
+		// Verify that assistantMessageContent was NOT modified
+		expect(mockTask.assistantMessageContent).toHaveLength(0)
 	})
 
 	test("AbortSignal should be properly handled", async () => {

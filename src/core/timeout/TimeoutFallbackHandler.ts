@@ -3,7 +3,6 @@ import { formatResponse } from "../prompts/responses"
 import type { TimeoutFallbackContext } from "../prompts/instructions/timeout-fallback"
 import { TimeoutFallbackGenerator, type TimeoutFallbackResult } from "./TimeoutFallbackGenerator"
 import type { Task } from "../task/Task"
-import { parseAssistantMessage } from "../assistant-message/parseAssistantMessage"
 
 /**
  * Generates AI-powered fallback suggestions for timeout scenarios
@@ -44,36 +43,27 @@ export class TimeoutFallbackHandler {
 		// Generate AI-powered fallback (with static fallback if AI fails)
 		const aiResult = await TimeoutFallbackGenerator.generateAiFallback(aiContext, task)
 
-		if (aiResult.success && aiResult.toolCall && task) {
-			// Inject the tool call directly into the assistant message content for proper execution
-			this.injectToolCallIntoMessageContent(aiResult.toolCall, task)
-			return baseResponse
-		}
+		if (aiResult.success && aiResult.toolCall) {
+			// Instead of injecting the tool call, we'll return a response that instructs
+			// the model to ask a follow-up question in its next message
+			const { question, follow_up } = aiResult.toolCall.params
 
-		// This should rarely happen since generateAiFallback always provides static fallback
-		return `${baseResponse}\n\nThe operation timed out. Please consider breaking this into smaller steps or trying a different approach.`
-	}
+			// Format the response to explicitly instruct the model to ask the follow-up question
+			return `${baseResponse}
 
-	/**
-	 * Inject a tool call directly into the assistant message content for proper parsing and execution
-	 */
-	private static injectToolCallIntoMessageContent(toolCall: TimeoutFallbackResult["toolCall"], task: Task): void {
-		if (toolCall?.name === "ask_followup_question" && toolCall.params) {
-			const { question, follow_up } = toolCall.params
+The operation timed out. You MUST now use the ask_followup_question tool with the following parameters:
 
-			// Create the XML tool call string
-			const toolCallXml = `<ask_followup_question>
+<ask_followup_question>
 <question>${question}</question>
 <follow_up>
 ${follow_up}
 </follow_up>
-</ask_followup_question>`
+</ask_followup_question>
 
-			// Parse the tool call XML to create proper assistant message content
-			const parsedContent = parseAssistantMessage(toolCallXml)
-
-			// Add the parsed tool call to the assistant message content
-			task.assistantMessageContent.push(...parsedContent)
+This is required to help the user decide how to proceed after the timeout.`
 		}
+
+		// This should rarely happen since generateAiFallback always provides static fallback
+		return `${baseResponse}\n\nThe operation timed out. Please consider breaking this into smaller steps or trying a different approach.`
 	}
 }
