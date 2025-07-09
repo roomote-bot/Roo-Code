@@ -176,7 +176,7 @@
 			"description": "도구 작업이 시간 제한을 초과할 때 Roo가 처리하는 방법을 구성",
 			"timeoutFallbackEnabled": {
 				"label": "타임아웃 처리 활성화",
-				"description": "장시간 실행되는 작업을 자동으로 종료하고 대안을 제안합니다."
+				"description": "장시간 실행되는 도구 작업을 자동으로 종료하고 폴백 옵션을 제안합니다."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "도구 실행 타임아웃 (ms)",

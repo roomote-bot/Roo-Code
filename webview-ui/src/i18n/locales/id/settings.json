@@ -180,7 +180,7 @@
 			"description": "Konfigurasi cara Roo menangani operasi tool yang melebihi batas waktu",
 			"timeoutFallbackEnabled": {
 				"label": "Aktifkan penanganan timeout",
-				"description": "Otomatis menghentikan operasi yang berjalan lama dan menyarankan alternatif."
+				"description": "Otomatis menghentikan operasi alat yang berjalan lama dan menyarankan opsi fallback."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Timeout eksekusi tool (ms)",

@@ -176,7 +176,7 @@
 			"description": "Cấu hình cách Roo xử lý các thao tác công cụ vượt quá giới hạn thời gian",
 			"timeoutFallbackEnabled": {
 				"label": "Bật xử lý thời gian chờ",
-				"description": "Tự động kết thúc các thao tác chạy lâu và đề xuất các lựa chọn thay thế."
+				"description": "Tự động kết thúc các thao tác công cụ chạy lâu và đề xuất các tùy chọn dự phòng."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Thời gian chờ thực thi công cụ (ms)",

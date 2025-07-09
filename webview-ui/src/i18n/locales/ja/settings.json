@@ -176,7 +176,7 @@
 			"description": "ツール操作が制限時間を超えた場合のRooの処理方法を設定",
 			"timeoutFallbackEnabled": {
 				"label": "タイムアウト処理を有効にする",
-				"description": "長時間実行される操作を自動的に終了し、代替案を提案します。"
+				"description": "長時間実行されるツール操作を自動的に終了し、フォールバックオプションを提案します。"
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "ツール実行タイムアウト（ms）",

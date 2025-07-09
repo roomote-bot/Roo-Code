@@ -176,7 +176,7 @@
 			"description": "Configura com Roo gestiona les operacions d'eines que superen els seus límits de temps d'espera",
 			"timeoutFallbackEnabled": {
 				"label": "Habilitar gestió de temps d'espera",
-				"description": "Atura automàticament les operacions de llarga durada i suggereix opcions alternatives."
+				"description": "Atura automàticament les operacions d'eines de llarga durada i suggereix opcions alternatives."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Temps d'espera d'execució d'eines (ms)",

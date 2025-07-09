@@ -176,7 +176,7 @@
 			"description": "Configura cómo Roo maneja las operaciones de herramientas que exceden sus límites de tiempo",
 			"timeoutFallbackEnabled": {
 				"label": "Habilitar manejo de tiempo de espera",
-				"description": "Terminar automáticamente operaciones de larga duración y sugerir opciones alternativas."
+				"description": "Terminar automáticamente operaciones de herramientas de larga duración y sugerir opciones de respaldo."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Tiempo de espera de ejecución de herramienta (ms)",

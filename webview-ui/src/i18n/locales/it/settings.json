@@ -176,7 +176,7 @@
 			"description": "Configura come Roo gestisce le operazioni degli strumenti che superano i loro limiti di tempo",
 			"timeoutFallbackEnabled": {
 				"label": "Abilita gestione timeout",
-				"description": "Termina automaticamente le operazioni di lunga durata e suggerisci alternative."
+				"description": "Termina automaticamente le operazioni degli strumenti di lunga durata e suggerisci opzioni di fallback."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Timeout esecuzione strumento (ms)",

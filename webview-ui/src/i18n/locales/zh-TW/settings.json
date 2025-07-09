@@ -176,7 +176,7 @@
 			"description": "設定 Roo 如何處理超過時間限制的工具操作",
 			"timeoutFallbackEnabled": {
 				"label": "啟用逾時處理",
-				"description": "自動終止長時間執行的操作並建議替代方案。"
+				"description": "自動終止長時間執行的工具操作並建議備用選項。"
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "工具執行逾時 (ms)",

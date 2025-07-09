@@ -176,7 +176,7 @@
 			"description": "Roo'nun zaman sınırlarını aşan araç işlemlerini nasıl ele aldığını yapılandırın",
 			"timeoutFallbackEnabled": {
 				"label": "Zaman aşımı işlemeyi etkinleştir",
-				"description": "Uzun süren işlemleri otomatik olarak sonlandır ve alternatifler öner."
+				"description": "Uzun süren araç işlemlerini otomatik olarak sonlandır ve yedek seçenekler öner."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Araç yürütme zaman aşımı (ms)",

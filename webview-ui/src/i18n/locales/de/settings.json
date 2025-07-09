@@ -176,7 +176,7 @@
 			"description": "Konfiguriere, wie Roo mit Tool-Operationen umgeht, die ihre Zeitlimits überschreiten",
 			"timeoutFallbackEnabled": {
 				"label": "Zeitüberschreitungsbehandlung aktivieren",
-				"description": "Automatisch lang laufende Operationen beenden und Alternativen vorschlagen."
+				"description": "Automatisch lang laufende Tool-Operationen beenden und Fallback-Optionen vorschlagen."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Tool-Ausführungszeitlimit (ms)",
