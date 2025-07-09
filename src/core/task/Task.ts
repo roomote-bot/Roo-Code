@@ -28,6 +28,7 @@ import { CloudService } from "@roo-code/cloud"
 // api
 import { ApiHandler, ApiHandlerCreateMessageMetadata, buildApiHandler } from "../../api"
 import { ApiStream } from "../../api/transform/stream"
+import { UnifiedErrorHandler, ErrorContext } from "../../api/error-handling/UnifiedErrorHandler"
 
 // shared
 import { findLastIndex } from "../../shared/array"
@@ -88,6 +89,10 @@ import { getMessagesSinceLastSummary, summarizeConversation } from "../condense"
 import { maybeRemoveImageBlocks } from "../../api/transform/image-cleaning"
 import { restoreTodoListForTask } from "../tools/updateTodoListTool"
 
+// State management
+import { TaskStateLock, GlobalRateLimitManager } from "./TaskStateLock"
+import { StreamStateManager } from "./StreamStateManager"
+
 // Constants
 const MAX_EXPONENTIAL_BACKOFF_SECONDS = 600 // 10 minutes
 
@@ -146,7 +151,6 @@ export class Task extends EventEmitter<ClineEvents> {
 	// API
 	readonly apiConfiguration: ProviderSettings
 	api: ApiHandler
-	private static lastGlobalApiRequestTime?: number
 	private consecutiveAutoApprovedRequestsCount: number = 0
 
 	/**
@@ -154,7 +158,7 @@ export class Task extends EventEmitter<ClineEvents> {
 	 * @internal
 	 */
 	static resetGlobalApiRequestTime(): void {
-		Task.lastGlobalApiRequestTime = undefined
+		GlobalRateLimitManager.reset()
 	}
 
 	toolRepetitionDetector: ToolRepetitionDetector
@@ -207,6 +211,9 @@ export class Task extends EventEmitter<ClineEvents> {
 	didRejectTool = false
 	didAlreadyUseTool = false
 	didCompleteReadingStream = false
+
+	// Stream state management
+	private streamStateManager: StreamStateManager
 
 	constructor({
 		provider,
@@ -288,6 +295,7 @@ export class Task extends EventEmitter<ClineEvents> {
 		}
 
 		this.toolRepetitionDetector = new ToolRepetitionDetector(this.consecutiveMistakeLimit)
+		this.streamStateManager = new StreamStateManager(this)
 
 		onCreated?.(this)
 
@@ -1326,17 +1334,8 @@ export class Task extends EventEmitter<ClineEvents> {
 				this.didFinishAbortingStream = true
 			}
 
-			// Reset streaming state.
-			this.currentStreamingContentIndex = 0
-			this.assistantMessageContent = []
-			this.didCompleteReadingStream = false
-			this.userMessageContent = []
-			this.userMessageContentReady = false
-			this.didRejectTool = false
-			this.didAlreadyUseTool = false
-			this.presentAssistantMessageLocked = false
-			this.presentAssistantMessageHasPendingUpdates = false
-
+			// Reset streaming state using StreamStateManager
+			await this.streamStateManager.resetToInitialState()
 			await this.diffViewProvider.reset()
 
 			// Yields only if the first chunk is successful, otherwise will
@@ -1683,12 +1682,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		// Use the shared timestamp so that subtasks respect the same rate-limit
 		// window as their parent tasks.
-		if (Task.lastGlobalApiRequestTime) {
-			const now = Date.now()
-			const timeSinceLastRequest = now - Task.lastGlobalApiRequestTime
-			const rateLimit = apiConfiguration?.rateLimitSeconds || 0
-			rateLimitDelay = Math.ceil(Math.max(0, rateLimit * 1000 - timeSinceLastRequest) / 1000)
-		}
+		rateLimitDelay = await GlobalRateLimitManager.calculateRateLimitDelay(apiConfiguration?.rateLimitSeconds || 0)
 
 		// Only show rate limiting message if we're not retrying. If retrying, we'll include the delay there.
 		if (rateLimitDelay > 0 && retryAttempt === 0) {
@@ -1702,7 +1696,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 		// Update last request time before making the request so that subsequent
 		// requests — even from new subtasks — will honour the provider's rate-limit.
-		Task.lastGlobalApiRequestTime = Date.now()
+		await GlobalRateLimitManager.updateLastRequestTime()
 
 		const systemPrompt = await this.getSystemPrompt()
 		const { contextTokens } = this.getTokenUsage()
@@ -1795,36 +1789,24 @@ export class Task extends EventEmitter<ClineEvents> {
 			this.isWaitingForFirstChunk = false
 		} catch (error) {
 			this.isWaitingForFirstChunk = false
+
+			// Use UnifiedErrorHandler for consistent error handling
+			const errorContext: ErrorContext = {
+				isStreaming: false, // First chunk failure, not streaming yet
+				provider: this.api.getModel().id,
+				modelId: this.api.getModel().id,
+				retryAttempt,
+				requestId: metadata.taskId,
+			}
+
+			const errorResponse = UnifiedErrorHandler.handle(error, errorContext)
+
 			// note that this api_req_failed ask is unique in that we only present this option if the api hasn't streamed any content yet (ie it fails on the first chunk due), as it would allow them to hit a retry button. However if the api failed mid-stream, it could be in any arbitrary state where some tools may have executed, so that error is handled differently and requires cancelling the task entirely.
-			if (autoApprovalEnabled && alwaysApproveResubmit) {
-				let errorMsg
-
-				if (error.error?.metadata?.raw) {
-					errorMsg = JSON.stringify(error.error.metadata.raw, null, 2)
-				} else if (error.message) {
-					errorMsg = error.message
-				} else {
-					errorMsg = "Unknown error"
-				}
-
+			if (autoApprovalEnabled && alwaysApproveResubmit && errorResponse.shouldRetry) {
 				const baseDelay = requestDelaySeconds || 5
-				let exponentialDelay = Math.min(
-					Math.ceil(baseDelay * Math.pow(2, retryAttempt)),
-					MAX_EXPONENTIAL_BACKOFF_SECONDS,
-				)
-
-				// If the error is a 429, and the error details contain a retry delay, use that delay instead of exponential backoff
-				if (error.status === 429) {
-					const geminiRetryDetails = error.errorDetails?.find(
-						(detail: any) => detail["@type"] === "type.googleapis.com/google.rpc.RetryInfo",
-					)
-					if (geminiRetryDetails) {
-						const match = geminiRetryDetails?.retryDelay?.match(/^(\d+)s$/)
-						if (match) {
-							exponentialDelay = Number(match[1]) + 1
-						}
-					}
-				}
+				let exponentialDelay =
+					errorResponse.retryDelay ||
+					Math.min(Math.ceil(baseDelay * Math.pow(2, retryAttempt)), MAX_EXPONENTIAL_BACKOFF_SECONDS)
 
 				// Wait for the greater of the exponential delay or the rate limit delay
 				const finalDelay = Math.max(exponentialDelay, rateLimitDelay)
@@ -1833,7 +1815,7 @@ export class Task extends EventEmitter<ClineEvents> {
 				for (let i = finalDelay; i > 0; i--) {
 					await this.say(
 						"api_req_retry_delayed",
-						`${errorMsg}\n\nRetry attempt ${retryAttempt + 1}\nRetrying in ${i} seconds...`,
+						`${errorResponse.formattedMessage}\n\nRetry attempt ${retryAttempt + 1}\nRetrying in ${i} seconds...`,
 						undefined,
 						true,
 					)
@@ -1842,7 +1824,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 				await this.say(
 					"api_req_retry_delayed",
-					`${errorMsg}\n\nRetry attempt ${retryAttempt + 1}\nRetrying now...`,
+					`${errorResponse.formattedMessage}\n\nRetry attempt ${retryAttempt + 1}\nRetrying now...`,
 					undefined,
 					false,
 				)
@@ -1853,10 +1835,7 @@ export class Task extends EventEmitter<ClineEvents> {
 
 				return
 			} else {
-				const { response } = await this.ask(
-					"api_req_failed",
-					error.message ?? JSON.stringify(serializeError(error), null, 2),
-				)
+				const { response } = await this.ask("api_req_failed", errorResponse.formattedMessage)
 
 				if (response !== "yesButtonClicked") {
 					// This will never happen since if noButtonClicked, we will
