@@ -71,7 +71,7 @@ export const AutoApproveSettings = ({
 	followupAutoApproveTimeoutMs = 60000,
 	allowedCommands,
 	timeoutFallbackEnabled,
-	toolExecutionTimeoutMs,
+	toolExecutionTimeoutMs = 60000,
 	setCachedStateField,
 	...props
 }: AutoApproveSettingsProps) => {

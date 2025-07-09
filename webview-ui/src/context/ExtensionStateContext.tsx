@@ -46,7 +46,7 @@ export interface ExtensionStateContextType extends ExtensionState {
 	setFollowupAutoApproveTimeoutMs: (value: number) => void // Setter for the timeout
 	timeoutFallbackEnabled?: boolean // New property for timeout fallback enabled
 	setTimeoutFallbackEnabled: (value: boolean) => void // Setter for timeout fallback enabled
-	toolExecutionTimeoutMs?: number // New property for tool execution timeout
+	toolExecutionTimeoutMs: number | undefined // New property for tool execution timeout
 	setToolExecutionTimeoutMs: (value: number) => void // Setter for tool execution timeout
 	condensingApiConfigId?: string
 	setCondensingApiConfigId: (value: string) => void
@@ -230,7 +230,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 		alwaysAllowUpdateTodoList: true,
 		// Timeout settings
 		timeoutFallbackEnabled: false, // Default to disabled
-		toolExecutionTimeoutMs: 300000, // 5 minutes default
+		toolExecutionTimeoutMs: undefined, // Will be set from global settings
 	})
 
 	const [didHydrateState, setDidHydrateState] = useState(false)
@@ -245,7 +245,7 @@ export const ExtensionStateContextProvider: React.FC<{ children: React.ReactNode
 	const [alwaysAllowFollowupQuestions, setAlwaysAllowFollowupQuestions] = useState(false) // Add state for follow-up questions auto-approve
 	const [followupAutoApproveTimeoutMs, setFollowupAutoApproveTimeoutMs] = useState<number | undefined>(undefined) // Will be set from global settings
 	const [timeoutFallbackEnabled, setTimeoutFallbackEnabledState] = useState(false) // Add state for timeout fallback enabled
-	const [toolExecutionTimeoutMs, setToolExecutionTimeoutMsState] = useState<number>(300000) // Add state for tool execution timeout (5 minutes default)
+	const [toolExecutionTimeoutMs, setToolExecutionTimeoutMsState] = useState<number | undefined>(undefined) // Will be set from global settings
 	const [marketplaceInstalledMetadata, setMarketplaceInstalledMetadata] = useState<MarketplaceInstalledMetadata>({
 		project: {},
 		global: {},

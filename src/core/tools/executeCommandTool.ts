@@ -16,6 +16,8 @@ import { TerminalRegistry } from "../../integrations/terminal/TerminalRegistry"
 import { Terminal } from "../../integrations/terminal/Terminal"
 import { ToolExecutionWrapper, TimeoutFallbackHandler } from "../timeout"
 
+const DEFAULT_TOOL_EXECUTION_TIMEOUT_MS = 60000 // 1 minute default
+
 class ShellIntegrationError extends Error {}
 
 export async function executeCommandTool(
@@ -64,7 +66,7 @@ export async function executeCommandTool(
 			const {
 				terminalOutputLineLimit = 500,
 				terminalShellIntegrationDisabled = false,
-				toolExecutionTimeoutMs = 300000, // 5 minutes default
+				toolExecutionTimeoutMs = 60000, // 1 minute default
 			} = clineProviderState ?? {}
 
 			const options: ExecuteCommandOptions = {
@@ -136,7 +138,7 @@ export async function executeCommand(
 	// Get timeout from settings if not provided
 	const clineProvider = await cline.providerRef.deref()
 	const clineProviderState = await clineProvider?.getState()
-	const defaultTimeoutMs = clineProviderState?.toolExecutionTimeoutMs ?? 300000 // 5 minutes default
+	const defaultTimeoutMs = clineProviderState?.toolExecutionTimeoutMs ?? DEFAULT_TOOL_EXECUTION_TIMEOUT_MS
 	const actualTimeoutMs = timeoutMs ?? defaultTimeoutMs
 	const timeoutFallbackEnabled = clineProviderState?.timeoutFallbackEnabled ?? true
 

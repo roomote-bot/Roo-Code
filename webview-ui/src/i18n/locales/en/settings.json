@@ -176,7 +176,7 @@
 			"description": "Configure how Roo handles tool operations that exceed their timeout limits",
 			"timeoutFallbackEnabled": {
 				"label": "Enable timeout handling",
-				"description": "Enable automatic timeout detection and fallback suggestions for long-running operations"
+				"description": "Automatically timeout long-running operations and suggest fallback options."
 			},
 			"toolExecutionTimeoutMs": {
 				"label": "Tool execution timeout (ms)",

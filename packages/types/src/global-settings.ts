@@ -231,7 +231,7 @@ export const EVALS_SETTINGS: RooCodeSettings = {
 	enableCheckpoints: false,
 
 	// Timeout settings
-	toolExecutionTimeoutMs: 300000, // 5 minutes default
+	toolExecutionTimeoutMs: 60000, // 1 minute default
 	timeoutFallbackEnabled: false,
 
 	rateLimitSeconds: 0,

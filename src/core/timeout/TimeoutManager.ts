@@ -32,10 +32,10 @@ export class TimeoutManager extends EventEmitter {
 	private static instance: TimeoutManager | undefined
 	private activeOperations = new Map<string, AbortController>()
 	/**
-	 * Multiple timeout events can be run at once
-	 * eg. running a command while reading a file
+	 * Assumes there is only on active tool-- does not timeout edge cases
+	 * like "Proceed While Running"
 	 */
-	private timeoutEvents: TimeoutEvent[] = []
+	private lastTimeoutEvent: TimeoutEvent | null = null
 
 	private constructor() {
 		super()
@@ -93,7 +93,7 @@ export class TimeoutManager extends EventEmitter {
 			const timedOut = controller.signal.aborted
 
 			if (timedOut) {
-				// Log timeout event
+				// Store the last timeout event
 				const timeoutEvent: TimeoutEvent = {
 					toolName: config.toolName,
 					timeoutMs: config.timeoutMs,
@@ -102,7 +102,7 @@ export class TimeoutManager extends EventEmitter {
 					timestamp: Date.now(),
 				}
 
-				this.timeoutEvents.push(timeoutEvent)
+				this.lastTimeoutEvent = timeoutEvent
 				this.emit("timeout", timeoutEvent)
 
 				return {
@@ -154,17 +154,17 @@ export class TimeoutManager extends EventEmitter {
 	}
 
 	/**
-	 * Get timeout events for debugging/monitoring
+	 * Get the last timeout event
 	 */
-	public getTimeoutEvents(limit = 100): TimeoutEvent[] {
-		return this.timeoutEvents.slice(-limit)
+	public getLastTimeoutEvent(): TimeoutEvent | null {
+		return this.lastTimeoutEvent
 	}
 
 	/**
-	 * Clear timeout event history
+	 * Clear the last timeout event
 	 */
-	public clearTimeoutEvents(): void {
-		this.timeoutEvents = []
+	public clearLastTimeoutEvent(): void {
+		this.lastTimeoutEvent = null
 	}
 
 	/**
@@ -183,7 +183,7 @@ export class TimeoutManager extends EventEmitter {
 	}
 
 	private generateOperationId(toolName: ToolName, taskId?: string): string {
-		return `${toolName}:${taskId || "default"}:${Date.now()}`
+		return `${toolName}:${taskId || "default"}`
 	}
 
 	/**
@@ -192,7 +192,7 @@ export class TimeoutManager extends EventEmitter {
 	public dispose(): void {
 		this.cancelAllOperations()
 		this.removeAllListeners()
-		this.timeoutEvents = []
+		this.lastTimeoutEvent = null
 	}
 }
 
