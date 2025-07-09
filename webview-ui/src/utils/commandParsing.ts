@@ -1,4 +1,5 @@
-import { COMMAND_OUTPUT_STRING } from "./combineCommandSequences"
+// Define the constant locally since it's a simple string
+const COMMAND_OUTPUT_STRING = "Output:"
 
 export interface ParsedCommand {
 	command: string

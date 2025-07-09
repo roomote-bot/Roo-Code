@@ -6,10 +6,10 @@ import { CommandExecutionStatus, commandExecutionStatusSchema } from "@roo-code/
 
 import { ExtensionMessage } from "@roo/ExtensionMessage"
 import { safeJsonParse } from "@roo/safeJsonParse"
-import { parseCommandAndOutput } from "@roo/commandParsing"
 
 import { vscode } from "@src/utils/vscode"
-import { extractCommandPattern, getPatternDescription } from "@src/utils/extract-command-pattern"
+import { parseCommandAndOutput } from "@src/utils/commandParsing"
+import { extractCommandPattern, getPatternDescription } from "@src/utils/commandPatterns"
 import { useExtensionState } from "@src/context/ExtensionStateContext"
 import { useAppTranslation } from "@src/i18n/TranslationContext"
 import { cn } from "@src/lib/utils"

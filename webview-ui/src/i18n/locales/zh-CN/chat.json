@@ -323,12 +323,12 @@
 		"ariaLabel": "版本 {{version}} - 点击查看发布说明"
 	},
 	"commandExecution": {
-		"whitelistSuggestions": "Suggested patterns to whitelist for automatic approval:",
-		"running": "Running",
+		"whitelistSuggestions": "建议的白名单模式，用于自动批准：",
+		"running": "运行中",
 		"pid": "PID: {{pid}}",
-		"exited": "Exited ({{exitCode}})",
-		"addToAllowedCommands": "Add to Allowed Auto-Execute Commands",
-		"allowAllNpmRun": "Allow all npm run commands",
-		"allowAllNpm": "Allow all npm commands"
+		"exited": "已退出 ({{exitCode}})",
+		"addToAllowedCommands": "添加到允许的自动执行命令",
+		"allowAllNpmRun": "允许所有 npm run 命令",
+		"allowAllNpm": "允许所有 npm 命令"
 	}
 }
