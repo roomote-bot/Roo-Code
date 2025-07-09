@@ -1,7 +1,17 @@
 import { Anthropic } from "@anthropic-ai/sdk"
 import type { AssistantMessageContent } from "../assistant-message"
-import type { Task } from "./Task"
 import { ClineApiReqCancelReason } from "../../shared/ExtensionMessage"
+import { EventBus } from "../events/EventBus"
+import {
+	StreamEventType,
+	StreamAbortEvent,
+	StreamResetEvent,
+	StreamStateChangeEvent,
+	UIUpdateEvent,
+	PartialMessageCleanupEvent,
+	ConversationHistoryUpdateEvent,
+	DiffUpdateEvent,
+} from "../events/types"
 
 /**
  * StreamState - Interface defining all streaming-related state properties
@@ -26,21 +36,21 @@ export interface StreamState {
  *
  * This class provides atomic stream state management to prevent corruption during
  * retry cycles, ensuring proper cleanup and coordination between streaming operations.
+ *
+ * Now uses EventBus for communication to break circular dependencies with Task.
  */
 export class StreamStateManager {
-	private task: Task
-	private initialState: Partial<StreamState> = {}
+	private taskId: string
+	private state: StreamState
+	private initialState: StreamState
 	private isAborting: boolean = false
+	private eventBus: EventBus
 
-	constructor(task: Task) {
-		this.task = task
-		this.captureInitialState()
-	}
+	constructor(taskId: string, eventBus?: EventBus) {
+		this.taskId = taskId
+		this.eventBus = eventBus || EventBus.getInstance()
 
-	/**
-	 * Capture the initial clean state for reset operations
-	 */
-	private captureInitialState(): void {
+		// Initialize state
 		this.initialState = {
 			isStreaming: false,
 			currentStreamingContentIndex: 0,
@@ -55,38 +65,61 @@ export class StreamStateManager {
 			didFinishAbortingStream: false,
 			isWaitingForFirstChunk: false,
 		}
+
+		// Create a deep copy for the current state
+		this.state = { ...this.initialState }
+	}
+
+	/**
+	 * Get the event bus for subscribing to events
+	 */
+	getEventBus(): EventBus {
+		return this.eventBus
+	}
+
+	/**
+	 * Get the current stream state
+	 */
+	getState(): Readonly<StreamState> {
+		return { ...this.state }
+	}
+
+	/**
+	 * Update specific state properties
+	 */
+	updateState(updates: Partial<StreamState>): void {
+		const previousState = { ...this.state }
+		this.state = { ...this.state, ...updates }
+
+		// Emit state change event
+		this.emitStateChangeEvent("changed", { previousState, currentState: this.state })
 	}
 
 	/**
 	 * Atomically reset all streaming state to initial clean state
 	 */
 	async resetToInitialState(): Promise<void> {
-		// Ensure no concurrent abort operations
-		if (this.isAborting) {
-			return
-		}
-
 		try {
-			// Ensure any pending diff operations are reverted
-			if (this.task.diffViewProvider.isEditing) {
-				await this.task.diffViewProvider.revertChanges()
+			// Emit event to request diff view revert if needed
+			if (this.state.isStreaming || this.state.assistantMessageContent.length > 0) {
+				this.emitDiffUpdateEvent("revert")
 			}
 
-			// Reset all streaming state atomically
-			Object.assign(this.task, this.initialState)
+			// Reset state to initial values
+			this.state = { ...this.initialState }
 
-			// Clear any partial content arrays
-			this.task.assistantMessageContent.length = 0
-			this.task.userMessageContent.length = 0
+			// Clear arrays
+			this.state.assistantMessageContent = []
+			this.state.userMessageContent = []
 
-			// Reset diff provider state
-			await this.task.diffViewProvider.reset()
+			// Emit reset event
+			this.emitResetEvent("State reset to initial")
 		} catch (error) {
 			console.error("Error resetting stream state:", error)
-			// Continue with state reset even if diff operations fail
-			Object.assign(this.task, this.initialState)
-			this.task.assistantMessageContent.length = 0
-			this.task.userMessageContent.length = 0
+			// Continue with state reset even if event emission fails
+			this.state = { ...this.initialState }
+			this.state.assistantMessageContent = []
+			this.state.userMessageContent = []
 		}
 	}
 
@@ -100,21 +133,30 @@ export class StreamStateManager {
 		}
 
 		this.isAborting = true
-
-		// Mark as aborting to prevent concurrent operations
-		this.task.didFinishAbortingStream = false
+		this.state.didFinishAbortingStream = false
 
 		try {
-			// Revert any pending changes first
-			if (this.task.diffViewProvider.isEditing) {
-				await this.task.diffViewProvider.revertChanges()
-			}
+			// Emit event to revert any pending changes
+			this.emitDiffUpdateEvent("revert")
 
-			// Handle partial messages consistently
+			// Handle partial messages
 			await this.handlePartialMessageCleanup()
 
-			// Add interruption message to conversation history
-			await this.addInterruptionToHistory(cancelReason, streamingFailedMessage)
+			// Reconstruct assistant message for interruption
+			let assistantMessage = ""
+			for (const content of this.state.assistantMessageContent) {
+				if (content.type === "text") {
+					assistantMessage += content.content
+				}
+			}
+
+			// Emit event to add interruption to history
+			if (assistantMessage) {
+				this.emitConversationHistoryUpdateEvent(cancelReason, assistantMessage)
+			}
+
+			// Emit abort event
+			this.emitAbortEvent(cancelReason, streamingFailedMessage, assistantMessage)
 
 			// Reset stream state
 			await this.resetToInitialState()
@@ -124,65 +166,18 @@ export class StreamStateManager {
 			await this.resetToInitialState()
 		} finally {
 			// Always mark as finished aborting and reset abort flag
-			this.task.didFinishAbortingStream = true
+			this.state.didFinishAbortingStream = true
 			this.isAborting = false
 		}
 	}
 
 	/**
-	 * Handle cleanup of partial messages in conversation history
+	 * Handle cleanup of partial messages
 	 */
 	private async handlePartialMessageCleanup(): Promise<void> {
-		try {
-			const lastMessage = this.task.clineMessages.at(-1)
-			if (lastMessage && lastMessage.partial) {
-				lastMessage.partial = false
-				// Use the public method or delegate to task
-				await (this.task as any).saveClineMessages()
-			}
-		} catch (error) {
-			console.error("Error cleaning up partial messages:", error)
-			// Don't throw - this is cleanup, continue with abort
-		}
-	}
-
-	/**
-	 * Add interruption message to API conversation history
-	 */
-	private async addInterruptionToHistory(
-		cancelReason: ClineApiReqCancelReason,
-		streamingFailedMessage?: string,
-	): Promise<void> {
-		try {
-			// Reconstruct assistant message from current content
-			let assistantMessage = ""
-			for (const content of this.task.assistantMessageContent) {
-				if (content.type === "text") {
-					assistantMessage += content.content
-				}
-			}
-
-			if (assistantMessage) {
-				const interruptionText = `\n\n[${
-					cancelReason === "streaming_failed"
-						? "Response interrupted by API Error"
-						: "Response interrupted by user"
-				}]`
-
-				await (this.task as any).addToApiConversationHistory({
-					role: "assistant",
-					content: [
-						{
-							type: "text",
-							text: assistantMessage + interruptionText,
-						},
-					],
-				})
-			}
-		} catch (error) {
-			console.error("Error adding interruption to history:", error)
-			// Don't throw - this is cleanup, continue with abort
-		}
+		// Emit event for partial message cleanup
+		// The Task will handle the actual cleanup
+		this.emitPartialMessageCleanupEvent()
 	}
 
 	/**
@@ -193,51 +188,48 @@ export class StreamStateManager {
 		await this.resetToInitialState()
 
 		// Set initial streaming state
-		this.task.isStreaming = false // Will be set to true when stream starts
-		this.task.isWaitingForFirstChunk = false
-		this.task.didCompleteReadingStream = false
-		this.task.didFinishAbortingStream = false
+		this.updateState({
+			isStreaming: false,
+			isWaitingForFirstChunk: false,
+			didCompleteReadingStream: false,
+			didFinishAbortingStream: false,
+		})
 	}
 
 	/**
 	 * Mark streaming as started
 	 */
 	markStreamingStarted(): void {
-		this.task.isStreaming = true
-		this.task.isWaitingForFirstChunk = false
+		this.updateState({
+			isStreaming: true,
+			isWaitingForFirstChunk: false,
+		})
+		this.emitStateChangeEvent("started")
 	}
 
 	/**
 	 * Mark streaming as completed
 	 */
 	markStreamingCompleted(): void {
-		this.task.isStreaming = false
-		this.task.didCompleteReadingStream = true
+		this.updateState({
+			isStreaming: false,
+			didCompleteReadingStream: true,
+		})
+		this.emitStateChangeEvent("completed")
 	}
 
 	/**
 	 * Check if stream is in a safe state for operations
 	 */
 	isStreamSafe(): boolean {
-		return !this.isAborting && !this.task.abort && !this.task.abandoned
+		return !this.isAborting && this.state.isStreaming
 	}
 
 	/**
 	 * Get current stream state snapshot for debugging
 	 */
 	getStreamStateSnapshot(): Partial<StreamState> {
-		return {
-			isStreaming: this.task.isStreaming,
-			currentStreamingContentIndex: this.task.currentStreamingContentIndex,
-			presentAssistantMessageLocked: this.task.presentAssistantMessageLocked,
-			presentAssistantMessageHasPendingUpdates: this.task.presentAssistantMessageHasPendingUpdates,
-			userMessageContentReady: this.task.userMessageContentReady,
-			didRejectTool: this.task.didRejectTool,
-			didAlreadyUseTool: this.task.didAlreadyUseTool,
-			didCompleteReadingStream: this.task.didCompleteReadingStream,
-			didFinishAbortingStream: this.task.didFinishAbortingStream,
-			isWaitingForFirstChunk: this.task.isWaitingForFirstChunk,
-		}
+		return { ...this.state }
 	}
 
 	/**
@@ -246,9 +238,120 @@ export class StreamStateManager {
 	 */
 	forceCleanup(): void {
 		this.isAborting = false
-		this.task.isStreaming = false
-		this.task.didFinishAbortingStream = true
-		this.task.assistantMessageContent.length = 0
-		this.task.userMessageContent.length = 0
+		this.state.isStreaming = false
+		this.state.didFinishAbortingStream = true
+		this.state.assistantMessageContent = []
+		this.state.userMessageContent = []
+	}
+
+	// Event emission methods
+
+	private emitStateChangeEvent(
+		state: "started" | "completed" | "aborted" | "reset" | "changed",
+		metadata?: any,
+	): void {
+		const event: StreamStateChangeEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			state,
+			metadata,
+		}
+		this.eventBus.emitEvent(StreamEventType.STREAM_STATE_CHANGED, event)
+
+		// Also emit specific events
+		switch (state) {
+			case "started":
+				this.eventBus.emitEvent(StreamEventType.STREAM_STARTED, event)
+				break
+			case "completed":
+				this.eventBus.emitEvent(StreamEventType.STREAM_COMPLETED, event)
+				break
+		}
+	}
+
+	private emitAbortEvent(
+		cancelReason: ClineApiReqCancelReason,
+		streamingFailedMessage?: string,
+		assistantMessage?: string,
+	): void {
+		const event: StreamAbortEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			cancelReason,
+			streamingFailedMessage,
+			assistantMessage,
+		}
+		this.eventBus.emitEvent(StreamEventType.STREAM_ABORTED, event)
+	}
+
+	private emitResetEvent(reason?: string): void {
+		const event: StreamResetEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			reason,
+		}
+		this.eventBus.emitEvent(StreamEventType.STREAM_RESET, event)
+	}
+
+	private emitUIUpdateEvent(type: "diff_view_update" | "diff_view_revert" | "message_update", data?: any): void {
+		const event: UIUpdateEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			type,
+			data,
+		}
+
+		if (type === "diff_view_revert") {
+			this.eventBus.emitEvent(StreamEventType.DIFF_VIEW_REVERT_NEEDED, event)
+		} else {
+			this.eventBus.emitEvent(StreamEventType.DIFF_VIEW_UPDATE_NEEDED, event)
+		}
+	}
+
+	private emitPartialMessageCleanupEvent(): void {
+		const event: PartialMessageCleanupEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			messageIndex: -1, // Task will determine the actual index
+			message: null,
+		}
+		this.eventBus.emitEvent(StreamEventType.PARTIAL_MESSAGE_CLEANUP_NEEDED, event)
+	}
+
+	private emitConversationHistoryUpdateEvent(interruptionReason: string, assistantMessage: string): void {
+		const event: ConversationHistoryUpdateEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			role: "assistant",
+			content: [
+				{
+					type: "text",
+					text:
+						assistantMessage +
+						`\n\n[${
+							interruptionReason === "streaming_failed"
+								? "Response interrupted by API Error"
+								: "Response interrupted by user"
+						}]`,
+				},
+			],
+			interruptionReason,
+		}
+		this.eventBus.emitEvent(StreamEventType.CONVERSATION_HISTORY_UPDATE_NEEDED, event)
+	}
+
+	private emitDiffUpdateEvent(
+		action: "apply" | "revert" | "reset" | "show" | "hide",
+		filePath?: string,
+		metadata?: Record<string, any>,
+	): void {
+		const event: DiffUpdateEvent = {
+			taskId: this.taskId,
+			timestamp: Date.now(),
+			action,
+			filePath,
+			metadata,
+		}
+		this.eventBus.emitEvent(StreamEventType.DIFF_UPDATE_NEEDED, event)
 	}
 }

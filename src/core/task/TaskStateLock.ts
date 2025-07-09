@@ -3,21 +3,57 @@
  *
  * This class prevents race conditions in shared state access during API retry cycles
  * by implementing a promise-based locking system that ensures sequential access to
- * critical resources like global rate limiting timestamps.
+ * critical resources.
  */
-
 export class TaskStateLock {
-	private static readonly locks = new Map<string, Promise<void>>()
+	private readonly locks = new Map<string, Promise<void>>()
+	private static instance: TaskStateLock
+
+	// Static methods for backward compatibility
+	static async acquire(lockKey: string): Promise<() => void> {
+		if (!TaskStateLock.instance) {
+			TaskStateLock.instance = new TaskStateLock()
+		}
+		return TaskStateLock.instance.acquire(lockKey)
+	}
+
+	static tryAcquire(lockKey: string): (() => void) | null {
+		if (!TaskStateLock.instance) {
+			TaskStateLock.instance = new TaskStateLock()
+		}
+		return TaskStateLock.instance.tryAcquire(lockKey)
+	}
+
+	static async withLock<T>(lockKey: string, fn: () => Promise<T> | T): Promise<T> {
+		if (!TaskStateLock.instance) {
+			TaskStateLock.instance = new TaskStateLock()
+		}
+		return TaskStateLock.instance.withLock(lockKey, fn)
+	}
+
+	static isLocked(lockKey: string): boolean {
+		if (!TaskStateLock.instance) {
+			TaskStateLock.instance = new TaskStateLock()
+		}
+		return TaskStateLock.instance.isLocked(lockKey)
+	}
+
+	static clearAllLocks(): void {
+		if (!TaskStateLock.instance) {
+			TaskStateLock.instance = new TaskStateLock()
+		}
+		TaskStateLock.instance.clearAllLocks()
+	}
 
 	/**
 	 * Acquire an exclusive lock for the given key
 	 * @param lockKey - Unique identifier for the resource being locked
 	 * @returns Promise that resolves to a release function
 	 */
-	static async acquire(lockKey: string): Promise<() => void> {
+	async acquire(lockKey: string): Promise<() => void> {
 		// Wait for existing lock to be released
-		while (TaskStateLock.locks.has(lockKey)) {
-			await TaskStateLock.locks.get(lockKey)
+		while (this.locks.has(lockKey)) {
+			await this.locks.get(lockKey)
 		}
 
 		// Create new lock
@@ -26,10 +62,10 @@ export class TaskStateLock {
 			releaseLock = resolve
 		})
 
-		TaskStateLock.locks.set(lockKey, lockPromise)
+		this.locks.set(lockKey, lockPromise)
 
 		return () => {
-			TaskStateLock.locks.delete(lockKey)
+			this.locks.delete(lockKey)
 			releaseLock!()
 		}
 	}
@@ -39,8 +75,8 @@ export class TaskStateLock {
 	 * @param lockKey - Unique identifier for the resource being locked
 	 * @returns Release function if lock acquired, null if lock unavailable
 	 */
-	static tryAcquire(lockKey: string): (() => void) | null {
-		if (TaskStateLock.locks.has(lockKey)) {
+	tryAcquire(lockKey: string): (() => void) | null {
+		if (this.locks.has(lockKey)) {
 			return null // Lock not available
 		}
 
@@ -49,10 +85,10 @@ export class TaskStateLock {
 			releaseLock = resolve
 		})
 
-		TaskStateLock.locks.set(lockKey, lockPromise)
+		this.locks.set(lockKey, lockPromise)
 
 		return () => {
-			TaskStateLock.locks.delete(lockKey)
+			this.locks.delete(lockKey)
 			releaseLock!()
 		}
 	}
@@ -63,8 +99,8 @@ export class TaskStateLock {
 	 * @param fn - Function to execute while holding the lock
 	 * @returns Promise resolving to the function's return value
 	 */
-	static async withLock<T>(lockKey: string, fn: () => Promise<T> | T): Promise<T> {
-		const release = await TaskStateLock.acquire(lockKey)
+	async withLock<T>(lockKey: string, fn: () => Promise<T> | T): Promise<T> {
+		const release = await this.acquire(lockKey)
 		try {
 			return await fn()
 		} finally {
@@ -77,39 +113,43 @@ export class TaskStateLock {
 	 * @param lockKey - Unique identifier for the resource
 	 * @returns True if lock is active, false otherwise
 	 */
-	static isLocked(lockKey: string): boolean {
-		return TaskStateLock.locks.has(lockKey)
+	isLocked(lockKey: string): boolean {
+		return this.locks.has(lockKey)
 	}
 
 	/**
 	 * Clear all locks (for testing purposes)
 	 * @internal
 	 */
-	static clearAllLocks(): void {
-		for (const [lockKey, lockPromise] of TaskStateLock.locks) {
+	clearAllLocks(): void {
+		for (const [lockKey, lockPromise] of this.locks) {
 			// Resolve all pending locks to prevent deadlocks
 			lockPromise.then(() => {}).catch(() => {})
 		}
-		TaskStateLock.locks.clear()
+		this.locks.clear()
 	}
 }
+
+// Export the singleton instance for those who need it
+export const taskStateLock = new TaskStateLock()
 
 /**
  * GlobalRateLimitManager - Manages atomic access to global rate limiting state
  *
- * Provides thread-safe operations for updating and reading the global API request
- * timestamp used across all tasks and subtasks for rate limiting.
+ * @deprecated Use DependencyContainer.getInstance().resolve(ServiceKeys.GLOBAL_RATE_LIMIT_MANAGER) instead
+ *
+ * This class is kept for backward compatibility but will be removed in a future version.
+ * New code should use dependency injection to get the rate limit manager.
  */
 export class GlobalRateLimitManager {
 	private static lastApiRequestTime?: number
 	private static readonly LOCK_KEY = "global_rate_limit"
 
 	/**
-	 * Atomically update the last request time to the current timestamp
-	 * @returns The timestamp that was set
+	 * @deprecated Use IRateLimitManager.updateLastRequestTime() instead
 	 */
 	static async updateLastRequestTime(): Promise<number> {
-		return TaskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
+		return taskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
 			const now = Date.now()
 			GlobalRateLimitManager.lastApiRequestTime = now
 			return now
@@ -117,22 +157,19 @@ export class GlobalRateLimitManager {
 	}
 
 	/**
-	 * Atomically read the last request time
-	 * @returns The last request timestamp, or undefined if never set
+	 * @deprecated Use IRateLimitManager.getLastRequestTime() instead
 	 */
 	static async getLastRequestTime(): Promise<number | undefined> {
-		return TaskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
+		return taskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
 			return GlobalRateLimitManager.lastApiRequestTime
 		})
 	}
 
 	/**
-	 * Atomically calculate rate limit delay based on current time and rate limit
-	 * @param rateLimitSeconds - Rate limit in seconds
-	 * @returns Delay in seconds needed before next request
+	 * @deprecated Use IRateLimitManager.calculateRateLimitDelay() instead
 	 */
 	static async calculateRateLimitDelay(rateLimitSeconds: number): Promise<number> {
-		return TaskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
+		return taskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
 			if (!GlobalRateLimitManager.lastApiRequestTime) {
 				return 0
 			}
@@ -144,19 +181,17 @@ export class GlobalRateLimitManager {
 	}
 
 	/**
-	 * Reset the global timestamp (for testing purposes)
-	 * @internal
+	 * @deprecated Use IRateLimitManager.reset() instead
 	 */
 	static reset(): void {
 		GlobalRateLimitManager.lastApiRequestTime = undefined
 	}
 
 	/**
-	 * Check if rate limiting is active
-	 * @returns True if a previous request time exists
+	 * @deprecated Use IRateLimitManager.hasActiveRateLimit() instead
 	 */
 	static async hasActiveRateLimit(): Promise<boolean> {
-		return TaskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
+		return taskStateLock.withLock(GlobalRateLimitManager.LOCK_KEY, () => {
 			return GlobalRateLimitManager.lastApiRequestTime !== undefined
 		})
 	}
