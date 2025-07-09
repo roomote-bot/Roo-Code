@@ -1,9 +1,13 @@
 import { describe, test, expect, vi, beforeEach } from "vitest"
 import { TimeoutFallbackHandler } from "../TimeoutFallbackHandler"
-import { TimeoutFallbackGenerator, type TimeoutFallbackResult } from "../TimeoutFallbackGenerator"
+import { type TimeoutFallbackResult } from "../TimeoutFallbackHandler"
 import { Task } from "../../task/Task"
 
-vi.mock("../TimeoutFallbackGenerator")
+// Import the real module first
+import { TimeoutFallbackHandler as RealTimeoutFallbackHandler } from "../TimeoutFallbackHandler"
+
+// Mock only the generateAiFallback method
+vi.spyOn(RealTimeoutFallbackHandler, "generateAiFallback")
 
 describe("Tool Call Response Test", () => {
 	let mockTask: Task
@@ -20,7 +24,7 @@ describe("Tool Call Response Test", () => {
 	})
 
 	test("should return response with ask_followup_question tool instructions", async () => {
-		// Mock the TimeoutFallbackGenerator to return a successful AI result
+		// Mock the TimeoutFallbackHandler to return a successful AI result
 		const mockAiResult: TimeoutFallbackResult = {
 			success: true,
 			toolCall: {
@@ -34,7 +38,7 @@ describe("Tool Call Response Test", () => {
 		}
 
 		// Mock the generateAiFallback method
-		vi.mocked(TimeoutFallbackGenerator.generateAiFallback).mockResolvedValue(mockAiResult)
+		vi.mocked(RealTimeoutFallbackHandler.generateAiFallback).mockResolvedValue(mockAiResult)
 
 		// Call createTimeoutResponse
 		const response = await TimeoutFallbackHandler.createTimeoutResponse(
@@ -65,7 +69,7 @@ describe("Tool Call Response Test", () => {
 
 	test("should return fallback message when AI generation fails", async () => {
 		// Mock the generateAiFallback to return a failure
-		vi.mocked(TimeoutFallbackGenerator.generateAiFallback).mockResolvedValue({
+		vi.mocked(RealTimeoutFallbackHandler.generateAiFallback).mockResolvedValue({
 			success: false,
 			error: "AI generation failed",
 		})

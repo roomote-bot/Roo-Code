@@ -1,14 +1,14 @@
 // npx vitest run src/core/timeout/__tests__/ai-fallback-real.spec.ts
 
 import { describe, test, expect, beforeEach, vitest } from "vitest"
-import { TimeoutFallbackGenerator } from "../TimeoutFallbackGenerator"
+import { TimeoutFallbackHandler } from "../TimeoutFallbackHandler"
 import type { ApiHandler, SingleCompletionHandler } from "../../../api"
 import type { Task } from "../../task/Task"
 
 // Create a mock API handler that extends ApiHandler and includes completePrompt
 interface MockApiHandler extends ApiHandler, SingleCompletionHandler {}
 
-describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
+describe("TimeoutFallbackHandler - Real AI Implementation", () => {
 	let mockApiHandler: MockApiHandler
 	let mockTask: Partial<Task>
 
@@ -47,7 +47,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			toolParams: { command: "npm install" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()
@@ -80,7 +80,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			toolParams: { command: "npm test" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()
@@ -105,7 +105,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			toolParams: { path: "/large/file.txt" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, taskWithoutApi as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, taskWithoutApi as Task)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()
@@ -134,7 +134,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			toolParams: { command: "build script" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		const followUp = result.toolCall?.params.follow_up || ""
@@ -157,7 +157,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			toolParams: { action: "click" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		const followUp = result.toolCall?.params.follow_up || ""
@@ -183,7 +183,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			},
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 
@@ -216,7 +216,7 @@ describe("TimeoutFallbackGenerator - Real AI Implementation", () => {
 			toolParams: { path: "/output.txt" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		const followUp = result.toolCall?.params.follow_up || ""

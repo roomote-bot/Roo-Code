@@ -2,14 +2,14 @@
 // npx vitest run src/core/timeout/__tests__/e2e-ai-test.spec.ts
 
 import { describe, test, expect, beforeEach, vitest } from "vitest"
-import { TimeoutFallbackGenerator } from "../TimeoutFallbackGenerator"
+import { TimeoutFallbackHandler } from "../TimeoutFallbackHandler"
 import type { ApiHandler, SingleCompletionHandler } from "../../../api"
 import type { Task } from "../../task/Task"
 
 // Mock API handler that simulates a real AI provider
 interface TestApiHandler extends ApiHandler, SingleCompletionHandler {}
 
-describe("TimeoutFallbackGenerator - End-to-End AI Test", () => {
+describe("TimeoutFallbackHandler - End-to-End AI Test", () => {
 	test("should generate realistic AI suggestions for execute_command timeout", async () => {
 		// Create a realistic mock API handler
 		const mockApiHandler: TestApiHandler = {
@@ -42,7 +42,7 @@ Here are some suggestions for the npm install timeout:
 			},
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		// Verify the result structure
 		expect(result.success).toBe(true)
@@ -99,7 +99,7 @@ Based on the search_files timeout, here are my recommendations:
 			},
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()
@@ -134,7 +134,7 @@ Based on the search_files timeout, here are my recommendations:
 			},
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()
@@ -164,7 +164,7 @@ Based on the search_files timeout, here are my recommendations:
 			},
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context, mockTask as Task)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context, mockTask as Task)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()

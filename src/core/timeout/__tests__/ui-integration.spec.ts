@@ -1,5 +1,4 @@
 import { describe, it, expect, vi } from "vitest"
-import { TimeoutFallbackGenerator } from "../TimeoutFallbackGenerator"
 import { TimeoutFallbackHandler } from "../TimeoutFallbackHandler"
 
 describe("UI Integration - AI Timeout Fallbacks", () => {
@@ -11,7 +10,7 @@ describe("UI Integration - AI Timeout Fallbacks", () => {
 			toolParams: { command: "npm install" },
 		}
 
-		const result = await TimeoutFallbackGenerator.generateAiFallback(context)
+		const result = await TimeoutFallbackHandler.generateAiFallback(context)
 
 		expect(result.success).toBe(true)
 		expect(result.toolCall).toBeDefined()
